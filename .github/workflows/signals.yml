@@ -1,0 +1,42 @@
+name: Gold analysis
+on:
+  schedule:
+    - cron: "*/15 * * * 0-5"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: gold-analysis
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt yfinance
+      - run: python engine.py
+      - run: python levels.py
+      - run: python ict.py
+      - run: python confluence.py
+      - run: python news.py
+        continue-on-error: true
+      - run: python macro.py
+        continue-on-error: true
+      - run: python quality.py
+        continue-on-error: true
+      - run: python grade.py
+        continue-on-error: true
+      - run: python notify.py
+        continue-on-error: true
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Save results
+        run: |
+          git config user.name "analysis-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add latest.json signals.json levels.json ict.json confluence.json news.json macro.json quality.json grade.json grade_log.json notify_state.json 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Update analysis" && git pull --rebase && git push)
