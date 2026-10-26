@@ -68,7 +68,7 @@ header{background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-
 @media(prefers-reduced-motion:reduce){.card,.px small::before{animation:none}}
 h2{display:flex;align-items:center;gap:8px}h2::before{content:"";width:3px;height:11px;border-radius:2px;background:var(--gold)}
 #ch{border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line),0 12px 30px rgba(0,0,0,.35)}
-#tvchart{width:100%;height:330px;border-radius:14px;overflow:hidden;border:1px solid var(--line);display:none}
+#tvchart{width:100%;height:330px;border-radius:14px;overflow:hidden;border:1px solid var(--line);display:none;position:relative}
 .chip{text-transform:uppercase;letter-spacing:.06em;font-size:11px;transition:.15s}.chip.on{background:color-mix(in srgb,var(--gold) 14%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--gold) 30%,transparent)}
 .go{box-shadow:0 10px 26px color-mix(in srgb,var(--gold) 32%,transparent)}.go:active{transform:scale(.98)}
 .big,.tr b,.px,.lv span:last-child{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,monospace}
@@ -438,8 +438,63 @@ function initTVEngine() {
 
   tvChart.timeScale().fitContent();
 }
+let tvChart = null, tvSeries = null;
+function initTVEngine() {
+  const el = document.getElementById('tvchart');
+  const svgEl = document.getElementById('ch');
+  if (!el) return;
+  
+  if (!useTV) {
+    el.style.display = 'none';
+    svgEl.style.display = 'block';
+    drawSVG();
+    return;
+  }
+  
+  el.style.display = 'block';
+  svgEl.style.display = 'none';
+  el.innerHTML = '';
 
-/* ---------- CHART DRAWING ROUTINE ---------- */
+  const chartWidth = el.clientWidth || el.parentElement.clientWidth || 450;
+
+  tvChart = LightweightCharts.createChart(el, {
+    width: chartWidth,
+    height: 330,
+    layout: { background: { type: LightweightCharts.ColorType.Solid, color: '#131722' }, textColor: '#d1d4dc' },
+    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+    rightPriceScale: { borderColor: '#2a2e39' },
+    timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false }
+  });
+
+  tvSeries = tvChart.addCandlestickSeries({
+    upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+  });
+
+  const startTime = Math.floor(Date.now() / 1000) - (C.length * 300);
+  const tvData = C.map((k, idx) => ({
+    time: startTime + (idx * 300),
+    open: k.o, high: k.h, low: k.l, close: k.c
+  }));
+  
+  tvSeries.setData(tvData);
+
+  if (TR) {
+    tvSeries.createPriceLine({ price: TR.e, color: '#2962ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Strategy Entry' });
+    tvSeries.createPriceLine({ price: TR.sl, color: '#ef5350', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, title: 'Stop Loss' });
+    tvSeries.createPriceLine({ price: TR.tp2, color: '#26a69a', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid, title: 'Take Profit' });
+  }
+
+  tvChart.timeScale().fitContent();
+
+  window.addEventListener('resize', () => {
+    if (tvChart && el.clientWidth) {
+      tvChart.applyOptions({ width: el.clientWidth });
+    }
+  });
+}
+  
+/* ---------- CHART DRAWING ROUTINE ---------- */  
 function draw() {
   initTVEngine();
 }
