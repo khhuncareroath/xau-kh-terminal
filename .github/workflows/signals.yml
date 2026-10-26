@@ -36,7 +36,8 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       - name: Save results
         run: |
-          git config user.name "analysis-bot"
-          git config user.email "bot@users.noreply.github.com"
+          git config --global user.name "analysis-bot"
+          git config --global user.email "bot@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git add ict.json confluence.json levels.json news.json macro.json quality.json grade.json grade_log.json notify_state.json 2>/dev/null || true
           git diff --staged --quiet || (git commit -m "Update analysis live data" && git push)
