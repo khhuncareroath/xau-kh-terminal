@@ -406,12 +406,12 @@ function initTVEngine() {
   svgEl.style.display = 'none';
 
   tvChart = LightweightCharts.createChart(el, {
-    width: el.clientWidth,
+    width: el.clientWidth || 400,
     height: 330,
     layout: { background: { type: LightweightCharts.ColorType.Solid, color: '#131722' }, textColor: '#d1d4dc' },
     grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
     rightPriceScale: { borderColor: '#2a2e39' },
-    timeScale: { borderColor: '#2a2e39', timeVisible: true }
+    timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false }
   });
 
   tvSeries = tvChart.addCandlestickSeries({
@@ -419,19 +419,22 @@ function initTVEngine() {
     wickUpColor: '#26a69a', wickDownColor: '#ef5350'
   });
 
-  // Map 5m C data to TradingView time format
+  const startTime = Math.floor(Date.now() / 1000) - (C.length * 300);
   const tvData = C.map((k, idx) => ({
-    time: '2026-10-' + String(20 + Math.floor(idx/10)).padStart(2,'0') + ' ' + String(8 + Math.floor(idx%10)).padStart(2,'0') + ':00',
+    time: startTime + (idx * 300),
     open: k.o, high: k.h, low: k.l, close: k.c
   }));
+  
   tvSeries.setData(tvData);
 
-  // Strategy combo overlay markers (Order Blocks & VWAP)
   if (TR) {
     tvSeries.createPriceLine({ price: TR.e, color: '#2962ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Strategy Entry' });
     tvSeries.createPriceLine({ price: TR.sl, color: '#ef5350', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, title: 'Stop Loss' });
     tvSeries.createPriceLine({ price: TR.tp2, color: '#26a69a', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid, title: 'Take Profit' });
   }
+
+  tvChart.timeScale().fitContent();
+}
 
   tvChart.timeScale().fitContent();
 }
