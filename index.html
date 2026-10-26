@@ -6,6 +6,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Official TradingView Lightweight Charts Library CDN -->
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{--bg:#f4f0e6;--card:#fffdf7;--ink:#1a1a1f;--mut:#6d6f78;--line:#e2dccb;--gold:#9a6d10;--up:#0f8a5f;--dn:#c23d36;--vw:#2f6fd6;--vp:#8a6bd1;--warn:#b0701a;--sh:0 8px 24px rgba(40,30,10,.07);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0b0f;--card:#13151b;--ink:#f1efe8;--mut:#99a0ab;--line:#262a34;--gold:#e3b64f;--up:#3ecf8e;--dn:#f06a62;--vw:#5b9bff;--vp:#a98cff;--warn:#e5a23a;--sh:0 8px 28px rgba(0,0,0,.5)}}
@@ -66,6 +68,7 @@ header{background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-
 @media(prefers-reduced-motion:reduce){.card,.px small::before{animation:none}}
 h2{display:flex;align-items:center;gap:8px}h2::before{content:"";width:3px;height:11px;border-radius:2px;background:var(--gold)}
 #ch{border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line),0 12px 30px rgba(0,0,0,.35)}
+#tvchart{width:100%;height:330px;border-radius:14px;overflow:hidden;border:1px solid var(--line);display:none}
 .chip{text-transform:uppercase;letter-spacing:.06em;font-size:11px;transition:.15s}.chip.on{background:color-mix(in srgb,var(--gold) 14%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--gold) 30%,transparent)}
 .go{box-shadow:0 10px 26px color-mix(in srgb,var(--gold) 32%,transparent)}.go:active{transform:scale(.98)}
 .big,.tr b,.px,.lv span:last-child{font-variant-numeric:tabular-nums;font-family:"IBM Plex Mono",ui-monospace,monospace}
@@ -306,7 +309,14 @@ const py=y(D.price);s+=`<line x1="0" x2="${W}" y1="${py}" y2="${py}" stroke="var
 function now(){const c=CK.filter(x=>x[2]==="y").length;
 $("#now").innerHTML=`<div class="g2"><div class="card"><div class="row"><h2>Session state</h2><span class="chip g">${cd()}</span></div><div class="big">${SS.title}</div><p class="mut">${T(SS.text)}</p><div class="steps">${[0,1,2,3,4].map(i=>`<i class="${i<SS.n?"d":""}"></i>`).join("")}</div><div class="row mut" style="font-size:11px"><span>Waiting</span><span>Swept</span><span>Confirm</span><span>Active</span><span>Void</span></div><p style="margin-top:12px">${BAD()}</p></div>
 <div class="card"><h2>Timeframe alignment</h2><div class="tf">${D.tf.map(t=>`<div class="tfb" data-tf="${t[0]}" style="cursor:pointer"><b class="${t[2]}">${t[1]}</b>${t[0]}</div>`).join("")}</div><p class="mut" style="font-size:13px">Tap a timeframe to open it on the chart. ${TFNOTE()}</p></div>
-<div class="card"><h2>Chart · ICT + VWAP + Volume Profile${SMP()}</h2><div class="chips" id="tfs"></div><div class="chips" id="lay"></div><div id="ch"></div><p class="mut" style="font-size:13px">Tap a numbered marker, a zone band or a chip: each one explains why it happened on this chart.${GDS.live?" <b>The candles, the Analyst and the trade tester still use sample data. Zones, levels, bias and the checklist are live.</b>":""}</p><p class="mut" id="tfn" style="font-size:13px"></p><div class="chips"><button class="chip" data-pk="0">Set entry</button><button class="chip" data-pk="1">Set stop</button><button class="chip" data-pk="2">Set target</button><button class="chip" data-sim="1">Live sim</button><button class="chip" data-pk="3">Alert</button><button class="chip" data-pk="x">Off</button></div><p class="mut" id="pkm" style="font-size:13px">Pick a level above, then tap the chart. Levels snap to nearby zones. Tap the chart any time for a crosshair and candle readout.</p><div id="ex" class="lb" style="display:none"></div></div><div class="card"><h2>Analyst${SMP()}</h2><button class="go" id="go">Analyst: take the trade now</button><div id="tc"></div></div><div class="card"><h2>My trade · test your idea${SMP()}</h2><div class="chips"><button class="chip on" data-d="LONG">Long</button><button class="chip" data-d="SHORT">Short</button></div><div class="g3"><div><label>Entry</label><input id="mE" type="number" step="0.1" value="4118.4"></div><div><label>Stop</label><input id="mS" type="number" step="0.1" value="4110.4"></div><div><label>Take profit</label><input id="mT" type="number" step="0.1" value="4127"></div></div><button class="go" id="ma" style="margin-top:10px">Analyze my trade</button><div id="mr"></div></div>
+<div class="card">
+  <h2>Chart · ICT + VWAP + Volume Profile${SMP()}</h2>
+  <div class="chips" id="tfs"></div>
+  <div class="chips" id="lay"></div>
+  <button class="chip on" id="engineToggle" style="margin: 6px 0; display:block">Switch to TradingView Pro Engine</button>
+  <div id="ch"></div>
+  <div id="tvchart"></div>
+  <p class="mut" style="font-size:13px">Tap a numbered marker, a zone band or a chip: each one explains why it happened on this chart.${GDS.live?" <b>The candles, the Analyst and the trade tester still use sample data. Zones, levels, bias and the checklist are live.</b>":""}</p><p class="mut" id="tfn" style="font-size:13px"></p><div class="chips"><button class="chip" data-pk="0">Set entry</button><button class="chip" data-pk="1">Set stop</button><button class="chip" data-pk="2">Set target</button><button class="chip" data-sim="1">Live sim</button><button class="chip" data-pk="3">Alert</button><button class="chip" data-pk="x">Off</button></div><p class="mut" id="pkm" style="font-size:13px">Pick a level above, then tap the chart. Levels snap to nearby zones. Tap the chart any time for a crosshair and candle readout.</p><div id="ex" class="lb" style="display:none"></div></div><div class="card"><h2>Analyst${SMP()}</h2><button class="go" id="go">Analyst: take the trade now</button><div id="tc"></div></div><div class="card"><h2>My trade · test your idea${SMP()}</h2><div class="chips"><button class="chip on" data-d="LONG">Long</button><button class="chip" data-d="SHORT">Short</button></div><div class="g3"><div><label>Entry</label><input id="mE" type="number" step="0.1" value="4118.4"></div><div><label>Stop</label><input id="mS" type="number" step="0.1" value="4110.4"></div><div><label>Take profit</label><input id="mT" type="number" step="0.1" value="4127"></div></div><button class="go" id="ma" style="margin-top:10px">Analyze my trade</button><div id="mr"></div></div>
 <div class="card"><div class="row"><h2>Setup checklist</h2><b>${c} of 6</b></div>${CK.map(x=>`<div class="chk"><span class="dot ${x[2]}">${x[2]==="y"?"✓":x[2]==="p"?"~":"–"}</span><div><b>${x[0]}</b><div class="mut" style="font-size:13px">${x[1]}</div></div></div>`).join("")}<p class="mut" style="font-size:13px">${MISS()} The platform shows what is missing instead of saying “buy”.</p></div></div>`}
 function brief(){$("#brief").innerHTML=`<div class="g2"><div class="card"><h2>Bias</h2><div class="row"><div class="big ${BR.cls}">${BR.lean}</div><span class="chip">${BR.conf}</span></div><div class="bar" style="margin:10px 0"><i style="width:${BR.w}%"></i></div><h3>Evidence for</h3><ul>${BR.pro.map(x=>`<li>${x}</li>`).join("")}</ul><h3>Evidence against</h3><ul>${BR.con.map(x=>`<li>${x}</li>`).join("")}</ul></div>
 <div class="card"><h2>Scenarios</h2>${SCEN().map(z=>`<h3 class="${z.role==="support"?"up":"dn"}">${fo(z.lo)}–${fo(z.hi)} · ${z.role}</h3><p>${T(z.idea)}</p>`).join("")||'<p class="mut">No A or B zone has a playbook right now. Wait for price to approach a zone.</p>'}<p class="mut" style="font-size:13px">Ideas, not signals. Confirm with your own entry model.</p></div>
@@ -373,11 +383,65 @@ const G=[["ICT · where price is drawn",[
 ["bands","VWAP bands (σ)","Lines at ±1 and ±2 standard deviations of price around VWAP.","Roughly 68% of volume trades within ±1σ and 95% within ±2σ, so touching ±2σ is statistically stretched.","Bands widen as variance grows.","Fade ±2σ only with confirmation (a sweep or MSS). In strong trends, price can walk the band.",()=>`−1σ is ${f(V-S)} and −2σ is ${f(V-2*S)}. The OB sits near the lower bands.`,"vw"],
 ["combo","The Combo playbook","Confluence: ICT gives the trigger, VWAP gives the target, Volume Profile gives the location and exit.","Each tool shows a different layer: intent, fair price, accepted value. When they agree, risk is lower.","Count: sweep, MSS, OB/FVG, discount, below VWAP, away from POC.","Score ≥6/10 to trade. Stop beyond the sweep/OB, TP1 at VWAP, TP2 at POC/VAH.",()=>`This is the exact stack on the Desk: sweep → MSS → OB/FVG, with VWAP ${f(V)} and POC ${f(POC)} as targets.`,"ob"]]]];
 /* ---------- STATE ---------- */
-let lay={ict:1,vw:1,vp:1},TR=null;
+let lay={ict:1,vw:1,vp:1},TR=null,useTV=true;
 const flat=G.flatMap(g=>g[1]);let done={};try{done=JSON.parse(localStorage.getItem("gd")||"{}")}catch(e){}
 const y=p=>6+(HI-p)/(HI-LO)*312,x=i=>4+i*4.9;
-/* ---------- CHART ---------- */
-function draw(){const CS=SER[tf],f5=tf=="5m";if(f5){LO=4100;HI=4147}else{const q=CS.flatMap(k=>[k.h,k.l]).concat(TR?[TR.sl,TR.tp2,TR.e]:[],MY?[MY.sl,MY.tp]:[]);LO=Math.min(...q)-2;HI=Math.max(...q)+2}let s=`<svg viewBox="0 0 420 330"><defs><linearGradient id="bgp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--card)"/><stop offset="1" style="stop-color:var(--bg)"/></linearGradient><filter id="gl" x="-5%" y="-50%" width="110%" height="200%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="cUp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--up)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--up) 55%,#000)"/></linearGradient><linearGradient id="cDn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dn)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--dn) 55%,#000)"/></linearGradient><linearGradient id="zU" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--up);stop-opacity:.34"/><stop offset="1" style="stop-color:var(--up);stop-opacity:.06"/></linearGradient><linearGradient id="zD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dn);stop-opacity:.34"/><stop offset="1" style="stop-color:var(--dn);stop-opacity:.06"/></linearGradient><linearGradient id="zG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.4"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:.1"/></linearGradient></defs><radialGradient id="gw" cx="78%" cy="28%" r="75%"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.13"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:0"/></radialGradient><linearGradient id="vaG" x1="0" x2="1"><stop offset="0" style="stop-color:var(--vp);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--vp);stop-opacity:.11"/><stop offset="1" style="stop-color:var(--vp);stop-opacity:0"/></linearGradient><rect x="0" y="0" width="420" height="330" rx="14" fill="url(#bgp)"/><rect x="0" y="0" width="420" height="330" rx="14" fill="url(#gw)"/><text x="8" y="13" style="font:800 11px Fraunces,Georgia,serif;fill:var(--ink)">XAU/USD <tspan style="font:600 9px IBM Plex Mono,monospace;fill:var(--mut)">${tf} · sample</tspan></text><text x="172" y="176" text-anchor="middle" style="font:800 44px Fraunces,Georgia,serif;fill:var(--ink);opacity:.04">XAU/USD</text><text x="172" y="196" text-anchor="middle" style="font:600 12px IBM Plex Mono,monospace;fill:var(--ink);opacity:.05;letter-spacing:.3em">${tf} · SAMPLE</text>`;
+
+/* ---------- TRADINGVIEW LIGHTWEIGHT CHARTS ENGINE ---------- */
+let tvChart=null, tvSeries=null;
+function initTVEngine() {
+  const el = document.getElementById('tvchart');
+  const svgEl = document.getElementById('ch');
+  if (!el) return;
+  el.innerHTML = '';
+  
+  if (!useTV) {
+    el.style.display = 'none';
+    svgEl.style.display = 'block';
+    drawSVG();
+    return;
+  }
+  
+  el.style.display = 'block';
+  svgEl.style.display = 'none';
+
+  tvChart = LightweightCharts.createChart(el, {
+    width: el.clientWidth,
+    height: 330,
+    layout: { background: { type: LightweightCharts.ColorType.Solid, color: '#131722' }, textColor: '#d1d4dc' },
+    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+    rightPriceScale: { borderColor: '#2a2e39' },
+    timeScale: { borderColor: '#2a2e39', timeVisible: true }
+  });
+
+  tvSeries = tvChart.addCandlestickSeries({
+    upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+  });
+
+  // Map 5m C data to TradingView time format
+  const tvData = C.map((k, idx) => ({
+    time: '2026-10-' + String(20 + Math.floor(idx/10)).padStart(2,'0') + ' ' + String(8 + Math.floor(idx%10)).padStart(2,'0') + ':00',
+    open: k.o, high: k.h, low: k.l, close: k.c
+  }));
+  tvSeries.setData(tvData);
+
+  // Strategy combo overlay markers (Order Blocks & VWAP)
+  if (TR) {
+    tvSeries.createPriceLine({ price: TR.e, color: '#2962ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Strategy Entry' });
+    tvSeries.createPriceLine({ price: TR.sl, color: '#ef5350', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, title: 'Stop Loss' });
+    tvSeries.createPriceLine({ price: TR.tp2, color: '#26a69a', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid, title: 'Take Profit' });
+  }
+
+  tvChart.timeScale().fitContent();
+}
+
+/* ---------- CHART DRAWING ROUTINE ---------- */
+function draw() {
+  initTVEngine();
+}
+
+function drawSVG(){const CS=SER[tf],f5=tf=="5m";if(f5){LO=4100;HI=4147}else{const q=CS.flatMap(k=>[k.h,k.l]).concat(TR?[TR.sl,TR.tp2,TR.e]:[],MY?[MY.sl,MY.tp]:[]);LO=Math.min(...q)-2;HI=Math.max(...q)+2}let s=`<svg viewBox="0 0 420 330"><defs><linearGradient id="bgp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--card)"/><stop offset="1" style="stop-color:var(--bg)"/></linearGradient><filter id="gl" x="-5%" y="-50%" width="110%" height="200%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="cUp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--up)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--up) 55%,#000)"/></linearGradient><linearGradient id="cDn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dn)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--dn) 55%,#000)"/></linearGradient><linearGradient id="zU" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--up);stop-opacity:.34"/><stop offset="1" style="stop-color:var(--up);stop-opacity:.06"/></linearGradient><linearGradient id="zD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dn);stop-opacity:.34"/><stop offset="1" style="stop-color:var(--dn);stop-opacity:.06"/></linearGradient><linearGradient id="zG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.4"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:.1"/></linearGradient></defs><radialGradient id="gw" cx="78%" cy="28%" r="75%"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.13"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:0"/></radialGradient><linearGradient id="vaG" x1="0" x2="1"><stop offset="0" style="stop-color:var(--vp);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--vp);stop-opacity:.11"/><stop offset="1" style="stop-color:var(--vp);stop-opacity:0"/></linearGradient><rect x="0" y="0" width="420" height="330" rx="14" fill="url(#bgp)"/><rect x="0" y="0" width="420" height="330" rx="14" fill="url(#gw)"/><text x="8" y="13" style="font:800 11px Fraunces,Georgia,serif;fill:var(--ink)">XAU/USD <tspan style="font:600 9px IBM Plex Mono,monospace;fill:var(--mut)">${tf} · sample</tspan></text><text x="172" y="176" text-anchor="middle" style="font:800 44px Fraunces,Georgia,serif;fill:var(--ink);opacity:.04">XAU/USD</text><text x="172" y="196" text-anchor="middle" style="font:600 12px IBM Plex Mono,monospace;fill:var(--ink);opacity:.05;letter-spacing:.3em">${tf} · SAMPLE</text>`;
 for(let p=Math.ceil(LO/10)*10,st=HI-LO>70?20:10;p<HI;p+=st)s+=`<line x1="4" x2="340" y1="${y(p)}" y2="${y(p)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="6" y="${y(p)-2}">${p}</text>`;
 if(lay.vw&&f5){const pa=a=>a.map((v,i)=>`${i?"L":"M"}${x(i)+2},${y(v)}`).join("");
 [[2,.12],[1,.2]].forEach(([m,o])=>s+=`<path d="${pa(VW.map((v,i)=>v+m*SD[i]))}" fill="none" stroke="var(--vw)" opacity="${o*3}" stroke-dasharray="3 3"/><path d="${pa(VW.map((v,i)=>v-m*SD[i]))}" fill="none" stroke="var(--vw)" opacity="${o*3}" stroke-dasharray="3 3"/>`);
@@ -402,8 +466,20 @@ AL.filter(a=>!a.f&&a.p>LO&&a.p<HI).forEach(a=>s+=`<line x1="4" x2="340" y1="${y(
 if(PK!==null&&PK<3)[["mE","ENTRY"],["mS","STOP"],["mT","TARGET"]].forEach(([id,n])=>{const v=+$("#"+id).value;if(v>LO&&v<HI)s+=`<line x1="4" x2="340" y1="${y(v)}" y2="${y(v)}" stroke="var(--vw)" stroke-width="1.5" stroke-dasharray="5 3"/><text x="300" y="${y(v)-3}" style="fill:var(--vw);font-weight:700">${n} ${f(v)}</text>`});
 $("#ch").innerHTML=s+'<g id="cx" pointer-events="none"></g></svg>';
 document.querySelectorAll("[data-k]").forEach(e=>e.onclick=()=>explain(e.dataset.k))}
+
 function bindLay(){$("#lay").innerHTML=[["ict","ICT"],["vw","VWAP"],["vp","Profile"]].map(([k,n])=>`<button class="chip on" data-y="${k}">${n}</button>`).join("");
 $("#lay").onclick=e=>{const k=e.target.dataset.y;if(!k)return;lay[k]^=1;e.target.classList.toggle("on");draw()}}
+
+// Toggle button click listener for engine switch
+document.addEventListener("click", e => {
+  const btn = e.target.closest("#engineToggle");
+  if (btn) {
+    useTV = !useTV;
+    btn.textContent = useTV ? "Switch to TradingView Pro Engine" : "Switch to Classic SVG Engine";
+    btn.classList.toggle("on", useTV);
+    draw();
+  }
+});
 const KEY={sweep:"sweep",mss:"mss",ob:"ob",fvg:"fvg",vwap:"vwap",poc:"poc"};
 function explain(k){const l=flat.find(z=>z[0]==KEY[k]);const b=$("#ex");b.style.display="block";b.innerHTML=`<b>${l[1]}</b>${l[8]()}<br><span class="tiny"><u onclick="openL('${l[0]}')" style="cursor:pointer;color:var(--gold)">Open full lesson →</u></span>`}
 /* ---------- ANALYST ---------- */
@@ -586,7 +662,7 @@ function adapt(ict,conf,lv,nowMs,X){X=X||{};
   const mc=X.macro;if(mc&&ref&&num(mc.score)&&mc.score!==0)put(mc.score>0?"bull":"bear","Dollar "+(mc.dxy.chg_pct>0?"+":"")+mc.dxy.chg_pct+"% and 10y yield "+(mc.us10y.chg_bp>0?"+":"")+mc.us10y.chg_bp+"bp "+(mc.score>0?"favor gold up":"favor gold down"));
   const mind=[];
   if(num(st.stop)&&stage>=2&&stage!==4)mind.push("A 5m close beyond {"+st.stop+"}: the idea is void");
-  else if(ref){const z=ref==="bull"?zones.filter(z=>z.role==="support"&&z.hi<price&&z.r!=="C").sort((a,b)=>b.hi-a.hi)[0]:zones.filter(z=>z.role==="resistance"&&z.lo>price&&z.r!=="C").sort((a,b)=>a.lo-b.lo)[0];
+  else if(ref){const z=ref==="bull"?zones.filter(z=>z.role==="support"&&z.hi<price&&z.r!=="C").sort((a,b)=>b.hi-a.hi)[0]:zones.filter(z=>z.role==="resistance"&&z.lo>price&&z.r!=="C").sort((a,b)=>b.lo-b.lo)[0];
     if(z)mind.push("A 5m close "+(ref==="bull"?"below {"+z.lo+"}":"above {"+z.hi+"}")+": the "+ref+"ish idea loses its nearest "+(ref==="bull"?"support":"resistance")+" zone")}
   if(ref)mind.push("Acceptance "+(ref==="bull"?"below":"above")+" yesterday’s value area for 2 closes");
   const nn=nextNews(X,nowMs);
@@ -739,7 +815,7 @@ async function renderAuthModal() {
     ov.classList.add("on");
 
     const handleAuth = async (isSignup) => {
-      const email = $("#authEmail").value;
+      const email = $("#authEmail".value);
       const pass = $("#authPass").value;
       if (!email || !pass) {toast("Please enter email and password"); return;}
       if (!supabaseClient) {toast("Supabase keys not configured yet"); return;}
