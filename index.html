@@ -5,6 +5,7 @@
 <title>XAU.KH · Terminal &amp; Academy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f4f0e6;--card:#fffdf7;--ink:#1a1a1f;--mut:#6d6f78;--line:#e2dccb;--gold:#9a6d10;--up:#0f8a5f;--dn:#c23d36;--vw:#2f6fd6;--vp:#8a6bd1;--warn:#b0701a;--sh:0 8px 24px rgba(40,30,10,.07);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0b0f;--card:#13151b;--ink:#f1efe8;--mut:#99a0ab;--line:#262a34;--gold:#e3b64f;--up:#3ecf8e;--dn:#f06a62;--vw:#5b9bff;--vp:#a98cff;--warn:#e5a23a;--sh:0 8px 28px rgba(0,0,0,.5)}}
@@ -240,7 +241,11 @@ body,button,input,select,textarea{font-family:var(--sans),"Noto Sans Khmer","Khm
 html[lang="km"] body{line-height:1.7}html[lang="km"] h2{letter-spacing:0!important;text-transform:none!important}
 #lg{min-width:44px}
 </style></head><body>
-<header><div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><defs><linearGradient id="lgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e7b8"/><stop offset=".5" stop-color="#c9a55a"/><stop offset="1" stop-color="#7a5a1c"/></linearGradient></defs><path d="M7 21 10.2 12.5h11.6L25 21z" fill="url(#lgG)"/><path d="M10.2 12.5 12.2 8.5h7.6l2 4z" fill="#f6e7b8" opacity=".9"/><path d="M7 21h18l-1.4 3.5H8.4z" fill="#7a5a1c"/></svg></div><div><b>XAU<span class="kh">.KH</span></b><small>XAUUSD · session analysis</small></div><div class="sp"></div><div class="px"><span id="hp"></span><br><small id="hps">sample price</small></div><button class="ib" id="th" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path class="f" d="M12 4a8 8 0 0 0 0 16z"/></svg></button></header>
+<header><div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><defs><linearGradient id="lgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e7b8"/><stop offset=".5" stop-color="#c9a55a"/><stop offset="1" stop-color="#7a5a1c"/></linearGradient></defs><path d="M7 21 10.2 12.5h11.6L25 21z" fill="url(#lgG)"/><path d="M10.2 12.5 12.2 8.5h7.6l2 4z" fill="#f6e7b8" opacity=".9"/><path d="M7 21h18l-1.4 3.5H8.4z" fill="#7a5a1c"/></svg></div><div><b>XAU<span class="kh">.KH</span></b><small>XAUUSD · session analysis</small></div><div class="sp"></div><div class="px"><span id="hp"></span><br><small id="hps">sample price</small></div>
+<button class="ib" id="authBtn" title="Account & Login" aria-label="Account and Login">
+  <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+</button>
+<button class="ib" id="th" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path class="f" d="M12 4a8 8 0 0 0 0 16z"/></svg></button></header>
 <main>
 <section class="tab on" id="now"></section>
 <section class="tab" id="brief"></section>
@@ -264,7 +269,7 @@ function agoText(){if(!GDS.t)return"2 min ago";const m=Math.max(0,Math.round((Da
 function BAD(){if(!GDS.live)return '<span class="chip w">Sample data</span> <span class="chip" id="gdAge">'+(GDS.err?"live files not found":"Updated 2 min ago")+'</span>';
 const stale=(Date.now()-GDS.t)>90*60000;return '<span class="chip g">Live</span> <span class="chip'+(stale?" w":"")+'" id="gdAge">Updated '+agoText()+(stale?" · stale, check the workflow":"")+'</span>'}
 function SMP(){return GDS.live?' <span class="chip w" style="font-size:10px">sample data</span>':''}
-function MISS(){if(!GDS.live)return"Missing: 15m and 5m agreement.";const m=CK.filter(x=>x[2]!=="y").map(x=>x[0].toLowerCase());return m.length?"Missing: "+m.join(", ")+".":"Nothing missing on this checklist."}
+function MISS(){if(!GDS.live)return"Missing: 15m and 5m agreement.";const m=CK.filter(x=>x[2]!=="y").map(x=>x[0].toLowerCase());return m.length?"Missing: "+m.join(", ")+$.trim("긍."):"Nothing missing on this checklist."}
 function TFNOTE(){if(!GDS.live)return"Higher timeframes lean up while 5m leans down: a pullback inside a bigger move, so patience matters.";
 const u=D.tf.filter(t=>t[1]==="Bull").length,d=D.tf.filter(t=>t[1]==="Bear").length,hi=D.tf.slice(0,3).map(t=>t[1]);
 const h=hi.every(x=>x==="Bull")?"up":hi.every(x=>x==="Bear")?"down":null,m=D.tf[4][1];
@@ -453,7 +458,7 @@ if(lg?!(sl<e&&e<tp):!(tp<e&&e<sl)){MY=null;draw();o.innerHTML=`<p class="dn">For
 MY={d:md,e,sl,tp};
 const r=Math.abs(e-sl),rw=Math.abs(tp-e),rr=rw/r,z=(e-V)/S,R=[],dir=lg?"Bull":"Bear",al=D.tf.filter(t=>t[1]==dir).length;let sc=0,mx=0;
 const A=(w,p,t,d,fx)=>{mx+=w;sc+=p===true?w:p==="h"?w/2:0;R.push({w,p,t,d,fx})};
-A(3,al>=3?true:al>=2?"h":false,"Multi-timeframe alignment",`${al} of 5 timeframes are ${dir.toLowerCase()} (${D.tf.map(t=>t[0]+" "+t[1]).join(", ")}). ${al>=3?"You are trading with the larger flow.":"Mostly against the larger flow."}`,"Trade the side the higher timeframes favor, or cut size and take profit early.");
+A(3,al>=3?true:al>=2?"h":false,"Multi-timeframe alignment",`${al} of 5 timeframes are ${dir.toLowerCase()} (${D.tf.map(t=>t[0]+" "+t[1]).join(", ")}). ${al>=3?"You are trading with the larger flow.":"Mostly against the larger flow."}`,"Trade the side the larger timeframes favor, or cut size and take profit early.");
 const zn=D.zones.find(q=>e>=q.lo-1&&e<=q.hi+1),gd=zn&&(lg?zn.role=="support":zn.role=="resistance"),side=lg?e<MID:e>MID,zt=ZT(lg);
 A(3,gd?true:side?"h":false,"Entry location",zn?`Entry sits ${gd?"inside":"near the wrong side of"} the ${zn.role} zone ${f(zn.lo)}–${f(zn.hi)} (grade ${zn.r}, ${zn.loc}).`:`No marked zone at ${f(e)}. It is ${e<MID?"below":"above"} the session midpoint ${f(MID)}, so ${side?"the side is right but nothing defends it":"you would be buying premium or selling discount"}.`,`Move the entry into the ${zt.role} zone ${f(zt.lo)}–${f(zt.hi)}.`);
 const st=lg?z<=-.5:z>=.5;
@@ -471,7 +476,7 @@ A(1,kz?true:"h","Timing",kz?`It is the ${kz} killzone in New York time, when mov
 A(1,"h","Event risk (sample)","FOMC minutes in about 3 hours in the sample calendar. Avoid holding a full position through the release.","Take partial profit before the event.");
 const pc=Math.round(sc/mx*100),g=pc>=80?["A","up","Strong. Take it at your planned size."]:pc>=65?["B","up","Decent. Consider half size or wait for a better entry."]:pc>=45?["C","","Marginal. Fix the items below first."]:["Avoid","dn","The data does not support this trade as drawn."],pl=plan(md);
 const bal=+($("#b")||{}).value||1000,rk=+($("#r")||{}).value||1,rd$=bal*rk/100,lots=rd$/(r*100),be=100/(1+rr);
-const fx=R.filter(q=>q.p!==true).sort((a,b)=>b.w*(b.p===false?1:.5)-a.w*(a.p===false?1:.5)).slice(0,3);
+const fx=R.filter(q=>q.p!==true).sort((a,b)=>b.w*(b.p===false?1:.5)-a.w*(b.p===false?1:.5)).slice(0,3);
 LAST={d:md,e,sl,tp,g:g[0]+" "+pc+"%",rr};
 const ic=p=>p===true?["var(--up)","✓"]:p==="h"?["var(--warn)","~"]:["var(--dn)","✕"];
 o.innerHTML=`<div class="row" style="margin-top:12px"><div class="big ${g[1]}">${g[0]} · ${pc}%</div><span class="chip">${f(rr)}R · ${md}</span></div><p>${g[2]}</p><p class="mut" style="font-size:13px">Price now ${f(LP)}: entry is ${f(Math.abs(LP-e))} pts ${(lg?e<LP:e>LP)?"away, so this is a limit that needs a retrace":"through, so it fills at market"}.</p>
@@ -480,7 +485,7 @@ o.innerHTML=`<div class="row" style="margin-top:12px"><div class="big ${g[1]}">$
 +R.map(q=>{const c=ic(q.p);return`<div class="chk"><span class="dot" style="background:${c[0]}">${c[1]}</span><div><b>${q.t}</b><div class="mut" style="font-size:13px">${q.d}</div></div></div>`}).join("")
 +(fx.length?`<div class="lb"><b>How to improve this trade</b>${fx.map(q=>"• "+q.fx).join("<br>")}</div>`:`<div class="lb"><b>Clean setup</b>Every major check passes.</div>`)
 +`<div class="lb"><b>Management</b>${ob.length?`Take 50% at ${ob[0][1]} ${f(ob[0][0])} (${f(Math.abs(ob[0][0]-e)/r)}R) and move the stop to entry.`:"Hold to target and trail the stop under the last swing once 1R is reached."}</div>
-<div class="lb"><b>Analyst’s ${md.toLowerCase()} plan</b>Entry ${f(pl.e)} · Stop ${f(pl.sl)} · TP1 ${f(pl.tp1)} (${pl.n1}) · TP2 ${f(pl.tp2)} (${pl.n2})</div><div class="chips"><button class="chip" data-ap="1">Apply analyst levels</button><button class="chip on" data-sj="1">Save to journal</button></div><p class="tiny">Sample data and rules-based scoring. Educational, not a signal.</p>`;draw()}
++<div class="lb"><b>Analyst’s ${md.toLowerCase()} plan</b>Entry ${f(pl.e)} · Stop ${f(pl.sl)} · TP1 ${f(pl.tp1)} (${pl.n1}) · TP2 ${f(pl.tp2)} (${pl.n2})</div><div class="chips"><button class="chip" data-ap="1">Apply analyst levels</button><button class="chip on" data-sj="1">Save to journal</button></div><p class="tiny">Sample data and rules-based scoring. Educational, not a signal.</p>`;draw()}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-tf],[data-d],[data-ap]");if(!t)return;
 if(t.dataset.tf){tf=t.dataset.tf;draw();if(t.classList.contains("tfb"))$("#ch").scrollIntoView({behavior:"smooth"})}
 else if(t.dataset.d){md=t.dataset.d;document.querySelectorAll("[data-d]").forEach(b=>b.classList.toggle("on",b==t));if($("#mr").innerHTML)judge()}
@@ -662,8 +667,8 @@ const KM={"Now":"ឥឡូវនេះ","Briefing":"សង្ខេប","Levels"
 "Risk":"ហានិភ័យ","Reward":"ចំណេញ","Entry":"ចូល","Stop":"ឈប់ខាត","Balance ($)":"សមតុល្យ ($)","Risk (%)":"ហានិភ័យ (%)","Learned ✓":"បានរៀន ✓","Mark learned":"សម្គាល់ថារៀនហើយ","Show on chart":"បង្ហាញលើក្រាហ្វ","Add alert":"បន្ថែមការជូនដំណឹង","Notifications":"ការជូនដំណឹង","Save to journal":"រក្សាទុកក្នុងកំណត់ហេតុ","Analyze":"វិភាគ","What it is":"វាជាអ្វី","Why it happens":"ហេតុអ្វីវាកើតឡើង","How to spot it":"របៀបសម្គាល់","Trade rule":"ក្បួនជួញដូរ","On this chart":"នៅលើក្រាហ្វនេះ","Invalidation":"ចំណុចបោះបង់","Management":"ការគ្រប់គ្រង","Sources":"ប្រភព","Idea":"គំនិត","Why this zone":"ហេតុអ្វីតំបន់នេះ","London":"ឡុងដ៍","New York":"ញូវយ៉ក","Asia":"អាស៊ី","Prev day high":"កម្រិតខ្ពស់ម្សិលមិញ","Prev day low":"កម្រិតទាបម្សិលមិញ","Midnight open":"តម្លៃបើកពាក់កណ្ដាលអធ្រាត្រ","Asia high":"កម្រិតខ្ពស់អាស៊ី","Asia low":"កម្រិតទាបអាស៊ី","London high":"កម្រិតខ្ពស់ឡុងដ៍","London low":"កម្រិតទាបឡុងដ៍"};
 const SN={London:"ឡុងដ៍","New York":"ញូវយ៉ក",Asia:"អាស៊ី"};
 const RX=[[/^Updated (\d+) min ago$/,(m,a)=>"បានធ្វើបច្ចុប្បន្នភាព "+a+" នាទីមុន"],[/^Updated just now$/,()=>"ទើបធ្វើបច្ចុប្បន្នភាព"],[/^Updated (\d+) h ago$/,(m,a)=>"បានធ្វើបច្ចុប្បន្នភាព "+a+" ម៉ោងមុន"],[/^Updated (\d+) h ago · stale, check the workflow$/,(m,a)=>"បានធ្វើបច្ចុប្បន្នភាព "+a+" ម៉ោងមុន · ចាស់ហើយ សូមពិនិត្យ workflow"],
-[/^Next: (London|New York|Asia) window in (\d+)h (\d+)m$/,(m,n,h,i)=>"បន្ទាប់៖ "+SN[n]+" ក្នុង "+h+"ម៉ោង "+i+"នាទី"],[/^(London|New York|Asia) window in (\d+)h (\d+)m$/,(m,n,h,i)=>SN[n]+" ក្នុង "+h+"ម៉ោង "+i+"នាទី"],
-[/^(\d+) of (\d+)$/,(m,a,b)=>a+" ក្នុង "+b],[/^Rating ([ABC])$/,(m,a)=>"ថ្នាក់ "+a],[/^(\d+) min ago$/,(m,a)=>a+" នាទីមុន"],[/^(\d+) h ago$/,(m,a)=>a+" ម៉ោងមុន"],[/^Next: (London|New York|Asia) window/,(m,n)=>"បន្ទាប់៖ "+SN[n]],
+[/^Next: (London|New York|Asia) window in (\d+)h (\d+)m$/,(m,n,h,i)=>"បន្ទាប់៖ "+SN[n]+" ក្នុង "+h+"ម៉ោង "+i+"នាទី"],[/^(London|New York|Asia) window in (\d+)h (\d+)m$/,(m,n,h,i)=>SN[n]+" শিল্প "+h+"ម៉ោង "+i+"នាទី"],
+[/^(\d+) of (\d+)$/,(m,a,b)=>a+" ក្នុង "+b],[/^Rating ([ABC])$/,(m,a)=>"ថ្នាក់ "+a],[/^(\d+) min ago$/,(m,a)=>a+" នាទីមុន"],[/^(\d+) h ago$/,(m,a)=>a=>a+" ម៉ោងមុន"],[/^Next: (London|New York|Asia) window/,(m,n)=>"បន្ទាប់៖ "+SN[n]],
 [/^(London|New York) window is active$/,(m,n)=>"ម៉ោង "+SN[n]+" កំពុងសកម្ម"],[/^Outside the London and New York windows\. Next: (.+)$/,(m,x)=>"ក្រៅម៉ោងឡុងដ៍ និងញូវយ៉ក។ បន្ទាប់៖ "+x.replace(/(London|New York|Asia)/,k=>SN[k])],
 [/^(.+) swept at (\{?[\d.,]+\}?)$/,(m,n,p)=>(KM[n]||n)+" ត្រូវបានបោសត្រង់ "+p],[/^Missing: (.+)\.$/,(m,x)=>"ខ្វះ៖ "+x+"។"],[/^Bullish idea\. /,()=>"គំនិតឡើង។ "],[/^Bearish idea\. /,()=>"គំនិតចុះ។ "]];
 let km=false;try{km=localStorage.getItem("xk_lang")==="km"}catch(e){}
@@ -676,5 +681,91 @@ new MutationObserver(()=>{if(busy||q)return;q=requestAnimationFrame(()=>{q=0;run
 const h=document.querySelector("header");if(h){h.insertAdjacentHTML("beforeend",'<button class="chip" id="lg" aria-label="Language / ភាសា"></button>');document.getElementById("lg").onclick=()=>{km=!km;try{localStorage.setItem("xk_lang",km?"km":"en")}catch(e){}run()}}
 run();
 }catch(e){}})();
+</script>
+<script>
+/* ---- Supabase Authentication & UI Integration ---- */
+const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+let supabaseClient = null;
+
+try {
+  if (window.supabase && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch (e) {
+  console.log("Supabase not initialized yet");
+}
+
+async function renderAuthModal() {
+  const sheet = $("#sheet"), ov = $("#ov");
+  if (!sheet || !ov) return;
+
+  let user = null;
+  if (supabaseClient) {
+    const session = await supabaseClient.auth.getSession();
+    user = session?.data?.session?.user || null;
+  }
+
+  if (user) {
+    sheet.innerHTML = `
+      <div class="row"><b class="big">Member Account</b><span class="chip g">Active</span></div>
+      <p class="mut" style="margin-top:10px">Signed in as: <b>${user.email}</b></p>
+      <div class="lb"><b>Terminal Access</b><br>Full institutional data feeds and ICT zone scanners unlocked.</div>
+      <button class="go" id="logoutBtn" style="margin-top:14px">Sign Out</button>
+    `;
+    sheet.classList.add("on");
+    ov.classList.add("on");
+    $("#logoutBtn").onclick = async () => {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      sheet.classList.remove("on");
+      ov.classList.remove("on");
+      toast("Signed out successfully");
+    };
+  } else {
+    sheet.innerHTML = `
+      <div class="row"><b class="big">XAU.KH Portal</b><span class="chip">Member Access</span></div>
+      <p class="mut" style="margin-top:6px">Sign in to sync your custom layouts, risk settings, and alerts across devices.</p>
+      <div class="g2" style="margin-top:14px">
+        <div><label>Email Address</label><input id="authEmail" type="email" placeholder="name@example.com"></div>
+        <div><label>Password</label><input id="authPass" type="password" placeholder="••••••••"></div>
+      </div>
+      <div class="chips" style="margin-top:14px">
+        <button class="chip on" id="loginSubmit">Sign Sign In</button>
+        <button class="chip" id="signupSubmit">Create Account</button>
+      </div>
+      <p class="tiny" style="margin-top:10px">Secured by Supabase Auth. Free tier member access.</p>
+    `;
+    sheet.classList.add("on");
+    ov.classList.add("on");
+
+    const handleAuth = async (isSignup) => {
+      const email = $("#authEmail").value;
+      const pass = $("#authPass").value;
+      if (!email || !pass) {toast("Please enter email and password"); return;}
+      if (!supabaseClient) {toast("Supabase keys not configured yet"); return;}
+      
+      try {
+        const res = isSignup ? 
+          await supabaseClient.auth.signUp({ email, password: pass }) :
+          await supabaseClient.auth.signInWithPassword({ email, password: pass });
+        
+        if (res.error) throw res.error;
+        toast(isSignup ? "Check your email for confirmation!" : "Successfully signed in!");
+        sheet.classList.remove("on");
+        ov.classList.remove("on");
+      } catch (err) {
+        toast("Error: " + err.message);
+      }
+    };
+
+    $("#loginSubmit").onclick = () => handleAuth(false);
+    $("#signupSubmit").onclick = () => handleAuth(true);
+  }
+}
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest("#authBtn");
+  if (btn) { renderAuthModal(); }
+});
 </script>
 </body></html>
