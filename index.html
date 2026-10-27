@@ -387,7 +387,7 @@ let lay={ict:1,vw:1,vp:1},TR=null,useTV=true;
 const flat=G.flatMap(g=>g[1]);let done={};try{done=JSON.parse(localStorage.getItem("gd")||"{}")}catch(e){}
 const y=p=>6+(HI-p)/(HI-LO)*312,x=i=>4+i*4.9;
 
-/* ---------- TRADINGVIEW LIGHTWEIGHT CHARTS ENGINE ---------- */
+/* ---------- TRADINGVIEW LIGHTWEIGHT CHARTS ENGINE (WITH FAILSAFE) ---------- */
 let tvChart=null, tvSeries=null;
 function initTVEngine() {
   try {
@@ -395,7 +395,8 @@ function initTVEngine() {
     const svgEl = document.getElementById('ch');
     if (!el) return;
     
-    if (!useTV) {
+    // Fallback if LightweightCharts CDN is not available or toggled off
+    if (!useTV || typeof LightweightCharts === 'undefined') {
       el.style.display = 'none';
       if (svgEl) svgEl.style.display = 'block';
       drawSVG();
@@ -439,12 +440,20 @@ function initTVEngine() {
     tvChart.timeScale().fitContent();
 
     window.addEventListener('resize', () => {
-      if (tvChart && el.clientWidth) {
-        tvChart.applyOptions({ width: el.clientWidth });
-      }
+      try {
+        if (tvChart && el.clientWidth) {
+          tvChart.applyOptions({ width: el.clientWidth });
+        }
+      } catch(e) {}
     });
   } catch (err) {
-    console.error("TV Chart Error:", err);
+    console.error("TV Chart Error, falling back to SVG:", err);
+    useTV = false;
+    const svgEl = document.getElementById('ch');
+    const el = document.getElementById('tvchart');
+    if (el) el.style.display = 'none';
+    if (svgEl) svgEl.style.display = 'block';
+    drawSVG();
   }
 }
 
@@ -620,7 +629,7 @@ const old=$("#hero");if(old)old.remove();
 el.insertAdjacentHTML("afterbegin",`<div class="card hero" id="hero"><div><div class="hs">${GDS.live?"XAU/USD · futures data":"XAU/USD · Gold spot"}</div><div class="hp" id="hpx">${fo(LP)}</div><div class="hv"><span class="${BR.hcls}">${BR.lean}</span><span>${cd().replace("New York","NY").replace(" window","")}</span></div></div><div class="ring" role="img" aria-label="Setup checklist ${c} of ${n}"><svg viewBox="0 0 78 78"><circle class="tr0" cx="39" cy="39" r="33"/><circle class="fg" cx="39" cy="39" r="33" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-o="${C*(1-c/n)}"/></svg><b>${c}/${n}</b></div>${strip()}</div>`);
 requestAnimationFrame(()=>requestAnimationFrame(()=>{const g=$("#hero .fg");if(g)g.style.strokeDashoffset=g.dataset.o}))}catch(e){}}
 const _now=now;now=function(){_now();hero()};
-{const r=document.documentElement,b=$("#th");try{const t=localStorage.getItem("gd_th");if(t)r.dataset.theme=t}catch(e){}b.onclick=()=>{const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=dark?"light":"dark";try{localStorage.setItem("gd_th",r.dataset.theme)}catch(e){}};
+{const r=document.documentElement,b=$("#th");try{const t=localStorage.getItem("gd_th");if(t)r.dataset.theme=t}catch(e){}b.onclick=()=>{const dark=r.dataset.theme?r.dataset.theme=="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=dark?"light":"dark";try{localStorage.setItem("gd_th",r.dataset.theme)}catch(e){}};
 setInterval(()=>{const h=$("#hpx");if(h)h.textContent=fo(LP)},1000);
 hero();
 </script>
