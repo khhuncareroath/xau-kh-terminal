@@ -257,7 +257,7 @@ def main():
         vm, vs = vm.reindex(w.index), vs.reindex(w.index)
         rel = {k: {**{kk: vv for kk, vv in m.items() if kk != "i"}, "i": m["i"] - off}
                for k, m in out["setup"].pop("marks", {}).items() if m["i"] - off >= 0}
-        out["chart"] = {"tf": "5m", "times": [t.strftime("%m-%d %H:%M") for t in w.index],
+        out["chart"] = {"tf": "5m", "times": [t.strftime("%m-%d %H:%M") for t in w.index], "ts": [int(t.timestamp()) for t in w.index],
                         "candles": [[round(float(r.Open), 2), round(float(r.High), 2), round(float(r.Low), 2), round(float(r.Close), 2),
                                      round(float(r.Volume), 1)] for r in w.itertuples()],
                         "vwap": [round(float(x), 2) for x in vm], "sd": [round(float(x), 2) for x in vs], "marks": rel}
