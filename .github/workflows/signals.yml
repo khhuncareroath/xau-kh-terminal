@@ -16,11 +16,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt yfinance
-      - run: python engine.py
+      - run: pip install -r requirements.txt
+      # core steps: if one fails the job fails loudly and status.py tells the owner
       - run: python levels.py
       - run: python ict.py
       - run: python confluence.py
+      # optional steps: the site works without them
       - run: python news.py
         continue-on-error: true
       - run: python macro.py
@@ -34,10 +35,21 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          SITE_URL: ${{ vars.SITE_URL }}
+      - name: Health check
+        if: always()
+        run: python status.py
+        env:
+          JOB_STATUS: ${{ job.status }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       - name: Save results
+        if: always()
         run: |
           git config --global user.name "analysis-bot"
           git config --global user.email "bot@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add ict.json confluence.json levels.json news.json macro.json quality.json grade.json grade_log.json notify_state.json 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Update analysis live data" && git push)
+          git add -- '*.json'
+          git diff --staged --quiet || (git commit -m "Update analysis live data" && git pull --rebase -X theirs origin HEAD && git push)
