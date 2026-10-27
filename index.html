@@ -272,7 +272,7 @@ function agoText(){if(!GDS.t)return"2 min ago";const m=Math.max(0,Math.round((Da
 function BAD(){if(!GDS.live)return '<span class="chip w">Sample data</span> <span class="chip" id="gdAge">'+(GDS.err?"live files not found":"Updated 2 min ago")+'</span>';
 const stale=(Date.now()-GDS.t)>90*60000;return '<span class="chip g">Live</span> <span class="chip'+(stale?" w":"")+'" id="gdAge">Updated '+agoText()+(stale?" · stale, check the workflow":"")+'</span>'}
 function SMP(){return GDS.live?' <span class="chip w" style="font-size:10px">sample data</span>':''}
-function MISS(){if(!GDS.live)return"Missing: 15m and 5m agreement.";const m=CK.filter(x=>x[2]!=="y").map(x=>x[0].toLowerCase());return m.length?"Missing: "+m.join(", ")+$.trim("긍."):"Nothing missing on this checklist."}
+function MISS(){if(!GDS.live)return"Missing: 15m and 5m agreement.";const m=CK.filter(x=>x[2]!=="y").map(x=>x[0].toLowerCase());return m.length?"Missing: "+m.join(", ")+".":"Nothing missing on this checklist."}
 function TFNOTE(){if(!GDS.live)return"Higher timeframes lean up while 5m leans down: a pullback inside a bigger move, so patience matters.";
 const u=D.tf.filter(t=>t[1]==="Bull").length,d=D.tf.filter(t=>t[1]==="Bear").length,hi=D.tf.slice(0,3).map(t=>t[1]);
 const h=hi.every(x=>x==="Bull")?"up":hi.every(x=>x==="Bear")?"down":null,m=D.tf[4][1];
