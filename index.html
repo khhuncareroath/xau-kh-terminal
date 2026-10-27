@@ -507,7 +507,7 @@ function explain(k){const l=flat.find(z=>z[0]==KEY[k]);const b=$("#ex");b.style.
 const FA=[
 ["Higher-timeframe bias is bullish (D, 4H, 1H higher highs)",3,0,"liq"],
 ["Sell-side liquidity swept at "+f(SWP)+" and reclaimed",2,0,"sweep"],
-["MSS: close above "+f(swH),2,0,"mss"],
+["MSS: close above "+f(swH),2,0,"sweep"],
 ["Price inside the FVG on top of a bullish OB ("+f(OB[0])+"–"+f(OB[1])+")",1.5,0,"fvg"],
 [P<MID?"Price in discount (below "+f(MID)+")":"Price in premium",P<MID?1:0,P<MID?0:1,"pd"],
 [P<V?"Below VWAP "+f(V)+": mean-reversion target is above":"Above VWAP",P<V?1:0,P<V?0:1,"vwap"],
@@ -600,7 +600,7 @@ document.addEventListener("click",e=>{const p=e.target.closest("[data-pk]");if(p
 document.addEventListener("pointermove",e=>{if(e.pointerType=="mouse"){const c=e.target.closest("#ch");if(c&&PK===null)xhair(e,c)}});
 document.documentElement.dataset.theme=(()=>{try{return localStorage.getItem("gdt")||"dark"}catch(e){return"dark"}})();
 $("header").insertAdjacentHTML("beforeend",'<button class="chip" id="th" aria-label="Toggle theme">◐</button>');
-$("#th").onclick=()=>{const d=document.documentElement,n=d.dataset.theme=="dark"?"light":"dark";d.dataset.theme=n;try{localStorage.setItem("gdt",n)}catch(e){}};
+$("#th").onclick=()=>{const d=document.documentElement,n=d.dataset.theme=="dark"?"light":"dark";d.dataset.theme=n;try{localStorage.setItem("gd_th",r.dataset.theme)}catch(e){}};
 
 let LP=P,SIM=false,AL=[],JN=[],LAST=null;try{AL=JSON.parse(localStorage.getItem("gda")||"[]");JN=JSON.parse(localStorage.getItem("gdj")||"[]")}catch(e){}
 const svd=()=>{try{localStorage.setItem("gda",JSON.stringify(AL));localStorage.setItem("gdj",JSON.stringify(JN))}catch(e){}};
@@ -622,7 +622,7 @@ function spark(){const c=SER["5m"].map(k=>k.c),mn=Math.min(...c),mxx=Math.max(..
 rd();
 
 /* ---- premium hero ---- */
-function strip(){const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date()),n=(+p.find(x=>x.type==="hour").value)*60+ +p.find(x=>x.type==="minute").value,W=[["Asia",1200,1440],["LDN",120,300],["NY",420,600]];return `<div class="sess" role="img" aria-label="Session timeline in New York time"><div class="sb">${W.map(w=>`<i style="left:${w[1]/14.4}%;width:${(w[2]-w[1])/14.4}%"><em>${w[0]}</em></i>`).join("")}<u style="left:${n/14.4}%"></u></div><div class="st"><span>00</span><span>06</span><span>12</span><span>18</span><span>24 ET</span></div></div>`}
+function strip(){const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date()),n=(+p.find(x=>x.type==="hour").value)*60+ +p.find(x=>x.type===minute).value,W=[["Asia",1200,1440],["LDN",120,300],["NY",420,600]];return `<div class="sess" role="img" aria-label="Session timeline in New York time"><div class="sb">${W.map(w=>`<i style="left:${w[1]/14.4}%;width:${(w[2]-w[1])/14.4}%"><em>${w[0]}</em></i>`).join("")}<u style="left:${n/14.4}%"></u></div><div class="st"><span>00</span><span>06</span><span>12</span><span>18</span><span>24 ET</span></div></div>`}
 function hero(){try{
 const c=CK.filter(x=>x[2]==="y").length,n=CK.length,C=2*Math.PI*33,el=$("#now");if(!el)return;
 const old=$("#hero");if(old)old.remove();
@@ -639,7 +639,7 @@ hero();
 const BASE=(()=>{try{let b=new URLSearchParams(location.search).get("data")||window.GD_DATA_BASE||"./";return b.endsWith("/")?b:b+"/"}catch(e){return"./"}})(),TFS=["D","4H","1H","15m","5m"],TFW={D:1,"4H":1.5,"1H":1.5,"15m":1,"5m":.5},TFN_={D:"Daily"};
 const tok=s=>String(s).replace(/\b\d{4}(?:\.\d{1,2})?\b/g,"{$&}");
 const nice=n=>String(n).replace(/([+-])(\d)s\b/g,(m,a,b)=>(a==="-"?"−":"+")+b+"σ");
-const nyMin=ms=>{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date(ms));return(+p.find(x=>x.type==="hour").value)*60+ +p.find(x=>x.type==="minute").value};
+const nyMin=ms=>{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hourCycle:"h23"}).formatToParts(new Date(ms));return(+p.find(x=>x.type==="hour").value)*60+ +p.find(x=>x.type===minute).value};
 const kz=ms=>{const n=nyMin(ms),w=[["London",120,300],["New York",420,600]].find(w=>n>=w[1]&&n<w[2]);return w?w[0]:null};
 const nextWin=ms=>{const n=nyMin(ms);let b=null;[[120,"London"],[420,"New York"],[1200,"Asia"]].forEach(([t,k])=>{const d=(t-n+1440)%1440;if(!b||d<b[0])b=[d,k]});return b[1]+" window in "+Math.floor(b[0]/60)+"h "+b[0]%60+"m"};
 const pt=s=>{const v=Date.parse(String(s).replace(" UTC","Z").replace(" ","T"));return isNaN(v)?0:v};
@@ -765,7 +765,7 @@ const KM={"Now":"ឥឡូវនេះ","Briefing":"សង្ខេប","Levels"
 const SN={London:"ឡុងដ៍","New York":"ញូវយ៉ក",Asia:"អាស៊ី"};
 const RX=[[/^Updated (\d+) min ago$/,(m,a)=>"បានធ្វើបច្ចុប្បន្នភាព "+a+" នាទីមុន"],[/^Updated just now$/,()=>"ទើបធ្វើបច្ចុប្បន្នភាព"],[/^Updated (\d+) h ago$/,(m,a)=>"បានធ្វើបច្ចុប្បន្នភាព "+a+" ម៉ោងមុន"],[/^Updated (\d+) h ago · stale, check the workflow$/,(m,a)=>"បានធ្វើបច្ចុប្បន្នភាព "+a+" ម៉ោងមុន · ចាស់ហើយ សូមពិនិត្យ workflow"],
 [/^Next: (London|New York|Asia) window in (\d+)h (\d+)m$/,(m,n,h,i)=>"បន្ទាប់៖ "+SN[n]+" ក្នុង "+h+"ម៉ោង "+i+"នាទី"],[/^(London|New York|Asia) window in (\d+)h (\d+)m$/,(m,n,h,i)=>SN[n]+" শিল্প "+h+"ម៉ោង "+i+"នាទី"],
-[/^(\d+) of (\d+)$/,(m,a,b)=>a+" ក្នុង "+b],[/^Rating ([ABC])$/,(m,a)=>"ថ្នាក់ "+a],[/^(\d+) min ago$/,(m,a)=>a+" នាទីមុន"],[/^(\d+) h ago$/,(m,a)=>a=>a+" ម៉ោងមុន"],[/^Next: (London|New York|Asia) window/,(m,n)=>"បន្ទាប់៖ "+SN[n]],
+[/^(\d+) of (\d+)$/,(m,a,b)=>a+" ក្នុង "+b],[/^Rating ([ABC])$/,(m,a)=>"ថ្នាក់ "+a],[/^(\d+) min ago$/,(m,a)=>a+" នាទីមុន"],[/^(\d+) h ago$/,(m,a)=>a=>a+" ម៉ោងមុន"],[/^Next: (London|New York|Asia) window/,(m,n)],
 [/^(London|New York) window is active$/,(m,n)=>"ម៉ោង "+SN[n]+" កំពុងសកម្ម"],[/^Outside the London and New York windows\. Next: (.+)$/,(m,x)=>"ក្រៅម៉ោងឡុងដ៍ និងញូវយ៉ក។ បន្ទាប់៖ "+x.replace(/(London|New York|Asia)/,k=>SN[k])],
 [/^(.+) swept at (\{?[\d.,]+\}?)$/,(m,n,p)=>(KM[n]||n)+" ត្រូវបានបោសត្រង់ "+p],[/^Missing: (.+)\.$/,(m,x)=>"ខ្វះ៖ "+x+"។"],[/^Bullish idea\. /,()=>"គំនិតឡើង។ "],[/^Bearish idea\. /,()=>"គំនិតចុះ។ "]];
 let km=false;try{km=localStorage.getItem("xk_lang")==="km"}catch(e){}
