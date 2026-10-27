@@ -390,111 +390,65 @@ const y=p=>6+(HI-p)/(HI-LO)*312,x=i=>4+i*4.9;
 /* ---------- TRADINGVIEW LIGHTWEIGHT CHARTS ENGINE ---------- */
 let tvChart=null, tvSeries=null;
 function initTVEngine() {
-  const el = document.getElementById('tvchart');
-  const svgEl = document.getElementById('ch');
-  if (!el) return;
-  el.innerHTML = '';
-  
-  if (!useTV) {
-    el.style.display = 'none';
-    svgEl.style.display = 'block';
-    drawSVG();
-    return;
-  }
-  
-  el.style.display = 'block';
-  svgEl.style.display = 'none';
-
-  tvChart = LightweightCharts.createChart(el, {
-    width: el.clientWidth || 400,
-    height: 330,
-    layout: { background: { type: LightweightCharts.ColorType.Solid, color: '#131722' }, textColor: '#d1d4dc' },
-    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-    rightPriceScale: { borderColor: '#2a2e39' },
-    timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false }
-  });
-
-  tvSeries = tvChart.addCandlestickSeries({
-    upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-  });
-
-  const startTime = Math.floor(Date.now() / 1000) - (C.length * 300);
-  const tvData = C.map((k, idx) => ({
-    time: startTime + (idx * 300),
-    open: k.o, high: k.h, low: k.l, close: k.c
-  }));
-  
-  tvSeries.setData(tvData);
-
-  if (TR) {
-    tvSeries.createPriceLine({ price: TR.e, color: '#2962ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Strategy Entry' });
-    tvSeries.createPriceLine({ price: TR.sl, color: '#ef5350', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, title: 'Stop Loss' });
-    tvSeries.createPriceLine({ price: TR.tp2, color: '#26a69a', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid, title: 'Take Profit' });
-  }
-
-  tvChart.timeScale().fitContent();
-}
-
-  tvChart.timeScale().fitContent();
-}
-let tvChart = null, tvSeries = null;
-function initTVEngine() {
-  const el = document.getElementById('tvchart');
-  const svgEl = document.getElementById('ch');
-  if (!el) return;
-  
-  if (!useTV) {
-    el.style.display = 'none';
-    svgEl.style.display = 'block';
-    drawSVG();
-    return;
-  }
-  
-  el.style.display = 'block';
-  svgEl.style.display = 'none';
-  el.innerHTML = '';
-
-  const chartWidth = el.clientWidth || el.parentElement.clientWidth || 450;
-
-  tvChart = LightweightCharts.createChart(el, {
-    width: chartWidth,
-    height: 330,
-    layout: { background: { type: LightweightCharts.ColorType.Solid, color: '#131722' }, textColor: '#d1d4dc' },
-    grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
-    rightPriceScale: { borderColor: '#2a2e39' },
-    timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false }
-  });
-
-  tvSeries = tvChart.addCandlestickSeries({
-    upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-    wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-  });
-
-  const startTime = Math.floor(Date.now() / 1000) - (C.length * 300);
-  const tvData = C.map((k, idx) => ({
-    time: startTime + (idx * 300),
-    open: k.o, high: k.h, low: k.l, close: k.c
-  }));
-  
-  tvSeries.setData(tvData);
-
-  if (TR) {
-    tvSeries.createPriceLine({ price: TR.e, color: '#2962ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Strategy Entry' });
-    tvSeries.createPriceLine({ price: TR.sl, color: '#ef5350', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, title: 'Stop Loss' });
-    tvSeries.createPriceLine({ price: TR.tp2, color: '#26a69a', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid, title: 'Take Profit' });
-  }
-
-  tvChart.timeScale().fitContent();
-
-  window.addEventListener('resize', () => {
-    if (tvChart && el.clientWidth) {
-      tvChart.applyOptions({ width: el.clientWidth });
+  try {
+    const el = document.getElementById('tvchart');
+    const svgEl = document.getElementById('ch');
+    if (!el) return;
+    
+    if (!useTV) {
+      el.style.display = 'none';
+      if (svgEl) svgEl.style.display = 'block';
+      drawSVG();
+      return;
     }
-  });
+    
+    el.style.display = 'block';
+    if (svgEl) svgEl.style.display = 'none';
+    el.innerHTML = '';
+
+    const chartWidth = el.clientWidth || el.parentElement.clientWidth || 450;
+
+    tvChart = LightweightCharts.createChart(el, {
+      width: chartWidth,
+      height: 330,
+      layout: { background: { type: LightweightCharts.ColorType.Solid, color: '#131722' }, textColor: '#d1d4dc' },
+      grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+      rightPriceScale: { borderColor: '#2a2e39' },
+      timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false }
+    });
+
+    tvSeries = tvChart.addCandlestickSeries({
+      upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+      wickUpColor: '#26a69a', wickDownColor: '#ef5350'
+    });
+
+    const startTime = Math.floor(Date.now() / 1000) - (C.length * 300);
+    const tvData = C.map((k, idx) => ({
+      time: startTime + (idx * 300),
+      open: k.o, high: k.h, low: k.l, close: k.c
+    }));
+    
+    tvSeries.setData(tvData);
+
+    if (TR) {
+      tvSeries.createPriceLine({ price: TR.e, color: '#2962ff', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed, title: 'Strategy Entry' });
+      tvSeries.createPriceLine({ price: TR.sl, color: '#ef5350', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, title: 'Stop Loss' });
+      tvSeries.createPriceLine({ price: TR.tp2, color: '#26a69a', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid, title: 'Take Profit' });
+    }
+
+    tvChart.timeScale().fitContent();
+
+    window.addEventListener('resize', () => {
+      if (tvChart && el.clientWidth) {
+        tvChart.applyOptions({ width: el.clientWidth });
+      }
+    });
+  } catch (err) {
+    console.error("TV Chart Error:", err);
+  }
 }
-  
-/* ---------- CHART DRAWING ROUTINE ---------- */  
+
+/* ---------- CHART DRAWING ROUTINE ---------- */
 function draw() {
   initTVEngine();
 }
@@ -533,7 +487,7 @@ document.addEventListener("click", e => {
   const btn = e.target.closest("#engineToggle");
   if (btn) {
     useTV = !useTV;
-    btn.textContent = useTV ? "Switch to TradingView Pro Engine" : "Switch to Classic SVG Engine";
+    btn.textContent = useTV ? "Switch to Classic SVG Engine" : "Switch to TradingView Pro Engine";
     btn.classList.toggle("on", useTV);
     draw();
   }
@@ -565,7 +519,7 @@ $("#tc").innerHTML=`<h3 class="${lg?"up":"dn"}">${d} XAU/USD · limit entry</h3>
 <button class="chip" onclick="place('${lg?"SHORT":"LONG"}')">View the ${lg?"short":"long"} plan instead (weaker: ${f(FA.reduce((a,z)=>a+z[lg?2:1],0))} pts)</button>
 <p class="tiny" id="pn2">Sent to the Score tab planner. Educational sample data, not live prices and not financial advice.</p>`;draw()}
 function bindGo(){$("#go").onclick=()=>{const l=FA.reduce((a,z)=>a+z[1],0),s=FA.reduce((a,z)=>a+z[2],0);place(l>=s?"LONG":"SHORT");$("#tc").scrollIntoView({behavior:"smooth"})}}
-function initChart(){bindLay();bindGo();bindMy();draw()}
+function initChart(){try{bindLay();bindGo();bindMy();draw()}catch(e){console.error(e)}}
 /* ---------- ACADEMY ---------- */
 function renderL(){let n=0;$("#ls").innerHTML=G.map(g=>`<div class="card"><h2>${g[0]}</h2>`+g[1].map(l=>{n++;return`<details id="L${l[0]}"><summary><span class="mono m">${String(n).padStart(2,"0")}</span>${l[1]}${done[l[0]]?" ✓":""}</summary>
 <div class="lb"><b>What it is</b>${l[2]}</div><div class="lb"><b>Why it happens</b>${l[3]}</div><div class="lb"><b>How to spot it</b>${l[4]}</div><div class="lb"><b>Trade rule</b>${l[5]}</div><div class="lb"><b>On this chart</b>${l[6]()}</div>
@@ -666,7 +620,7 @@ const old=$("#hero");if(old)old.remove();
 el.insertAdjacentHTML("afterbegin",`<div class="card hero" id="hero"><div><div class="hs">${GDS.live?"XAU/USD · futures data":"XAU/USD · Gold spot"}</div><div class="hp" id="hpx">${fo(LP)}</div><div class="hv"><span class="${BR.hcls}">${BR.lean}</span><span>${cd().replace("New York","NY").replace(" window","")}</span></div></div><div class="ring" role="img" aria-label="Setup checklist ${c} of ${n}"><svg viewBox="0 0 78 78"><circle class="tr0" cx="39" cy="39" r="33"/><circle class="fg" cx="39" cy="39" r="33" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-o="${C*(1-c/n)}"/></svg><b>${c}/${n}</b></div>${strip()}</div>`);
 requestAnimationFrame(()=>requestAnimationFrame(()=>{const g=$("#hero .fg");if(g)g.style.strokeDashoffset=g.dataset.o}))}catch(e){}}
 const _now=now;now=function(){_now();hero()};
-{const r=document.documentElement,b=$("#th");try{const t=localStorage.getItem("gd_th");if(t)r.dataset.theme=t}catch(e){}b.onclick=()=>{const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=dark?"light":"dark";try{localStorage.setItem("gd_th",r.dataset.theme)}catch(e){}}}
+{const r=document.documentElement,b=$("#th");try{const t=localStorage.getItem("gd_th");if(t)r.dataset.theme=t}catch(e){}b.onclick=()=>{const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=dark?"light":"dark";try{localStorage.setItem("gd_th",r.dataset.theme)}catch(e){}};
 setInterval(()=>{const h=$("#hpx");if(h)h.textContent=fo(LP)},1000);
 hero();
 </script>
@@ -873,7 +827,7 @@ async function renderAuthModal() {
     ov.classList.add("on");
 
     const handleAuth = async (isSignup) => {
-      const email = $("#authEmail".value);
+      const email = $("#authEmail").value;
       const pass = $("#authPass").value;
       if (!email || !pass) {toast("Please enter email and password"); return;}
       if (!supabaseClient) {toast("Supabase keys not configured yet"); return;}
