@@ -1,0 +1,833 @@
+{
+  "time": "2026-10-29 15:28 UTC",
+  "data": {
+    "bars": 13289,
+    "from": "2026-08-21 00:00:00-04:00",
+    "to": "2026-10-29 11:15:00-04:00",
+    "symbol": "GC=F (COMEX gold futures)"
+  },
+  "settings": {
+    "cost_points": 0.4,
+    "latency_min": 15,
+    "order_valid_min": 120,
+    "min_rr": 1.5,
+    "max_risk_atr_v2": 3.0
+  },
+  "rules": {
+    "current": {
+      "summary": {
+        "alerts": 139,
+        "filled": 39,
+        "fill_rate_pct": 28,
+        "missed": 89,
+        "expired": 11,
+        "win_rate_pct": 31,
+        "avg_R": -0.189,
+        "total_R": -7.38,
+        "profit_factor": 0.71,
+        "max_drawdown_R": 11.97
+      },
+      "factors": {
+        "direction": {
+          "bear": {
+            "n": 20,
+            "win_rate_pct": 40,
+            "avg_R": 0.005
+          },
+          "bull": {
+            "n": 19,
+            "win_rate_pct": 21,
+            "avg_R": -0.393
+          }
+        },
+        "1H bias": {
+          "against": {
+            "n": 27,
+            "win_rate_pct": 26,
+            "avg_R": -0.339
+          },
+          "agrees": {
+            "n": 12,
+            "win_rate_pct": 42,
+            "avg_R": 0.148
+          }
+        },
+        "session": {
+          "Asia": {
+            "n": 9,
+            "win_rate_pct": 22,
+            "avg_R": -0.375
+          },
+          "London": {
+            "n": 7,
+            "win_rate_pct": 43,
+            "avg_R": 0.056
+          },
+          "New York": {
+            "n": 8,
+            "win_rate_pct": 25,
+            "avg_R": -0.311
+          },
+          "Off-hours": {
+            "n": 15,
+            "win_rate_pct": 33,
+            "avg_R": -0.127
+          }
+        },
+        "displacement": {
+          "no": {
+            "n": 26,
+            "win_rate_pct": 35,
+            "avg_R": -0.056
+          },
+          "yes": {
+            "n": 13,
+            "win_rate_pct": 23,
+            "avg_R": -0.455
+          }
+        },
+        "zone": {
+          "FVG": {
+            "n": 10,
+            "win_rate_pct": 30,
+            "avg_R": -0.182
+          },
+          "OB": {
+            "n": 29,
+            "win_rate_pct": 31,
+            "avg_R": -0.192
+          }
+        },
+        "swept level": {
+          "15m swing": {
+            "n": 24,
+            "win_rate_pct": 46,
+            "avg_R": 0.144
+          },
+          "1H swing": {
+            "n": 5,
+            "win_rate_pct": 0,
+            "avg_R": -0.996
+          },
+          "prior day / session": {
+            "n": 10,
+            "win_rate_pct": 10,
+            "avg_R": -0.585
+          }
+        },
+        "VWAP side": {
+          "against": {
+            "n": 19,
+            "win_rate_pct": 26,
+            "avg_R": -0.344
+          },
+          "agrees": {
+            "n": 20,
+            "win_rate_pct": 35,
+            "avg_R": -0.042
+          }
+        },
+        "stop size": {
+          "normal (1.5-3 ATR)": {
+            "n": 23,
+            "win_rate_pct": 39,
+            "avg_R": 0.008
+          },
+          "tight (<1.5 ATR)": {
+            "n": 10,
+            "win_rate_pct": 20,
+            "avg_R": -0.444
+          },
+          "wide (>3 ATR)": {
+            "n": 6,
+            "win_rate_pct": 17,
+            "avg_R": -0.52
+          }
+        },
+        "R:R": {
+          "1.5-2": {
+            "n": 36,
+            "win_rate_pct": 33,
+            "avg_R": -0.118
+          },
+          "2-3": {
+            "n": 3,
+            "win_rate_pct": 0,
+            "avg_R": -1.045
+          }
+        }
+      },
+      "best_filter": {
+        "filter": {
+          "R:R": "1.5-2",
+          "swept level": "15m swing"
+        },
+        "train_trades": 13,
+        "train_avg_R": 0.334,
+        "test_trades": 9,
+        "test_avg_R": 0.136,
+        "test_win_rate_pct": 44
+      },
+      "verdict": "Losing after costs (-0.19R per trade over 39 trades): do not promote these alerts as an edge. Best filter {'R:R': '1.5-2', 'swept level': '15m swing'} held up on unseen data (+0.14R over 9 trades).",
+      "recent": [
+        {
+          "time": "2026-10-19 03:40:00-04:00",
+          "dir": "bear",
+          "entry": 4208.95,
+          "stop": 4210.92,
+          "target": 4205.8,
+          "rr": 1.6,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 07:05:00-04:00",
+          "dir": "bull",
+          "entry": 4184.3,
+          "stop": 4184.07,
+          "target": 4185.0,
+          "rr": 3.09,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 11:25:00-04:00",
+          "dir": "bull",
+          "entry": 4164.65,
+          "stop": 4160.44,
+          "target": 4171.4,
+          "rr": 1.6,
+          "result": "loss",
+          "R": -0.632
+        },
+        {
+          "time": "2026-10-19 14:00:00-04:00",
+          "dir": "bull",
+          "entry": 4163.1,
+          "stop": 4160.32,
+          "target": 4167.5,
+          "rr": 1.59,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 15:20:00-04:00",
+          "dir": "bear",
+          "entry": 4163.55,
+          "stop": 4169.52,
+          "target": 4154.5,
+          "rr": 1.52,
+          "result": "expired",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-20 01:05:00-04:00",
+          "dir": "bear",
+          "entry": 4162.5,
+          "stop": 4167.32,
+          "target": 4155.0,
+          "rr": 1.56,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-20 08:05:00-04:00",
+          "dir": "bear",
+          "entry": 4141.3,
+          "stop": 4147.08,
+          "target": 4132.2,
+          "rr": 1.57,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-20 18:55:00-04:00",
+          "dir": "bear",
+          "entry": 4140.8,
+          "stop": 4144.53,
+          "target": 4135.0,
+          "rr": 1.56,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 03:20:00-04:00",
+          "dir": "bull",
+          "entry": 4132.65,
+          "stop": 4128.74,
+          "target": 4138.6,
+          "rr": 1.52,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 06:40:00-04:00",
+          "dir": "bull",
+          "entry": 4135.0,
+          "stop": 4134.35,
+          "target": 4136.2,
+          "rr": 1.85,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 12:05:00-04:00",
+          "dir": "bear",
+          "entry": 4153.0,
+          "stop": 4161.11,
+          "target": 4140.8,
+          "rr": 1.5,
+          "result": "win",
+          "R": 1.455
+        },
+        {
+          "time": "2026-10-21 16:40:00-04:00",
+          "dir": "bull",
+          "entry": 4150.9,
+          "stop": 4141.11,
+          "target": 4165.6,
+          "rr": 1.5,
+          "result": "loss",
+          "R": -1.041
+        },
+        {
+          "time": "2026-10-22 03:45:00-04:00",
+          "dir": "bear",
+          "entry": 4107.1,
+          "stop": 4115.14,
+          "target": 4095.0,
+          "rr": 1.51,
+          "result": "win",
+          "R": 1.456
+        },
+        {
+          "time": "2026-10-23 05:35:00-04:00",
+          "dir": "bear",
+          "entry": 4043.75,
+          "stop": 4045.21,
+          "target": 4041.2,
+          "rr": 1.75,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-23 13:05:00-04:00",
+          "dir": "bear",
+          "entry": 4014.1,
+          "stop": 4021.46,
+          "target": 4000.9,
+          "rr": 1.79,
+          "result": "win",
+          "R": 1.739
+        },
+        {
+          "time": "2026-10-26 03:30:00-04:00",
+          "dir": "bull",
+          "entry": 4017.1,
+          "stop": 4015.31,
+          "target": 4019.8,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-26 10:35:00-04:00",
+          "dir": "bull",
+          "entry": 4022.5,
+          "stop": 4021.5,
+          "target": 4024.4,
+          "rr": 1.9,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-26 14:30:00-04:00",
+          "dir": "bear",
+          "entry": 4032.15,
+          "stop": 4042.16,
+          "target": 4016.8,
+          "rr": 1.53,
+          "result": "expired",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-26 21:20:00-04:00",
+          "dir": "bear",
+          "entry": 4028.0,
+          "stop": 4034.88,
+          "target": 4017.0,
+          "rr": 1.6,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-27 00:50:00-04:00",
+          "dir": "bear",
+          "entry": 4033.1,
+          "stop": 4035.38,
+          "target": 4029.0,
+          "rr": 1.8,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-27 05:05:00-04:00",
+          "dir": "bull",
+          "entry": 4004.5,
+          "stop": 4000.31,
+          "target": 4011.3,
+          "rr": 1.62,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-27 13:55:00-04:00",
+          "dir": "bear",
+          "entry": 4074.5,
+          "stop": 4080.13,
+          "target": 4062.6,
+          "rr": 2.11,
+          "result": "loss",
+          "R": -1.071
+        },
+        {
+          "time": "2026-10-28 12:50:00-04:00",
+          "dir": "bull",
+          "entry": 4053.2,
+          "stop": 4046.74,
+          "target": 4063.2,
+          "rr": 1.55,
+          "result": "loss",
+          "R": -1.062
+        },
+        {
+          "time": "2026-10-28 18:20:00-04:00",
+          "dir": "bear",
+          "entry": 4074.05,
+          "stop": 4077.51,
+          "target": 4068.5,
+          "rr": 1.61,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-29 01:00:00-04:00",
+          "dir": "bull",
+          "entry": 4049.75,
+          "stop": 4046.17,
+          "target": 4055.3,
+          "rr": 1.55,
+          "result": "missed",
+          "R": 0.0
+        }
+      ]
+    },
+    "v2": {
+      "summary": {
+        "alerts": 131,
+        "filled": 28,
+        "fill_rate_pct": 21,
+        "missed": 26,
+        "expired": 1,
+        "win_rate_pct": 18,
+        "avg_R": -0.398,
+        "total_R": -11.13,
+        "profit_factor": 0.48,
+        "max_drawdown_R": 15.13
+      },
+      "factors": {
+        "direction": {
+          "bear": {
+            "n": 13,
+            "win_rate_pct": 31,
+            "avg_R": -0.077
+          },
+          "bull": {
+            "n": 15,
+            "win_rate_pct": 7,
+            "avg_R": -0.676
+          }
+        },
+        "1H bias": {
+          "against": {
+            "n": 20,
+            "win_rate_pct": 20,
+            "avg_R": -0.394
+          },
+          "agrees": {
+            "n": 8,
+            "win_rate_pct": 12,
+            "avg_R": -0.407
+          }
+        },
+        "session": {
+          "Asia": {
+            "n": 6,
+            "win_rate_pct": 17,
+            "avg_R": -0.308
+          },
+          "London": {
+            "n": 5,
+            "win_rate_pct": 40,
+            "avg_R": 0.302
+          },
+          "New York": {
+            "n": 6,
+            "win_rate_pct": 17,
+            "avg_R": -0.46
+          },
+          "Off-hours": {
+            "n": 11,
+            "win_rate_pct": 9,
+            "avg_R": -0.731
+          }
+        },
+        "displacement": {
+          "no": {
+            "n": 20,
+            "win_rate_pct": 15,
+            "avg_R": -0.422
+          },
+          "yes": {
+            "n": 8,
+            "win_rate_pct": 25,
+            "avg_R": -0.336
+          }
+        },
+        "zone": {
+          "FVG": {
+            "n": 8,
+            "win_rate_pct": 25,
+            "avg_R": -0.198
+          },
+          "OB": {
+            "n": 20,
+            "win_rate_pct": 15,
+            "avg_R": -0.477
+          }
+        },
+        "swept level": {
+          "15m swing": {
+            "n": 16,
+            "win_rate_pct": 31,
+            "avg_R": -0.026
+          },
+          "1H swing": {
+            "n": 4,
+            "win_rate_pct": 0,
+            "avg_R": -0.975
+          },
+          "prior day / session": {
+            "n": 8,
+            "win_rate_pct": 0,
+            "avg_R": -0.853
+          }
+        },
+        "VWAP side": {
+          "against": {
+            "n": 16,
+            "win_rate_pct": 19,
+            "avg_R": -0.483
+          },
+          "agrees": {
+            "n": 12,
+            "win_rate_pct": 17,
+            "avg_R": -0.284
+          }
+        },
+        "stop size": {
+          "normal (1.5-3 ATR)": {
+            "n": 20,
+            "win_rate_pct": 20,
+            "avg_R": -0.357
+          },
+          "tight (<1.5 ATR)": {
+            "n": 8,
+            "win_rate_pct": 12,
+            "avg_R": -0.5
+          }
+        },
+        "R:R": {
+          "1.5-2": {
+            "n": 13,
+            "win_rate_pct": 23,
+            "avg_R": -0.322
+          },
+          "2-3": {
+            "n": 8,
+            "win_rate_pct": 12,
+            "avg_R": -0.492
+          },
+          "3+": {
+            "n": 7,
+            "win_rate_pct": 14,
+            "avg_R": -0.431
+          }
+        }
+      },
+      "best_filter": {
+        "filter": {
+          "1H bias": "against"
+        },
+        "train_trades": 14,
+        "train_avg_R": -0.377,
+        "test_trades": 6,
+        "test_avg_R": -0.434,
+        "test_win_rate_pct": 17
+      },
+      "verdict": "Only 28 filled trades: too few to trust either way. Keep collecting history. The best filter on older data ({'1H bias': 'against'}) has only 6 trades in the newer data: too few to confirm.",
+      "recent": [
+        {
+          "time": "2026-10-19 07:05:00-04:00",
+          "dir": "bull",
+          "entry": 4184.3,
+          "stop": 4184.07,
+          "target": 4199.8,
+          "rr": 68.47,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 11:25:00-04:00",
+          "dir": "bull",
+          "entry": 4164.65,
+          "stop": 4160.44,
+          "target": 4174.9,
+          "rr": 2.44,
+          "result": "loss",
+          "R": -0.632
+        },
+        {
+          "time": "2026-10-19 14:00:00-04:00",
+          "dir": "bull",
+          "entry": 4163.1,
+          "stop": 4160.32,
+          "target": 4169.2,
+          "rr": 2.2,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 15:20:00-04:00",
+          "dir": "bear",
+          "entry": 4163.55,
+          "stop": 4169.52,
+          "target": 4151.6,
+          "rr": 2.0,
+          "result": "expired",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-20 01:05:00-04:00",
+          "dir": "bear",
+          "entry": 4162.5,
+          "stop": 4167.32,
+          "target": 4151.1,
+          "rr": 2.37,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-20 08:05:00-04:00",
+          "dir": "bear",
+          "entry": 4141.3,
+          "stop": 4147.08,
+          "target": 4121.8,
+          "rr": 3.37,
+          "result": "loss",
+          "R": -0.844
+        },
+        {
+          "time": "2026-10-20 18:55:00-04:00",
+          "dir": "bear",
+          "entry": 4140.8,
+          "stop": 4144.53,
+          "target": 4134.7,
+          "rr": 1.64,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-20 20:15:00-04:00",
+          "dir": "bull",
+          "entry": 4135.2,
+          "stop": 4129.53,
+          "target": 4149.8,
+          "rr": 2.58,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 03:20:00-04:00",
+          "dir": "bull",
+          "entry": 4132.65,
+          "stop": 4128.74,
+          "target": 4147.7,
+          "rr": 3.85,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 06:40:00-04:00",
+          "dir": "bull",
+          "entry": 4135.0,
+          "stop": 4134.35,
+          "target": 4147.7,
+          "rr": 19.54,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 12:05:00-04:00",
+          "dir": "bear",
+          "entry": 4153.0,
+          "stop": 4161.11,
+          "target": 4139.7,
+          "rr": 1.64,
+          "result": "win",
+          "R": 1.59
+        },
+        {
+          "time": "2026-10-22 03:45:00-04:00",
+          "dir": "bear",
+          "entry": 4107.1,
+          "stop": 4115.14,
+          "target": 4082.4,
+          "rr": 3.07,
+          "result": "win",
+          "R": 3.023
+        },
+        {
+          "time": "2026-10-23 05:35:00-04:00",
+          "dir": "bear",
+          "entry": 4043.75,
+          "stop": 4045.21,
+          "target": 4035.7,
+          "rr": 5.52,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-23 13:05:00-04:00",
+          "dir": "bear",
+          "entry": 4014.1,
+          "stop": 4021.46,
+          "target": 3989.1,
+          "rr": 3.4,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-25 18:15:00-04:00",
+          "dir": "bull",
+          "entry": 4008.8,
+          "stop": 4006.09,
+          "target": 4020.5,
+          "rr": 4.32,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-26 03:30:00-04:00",
+          "dir": "bull",
+          "entry": 4017.1,
+          "stop": 4015.31,
+          "target": 4028.5,
+          "rr": 6.35,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-26 10:35:00-04:00",
+          "dir": "bull",
+          "entry": 4022.5,
+          "stop": 4021.5,
+          "target": 4035.4,
+          "rr": 12.92,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-26 21:20:00-04:00",
+          "dir": "bear",
+          "entry": 4028.0,
+          "stop": 4034.88,
+          "target": 4017.0,
+          "rr": 1.6,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-27 00:50:00-04:00",
+          "dir": "bear",
+          "entry": 4033.1,
+          "stop": 4035.38,
+          "target": 4017.9,
+          "rr": 6.68,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-27 05:05:00-04:00",
+          "dir": "bull",
+          "entry": 4004.5,
+          "stop": 4000.31,
+          "target": 4020.3,
+          "rr": 3.77,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-27 13:55:00-04:00",
+          "dir": "bear",
+          "entry": 4074.5,
+          "stop": 4080.13,
+          "target": 4046.2,
+          "rr": 5.02,
+          "result": "loss",
+          "R": -1.071
+        },
+        {
+          "time": "2026-10-28 12:50:00-04:00",
+          "dir": "bull",
+          "entry": 4053.2,
+          "stop": 4046.74,
+          "target": 4071.5,
+          "rr": 2.83,
+          "result": "loss",
+          "R": -1.062
+        },
+        {
+          "time": "2026-10-28 18:20:00-04:00",
+          "dir": "bear",
+          "entry": 4074.05,
+          "stop": 4077.51,
+          "target": 4062.8,
+          "rr": 3.25,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-29 01:00:00-04:00",
+          "dir": "bull",
+          "entry": 4049.75,
+          "stop": 4046.17,
+          "target": 4055.9,
+          "rr": 1.72,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-29 09:30:00-04:00",
+          "dir": "bull",
+          "entry": 4035.4,
+          "stop": 4025.75,
+          "target": 4051.1,
+          "rr": 1.63,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        }
+      ]
+    }
+  }
+}
