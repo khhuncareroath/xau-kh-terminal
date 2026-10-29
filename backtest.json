@@ -1,9 +1,9 @@
 {
-  "time": "2026-10-29 15:28 UTC",
+  "time": "2026-10-29 22:15 UTC",
   "data": {
-    "bars": 13289,
+    "bars": 13359,
     "from": "2026-08-21 00:00:00-04:00",
-    "to": "2026-10-29 11:15:00-04:00",
+    "to": "2026-10-29 18:05:00-04:00",
     "symbol": "GC=F (COMEX gold futures)"
   },
   "settings": {
@@ -16,23 +16,23 @@
   "rules": {
     "current": {
       "summary": {
-        "alerts": 139,
-        "filled": 39,
-        "fill_rate_pct": 28,
+        "alerts": 140,
+        "filled": 40,
+        "fill_rate_pct": 29,
         "missed": 89,
         "expired": 11,
-        "win_rate_pct": 31,
-        "avg_R": -0.189,
-        "total_R": -7.38,
-        "profit_factor": 0.71,
+        "win_rate_pct": 32,
+        "avg_R": -0.148,
+        "total_R": -5.91,
+        "profit_factor": 0.77,
         "max_drawdown_R": 11.97
       },
       "factors": {
         "direction": {
           "bear": {
-            "n": 20,
-            "win_rate_pct": 40,
-            "avg_R": 0.005
+            "n": 21,
+            "win_rate_pct": 43,
+            "avg_R": 0.074
           },
           "bull": {
             "n": 19,
@@ -47,9 +47,9 @@
             "avg_R": -0.339
           },
           "agrees": {
-            "n": 12,
-            "win_rate_pct": 42,
-            "avg_R": 0.148
+            "n": 13,
+            "win_rate_pct": 46,
+            "avg_R": 0.249
           }
         },
         "session": {
@@ -64,9 +64,9 @@
             "avg_R": 0.056
           },
           "New York": {
-            "n": 8,
-            "win_rate_pct": 25,
-            "avg_R": -0.311
+            "n": 9,
+            "win_rate_pct": 33,
+            "avg_R": -0.113
           },
           "Off-hours": {
             "n": 15,
@@ -76,9 +76,9 @@
         },
         "displacement": {
           "no": {
-            "n": 26,
-            "win_rate_pct": 35,
-            "avg_R": -0.056
+            "n": 27,
+            "win_rate_pct": 37,
+            "avg_R": 0.0
           },
           "yes": {
             "n": 13,
@@ -93,16 +93,16 @@
             "avg_R": -0.182
           },
           "OB": {
-            "n": 29,
-            "win_rate_pct": 31,
-            "avg_R": -0.192
+            "n": 30,
+            "win_rate_pct": 33,
+            "avg_R": -0.136
           }
         },
         "swept level": {
           "15m swing": {
-            "n": 24,
-            "win_rate_pct": 46,
-            "avg_R": 0.144
+            "n": 25,
+            "win_rate_pct": 48,
+            "avg_R": 0.197
           },
           "1H swing": {
             "n": 5,
@@ -122,16 +122,16 @@
             "avg_R": -0.344
           },
           "agrees": {
-            "n": 20,
-            "win_rate_pct": 35,
-            "avg_R": -0.042
+            "n": 21,
+            "win_rate_pct": 38,
+            "avg_R": 0.03
           }
         },
         "stop size": {
           "normal (1.5-3 ATR)": {
-            "n": 23,
-            "win_rate_pct": 39,
-            "avg_R": 0.008
+            "n": 24,
+            "win_rate_pct": 42,
+            "avg_R": 0.069
           },
           "tight (<1.5 ATR)": {
             "n": 10,
@@ -146,9 +146,9 @@
         },
         "R:R": {
           "1.5-2": {
-            "n": 36,
-            "win_rate_pct": 33,
-            "avg_R": -0.118
+            "n": 37,
+            "win_rate_pct": 35,
+            "avg_R": -0.075
           },
           "2-3": {
             "n": 3,
@@ -164,22 +164,12 @@
         },
         "train_trades": 13,
         "train_avg_R": 0.334,
-        "test_trades": 9,
-        "test_avg_R": 0.136,
-        "test_win_rate_pct": 44
+        "test_trades": 10,
+        "test_avg_R": 0.269,
+        "test_win_rate_pct": 50
       },
-      "verdict": "Losing after costs (-0.19R per trade over 39 trades): do not promote these alerts as an edge. Best filter {'R:R': '1.5-2', 'swept level': '15m swing'} held up on unseen data (+0.14R over 9 trades).",
+      "verdict": "Losing after costs (-0.15R per trade over 40 trades): do not promote these alerts as an edge. Best filter {'R:R': '1.5-2', 'swept level': '15m swing'} held up on unseen data (+0.27R over 10 trades).",
       "recent": [
-        {
-          "time": "2026-10-19 03:40:00-04:00",
-          "dir": "bear",
-          "entry": 4208.95,
-          "stop": 4210.92,
-          "target": 4205.8,
-          "rr": 1.6,
-          "result": "missed",
-          "R": 0.0
-        },
         {
           "time": "2026-10-19 07:05:00-04:00",
           "dir": "bull",
@@ -419,6 +409,16 @@
           "rr": 1.55,
           "result": "missed",
           "R": 0.0
+        },
+        {
+          "time": "2026-10-29 07:50:00-04:00",
+          "dir": "bear",
+          "entry": 4039.0,
+          "stop": 4050.72,
+          "target": 4021.4,
+          "rr": 1.5,
+          "result": "win",
+          "R": 1.468
         }
       ]
     },
