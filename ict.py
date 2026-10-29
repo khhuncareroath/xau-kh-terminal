@@ -21,6 +21,7 @@ from levels import to_ny
 N = 2            # swing strength: bars on each side
 FVG_MIN = 0.25   # minimum gap size in ATRs
 LOOKBACK = 96    # bars (8h of 5m) in which a sweep still counts
+TARGETS = os.environ.get("XAU_RULES", "current")   # "v2" = target only swings that are still untaken (see backtest.json)
 RULES = {"15m": "15min", "1H": "1h", "4H": "4h", "D": "24h"}  # 24h bins start 18:00 New York (futures day)
 
 
@@ -202,7 +203,12 @@ def setup(df, a, events, obs, fvgs, sweeps, htf_bias, sw):
     buf = max(0.5, 0.3 * a[-1])
     stop = s["extreme"] - buf if d == "bull" else s["extreme"] + buf
     risk = abs(entry - stop)
-    tgt_pool = [p for _, _, k, p in sw if (k == "H" and p > entry) or (k == "L" and p < entry)]
+    h, l = df["High"].to_numpy(), df["Low"].to_numpy()
+    if TARGETS == "v2":   # only swings nobody has run yet: real resting liquidity
+        tgt_pool = [p for _, idx, k, p in sw if (k == "H" and p > entry and h[idx + 1:].max(initial=-1e9) < p)
+                    or (k == "L" and p < entry and l[idx + 1:].min(initial=1e9) > p)]
+    else:
+        tgt_pool = [p for _, _, k, p in sw if (k == "H" and p > entry) or (k == "L" and p < entry)]
     pool = [p for p in tgt_pool if (p > entry) == (d == "bull") and abs(p - entry) >= 1.5 * risk]   # a target next to the entry is not worth taking
     target = (min(pool) if d == "bull" else max(pool)) if pool else (entry + 2 * risk if d == "bull" else entry - 2 * risk)
     if htf_bias:
@@ -210,6 +216,8 @@ def setup(df, a, events, obs, fvgs, sweeps, htf_bias, sw):
     return {"stage": 3 if inside else 2, "label": "Price is in the retest zone" if inside else "Shift confirmed, waiting for the retest",
             "dir": d, "zone": [round(zone["lo"], 2), round(zone["hi"], 2)], "entry": round(entry, 2), "stop": round(stop, 2),
             "target": round(float(target), 2), "rr": round(abs(target - entry) / risk, 2) if risk else None, "reasons": why,
+            "sweep_time": str(df.index[s["i"]]), "shift_time": str(df.index[e["i"]]), "sweep_extreme": round(s["extreme"], 2),
+            "sweep_name": s["name"], "displacement": e["displacement"], "risk_atr": round(risk / a[-1], 2) if a[-1] else None,
             "note": "Idea to confirm with your own entry model, not a signal.", "marks": marks}
 
 
@@ -218,7 +226,8 @@ def main():
     lv = json.load(open("levels.json")) if os.path.exists("levels.json") else {}
     levels = {x["name"]: x["price"] for x in lv.get("ladder", [])}
     price = float(df["Close"].iloc[-1])
-    out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "price": round(price, 2), "timeframes": {}}
+    out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "price": round(price, 2),
+           "last_bar": str(df.index[-1]), "atr_5m": round(float(atr(df).iloc[-1]), 2), "rules": TARGETS, "timeframes": {}}
     keep = {}
     for tf in ("5m", "15m", "1H", "4H", "D"):
         d = resample(df, tf)

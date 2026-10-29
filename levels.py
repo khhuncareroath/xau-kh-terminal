@@ -77,7 +77,7 @@ def main():
     for name, start_h, end_h in [("Asia", 18, 2), ("London", 2, 5), ("New York", 7, 10)]:
         sub = today_df[(today_df.index.hour >= start_h) & (today_df.index.hour < end_h)] if start_h < end_h else today_df[(today_df.index.hour >= start_h) | (today_df.index.hour < end_h)]
         if len(sub):
-            sessions[name] = {"high": round(float(sub["High"].max()), 2), "low": round(float(sub["Low"].min()), 2), "status": "complete" if datetime.now(NY).hour > end_h else "active"}
+            sessions[name] = {"high": round(float(sub["High"].max()), 2), "low": round(float(sub["Low"].min()), 2), "status": "complete" if end_h <= datetime.now(NY).hour < 18 else "active"}   # was "hour > end_h", which marked Asia complete while it was still trading
         else:
             sessions[name] = {"high": price, "low": price, "status": "active"}
 

@@ -18,7 +18,7 @@ def main():
             continue
         t = datetime.fromisoformat(e["date"]).astimezone(timezone.utc)
         ev.append({"title": e["title"], "time": t.strftime("%Y-%m-%dT%H:%M:%SZ"), "impact": e["impact"],
-                   "forecast": e.get("forecast", ""), "previous": e.get("previous", "")})
+                   "forecast": e.get("forecast", ""), "previous": e.get("previous", ""), "actual": e.get("actual", "")})
     ev.sort(key=lambda x: x["time"])
     json.dump({"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "events": ev}, open("news.json", "w"), indent=2)
     print("news events:", len(ev))
