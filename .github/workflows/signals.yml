@@ -1,13 +1,22 @@
 name: Gold analysis
 on:
   schedule:
-    - cron: "*/15 * * * 0-5"
+    - cron: "*/5 * * * 0-5"   # was every 15 min; every 5 cuts alert delay (public repos have unlimited Actions minutes)
   workflow_dispatch:
 permissions:
   contents: write
 concurrency:
   group: gold-analysis
   cancel-in-progress: false
+env:
+  XAU_RULES: ${{ vars.XAU_RULES || 'current' }}       # set to v2 if backtest.json shows v2 is better
+  DISPLAY_TZ: ${{ vars.DISPLAY_TZ || 'Asia/Phnom_Penh' }}
+  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+  SITE_URL: ${{ vars.SITE_URL }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
+  AI_LANG: ${{ vars.AI_LANG || 'en' }}                  # 'km' adds a Khmer version
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -16,6 +25,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
       - run: pip install -r requirements.txt
       # core steps: if one fails the job fails loudly and status.py tells the owner
       - run: python levels.py
@@ -30,21 +40,22 @@ jobs:
         continue-on-error: true
       - run: python grade.py
         continue-on-error: true
-      - run: python notify.py
+      - run: python spot.py
         continue-on-error: true
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-          SITE_URL: ${{ vars.SITE_URL }}
+          TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}
+      - run: python track.py          # grade earlier alerts first, so results go out before any new idea
+        continue-on-error: true
+      - run: python postnews.py
+        continue-on-error: true
+      - run: python notify.py
+        continue-on-error: true
       - name: Health check
         if: always()
         run: python status.py
         env:
           JOB_STATUS: ${{ job.status }}
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       - name: Save results
         if: always()
         run: |
