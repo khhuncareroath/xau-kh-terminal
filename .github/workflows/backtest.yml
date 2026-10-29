@@ -1,0 +1,29 @@
+name: Daily backtest
+on:
+  schedule:
+    - cron: "37 21 * * 1-5"   # after the New York close (21:37 UTC = 04:37 Phnom Penh)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: gold-analysis        # same group as the live job, so they never push at the same moment
+  cancel-in-progress: false
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python history.py      # saves today's candles so the sample grows past Yahoo's 60 days
+      - run: python backtest.py
+      - name: Save results
+        run: |
+          git config --global user.name "analysis-bot"
+          git config --global user.email "bot@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git add backtest.json data/
+          git diff --staged --quiet || (git commit -m "Daily backtest" && git pull --rebase -X theirs origin HEAD && git push)
