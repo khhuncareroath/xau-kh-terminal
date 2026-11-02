@@ -81,7 +81,7 @@ def _reply_text(a):
 
 def summary(log):
     out = _summary(log)
-    for kind in ("setup", "watch", "post-news"):
+    for kind in ("setup", "watch", "post-news", "model"):
         sub = [a for a in log if a.get("kind") == kind]
         if sub:
             out["by_kind"] = out.get("by_kind", {})

@@ -128,6 +128,39 @@ def spot_line(entry):
     return f"Spot XAUUSD ≈ futures − {sp['basis']:.1f} (entry ≈ {fmt(entry - sp['basis'])})"
 
 
+def model_alert(lm, state, now):
+    """Trade-style alert for a research model that backtest.json marks as proven (see research.py for the rules).
+    Entry is at the current price, exactly as the backtest assumes. Returns True if it sent one."""
+    sigs = [s for s in lm.get("signals", []) if s.get("proven")]
+    if not sigs or (now - ts(lm.get("last_bar", "1970-01-01T00:00:00+00:00"))) / 60 > STALE_MIN:
+        return False
+    s = max(sigs, key=lambda x: (x.get("backtest") or {}).get("avg_R") or 0)
+    key = f"model|{s['model']}|{s['trigger_time']}"
+    if key in state.get("model_keys", []):
+        return False
+    bull = s["dir"] == "bull"
+    b = s.get("backtest") or {}
+    lines = [f"{'🟢' if bull else '🔴'} <b>XAU.KH · {'BUY' if bull else 'SELL'} now</b> · gold futures",
+             esc(s["description"]),
+             f"Entry <code>{fmt(s['entry'])}</code> (market) · Stop <code>{fmt(s['stop'])}</code> · Target <code>{fmt(s['target'])}</code> · R:R 1:{s['rr']}",
+             f"Valid for 15 min, until {local(now + 900)}",
+             spot_line(s["entry"]),
+             esc(f"Tested model: {b.get('trades')} past trades, {b.get('win_rate_pct')}% hit target, {b.get('avg_R'):+.2f}R per trade after costs."
+                 if b.get("trades") else ""),
+             "<i>Risk a small, fixed part of your account (for example 0.5-1%). Not financial advice. The result will be posted as a reply.</i>",
+             TV, SITE]
+    mid = send("\n".join(l for l in lines if l), ("BUY" if bull else "SELL") + " now")
+    if not mid:
+        return False
+    state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
+    json.dump(state, open("notify_state.json", "w"))
+    log_alert({"id": key, "kind": "model", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
+               "target": s["target"], "rr": s["rr"], "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
+               "msg_id": mid if isinstance(mid, int) else None, "status": "pending"})
+    print("sent", key)
+    return True
+
+
 def main():
     ict, conf, lv, q, news, macro, bt, state = (jl(n) for n in ("ict.json", "confluence.json", "levels.json", "quality.json",
                                                                   "news.json", "macro.json", "backtest.json", "notify_state.json"))
@@ -137,6 +170,8 @@ def main():
     ns = news_soon(news, now=now)
     if ns:
         print("high-impact news soon, holding alerts:", ns); return
+    if model_alert(jl("live_models.json"), state, now):
+        return
     st = ict.get("setup") or {}
     ok, why = gate_setup(st, ict, now)
     if not ok:
@@ -200,7 +235,8 @@ def main():
     ]
     mid = send("\n".join(l for l in lines if l), ("Watch" if mode == "watch" else "BUY" if bull else "SELL") + " idea")
     if mid:
-        json.dump({"key": key, "rank": rank, "factors": n_ok, "t": now, "msg_id": mid}, open("notify_state.json", "w"))
+        json.dump({"key": key, "rank": rank, "factors": n_ok, "t": now, "msg_id": mid, "model_keys": state.get("model_keys", [])},
+                  open("notify_state.json", "w"))
         log_alert({"id": key, "kind": "watch" if mode == "watch" else "setup", "dir": st["dir"], "entry": st["entry"], "stop": st["stop"], "target": st["target"],
                    "rr": st["rr"], "zone": st["zone"], "factors": n_ok, "created": now, "valid_until": valid_until,
                    "price_at_alert": ict["price"], "msg_id": mid if isinstance(mid, int) else None, "status": "pending"})
