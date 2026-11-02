@@ -1,10 +1,10 @@
 {
-  "time": "2026-10-30 22:11 UTC",
+  "time": "2026-11-02 17:53 UTC",
   "data": {
-    "bars": 13639,
-    "from": "2026-08-21 00:00:00-04:00",
-    "to": "2026-10-30 16:55:00-04:00",
-    "symbol": "GC=F (COMEX gold futures)"
+    "bars": 127202,
+    "from": "2024-11-03 18:00:00-05:00",
+    "to": "2026-11-01 18:55:00-05:00",
+    "symbol": "XAUUSD spot (Dukascopy)"
   },
   "settings": {
     "cost_points": 0.4,
@@ -16,817 +16,1324 @@
   "rules": {
     "current": {
       "summary": {
-        "alerts": 137,
-        "filled": 40,
-        "fill_rate_pct": 29,
-        "missed": 86,
-        "expired": 11,
-        "win_rate_pct": 35,
-        "avg_R": -0.071,
-        "total_R": -2.84,
-        "profit_factor": 0.88,
-        "max_drawdown_R": 9.34
+        "alerts": 1346,
+        "filled": 428,
+        "fill_rate_pct": 32,
+        "missed": 870,
+        "expired": 48,
+        "win_rate_pct": 31,
+        "avg_R": -0.209,
+        "total_R": -89.48,
+        "profit_factor": 0.69,
+        "max_drawdown_R": 96.63
       },
       "factors": {
         "direction": {
           "bear": {
-            "n": 20,
-            "win_rate_pct": 50,
-            "avg_R": 0.286
+            "n": 194,
+            "win_rate_pct": 34,
+            "avg_R": -0.147
           },
           "bull": {
-            "n": 20,
-            "win_rate_pct": 20,
-            "avg_R": -0.428
+            "n": 234,
+            "win_rate_pct": 29,
+            "avg_R": -0.26
           }
         },
         "1H bias": {
           "against": {
-            "n": 25,
-            "win_rate_pct": 28,
-            "avg_R": -0.281
+            "n": 229,
+            "win_rate_pct": 29,
+            "avg_R": -0.257
           },
           "agrees": {
-            "n": 15,
-            "win_rate_pct": 47,
-            "avg_R": 0.278
+            "n": 195,
+            "win_rate_pct": 33,
+            "avg_R": -0.15
+          },
+          "none": {
+            "n": 4,
+            "win_rate_pct": 25,
+            "avg_R": -0.336
           }
         },
         "session": {
           "Asia": {
-            "n": 10,
-            "win_rate_pct": 30,
-            "avg_R": -0.143
+            "n": 147,
+            "win_rate_pct": 33,
+            "avg_R": -0.162
           },
           "London": {
-            "n": 6,
-            "win_rate_pct": 50,
-            "avg_R": 0.238
+            "n": 51,
+            "win_rate_pct": 27,
+            "avg_R": -0.302
           },
           "New York": {
-            "n": 9,
-            "win_rate_pct": 33,
-            "avg_R": -0.11
+            "n": 72,
+            "win_rate_pct": 28,
+            "avg_R": -0.256
           },
           "Off-hours": {
-            "n": 15,
-            "win_rate_pct": 33,
-            "avg_R": -0.123
+            "n": 158,
+            "win_rate_pct": 32,
+            "avg_R": -0.202
           }
         },
         "displacement": {
           "no": {
-            "n": 28,
-            "win_rate_pct": 39,
-            "avg_R": 0.072
+            "n": 283,
+            "win_rate_pct": 32,
+            "avg_R": -0.185
           },
           "yes": {
-            "n": 12,
-            "win_rate_pct": 25,
-            "avg_R": -0.404
+            "n": 145,
+            "win_rate_pct": 29,
+            "avg_R": -0.255
           }
         },
         "zone": {
           "FVG": {
-            "n": 9,
-            "win_rate_pct": 22,
-            "avg_R": -0.364
+            "n": 52,
+            "win_rate_pct": 27,
+            "avg_R": -0.308
           },
           "OB": {
-            "n": 31,
-            "win_rate_pct": 39,
-            "avg_R": 0.014
+            "n": 376,
+            "win_rate_pct": 32,
+            "avg_R": -0.195
           }
         },
         "swept level": {
           "15m swing": {
-            "n": 26,
-            "win_rate_pct": 50,
-            "avg_R": 0.269
+            "n": 288,
+            "win_rate_pct": 33,
+            "avg_R": -0.149
           },
           "1H swing": {
-            "n": 4,
-            "win_rate_pct": 0,
-            "avg_R": -0.983
+            "n": 48,
+            "win_rate_pct": 23,
+            "avg_R": -0.467
           },
           "prior day / session": {
-            "n": 10,
-            "win_rate_pct": 10,
-            "avg_R": -0.591
+            "n": 92,
+            "win_rate_pct": 28,
+            "avg_R": -0.263
           }
         },
         "VWAP side": {
           "against": {
-            "n": 17,
-            "win_rate_pct": 29,
-            "avg_R": -0.259
+            "n": 192,
+            "win_rate_pct": 27,
+            "avg_R": -0.309
           },
           "agrees": {
-            "n": 23,
-            "win_rate_pct": 39,
-            "avg_R": 0.067
+            "n": 236,
+            "win_rate_pct": 35,
+            "avg_R": -0.128
           }
         },
         "stop size": {
           "normal (1.5-3 ATR)": {
-            "n": 26,
-            "win_rate_pct": 38,
-            "avg_R": -0.015
+            "n": 273,
+            "win_rate_pct": 33,
+            "avg_R": -0.17
           },
           "tight (<1.5 ATR)": {
-            "n": 8,
-            "win_rate_pct": 25,
-            "avg_R": -0.294
+            "n": 77,
+            "win_rate_pct": 34,
+            "avg_R": -0.116
           },
           "wide (>3 ATR)": {
-            "n": 6,
-            "win_rate_pct": 33,
-            "avg_R": -0.019
+            "n": 78,
+            "win_rate_pct": 23,
+            "avg_R": -0.438
           }
         },
         "R:R": {
           "1.5-2": {
-            "n": 36,
-            "win_rate_pct": 36,
-            "avg_R": -0.047
+            "n": 394,
+            "win_rate_pct": 31,
+            "avg_R": -0.217
           },
           "2-3": {
-            "n": 4,
-            "win_rate_pct": 25,
-            "avg_R": -0.288
+            "n": 31,
+            "win_rate_pct": 32,
+            "avg_R": -0.108
+          },
+          "3+": {
+            "n": 3,
+            "win_rate_pct": 33,
+            "avg_R": -0.193
           }
         }
       },
       "best_filter": {
         "filter": {
-          "swept level": "15m swing"
+          "session": "Off-hours",
+          "zone": "FVG"
         },
-        "train_trades": 15,
-        "train_avg_R": 0.351,
-        "test_trades": 11,
-        "test_avg_R": 0.157,
-        "test_win_rate_pct": 45
+        "train_trades": 13,
+        "train_avg_R": 0.445,
+        "test_trades": 5,
+        "test_avg_R": -0.453,
+        "test_win_rate_pct": 20
       },
-      "verdict": "Losing after costs (-0.07R per trade over 40 trades): do not promote these alerts as an edge. Best filter {'swept level': '15m swing'} held up on unseen data (+0.16R over 11 trades).",
+      "verdict": "Losing after costs (-0.21R per trade over 428 trades): do not promote these alerts as an edge. The best filter on older data ({'session': 'Off-hours', 'zone': 'FVG'}) has only 5 trades in the newer data: too few to confirm.",
       "recent": [
+        {
+          "time": "2026-10-14 04:05:00-04:00",
+          "dir": "bull",
+          "entry": 4148.46,
+          "stop": 4144.17,
+          "target": 4154.9,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-15 03:05:00-04:00",
+          "dir": "bull",
+          "entry": 4134.61,
+          "stop": 4133.03,
+          "target": 4137.1,
+          "rr": 1.57,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-15 08:35:00-04:00",
+          "dir": "bull",
+          "entry": 4142.27,
+          "stop": 4128.05,
+          "target": 4163.6,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-16 11:10:00-04:00",
+          "dir": "bear",
+          "entry": 4184.3,
+          "stop": 4191.42,
+          "target": 4173.6,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-16 15:05:00-04:00",
+          "dir": "bull",
+          "entry": 4159.76,
+          "stop": 4154.71,
+          "target": 4167.36,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 02:10:00-04:00",
+          "dir": "bear",
+          "entry": 4183.07,
+          "stop": 4187.12,
+          "target": 4176.97,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 03:05:00-04:00",
+          "dir": "bull",
+          "entry": 4176.33,
+          "stop": 4169.56,
+          "target": 4186.52,
+          "rr": 1.51,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 03:40:00-04:00",
+          "dir": "bear",
+          "entry": 4188.02,
+          "stop": 4190.42,
+          "target": 4184.41,
+          "rr": 1.5,
+          "result": "missed",
+          "R": 0.0
+        },
         {
           "time": "2026-10-19 07:05:00-04:00",
           "dir": "bull",
-          "entry": 4184.3,
-          "stop": 4184.07,
-          "target": 4185.0,
-          "rr": 3.09,
+          "entry": 4169.91,
+          "stop": 4168.47,
+          "target": 4172.31,
+          "rr": 1.67,
           "result": "missed",
           "R": 0.0
         },
         {
           "time": "2026-10-19 11:25:00-04:00",
           "dir": "bull",
-          "entry": 4164.65,
-          "stop": 4160.44,
-          "target": 4171.4,
-          "rr": 1.6,
+          "entry": 4145.09,
+          "stop": 4142.04,
+          "target": 4149.69,
+          "rr": 1.51,
           "result": "loss",
-          "R": -0.679
+          "R": -0.517
         },
         {
           "time": "2026-10-19 14:00:00-04:00",
           "dir": "bull",
-          "entry": 4163.1,
-          "stop": 4160.32,
-          "target": 4167.5,
-          "rr": 1.59,
+          "entry": 4145.14,
+          "stop": 4141.11,
+          "target": 4151.3,
+          "rr": 1.53,
+          "result": "loss",
+          "R": -1.099
+        },
+        {
+          "time": "2026-10-20 23:25:00-04:00",
+          "dir": "bull",
+          "entry": 4117.14,
+          "stop": 4111.7,
+          "target": 4125.31,
+          "rr": 1.5,
           "result": "missed",
           "R": 0.0
         },
         {
-          "time": "2026-10-19 15:20:00-04:00",
+          "time": "2026-10-20 23:55:00-04:00",
           "dir": "bear",
-          "entry": 4163.55,
-          "stop": 4169.52,
-          "target": 4154.5,
-          "rr": 1.52,
-          "result": "expired",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-20 01:05:00-04:00",
-          "dir": "bear",
-          "entry": 4162.5,
-          "stop": 4167.32,
-          "target": 4155.0,
-          "rr": 1.56,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-20 08:05:00-04:00",
-          "dir": "bear",
-          "entry": 4141.3,
-          "stop": 4147.08,
-          "target": 4132.2,
-          "rr": 1.57,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-20 18:55:00-04:00",
-          "dir": "bear",
-          "entry": 4140.8,
-          "stop": 4144.52,
-          "target": 4135.0,
-          "rr": 1.56,
-          "result": "missed",
-          "R": 0.0
+          "entry": 4121.45,
+          "stop": 4126.67,
+          "target": 4113.49,
+          "rr": 1.53,
+          "result": "loss",
+          "R": -0.819
         },
         {
           "time": "2026-10-21 03:20:00-04:00",
           "dir": "bull",
-          "entry": 4132.65,
-          "stop": 4128.74,
-          "target": 4138.6,
-          "rr": 1.52,
+          "entry": 4114.77,
+          "stop": 4111.36,
+          "target": 4119.9,
+          "rr": 1.5,
           "result": "missed",
           "R": 0.0
         },
         {
-          "time": "2026-10-21 06:40:00-04:00",
-          "dir": "bull",
-          "entry": 4135.0,
-          "stop": 4134.35,
-          "target": 4136.2,
-          "rr": 1.85,
+          "time": "2026-10-21 05:55:00-04:00",
+          "dir": "bear",
+          "entry": 4121.83,
+          "stop": 4126.62,
+          "target": 4114.61,
+          "rr": 1.5,
           "result": "missed",
           "R": 0.0
         },
         {
           "time": "2026-10-21 12:05:00-04:00",
           "dir": "bear",
-          "entry": 4150.55,
-          "stop": 4161.11,
-          "target": 4134.7,
-          "rr": 1.5,
+          "entry": 4132.07,
+          "stop": 4142.17,
+          "target": 4116.81,
+          "rr": 1.51,
           "result": "win",
-          "R": 1.562
+          "R": 1.587
         },
         {
           "time": "2026-10-21 16:40:00-04:00",
           "dir": "bull",
-          "entry": 4150.9,
-          "stop": 4141.11,
-          "target": 4165.6,
+          "entry": 4122.88,
+          "stop": 4122.68,
+          "target": 4123.21,
+          "rr": 1.7,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 18:45:00-04:00",
+          "dir": "bear",
+          "entry": 4134.47,
+          "stop": 4142.9,
+          "target": 4121.81,
           "rr": 1.5,
-          "result": "loss",
-          "R": -1.041
+          "result": "missed",
+          "R": 0.0
         },
         {
           "time": "2026-10-22 03:45:00-04:00",
           "dir": "bear",
-          "entry": 4107.1,
-          "stop": 4115.14,
-          "target": 4095.0,
+          "entry": 4090.74,
+          "stop": 4097.97,
+          "target": 4079.8,
           "rr": 1.51,
           "result": "win",
-          "R": 1.456
+          "R": 1.457
         },
         {
           "time": "2026-10-23 13:05:00-04:00",
           "dir": "bear",
-          "entry": 4014.1,
-          "stop": 4021.46,
-          "target": 4000.9,
-          "rr": 1.79,
+          "entry": 4000.07,
+          "stop": 4007.26,
+          "target": 3989.2,
+          "rr": 1.51,
           "result": "win",
-          "R": 1.739
+          "R": 1.454
         },
         {
-          "time": "2026-10-26 03:30:00-04:00",
+          "time": "2026-10-25 18:15:00-04:00",
           "dir": "bull",
-          "entry": 4017.1,
-          "stop": 4015.31,
-          "target": 4019.8,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 10:35:00-04:00",
-          "dir": "bull",
-          "entry": 4022.5,
-          "stop": 4021.5,
-          "target": 4024.4,
-          "rr": 1.9,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 14:30:00-04:00",
-          "dir": "bear",
-          "entry": 4032.15,
-          "stop": 4042.16,
-          "target": 4016.8,
-          "rr": 1.53,
-          "result": "expired",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 21:20:00-04:00",
-          "dir": "bear",
-          "entry": 4028.0,
-          "stop": 4034.88,
-          "target": 4017.0,
-          "rr": 1.6,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 00:50:00-04:00",
-          "dir": "bear",
-          "entry": 4033.1,
-          "stop": 4035.38,
-          "target": 4029.0,
-          "rr": 1.8,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 05:05:00-04:00",
-          "dir": "bull",
-          "entry": 4004.5,
-          "stop": 4000.31,
-          "target": 4011.3,
-          "rr": 1.62,
-          "result": "missed",
-          "R": 0.0
+          "entry": 3994.45,
+          "stop": 3987.77,
+          "target": 4004.62,
+          "rr": 1.52,
+          "result": "win",
+          "R": 1.463
         },
         {
           "time": "2026-10-27 13:55:00-04:00",
           "dir": "bear",
-          "entry": 4074.5,
-          "stop": 4080.13,
-          "target": 4062.6,
-          "rr": 2.11,
+          "entry": 4060.95,
+          "stop": 4065.83,
+          "target": 4053.61,
+          "rr": 1.51,
           "result": "loss",
-          "R": -1.071
+          "R": -1.082
         },
         {
           "time": "2026-10-28 12:50:00-04:00",
           "dir": "bull",
-          "entry": 4053.2,
-          "stop": 4046.74,
-          "target": 4063.2,
-          "rr": 1.55,
+          "entry": 4040.19,
+          "stop": 4033.88,
+          "target": 4049.76,
+          "rr": 1.51,
           "result": "loss",
-          "R": -1.062
-        },
-        {
-          "time": "2026-10-28 18:20:00-04:00",
-          "dir": "bear",
-          "entry": 4074.05,
-          "stop": 4077.51,
-          "target": 4068.5,
-          "rr": 1.6,
-          "result": "missed",
-          "R": 0.0
+          "R": -1.063
         },
         {
           "time": "2026-10-29 01:00:00-04:00",
           "dir": "bull",
-          "entry": 4049.75,
-          "stop": 4046.17,
-          "target": 4055.3,
-          "rr": 1.55,
+          "entry": 4038.23,
+          "stop": 4034.74,
+          "target": 4043.49,
+          "rr": 1.51,
           "result": "missed",
           "R": 0.0
         },
         {
           "time": "2026-10-29 07:50:00-04:00",
           "dir": "bear",
-          "entry": 4039.0,
-          "stop": 4050.71,
-          "target": 4021.4,
-          "rr": 1.5,
+          "entry": 4027.44,
+          "stop": 4038.86,
+          "target": 4010.22,
+          "rr": 1.51,
           "result": "win",
-          "R": 1.468
-        },
-        {
-          "time": "2026-10-29 20:40:00-04:00",
-          "dir": "bull",
-          "entry": 4020.05,
-          "stop": 4013.95,
-          "target": 4029.2,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
+          "R": 1.472
         }
-      ]
+      ],
+      "proven": false
     },
     "v2": {
       "summary": {
-        "alerts": 127,
-        "filled": 30,
-        "fill_rate_pct": 24,
-        "missed": 25,
-        "expired": 1,
-        "win_rate_pct": 20,
-        "avg_R": -0.313,
-        "total_R": -9.39,
-        "profit_factor": 0.58,
-        "max_drawdown_R": 16.22
+        "alerts": 1300,
+        "filled": 293,
+        "fill_rate_pct": 23,
+        "missed": 294,
+        "expired": 18,
+        "win_rate_pct": 23,
+        "avg_R": -0.223,
+        "total_R": -65.42,
+        "profit_factor": 0.7,
+        "max_drawdown_R": 75.53
       },
       "factors": {
         "direction": {
           "bear": {
-            "n": 14,
-            "win_rate_pct": 36,
-            "avg_R": 0.131
+            "n": 151,
+            "win_rate_pct": 23,
+            "avg_R": -0.17
           },
           "bull": {
-            "n": 16,
-            "win_rate_pct": 6,
-            "avg_R": -0.701
+            "n": 142,
+            "win_rate_pct": 22,
+            "avg_R": -0.28
           }
         },
         "1H bias": {
           "against": {
-            "n": 20,
-            "win_rate_pct": 20,
-            "avg_R": -0.372
+            "n": 148,
+            "win_rate_pct": 19,
+            "avg_R": -0.333
           },
           "agrees": {
-            "n": 10,
-            "win_rate_pct": 20,
-            "avg_R": -0.194
+            "n": 145,
+            "win_rate_pct": 26,
+            "avg_R": -0.111
           }
         },
         "session": {
           "Asia": {
-            "n": 7,
-            "win_rate_pct": 14,
-            "avg_R": -0.414
+            "n": 102,
+            "win_rate_pct": 20,
+            "avg_R": -0.299
           },
           "London": {
-            "n": 5,
-            "win_rate_pct": 40,
-            "avg_R": 0.3
+            "n": 38,
+            "win_rate_pct": 21,
+            "avg_R": -0.221
           },
           "New York": {
-            "n": 7,
-            "win_rate_pct": 29,
-            "avg_R": -0.053
+            "n": 53,
+            "win_rate_pct": 23,
+            "avg_R": -0.263
           },
           "Off-hours": {
-            "n": 11,
-            "win_rate_pct": 9,
-            "avg_R": -0.693
+            "n": 100,
+            "win_rate_pct": 26,
+            "avg_R": -0.126
           }
         },
         "displacement": {
           "no": {
-            "n": 22,
-            "win_rate_pct": 18,
-            "avg_R": -0.304
+            "n": 193,
+            "win_rate_pct": 23,
+            "avg_R": -0.21
           },
           "yes": {
-            "n": 8,
-            "win_rate_pct": 25,
-            "avg_R": -0.337
+            "n": 100,
+            "win_rate_pct": 21,
+            "avg_R": -0.249
           }
         },
         "zone": {
           "FVG": {
-            "n": 7,
-            "win_rate_pct": 14,
-            "avg_R": -0.454
+            "n": 38,
+            "win_rate_pct": 21,
+            "avg_R": -0.216
           },
           "OB": {
-            "n": 23,
-            "win_rate_pct": 22,
-            "avg_R": -0.27
+            "n": 255,
+            "win_rate_pct": 23,
+            "avg_R": -0.224
           }
         },
         "swept level": {
           "15m swing": {
-            "n": 18,
-            "win_rate_pct": 33,
-            "avg_R": 0.076
+            "n": 206,
+            "win_rate_pct": 24,
+            "avg_R": -0.174
           },
           "1H swing": {
-            "n": 4,
-            "win_rate_pct": 0,
-            "avg_R": -0.97
+            "n": 31,
+            "win_rate_pct": 16,
+            "avg_R": -0.368
           },
           "prior day / session": {
-            "n": 8,
-            "win_rate_pct": 0,
-            "avg_R": -0.861
+            "n": 56,
+            "win_rate_pct": 21,
+            "avg_R": -0.322
           }
         },
         "VWAP side": {
           "against": {
-            "n": 16,
-            "win_rate_pct": 19,
-            "avg_R": -0.456
+            "n": 133,
+            "win_rate_pct": 20,
+            "avg_R": -0.299
           },
           "agrees": {
-            "n": 14,
-            "win_rate_pct": 21,
-            "avg_R": -0.15
+            "n": 160,
+            "win_rate_pct": 25,
+            "avg_R": -0.16
           }
         },
         "stop size": {
           "normal (1.5-3 ATR)": {
-            "n": 22,
-            "win_rate_pct": 23,
-            "avg_R": -0.244
+            "n": 213,
+            "win_rate_pct": 22,
+            "avg_R": -0.32
           },
           "tight (<1.5 ATR)": {
-            "n": 8,
-            "win_rate_pct": 12,
-            "avg_R": -0.503
+            "n": 80,
+            "win_rate_pct": 25,
+            "avg_R": 0.033
           }
         },
         "R:R": {
           "1.5-2": {
-            "n": 13,
-            "win_rate_pct": 23,
-            "avg_R": -0.287
+            "n": 124,
+            "win_rate_pct": 25,
+            "avg_R": -0.311
           },
           "2-3": {
-            "n": 10,
-            "win_rate_pct": 20,
-            "avg_R": -0.267
+            "n": 96,
+            "win_rate_pct": 17,
+            "avg_R": -0.385
           },
           "3+": {
-            "n": 7,
-            "win_rate_pct": 14,
-            "avg_R": -0.428
+            "n": 73,
+            "win_rate_pct": 26,
+            "avg_R": 0.138
           }
         }
       },
       "best_filter": {
         "filter": {
-          "1H bias": "against"
+          "displacement": "no",
+          "stop size": "tight (<1.5 ATR)"
         },
-        "train_trades": 14,
-        "train_avg_R": -0.376,
-        "test_trades": 6,
-        "test_avg_R": -0.364,
-        "test_win_rate_pct": 17
+        "train_trades": 31,
+        "train_avg_R": 0.699,
+        "test_trades": 16,
+        "test_avg_R": -0.506,
+        "test_win_rate_pct": 12
       },
-      "verdict": "Losing after costs (-0.31R per trade over 30 trades): do not promote these alerts as an edge. The best filter on older data ({'1H bias': 'against'}) has only 6 trades in the newer data: too few to confirm.",
+      "verdict": "Losing after costs (-0.22R per trade over 293 trades): do not promote these alerts as an edge. The best filter on older data ({'displacement': 'no', 'stop size': 'tight (<1.5 ATR)'}) failed on newer data (-0.51R over 16 trades), so it was likely luck.",
       "recent": [
+        {
+          "time": "2026-10-16 11:10:00-04:00",
+          "dir": "bear",
+          "entry": 4184.3,
+          "stop": 4191.42,
+          "target": 4154.66,
+          "rr": 4.16,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-16 15:05:00-04:00",
+          "dir": "bull",
+          "entry": 4159.76,
+          "stop": 4154.71,
+          "target": 4167.74,
+          "rr": 1.58,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-19 02:10:00-04:00",
+          "dir": "bear",
+          "entry": 4183.07,
+          "stop": 4187.12,
+          "target": 4173.77,
+          "rr": 2.29,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
         {
           "time": "2026-10-19 03:05:00-04:00",
           "dir": "bull",
-          "entry": 4196.6,
-          "stop": 4189.87,
-          "target": 4220.4,
-          "rr": 3.54,
+          "entry": 4176.33,
+          "stop": 4169.56,
+          "target": 4198.82,
+          "rr": 3.32,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
           "time": "2026-10-19 03:40:00-04:00",
           "dir": "bear",
-          "entry": 4208.95,
-          "stop": 4210.92,
-          "target": 4191.2,
-          "rr": 9.02,
+          "entry": 4188.02,
+          "stop": 4190.42,
+          "target": 4170.88,
+          "rr": 7.16,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
           "time": "2026-10-19 07:05:00-04:00",
           "dir": "bull",
-          "entry": 4184.3,
-          "stop": 4184.07,
-          "target": 4199.8,
-          "rr": 68.47,
+          "entry": 4169.91,
+          "stop": 4168.47,
+          "target": 4179.38,
+          "rr": 6.56,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
           "time": "2026-10-19 11:25:00-04:00",
           "dir": "bull",
-          "entry": 4164.65,
-          "stop": 4160.44,
-          "target": 4174.9,
-          "rr": 2.44,
+          "entry": 4145.09,
+          "stop": 4142.04,
+          "target": 4150.2,
+          "rr": 1.68,
           "result": "loss",
-          "R": -0.679
+          "R": -0.517
         },
         {
           "time": "2026-10-19 14:00:00-04:00",
           "dir": "bull",
-          "entry": 4163.1,
-          "stop": 4160.32,
-          "target": 4169.2,
-          "rr": 2.2,
+          "entry": 4145.14,
+          "stop": 4141.11,
+          "target": 4155.07,
+          "rr": 2.47,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
           "time": "2026-10-19 15:20:00-04:00",
           "dir": "bear",
-          "entry": 4163.55,
-          "stop": 4169.52,
-          "target": 4151.6,
-          "rr": 2.0,
-          "result": "expired",
-          "R": 0.0
+          "entry": 4143.78,
+          "stop": 4149.95,
+          "target": 4130.1,
+          "rr": 2.22,
+          "result": "win",
+          "R": 2.155
         },
         {
-          "time": "2026-10-20 01:05:00-04:00",
-          "dir": "bear",
-          "entry": 4162.5,
-          "stop": 4167.32,
-          "target": 4151.1,
-          "rr": 2.37,
+          "time": "2026-10-20 23:25:00-04:00",
+          "dir": "bull",
+          "entry": 4117.14,
+          "stop": 4111.7,
+          "target": 4131.6,
+          "rr": 2.66,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
-          "time": "2026-10-20 08:05:00-04:00",
+          "time": "2026-10-20 23:55:00-04:00",
           "dir": "bear",
-          "entry": 4141.3,
-          "stop": 4147.08,
-          "target": 4121.8,
-          "rr": 3.37,
+          "entry": 4121.45,
+          "stop": 4126.67,
+          "target": 4112.79,
+          "rr": 1.66,
           "result": "loss",
-          "R": -0.844
-        },
-        {
-          "time": "2026-10-20 18:55:00-04:00",
-          "dir": "bear",
-          "entry": 4140.8,
-          "stop": 4144.52,
-          "target": 4134.7,
-          "rr": 1.64,
-          "result": "skipped: price already ran",
-          "R": 0.0
+          "R": -0.819
         },
         {
           "time": "2026-10-21 03:20:00-04:00",
           "dir": "bull",
-          "entry": 4132.65,
-          "stop": 4128.74,
-          "target": 4147.7,
-          "rr": 3.85,
+          "entry": 4114.77,
+          "stop": 4111.36,
+          "target": 4129.31,
+          "rr": 4.26,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
-          "time": "2026-10-21 06:40:00-04:00",
-          "dir": "bull",
-          "entry": 4135.0,
-          "stop": 4134.35,
-          "target": 4147.7,
-          "rr": 19.54,
+          "time": "2026-10-21 05:55:00-04:00",
+          "dir": "bear",
+          "entry": 4121.83,
+          "stop": 4126.62,
+          "target": 4110.6,
+          "rr": 2.34,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
           "time": "2026-10-21 12:05:00-04:00",
           "dir": "bear",
-          "entry": 4150.55,
-          "stop": 4161.11,
-          "target": 4129.5,
-          "rr": 1.99,
+          "entry": 4132.07,
+          "stop": 4142.17,
+          "target": 4111.51,
+          "rr": 2.04,
           "result": "win",
-          "R": 2.055
+          "R": 2.113
+        },
+        {
+          "time": "2026-10-21 16:40:00-04:00",
+          "dir": "bull",
+          "entry": 4122.88,
+          "stop": 4122.68,
+          "target": 4141.03,
+          "rr": 92.82,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-21 18:45:00-04:00",
+          "dir": "bear",
+          "entry": 4134.47,
+          "stop": 4142.9,
+          "target": 4104.61,
+          "rr": 3.54,
+          "result": "skipped: price already ran",
+          "R": 0.0
         },
         {
           "time": "2026-10-22 03:45:00-04:00",
           "dir": "bear",
-          "entry": 4107.1,
-          "stop": 4115.14,
-          "target": 4082.4,
-          "rr": 3.07,
+          "entry": 4090.74,
+          "stop": 4097.97,
+          "target": 4066.57,
+          "rr": 3.34,
           "result": "win",
-          "R": 3.023
+          "R": 3.284
         },
         {
           "time": "2026-10-23 13:05:00-04:00",
           "dir": "bear",
-          "entry": 4014.1,
-          "stop": 4021.46,
-          "target": 3989.1,
-          "rr": 3.4,
+          "entry": 4000.07,
+          "stop": 4007.26,
+          "target": 3975.33,
+          "rr": 3.44,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
-          "time": "2026-10-25 18:15:00-04:00",
+          "time": "2026-10-25 18:00:00-04:00",
           "dir": "bull",
-          "entry": 4008.8,
-          "stop": 4006.09,
-          "target": 4020.5,
-          "rr": 4.32,
+          "entry": 3996.14,
+          "stop": 3992.18,
+          "target": 4006.32,
+          "rr": 2.57,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
-          "time": "2026-10-26 03:30:00-04:00",
+          "time": "2026-10-26 20:00:00-04:00",
           "dir": "bull",
-          "entry": 4017.1,
-          "stop": 4015.31,
-          "target": 4028.5,
-          "rr": 6.35,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 10:35:00-04:00",
-          "dir": "bull",
-          "entry": 4022.5,
-          "stop": 4021.5,
-          "target": 4035.4,
-          "rr": 12.92,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 21:20:00-04:00",
-          "dir": "bear",
-          "entry": 4028.0,
-          "stop": 4034.88,
-          "target": 4017.0,
-          "rr": 1.6,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 00:50:00-04:00",
-          "dir": "bear",
-          "entry": 4033.1,
-          "stop": 4035.38,
-          "target": 4017.9,
-          "rr": 6.68,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 05:05:00-04:00",
-          "dir": "bull",
-          "entry": 4004.5,
-          "stop": 4000.31,
-          "target": 4020.3,
-          "rr": 3.77,
+          "entry": 3994.26,
+          "stop": 3987.74,
+          "target": 4026.78,
+          "rr": 4.99,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
           "time": "2026-10-27 13:55:00-04:00",
           "dir": "bear",
-          "entry": 4074.5,
-          "stop": 4080.13,
-          "target": 4046.2,
-          "rr": 5.02,
-          "result": "loss",
-          "R": -1.071
-        },
-        {
-          "time": "2026-10-28 12:50:00-04:00",
-          "dir": "bull",
-          "entry": 4053.2,
-          "stop": 4046.74,
-          "target": 4071.5,
-          "rr": 2.83,
-          "result": "loss",
-          "R": -1.062
-        },
-        {
-          "time": "2026-10-28 18:20:00-04:00",
-          "dir": "bear",
-          "entry": 4074.05,
-          "stop": 4077.51,
-          "target": 4062.8,
-          "rr": 3.25,
+          "entry": 4060.95,
+          "stop": 4065.83,
+          "target": 4032.18,
+          "rr": 5.91,
           "result": "skipped: price already ran",
           "R": 0.0
         },
         {
+          "time": "2026-10-27 14:55:00-04:00",
+          "dir": "bull",
+          "entry": 4055.71,
+          "stop": 4054.88,
+          "target": 4058.99,
+          "rr": 3.98,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-10-28 12:50:00-04:00",
+          "dir": "bull",
+          "entry": 4040.19,
+          "stop": 4033.88,
+          "target": 4051.76,
+          "rr": 1.83,
+          "result": "loss",
+          "R": -1.063
+        },
+        {
           "time": "2026-10-29 01:00:00-04:00",
           "dir": "bull",
-          "entry": 4049.75,
-          "stop": 4046.17,
-          "target": 4055.9,
-          "rr": 1.72,
+          "entry": 4038.23,
+          "stop": 4034.74,
+          "target": 4044.26,
+          "rr": 1.73,
           "result": "missed",
           "R": 0.0
         },
         {
           "time": "2026-10-29 07:50:00-04:00",
           "dir": "bear",
-          "entry": 4039.0,
-          "stop": 4050.71,
-          "target": 4005.8,
-          "rr": 2.83,
-          "result": "timed out",
-          "R": 2.365
+          "entry": 4027.44,
+          "stop": 4038.86,
+          "target": 4008.22,
+          "rr": 1.68,
+          "result": "win",
+          "R": 1.648
         }
-      ]
+      ],
+      "proven": false
     }
-  }
+  },
+  "models": {
+    "sweep_htf": {
+      "description": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
+      "all": {
+        "trades": 250,
+        "win_rate_pct": 42,
+        "avg_R": -0.005
+      },
+      "older_70pct": {
+        "trades": 176,
+        "win_rate_pct": 44,
+        "avg_R": 0.016
+      },
+      "newest_30pct": {
+        "trades": 74,
+        "win_rate_pct": 39,
+        "avg_R": -0.055
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 13,
+          "avg_R": -0.461
+        },
+        "2025-Q1": {
+          "trades": 26,
+          "avg_R": 0.213
+        },
+        "2025-Q2": {
+          "trades": 19,
+          "avg_R": -0.524
+        },
+        "2025-Q3": {
+          "trades": 27,
+          "avg_R": 0.274
+        },
+        "2025-Q4": {
+          "trades": 38,
+          "avg_R": -0.064
+        },
+        "2026-Q1": {
+          "trades": 45,
+          "avg_R": 0.034
+        },
+        "2026-Q2": {
+          "trades": 46,
+          "avg_R": 0.21
+        },
+        "2026-Q3": {
+          "trades": 26,
+          "avg_R": -0.246
+        },
+        "2026-Q4": {
+          "trades": 10,
+          "avg_R": -0.055
+        }
+      },
+      "positive_quarters": "4 of 9",
+      "t_stat": -0.06,
+      "proven": false,
+      "verdict": "No edge: -0.00R per trade after costs."
+    },
+    "value_80": {
+      "description": "Volume profile 80% rule: back inside yesterday's value, target the far edge",
+      "all": {
+        "trades": 114,
+        "win_rate_pct": 31,
+        "avg_R": -0.087
+      },
+      "older_70pct": {
+        "trades": 76,
+        "win_rate_pct": 30,
+        "avg_R": -0.331
+      },
+      "newest_30pct": {
+        "trades": 38,
+        "win_rate_pct": 32,
+        "avg_R": 0.399
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 5,
+          "avg_R": -0.647
+        },
+        "2025-Q1": {
+          "trades": 8,
+          "avg_R": -0.939
+        },
+        "2025-Q2": {
+          "trades": 21,
+          "avg_R": -0.151
+        },
+        "2025-Q3": {
+          "trades": 16,
+          "avg_R": -0.745
+        },
+        "2025-Q4": {
+          "trades": 12,
+          "avg_R": -0.156
+        },
+        "2026-Q1": {
+          "trades": 11,
+          "avg_R": 0.218
+        },
+        "2026-Q2": {
+          "trades": 18,
+          "avg_R": 1.265
+        },
+        "2026-Q3": {
+          "trades": 16,
+          "avg_R": -0.548
+        },
+        "2026-Q4": {
+          "trades": 7,
+          "avg_R": 0.196
+        }
+      },
+      "positive_quarters": "3 of 9",
+      "t_stat": -0.33,
+      "proven": false,
+      "verdict": "No edge: -0.09R per trade after costs."
+    },
+    "acceptance": {
+      "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation",
+      "all": {
+        "trades": 265,
+        "win_rate_pct": 38,
+        "avg_R": 0.032
+      },
+      "older_70pct": {
+        "trades": 177,
+        "win_rate_pct": 38,
+        "avg_R": 0.091
+      },
+      "newest_30pct": {
+        "trades": 88,
+        "win_rate_pct": 39,
+        "avg_R": -0.085
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 16,
+          "avg_R": -0.302
+        },
+        "2025-Q1": {
+          "trades": 16,
+          "avg_R": 0.074
+        },
+        "2025-Q2": {
+          "trades": 28,
+          "avg_R": -0.343
+        },
+        "2025-Q3": {
+          "trades": 40,
+          "avg_R": 0.394
+        },
+        "2025-Q4": {
+          "trades": 39,
+          "avg_R": 0.18
+        },
+        "2026-Q1": {
+          "trades": 34,
+          "avg_R": 0.24
+        },
+        "2026-Q2": {
+          "trades": 38,
+          "avg_R": -0.017
+        },
+        "2026-Q3": {
+          "trades": 42,
+          "avg_R": 0.07
+        },
+        "2026-Q4": {
+          "trades": 12,
+          "avg_R": -0.95
+        }
+      },
+      "positive_quarters": "5 of 9",
+      "t_stat": 0.27,
+      "proven": false,
+      "verdict": "No edge: +0.03R per trade after costs."
+    },
+    "london_breakout": {
+      "description": "London breakout of the Asia range, stop at the range middle, 1.5R target",
+      "all": {
+        "trades": 61,
+        "win_rate_pct": 51,
+        "avg_R": 0.006
+      },
+      "older_70pct": {
+        "trades": 41,
+        "win_rate_pct": 51,
+        "avg_R": -0.011
+      },
+      "newest_30pct": {
+        "trades": 20,
+        "win_rate_pct": 50,
+        "avg_R": 0.041
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 6,
+          "avg_R": -0.205
+        },
+        "2025-Q1": {
+          "trades": 10,
+          "avg_R": 0.224
+        },
+        "2025-Q2": {
+          "trades": 4,
+          "avg_R": -0.346
+        },
+        "2025-Q3": {
+          "trades": 14,
+          "avg_R": 0.172
+        },
+        "2025-Q4": {
+          "trades": 5,
+          "avg_R": -0.435
+        },
+        "2026-Q1": {
+          "trades": 1,
+          "avg_R": -0.545
+        },
+        "2026-Q2": {
+          "trades": 7,
+          "avg_R": 0.059
+        },
+        "2026-Q3": {
+          "trades": 12,
+          "avg_R": 0.099
+        },
+        "2026-Q4": {
+          "trades": 2,
+          "avg_R": -0.264
+        }
+      },
+      "positive_quarters": "4 of 6",
+      "t_stat": 0.06,
+      "proven": false,
+      "verdict": "No edge: +0.01R per trade after costs."
+    },
+    "ny_breakout": {
+      "description": "New York breakout of the 08:00-08:30 range, stop at the range middle, 1.5R target",
+      "all": {
+        "trades": 401,
+        "win_rate_pct": 46,
+        "avg_R": 0.033
+      },
+      "older_70pct": {
+        "trades": 293,
+        "win_rate_pct": 50,
+        "avg_R": 0.111
+      },
+      "newest_30pct": {
+        "trades": 108,
+        "win_rate_pct": 36,
+        "avg_R": -0.178
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 28,
+          "avg_R": 0.466
+        },
+        "2025-Q1": {
+          "trades": 36,
+          "avg_R": 0.067
+        },
+        "2025-Q2": {
+          "trades": 45,
+          "avg_R": -0.053
+        },
+        "2025-Q3": {
+          "trades": 58,
+          "avg_R": 0.018
+        },
+        "2025-Q4": {
+          "trades": 57,
+          "avg_R": 0.156
+        },
+        "2026-Q1": {
+          "trades": 59,
+          "avg_R": 0.152
+        },
+        "2026-Q2": {
+          "trades": 53,
+          "avg_R": -0.068
+        },
+        "2026-Q3": {
+          "trades": 47,
+          "avg_R": -0.152
+        },
+        "2026-Q4": {
+          "trades": 18,
+          "avg_R": -0.449
+        }
+      },
+      "positive_quarters": "5 of 9",
+      "t_stat": 0.56,
+      "proven": false,
+      "verdict": "No edge: +0.03R per trade after costs."
+    },
+    "trend_pullback": {
+      "description": "Daily and 4H trend agree, pullback to VWAP in London or New York, 2R target",
+      "all": {
+        "trades": 272,
+        "win_rate_pct": 31,
+        "avg_R": -0.157
+      },
+      "older_70pct": {
+        "trades": 200,
+        "win_rate_pct": 30,
+        "avg_R": -0.211
+      },
+      "newest_30pct": {
+        "trades": 72,
+        "win_rate_pct": 35,
+        "avg_R": -0.007
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 10,
+          "avg_R": -0.252
+        },
+        "2025-Q1": {
+          "trades": 35,
+          "avg_R": -0.188
+        },
+        "2025-Q2": {
+          "trades": 24,
+          "avg_R": -0.222
+        },
+        "2025-Q3": {
+          "trades": 35,
+          "avg_R": -0.442
+        },
+        "2025-Q4": {
+          "trades": 41,
+          "avg_R": 0.207
+        },
+        "2026-Q1": {
+          "trades": 48,
+          "avg_R": -0.346
+        },
+        "2026-Q2": {
+          "trades": 35,
+          "avg_R": -0.279
+        },
+        "2026-Q3": {
+          "trades": 27,
+          "avg_R": 0.259
+        },
+        "2026-Q4": {
+          "trades": 17,
+          "avg_R": -0.12
+        }
+      },
+      "positive_quarters": "2 of 9",
+      "t_stat": -1.89,
+      "proven": false,
+      "verdict": "No edge: -0.16R per trade after costs."
+    },
+    "vwap_fade": {
+      "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
+      "all": {
+        "trades": 554,
+        "win_rate_pct": 30,
+        "avg_R": -0.201
+      },
+      "older_70pct": {
+        "trades": 382,
+        "win_rate_pct": 31,
+        "avg_R": -0.278
+      },
+      "newest_30pct": {
+        "trades": 172,
+        "win_rate_pct": 29,
+        "avg_R": -0.031
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 50,
+          "avg_R": -0.022
+        },
+        "2025-Q1": {
+          "trades": 60,
+          "avg_R": -0.316
+        },
+        "2025-Q2": {
+          "trades": 59,
+          "avg_R": -0.262
+        },
+        "2025-Q3": {
+          "trades": 90,
+          "avg_R": -0.213
+        },
+        "2025-Q4": {
+          "trades": 62,
+          "avg_R": -0.563
+        },
+        "2026-Q1": {
+          "trades": 47,
+          "avg_R": -0.162
+        },
+        "2026-Q2": {
+          "trades": 82,
+          "avg_R": 0.129
+        },
+        "2026-Q3": {
+          "trades": 81,
+          "avg_R": -0.324
+        },
+        "2026-Q4": {
+          "trades": 23,
+          "avg_R": 0.063
+        }
+      },
+      "positive_quarters": "2 of 9",
+      "t_stat": -2.02,
+      "proven": false,
+      "verdict": "No edge: -0.20R per trade after costs."
+    },
+    "trend_breakout": {
+      "description": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target",
+      "all": {
+        "trades": 85,
+        "win_rate_pct": 44,
+        "avg_R": 0.299
+      },
+      "older_70pct": {
+        "trades": 59,
+        "win_rate_pct": 42,
+        "avg_R": 0.39
+      },
+      "newest_30pct": {
+        "trades": 26,
+        "win_rate_pct": 46,
+        "avg_R": 0.093
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 5,
+          "avg_R": -0.872
+        },
+        "2025-Q1": {
+          "trades": 9,
+          "avg_R": 0.168
+        },
+        "2025-Q2": {
+          "trades": 11,
+          "avg_R": -0.54
+        },
+        "2025-Q3": {
+          "trades": 11,
+          "avg_R": 0.673
+        },
+        "2025-Q4": {
+          "trades": 11,
+          "avg_R": 0.999
+        },
+        "2026-Q1": {
+          "trades": 12,
+          "avg_R": 1.116
+        },
+        "2026-Q2": {
+          "trades": 10,
+          "avg_R": 0.122
+        },
+        "2026-Q3": {
+          "trades": 12,
+          "avg_R": 0.073
+        },
+        "2026-Q4": {
+          "trades": 4,
+          "avg_R": 0.081
+        }
+      },
+      "by_direction": {
+        "short": {
+          "trades": 33,
+          "avg_R": -0.139
+        },
+        "long": {
+          "trades": 52,
+          "avg_R": 0.577
+        }
+      },
+      "positive_quarters": "6 of 8",
+      "t_stat": 1.63,
+      "proven": false,
+      "verdict": "Positive (+0.30R) but not statistically clear yet (t=1.6, need 2): could still be luck."
+    }
+  },
+  "alert_mode": "watch"
 }
