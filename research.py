@@ -222,8 +222,38 @@ def vwap_fade(df):
     return out
 
 
+def trend_breakout(df):
+    """Higher-timeframe trend following: a 4H candle closes above the highest high (or below the lowest low) of the
+    previous 30 4H candles (about 1 week). Enter after the alert delay, stop 2 x the 4H ATR away, target 3R,
+    out after 5 days at most. Gold trended strongly in 2024-26, so check the long and short results separately."""
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    d4 = resample(df, "4H")
+    a4 = atr(d4).to_numpy()
+    hi30 = d4["High"].rolling(30).max().shift(1).to_numpy()
+    lo30 = d4["Low"].rolling(30).min().shift(1).to_numpy()
+    c4 = d4["Close"].to_numpy()
+    out, busy_t, n = [], None, len(df)
+    for k in range(31, len(d4)):
+        sg = 1 if c4[k] > hi30[k] else -1 if c4[k] < lo30[k] else 0
+        if not sg or not np.isfinite(a4[k]):
+            continue
+        t_close = d4.index[k] + pd.Timedelta(hours=4)
+        if busy_t is not None and t_close <= busy_t:
+            continue
+        i = int(df.index.searchsorted(t_close)) - 1     # last 5m candle of that 4H candle
+        j0 = i + 1 + LAT
+        if j0 + 1 >= n:
+            continue
+        stop = o[j0] - sg * 2 * a4[k]
+        r, j = _run_trade(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, o[j0] + sg * 3 * 2 * a4[k])
+        if r is not None:
+            out.append((df.index[j0], r, "long" if sg > 0 else "short"))
+            busy_t = df.index[j]
+    return out
+
+
 def judge(trades, split_t):
-    r = np.array([x[1] for x in trades])
+    r = np.array([x[1] for x in trades], dtype=float)
     te = np.array([x[1] for x in trades if x[0] >= split_t])
     tr = np.array([x[1] for x in trades if x[0] < split_t])
     f = lambda z: {"trades": len(z), "win_rate_pct": round(100 * float((z > 0).mean())) if len(z) else None,
@@ -231,9 +261,15 @@ def judge(trades, split_t):
     out = {"all": f(r), "older_70pct": f(tr), "newest_30pct": f(te)}
     # stability: results by quarter, and by direction (gold rose a lot in 2024-26, so longs can look good by luck)
     q = {}
-    for t, v in trades:
+    for t, v, *_ in trades:
         q.setdefault(f"{t.year}-Q{(t.month - 1) // 3 + 1}", []).append(v)
     out["quarters"] = {k: {"trades": len(v), "avg_R": round(float(np.mean(v)), 3)} for k, v in sorted(q.items())}
+    side = {}
+    for x in trades:
+        if len(x) > 2:
+            side.setdefault(x[2], []).append(x[1])
+    if side:
+        out["by_direction"] = {k: {"trades": len(v), "avg_R": round(float(np.mean(v)), 3)} for k, v in side.items()}
     qs = [v for v in out["quarters"].values() if v["trades"] >= 5]
     pos_q = sum(v["avg_R"] > 0 for v in qs)
     out["positive_quarters"] = f"{pos_q} of {len(qs)}"
@@ -262,10 +298,11 @@ DESCRIBE = {"sweep_htf": "Sweep + structure shift, only with the 4H and Daily tr
             "london_breakout": "London breakout of the Asia range, stop at the range middle, 1.5R target",
             "ny_breakout": "New York breakout of the 08:00-08:30 range, stop at the range middle, 1.5R target",
             "trend_pullback": "Daily and 4H trend agree, pullback to VWAP in London or New York, 2R target",
-            "vwap_fade": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP"}
+            "vwap_fade": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
+            "trend_breakout": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target"}
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
-              "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df)}
+              "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

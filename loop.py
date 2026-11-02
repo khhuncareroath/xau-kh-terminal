@@ -21,6 +21,7 @@ OPTIONAL = ["chart.py", "news.py", "macro.py", "quality.py", "grade.py", "spot.p
 LOOP_MIN = float(os.environ.get("LOOP_MINUTES", 330))
 PUSH_EVERY = int(os.environ.get("PUSH_EVERY", 2))
 STEP_TIMEOUT = 240
+BRANCH = os.environ.get("GITHUB_REF_NAME") or "main"
 
 
 def market_open():   # gold: Sunday 18:00 to Friday 17:00 New York, daily break 17:00-18:00
@@ -53,10 +54,10 @@ def push():
         return
     git("commit", "-m", "Update analysis live data")
     for attempt in range(3):
-        pull = git("pull", "--rebase", "-X", "theirs", "origin", "HEAD")
+        pull = git("pull", "--rebase", "-X", "theirs", "origin", BRANCH)
         if pull.returncode != 0:
             git("rebase", "--abort")
-        if git("push").returncode == 0:
+        if git("push", "origin", f"HEAD:{BRANCH}").returncode == 0:
             print("  pushed results", flush=True)
             return
         time.sleep(5 * (attempt + 1))
@@ -66,7 +67,7 @@ def push():
 def cycle(n):
     print(f"cycle {n} at {datetime.now(ZoneInfo('Asia/Phnom_Penh')):%a %H:%M} Phnom Penh", flush=True)
     if n > 1:   # pick up backtest.json and other changes made by the daily backtest job
-        git("pull", "--rebase", "-X", "theirs", "origin", "HEAD")
+        git("pull", "--rebase", "-X", "theirs", "origin", BRANCH)
     core_ok = all([run(s) for s in CORE])
     if core_ok:
         for s in OPTIONAL:

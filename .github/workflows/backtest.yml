@@ -51,8 +51,13 @@ jobs:
           git config --global user.name "analysis-bot"
           git config --global user.email "bot@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          B="${GITHUB_REF_NAME}"
+          # the spot history goes to its own branch, replaced each time, so the main history stays small
+          U=$(git remote get-url origin); T=$(mktemp -d); cp data/xau_5m.csv.gz "$T/"
+          ( cd "$T" && git init -q -b spot-data && git add xau_5m.csv.gz \
+            && git commit -q -m "Spot XAUUSD 5m history" && git push -q -f "$U" spot-data ) || echo "spot-data push failed"
           git add backtest.json; git add data/gc_5m.csv.gz 2>/dev/null || true
           git diff --staged --quiet && exit 0
           git commit -m "Daily backtest"
-          for i in 1 2 3; do git pull --rebase -X theirs origin HEAD && git push && exit 0; sleep 10; done
+          for i in 1 2 3; do git pull --rebase -X theirs origin "$B" && git push origin "HEAD:$B" && exit 0; sleep 10; done
           exit 1
