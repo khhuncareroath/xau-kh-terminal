@@ -1,25 +1,32 @@
 name: Gold analysis
 on:
   schedule:
-    - cron: "*/5 * * * 0-5"   # was every 15 min; every 5 cuts alert delay (public repos have unlimited Actions minutes)
+    # Only restarts the runner. loop.py itself runs the analysis every 5 minutes for up to 5.5 hours,
+    # because GitHub delays scheduled jobs (a "*/5" schedule really ran about once an hour).
+    - cron: "*/20 * * * 0-5"
   workflow_dispatch:
 permissions:
   contents: write
 concurrency:
   group: gold-analysis
-  cancel-in-progress: false
+  cancel-in-progress: false   # a new start waits until the running loop ends, so there is never a gap or an overlap
 env:
-  XAU_RULES: ${{ vars.XAU_RULES || 'current' }}       # set to v2 if backtest.json shows v2 is better
+  XAU_RULES: ${{ vars.XAU_RULES || 'current' }}
   DISPLAY_TZ: ${{ vars.DISPLAY_TZ || 'Asia/Phnom_Penh' }}
+  ALERT_MODE: ${{ vars.ALERT_MODE || 'auto' }}          # auto = trade-style alerts only after backtest.json proves the rules
   TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
   NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
   SITE_URL: ${{ vars.SITE_URL }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
   AI_LANG: ${{ vars.AI_LANG || 'en' }}                  # 'km' adds a Khmer version
+  TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}         # optional: spot XAUUSD offset in alerts
+  PYTHONWARNINGS: ignore
 jobs:
   run:
     runs-on: ubuntu-latest
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,40 +34,10 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
-      # core steps: if one fails the job fails loudly and status.py tells the owner
-      - run: python levels.py
-      - run: python ict.py
-      - run: python confluence.py
-      # optional steps: the site works without them
-      - run: python news.py
-        continue-on-error: true
-      - run: python macro.py
-        continue-on-error: true
-      - run: python quality.py
-        continue-on-error: true
-      - run: python grade.py
-        continue-on-error: true
-      - run: python spot.py
-        continue-on-error: true
-        env:
-          TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}
-      - run: python track.py          # grade earlier alerts first, so results go out before any new idea
-        continue-on-error: true
-      - run: python postnews.py
-        continue-on-error: true
-      - run: python notify.py
-        continue-on-error: true
-      - name: Health check
-        if: always()
-        run: python status.py
-        env:
-          JOB_STATUS: ${{ job.status }}
-          TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
-      - name: Save results
-        if: always()
+      - name: Configure git for the bot
         run: |
           git config --global user.name "analysis-bot"
           git config --global user.email "bot@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add -- '*.json'
-          git diff --staged --quiet || (git commit -m "Update analysis live data" && git pull --rebase -X theirs origin HEAD && git push)
+      - name: Analysis every 5 minutes
+        run: python loop.py

@@ -27,6 +27,7 @@ MAX_RISK_ATR = float(os.environ.get("MAX_RISK_ATR", 3.0))
 EXPIRE_MIN = float(os.environ.get("ALERT_EXPIRE_MIN", 120))
 COOLDOWN = float(os.environ.get("ALERT_COOLDOWN_H", 3)) * 3600
 STALE_MIN = 40
+MODE = os.environ.get("ALERT_MODE", "auto")   # auto: trade-style only if backtest.json proves the rules; else "watch" posts
 TV = "https://www.tradingview.com/chart/?symbol=COMEX%3AGC1%21"
 NY = ZoneInfo("America/New_York")
 
@@ -152,6 +153,7 @@ def main():
     if not upgrade and now - state.get("t", 0) < COOLDOWN and n_ok <= state.get("factors", 0):
         print("cooldown, not clearly better than the last alert"); return
 
+    mode = MODE if MODE in ("watch", "signal") else bt.get("alert_mode", "watch")
     bull = st["dir"] == "bull"
     sg = 1 if bull else -1
     valid_until = ts(st["shift_time"]) + EXPIRE_MIN * 60 if st.get("shift_time") else now + EXPIRE_MIN * 60
@@ -167,7 +169,23 @@ def main():
              "price_now": ict.get("price"), "reasons": st.get("reasons"),
              "factors": [{"name": a, "ok": b, "detail": c} for a, b, c in fs], "backtest": backtest_line(bt, ict.get("rules", "current"))}
     ai = explain(facts)
-    lines = [
+    summ = (((bt.get("rules") or {}).get(ict.get("rules", "current")) or {}).get("summary") or {})
+    if mode == "watch":
+        lines = [
+            f"👀 <b>XAU.KH · Watch · {'Bullish' if bull else 'Bearish'} structure</b> · gold futures",
+            esc(f"{st.get('sweep_name')} swept, then structure shifted {'up' if bull else 'down'}."),
+            f"Zone to watch <code>{fmt(st['zone'][0])} – {fmt(st['zone'][1])}</code> · idea invalid {'below' if bull else 'above'} {fmt(st['stop'])}",
+            f"Next liquidity {fmt(st['target'])} · price now {fmt(ict['price'])} · until {local(valid_until)}",
+            f"<b>Factors {n_ok}/{len(fs)}</b>: " + " ".join(f"{'✅' if g else '▫️'}{esc(a)}" for a, g, _ in fs),
+            spot_line(st["entry"]),
+            "<b>Why:</b> " + esc(ai if ai else " ".join(st.get("reasons", []))),
+            "<i>Map, not a trade signal: in testing this setup has not shown an edge yet"
+            + (f" ({summ['filled']} trades, {summ['avg_R']:+.2f}R each)" if summ.get("filled") else "") + ". Use your own plan and risk.</i>",
+            TV, SITE,
+        ]
+    else:
+        lines = None
+    lines = lines or [
         f"{'🟢' if bull else '🔴'} <b>XAU.KH · {'BUY' if bull else 'SELL'} idea</b> · gold futures",
         esc(st.get("label", "")),
         f"Entry <code>{fmt(st['entry'])}</code> · zone {fmt(st['zone'][0])}–{fmt(st['zone'][1])}",
@@ -180,10 +198,10 @@ def main():
         "<i>Idea to confirm with your own entry model, not financial advice. The result will be posted as a reply.</i>",
         TV, SITE,
     ]
-    mid = send("\n".join(l for l in lines if l), f"{'BUY' if bull else 'SELL'} idea")
+    mid = send("\n".join(l for l in lines if l), ("Watch" if mode == "watch" else "BUY" if bull else "SELL") + " idea")
     if mid:
         json.dump({"key": key, "rank": rank, "factors": n_ok, "t": now, "msg_id": mid}, open("notify_state.json", "w"))
-        log_alert({"id": key, "kind": "setup", "dir": st["dir"], "entry": st["entry"], "stop": st["stop"], "target": st["target"],
+        log_alert({"id": key, "kind": "watch" if mode == "watch" else "setup", "dir": st["dir"], "entry": st["entry"], "stop": st["stop"], "target": st["target"],
                    "rr": st["rr"], "zone": st["zone"], "factors": n_ok, "created": now, "valid_until": valid_until,
                    "price_at_alert": ict["price"], "msg_id": mid if isinstance(mid, int) else None, "status": "pending"})
         print("sent", key)

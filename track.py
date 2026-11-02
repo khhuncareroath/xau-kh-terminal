@@ -62,6 +62,11 @@ def step(a, bars):
 
 
 def reply_text(a):
+    t = _reply_text(a)
+    return ("If traded as planned: " + t) if a.get("kind") == "watch" else t
+
+
+def _reply_text(a):
     s = a["status"]
     if s == "win":
         return f"{ICON[s]} <b>Target hit</b> at {fmt(a['target'])}: +{a['R']}R"
@@ -75,6 +80,16 @@ def reply_text(a):
 
 
 def summary(log):
+    out = _summary(log)
+    for kind in ("setup", "watch", "post-news"):
+        sub = [a for a in log if a.get("kind") == kind]
+        if sub:
+            out["by_kind"] = out.get("by_kind", {})
+            out["by_kind"][kind] = {k: v for k, v in _summary(sub).items() if k not in ("recent", "note", "time")}
+    return out
+
+
+def _summary(log):
     done = [a for a in log if a["status"] in ICON]
     traded = [a for a in done if a["status"] in ("win", "loss", "timed out")]
     R = [a["R"] for a in traded]
@@ -85,7 +100,7 @@ def summary(log):
             "win_rate_pct": round(100 * sum(r > 0 for r in R) / len(R)) if R else None,
             "total_R": round(sum(R), 2), "avg_R": round(sum(R) / len(R), 2) if R else None,
             "note": "Every alert ever sent is counted. R is before spread and commission. Small samples mislead.",
-            "recent": [{k: a.get(k) for k in ("kind", "dir", "entry", "stop", "target", "rr", "status", "R", "created", "closed")}
+            "recent": [{k: a.get(k) for k in ("kind", "dir", "entry", "stop", "target", "rr", "zone", "status", "R", "created", "closed", "event", "factors")}
                        for a in log[-30:]][::-1]}
 
 

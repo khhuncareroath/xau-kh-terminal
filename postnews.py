@@ -133,7 +133,10 @@ def analyse(df, t0, evts, ict, levels, now, next_high):
     return card
 
 
-def render(c, ai):
+MODE = os.environ.get("ALERT_MODE", "auto")
+
+
+def render(c, ai, watch=True):
     head = f"📰 <b>XAU.KH · After the news</b>\n<b>{esc(c['title'])}</b> · released {local(c['t'])}"
     react = f"Gold {'+' if c['move'] > 0 else ''}{c['move']:.1f} pts in {REACT_MIN} min (from {fmt(c['p0'])}) · now {fmt(c['price'])}"
     if c["stage"] != "plan live":
@@ -144,7 +147,7 @@ def render(c, ai):
         return "\n".join(lines)
     bull = c["dir"] == "bull"
     lines = [head, react,
-             f"{'🟢' if bull else '🔴'} <b>Lean: {'BUY' if bull else 'SELL'} the pullback</b> · factors {c['n_ok']}/{len(c['factors'])}",
+             f"{'🟢' if bull else '🔴'} <b>Lean: {'BUY' if bull else 'SELL'} the pullback</b>{' (watch)' if watch else ''} · factors {c['n_ok']}/{len(c['factors'])}",
              f"Entry zone <code>{fmt(c['zone'][0])} – {fmt(c['zone'][1])}</code> (limit {fmt(c['entry'])})"
              + (" · <b>price is in the zone now</b>" if (c["price"] - c["zone"][1 if bull else 0]) * (1 if bull else -1) <= 0 else ""),
              f"Stop <code>{fmt(c['stop'])}</code> · Invalidation: 5m close {'below' if bull else 'above'} {fmt(c['inval'])}",
@@ -152,7 +155,8 @@ def render(c, ai):
              f"Expires {local(c['valid_until'])}" + (" (before the next high-impact event)" if c.get("next_high") and c["valid_until"] < c["t"] + PLAN_VALID_MIN * 60 else ""),
              " ".join(f"{'✅' if g else '▫️'}{esc(a)}" for a, g, _ in c["factors"]),
              "<b>Why:</b> " + esc(ai or "; ".join(f"{a}: {d}" for a, g, d in c["factors"]) + "."),
-             "<i>Experimental post-news model, not yet backtested. Idea only, not financial advice. Result posted as a reply.</i>"]
+             "<i>" + ("Watch only: the post-news model is still being tested, not a trade signal." if watch else
+                     "Post-news model. Idea only, not financial advice.") + " Result posted as a reply.</i>"]
     return "\n".join(lines)
 
 
@@ -178,10 +182,16 @@ def main():
         if c["stage"] == "plan live":
             ai = explain({k: v for k, v in c.items() if k not in ("t", "valid_until", "next_high")} |
                          {"factors": [{"name": a, "ok": g, "detail": d} for a, g, d in c["factors"]]})
-        mid = send(render(c, ai), "After the news")
+        watch = MODE != "signal"   # promote only by setting ALERT_MODE=signal after track.py shows it works
+        mid = send(render(c, ai, watch), "After the news")
         state[str(int(t0))] = {"stage": c["stage"], "msg_id": mid if isinstance(mid, int) else None}
+        card = {k: v for k, v in c.items() if k != "factors"}
+        card["factors"] = [{"name": a, "ok": bool(g), "detail": d} for a, g, d in c.get("factors", [])]
+        card["watch"] = MODE != "signal"
+        json.dump({"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "card": card, "ai": ai},
+                  open("postnews.json", "w"), indent=1, default=str)
         if c["stage"] == "plan live" and mid:
-            log_alert({"id": f"news|{int(t0)}", "kind": "post-news", "dir": c["dir"], "entry": c["entry"], "stop": c["stop"],
+            log_alert({"id": f"news|{int(t0)}", "kind": "post-news", "watch": watch, "dir": c["dir"], "entry": c["entry"], "stop": c["stop"],
                        "target": c["tp1"], "tp2": c["tp2"], "rr": c["rr"], "zone": c["zone"], "factors": c["n_ok"], "created": now,
                        "valid_until": c["valid_until"], "price_at_alert": c["price"], "msg_id": mid if isinstance(mid, int) else None,
                        "status": "pending", "event": c["title"]})

@@ -41,8 +41,14 @@ def load(interval="5m", period="30d"):
     return _yahoo(interval, period)
 
 
+SPOT = "data/xau_5m.csv.gz"
+
+
 def load_history():
-    """Saved candles + the freshest 59 days from Yahoo, de-duplicated (fresh data wins)."""
+    """For the backtest. XAU_SOURCE=spot: years of spot XAUUSD from dukascopy.py.
+    Otherwise: saved futures candles + the freshest 59 days from Yahoo, de-duplicated (fresh data wins)."""
+    if os.environ.get("XAU_SOURCE") == "spot" and os.path.exists(SPOT) and not os.environ.get("XAU_SIM"):
+        return _read_csv(SPOT)
     fresh = load("5m", "59d")
     if fresh.index.tz is None:
         fresh.index = fresh.index.tz_localize("UTC")

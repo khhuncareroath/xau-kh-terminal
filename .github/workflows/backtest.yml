@@ -6,11 +6,12 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: gold-analysis        # same group as the live job, so they never push at the same moment
+  group: gold-backtest        # separate from the live runner, which stays busy for hours at a time
   cancel-in-progress: false
 jobs:
   backtest:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,12 +19,35 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python history.py      # saves today's candles so the sample grows past Yahoo's 60 days
-      - run: python backtest.py
+      # years of spot XAUUSD from Dukascopy, kept in the Actions cache (too big to commit every day)
+      - uses: actions/cache@v4
+        with:
+          path: data/xau_5m.csv.gz
+          key: xau-spot-${{ github.run_id }}
+          restore-keys: xau-spot-
+      - run: python dukascopy.py --check
+      - run: python dukascopy.py          # first run: 2 years (a few minutes); later runs: only new days
+      - run: python history.py            # futures candles too, for comparison
+        continue-on-error: true
+      - name: Backtest on spot history
+        run: python backtest.py
+        env:
+          XAU_SOURCE: spot
+      - name: Attach the data so you can download it from this run's page
+        uses: actions/upload-artifact@v4
+        with:
+          name: xau-history
+          path: |
+            data/xau_5m.csv.gz
+            backtest.json
+          retention-days: 14
       - name: Save results
         run: |
           git config --global user.name "analysis-bot"
           git config --global user.email "bot@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add backtest.json data/
-          git diff --staged --quiet || (git commit -m "Daily backtest" && git pull --rebase -X theirs origin HEAD && git push)
+          git add backtest.json; git add data/gc_5m.csv.gz 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "Daily backtest"
+          for i in 1 2 3; do git pull --rebase -X theirs origin HEAD && git push && exit 0; sleep 10; done
+          exit 1
