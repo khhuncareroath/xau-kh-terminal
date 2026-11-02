@@ -26,7 +26,12 @@ jobs:
           key: xau-spot-${{ github.run_id }}
           restore-keys: xau-spot-
       - run: python dukascopy.py --check
-      - run: python dukascopy.py          # first run: 2 years (a few minutes); later runs: only new days
+      - run: python dukascopy.py          # first run: up to 2 years; it saves as it goes and stops after 25 min, then continues next run
+      - name: Save the downloaded history now (even if a later step fails)
+        uses: actions/cache/save@v4
+        with:
+          path: data/xau_5m.csv.gz
+          key: xau-spot-${{ github.run_id }}-dl
       - run: python history.py            # futures candles too, for comparison
         continue-on-error: true
       - name: Backtest on spot history

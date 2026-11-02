@@ -100,31 +100,45 @@ def main():
     have = set() if old is None else set(old.index.date)
     days = [today - timedelta(days=k) for k in range(1, DAYS + 1)]
     todo = [d for d in days if d.weekday() != 5 and (d not in have or d >= today - timedelta(days=2))]
-    print(f"dukascopy: {len(todo)} days to download")
-    parts, failed, bad = [], 0, 0
-    with ThreadPoolExecutor(8) as ex:
-        for day, blob in ex.map(fetch, todo):
-            if blob is None:
-                failed += 1
-                continue
-            try:
-                m = decode(day, blob)
-            except ValueError as e:
-                bad += 1
-                print("skipped:", e)
-                continue
-            if m is not None and len(m):
-                parts.append(to5(m))
-    if not parts and old is None:
+    print(f"dukascopy: {len(todo)} days to download", flush=True)
+    budget = time.time() + float(os.environ.get("DUKA_MINUTES", 25)) * 60
+    failed = bad = 0
+    cur = old
+    for k in range(0, len(todo), 60):          # newest days first, saved every 60 days so progress is never lost
+        if time.time() > budget:
+            print("dukascopy: time budget used, the rest continues on the next run", flush=True)
+            break
+        parts = []
+        with ThreadPoolExecutor(8) as ex:
+            for day, blob in ex.map(fetch, todo[k:k + 60]):
+                if blob is None:
+                    failed += 1
+                    continue
+                try:
+                    m = decode(day, blob)
+                except ValueError as e:
+                    bad += 1
+                    print("skipped:", e)
+                    continue
+                if m is not None and len(m):
+                    parts.append(to5(m))
+        if parts:
+            cur = pd.concat(([cur] if cur is not None else []) + parts).sort_index()
+            cur = cur[~cur.index.duplicated(keep="last")]
+            save(cur)
+        print(f"  {min(k + 60, len(todo))}/{len(todo)} days done, {0 if cur is None else len(cur)} candles saved", flush=True)
+    if cur is None:
         print("no data downloaded"); sys.exit(1)
-    new = pd.concat(([old] if old is not None else []) + parts).sort_index()
-    new = new[~new.index.duplicated(keep="last")]
-    # sanity: no absurd jumps between consecutive 5m candles
-    jump = (new["Close"].pct_change().abs() > 0.05).sum()
+    jump = (cur["Close"].pct_change().abs() > 0.05).sum()
+    print(f"dukascopy: {len(cur)} five-minute candles {cur.index[0]} -> {cur.index[-1]}, last close {cur['Close'].iloc[-1]:.2f}, "
+          f"{failed} days failed (retried next run), {bad} days rejected, {jump} jumps over 5%")
+
+
+def save(df):
     os.makedirs("data", exist_ok=True)
-    new.round(3).to_csv(OUT, compression="gzip")
-    print(f"dukascopy: saved {len(new)} five-minute candles {new.index[0]} -> {new.index[-1]}, "
-          f"last close {new['Close'].iloc[-1]:.2f}, {failed} days failed (retried next run), {bad} days rejected, {jump} jumps over 5%")
+    tmp = OUT + ".tmp"
+    df.round(3).to_csv(tmp, compression="gzip")
+    os.replace(tmp, OUT)
 
 
 if __name__ == "__main__":

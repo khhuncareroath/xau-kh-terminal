@@ -452,9 +452,10 @@ function renderResults(){
     :`<tr><td colspan="4" class="mut">No ideas posted yet. The first alert will appear here with its result.</td></tr>`;
   const cur=(bt.rules||{}).current||{},s=cur.summary||{};
   $("#btNote").textContent=s.filled?`Live rules on ${Math.round((pt(bt.data.to)-pt(bt.data.from))/864e5)} days of past data, with a 15-minute alert delay and costs: ${s.filled} trades, ${s.win_rate_pct}% hit the target, ${sgnR(s.avg_R)} per trade. ${cur.proven?"Proven so far.":"Not proven, so alerts are posted as watch ideas."}`:"The daily backtest has not run yet.";
-  const models=[["Live setup (sweep, shift, retest)",{all:{trades:s.filled,avg_R:s.avg_R},proven:cur.proven,verdict:cur.verdict}],...Object.entries(bt.models||{}).map(([k,m])=>[m.description,m])];
+  const models=[["Live setup (sweep, shift, retest)",{all:{trades:s.filled,avg_R:s.avg_R,win_rate_pct:s.win_rate_pct},proven:cur.proven,verdict:cur.verdict}],...Object.entries(bt.models||{}).map(([k,m])=>[m.description,m])]
+    .sort((a,b)=>(b[1].proven-a[1].proven)||(((b[1].all||{}).avg_R??-9)-((a[1].all||{}).avg_R??-9)));
   $("#models").innerHTML=models.map(([n,m])=>`<div class="model"><b style="font-weight:600;font-size:14px">${esc(n)}</b><span class="pill ${m.proven?"ok":""}">${m.proven?t("Proven"):t("Not proven")}</span>
-    <p>${m.all&&m.all.trades?`${m.all.trades} trades · ${sgnR(m.all.avg_R)} per trade. `:""}${esc((m.verdict||"").split(". ")[0])}.</p></div>`).join("");
+    <p>${m.all&&m.all.trades?`${m.all.trades} trades · ${m.all.win_rate_pct??"–"}% wins · ${sgnR(m.all.avg_R)} per trade`:""}${m.positive_quarters?` · positive in ${m.positive_quarters} quarters`:""}${m.t_stat!=null?` · confidence t=${m.t_stat}`:""}. ${esc((m.verdict||"").split(". ")[0].replace(/\.$/,""))}.</p></div>`).join("");
   const rec=(cur.recent||[]).slice().reverse();
   $("#btList").innerHTML=rec.slice(0,10).map((x,i)=>{const[rt,c]=RES[x.result]||[x.result,"mut"];
     return`<tr class="click" data-b="${i}"><td>${dhm(pt(x.time))}</td><td><span class="${x.dir==="bull"?"up":"dn"}">${x.dir==="bull"?"Bull":"Bear"}</span> · 1:${x.rr}</td><td>${f2(x.entry)}</td><td class="res ${c}">${rt}${x.R?" "+sgnR(x.R):""}</td></tr>`}).join("");
