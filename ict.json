@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-03 10:45 UTC",
-  "price": 3904.16,
-  "last_bar": "2026-11-03 05:40:00-05:00",
-  "atr_5m": 2.8,
+  "time": "2026-11-03 10:55 UTC",
+  "price": 3904.31,
+  "last_bar": "2026-11-03 05:50:00-05:00",
+  "atr_5m": 2.65,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -341,17 +341,10 @@
   "sweeps": [
     {
       "side": "sell-side",
-      "level": 3945.96,
+      "level": 3950.06,
       "name": "15m swing low",
-      "extreme": 3945.16543,
-      "time": "2026-11-02 21:45:00-05:00"
-    },
-    {
-      "side": "buy-side",
-      "level": 3949.76,
-      "name": "15m swing high",
-      "extreme": 3950.69532,
-      "time": "2026-11-02 21:50:00-05:00"
+      "extreme": 3947.40272,
+      "time": "2026-11-02 21:55:00-05:00"
     },
     {
       "side": "sell-side",
@@ -362,36 +355,17 @@
     }
   ],
   "setup": {
-    "stage": 2,
-    "label": "Shift confirmed, waiting for the retest",
-    "dir": "bear",
-    "zone": [
-      3947.4,
-      3950.7
-    ],
-    "entry": 3949.05,
-    "stop": 3951.53,
-    "target": 3944.77,
-    "rr": 1.72,
+    "stage": 4,
+    "label": "Idea void: price took out the sweep extreme",
+    "dir": "bull",
     "reasons": [
-      "15m swing high at 3949.76 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 3941.97: a bear structure shift right after the sweep.",
-      "Retest zone: order block 3947.4-3950.7.",
-      "1H structure is bear: agrees."
-    ],
-    "sweep_time": "2026-11-02 21:50:00-05:00",
-    "shift_time": "2026-11-02 22:15:00-05:00",
-    "sweep_extreme": 3950.7,
-    "sweep_name": "15m swing high",
-    "displacement": false,
-    "risk_atr": 0.89,
-    "note": "Idea to confirm with your own entry model, not a signal."
+      "15m swing low at 3944.54 was swept and price closed back inside (sell-side liquidity taken).",
+      "Price closed beyond 3925.01: a bull structure shift right after the sweep."
+    ]
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-03 00:45",
-      "11-03 00:50",
       "11-03 00:55",
       "11-03 01:00",
       "11-03 01:05",
@@ -449,11 +423,11 @@
       "11-03 05:25",
       "11-03 05:30",
       "11-03 05:35",
-      "11-03 05:40"
+      "11-03 05:40",
+      "11-03 05:45",
+      "11-03 05:50"
     ],
     "ts": [
-      1793684700,
-      1793685000,
       1793685300,
       1793685600,
       1793685900,
@@ -511,23 +485,11 @@
       1793701500,
       1793701800,
       1793702100,
-      1793702400
+      1793702400,
+      1793702700,
+      1793703000
     ],
     "candles": [
-      [
-        3926.84,
-        3926.84,
-        3922.23,
-        3922.51,
-        310.0
-      ],
-      [
-        3922.88,
-        3923.26,
-        3920.38,
-        3920.77,
-        254.0
-      ],
       [
         3921.61,
         3921.61,
@@ -925,19 +887,31 @@
         3904.88,
         3901.51,
         3901.7,
-        0.0
+        627.0
       ],
       [
         3901.95,
         3904.57,
         3901.07,
-        3904.16,
-        493.0
+        3903.12,
+        265.0
+      ],
+      [
+        3903.28,
+        3904.95,
+        3903.28,
+        3904.83,
+        0.0
+      ],
+      [
+        3904.66,
+        3905.49,
+        3904.2,
+        3904.31,
+        477.0
       ]
     ],
     "vwap": [
-      3942.01,
-      3941.83,
       3941.58,
       3941.21,
       3941.07,
@@ -994,12 +968,12 @@
       3925.33,
       3925.23,
       3924.96,
-      3924.96,
-      3924.77
+      3924.72,
+      3924.61,
+      3924.61,
+      3924.45
     ],
     "sd": [
-      12.4,
-      12.49,
       12.64,
       12.85,
       12.91,
@@ -1056,8 +1030,10 @@
       19.51,
       19.52,
       19.55,
-      19.55,
-      19.57
+      19.58,
+      19.59,
+      19.59,
+      19.59
     ],
     "marks": {}
   },
