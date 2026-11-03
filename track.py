@@ -16,7 +16,8 @@ from engine import load
 from tg import fmt, send
 
 MAX_HOLD_S = 12 * 3600
-ICON = {"win": "✅", "loss": "❌", "expired": "⌛", "missed": "🏃", "timed out": "⏹"}
+ICON = {"win": "✅", "tp1": "✅", "loss": "❌", "expired": "⌛", "missed": "🏃", "timed out": "⏹"}
+TRADED = ("win", "tp1", "loss", "timed out")
 
 
 def jl(n, d):
@@ -48,6 +49,26 @@ def step(a, bars):
             if (h >= a["target"]) if sg > 0 else (l <= a["target"]):
                 a.update(status="missed", closed=t, R=0.0)
                 return
+        elif a["status"] == "filled" and a.get("tp1"):
+            # scale-out: half at TP1 (stop moves to entry), rest to TP2 -- same rules as research._run_scaled
+            part, hit1 = a.get("part", 0.5), a.get("hit1", False)
+            r1, r2 = abs(a["tp1"] - a["fill"]) / risk, abs(a["target"] - a["fill"]) / risk
+            st = a["fill"] if hit1 else a["stop"]
+            banked = part * r1 if hit1 else 0.0
+            left = 1 - part if hit1 else 1.0
+            if (l <= st) if sg > 0 else (h >= st):
+                px = st if hit1 else (min(st, o) if sg > 0 else max(st, o))
+                a.update(status="tp1" if hit1 else "loss", closed=t, exit=px, R=round(banked + left * (px - a["fill"]) * sg / risk, 2))
+                return
+            if not hit1 and ((h >= a["tp1"]) if sg > 0 else (l <= a["tp1"])):
+                a.update(hit1=True, tp1_at=t)
+                hit1, banked, left = True, part * r1, 1 - part
+            if hit1 and ((h >= a["target"]) if sg > 0 else (l <= a["target"])):
+                a.update(status="win", closed=t, exit=a["target"], R=round(banked + left * r2, 2))
+                return
+            if t - a["filled_at"] >= a.get("max_hold_s", MAX_HOLD_S):
+                a.update(status="timed out", closed=t, exit=c, R=round(banked + left * (c - a["fill"]) * sg / risk, 2))
+                return
         elif a["status"] == "filled":
             if (l <= a["stop"]) if sg > 0 else (h >= a["stop"]):
                 px = min(a["stop"], o) if sg > 0 else max(a["stop"], o)
@@ -72,6 +93,9 @@ def _reply_text(a):
     pts = lambda px: f"{(px - a['entry']) * sg:+.1f} points"
     if s == "win":
         return f"{ICON[s]} <b>Target reached</b> at {fmt(a['target'])} ({pts(a['target'])})"
+    if s == "tp1":
+        return (f"{ICON[s]} <b>Win: half closed at TP1</b> {fmt(a['tp1'])} ({pts(a['tp1'])}), "
+                f"the rest closed at entry with no loss. +{a['R']}R")
     if s == "loss":
         return f"{ICON[s]} <b>Stop hit</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
     if s == "expired":
@@ -94,11 +118,11 @@ def summary(log):
 
 def _summary(log):
     done = [a for a in log if a["status"] in ICON]
-    traded = [a for a in done if a["status"] in ("win", "loss", "timed out")]
+    traded = [a for a in done if a["status"] in TRADED]
     R = [a["R"] for a in traded]
     return {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
             "alerts": len(log), "open": sum(a["status"] in ("pending", "filled") for a in log),
-            "traded": len(traded), "wins": sum(a["status"] == "win" for a in traded), "losses": sum(a["status"] == "loss" for a in traded),
+            "traded": len(traded), "wins": sum(a["R"] > 0 for a in traded), "losses": sum(a["R"] <= 0 for a in traded),
             "no_trade": sum(a["status"] in ("expired", "missed") for a in done),
             "win_rate_pct": round(100 * sum(r > 0 for r in R) / len(R)) if R else None,
             "total_R": round(sum(R), 2), "avg_R": round(sum(R) / len(R), 2) if R else None,
@@ -117,8 +141,11 @@ def main():
         bars = [(int(t.timestamp()), float(r.Open), float(r.High), float(r.Low), float(r.Close))
                 for t, r in zip(df.index[:-1], df.iloc[:-1].itertuples())]   # last candle is still forming
         for a in live:
-            before = a["status"]
+            before, had_tp1 = a["status"], a.get("hit1", False)
             step(a, bars)
+            if a.get("hit1") and not had_tp1:
+                send(f"🎯 <b>TP1 reached</b> at {fmt(a['tp1'])}: close half now and move your stop to {fmt(a['fill'])}. "
+                     f"The rest runs to {fmt(a['target'])} with no risk.", "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))

@@ -131,7 +131,10 @@ def spot_line(entry):
     return f"Spot XAUUSD ≈ futures − {sp['basis']:.1f} (entry ≈ {fmt(entry - sp['basis'])})"
 
 
-PLAIN = {"trend_breakout": {
+PLAIN = {"trend_buy": {
+    "bull": "Gold just closed a 4-hour candle above its highest price of the past week. Breakouts like this often run further.",
+    "bear": ""},
+    "trend_breakout": {
     "bull": "Gold just closed a 4-hour candle above its highest price of the past week. Breakouts like this often run further.",
     "bear": "Gold just closed a 4-hour candle below its lowest price of the past week. Breakdowns like this often run further."}}
 
@@ -142,6 +145,8 @@ def model_alert(lm, state, now):
     if MODE == "watch":
         return False
     sigs = [s for s in lm.get("signals", []) if s.get("proven")]
+    if any(s["model"] == "trend_buy" for s in sigs):        # same breakout: alert only the proven child version
+        sigs = [s for s in sigs if s["model"] != "trend_breakout"]
     if not sigs or (now - ts(lm.get("last_bar", "1970-01-01T00:00:00+00:00"))) / 60 > STALE_MIN:
         return False
     s = max(sigs, key=lambda x: (x.get("backtest") or {}).get("avg_R") or 0)
@@ -158,20 +163,24 @@ def model_alert(lm, state, now):
         out += [f"{'🟢' if bull else '🔴'} <b>GOLD · {'BUY' if bull else 'SELL'} NOW</b>", "",
                 f"Entry       <b>{fmt(s['entry'])}</b> (market price)",
                 f"Stop loss   <b>{fmt(s['stop'])}</b>",
-                f"Target      <b>{fmt(s['target'])}</b>  (1:{s['rr']})",
+                *([f"TP1         <b>{fmt(s['tp1'])}</b>  → close half, move stop to {fmt(s['entry'])}",
+                   f"TP2         <b>{fmt(s['target'])}</b>  (rest of the trade)"] if s.get("tp1") else
+                  [f"Target      <b>{fmt(s['target'])}</b>  (1:{s['rr']})"]),
                 f"⏰ Enter within 15 min · trade lasts up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · trade lasts up to {hold_h} hours", "",
                 "<b>Why</b>", esc(PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
-                esc(f"Tested on 2 years of spot gold: {b.get('trades')} trades, {b.get('win_rate_pct')}% hit target, "
+                esc(f"Tested on 2 years of spot gold: {b.get('trades')} trades, {b.get('win_rate_pct')}% were profitable, "
                     f"{b.get('avg_R'):+.2f}R per trade after costs.") if b.get("trades") else "",
                 (f"⚠️ {'Buy' if bull else 'Sell'} signals from this model averaged {side['avg_R']:+.2f}R ({side['trades']} trades): "
-                 + ("the weaker side, consider a smaller size." if side["avg_R"] < 0.1 else "the stronger side.")) if side.get("trades") else "",
+                 + ("the weaker side, consider a smaller size." if side["avg_R"] < 0.1 else "the stronger side.")) if side.get("trades") and s["model"] != "trend_buy" else None,
                 "", "<i>Risk a small, fixed part of your account (0.5–1%). Losses will happen. Not financial advice. "
                 "The result will be posted as a reply.</i>"]
     if LANG in ("km", "both"):
         if out:
             out += ["", "— ខ្មែរ —"]
         out += [f"{'🟢' if bull else '🔴'} <b>មាស · {'ទិញ' if bull else 'លក់'} ឥឡូវ</b>",
-                f"ចូល <b>{fmt(s['entry'])}</b> (តម្លៃទីផ្សារ)", f"Stop loss <b>{fmt(s['stop'])}</b>", f"គោលដៅ <b>{fmt(s['target'])}</b>",
+                f"ចូល <b>{fmt(s['entry'])}</b> (តម្លៃទីផ្សារ)", f"Stop loss <b>{fmt(s['stop'])}</b>",
+                *([f"TP1 <b>{fmt(s['tp1'])}</b> → បិទពាក់កណ្ដាល ហើយប្ដូរ stop មកចំណុចចូល", f"TP2 <b>{fmt(s['target'])}</b>"] if s.get("tp1")
+                  else [f"គោលដៅ <b>{fmt(s['target'])}</b>"]),
                 "<i>ប្រើហានិភ័យតិច (0.5–1% នៃគណនី)។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។</i>"]
     out.append(TV)
     mid = send("\n".join(l for l in out if l is not None), ("BUY" if bull else "SELL") + " now")
@@ -182,7 +191,7 @@ def model_alert(lm, state, now):
     log_alert({"id": key, "kind": "model", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
                "target": s["target"], "rr": s["rr"], "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
-               "max_hold_s": hold_h * 3600})
+               "max_hold_s": hold_h * 3600, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
     print("sent", key)
     return True
 

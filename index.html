@@ -483,8 +483,8 @@ function renderAlert(){
   if(act){
     const bull=act.dir==="bull";curAlert=act;
     body.innerHTML=`<div class="alert-head"><span class="badge ${bull?"buy":"sell"}">${t(bull?"Buy":"Sell")} · ${lang==="km"?"និន្នាការ 4H":"4H trend"}</span><span class="mut" style="font-size:13px">${dhm(pt(act.created))}</span></div>
-      <div class="kv"><div><small>Entry</small><b>${f2(act.entry)}</b></div><div><small>Stop loss</small><b>${f2(act.stop)}</b></div><div><small>Target</small><b>${f2(act.target)}</b></div><div><small>Now</small><b class="${((ict.price-act.entry)*(bull?1:-1))>=0?"up":"dn"}">${f2(ict.price)}</b></div></div>
-      <p class="foot-note">Tested strategy (proven on 2 years of data). Trade lasts up to 5 days.</p>`;
+      <div class="kv"><div><small>Entry</small><b>${f2(act.entry)}</b></div><div><small>Stop loss</small><b>${f2(act.stop)}</b></div>${act.tp1?`<div><small>TP1 · close half${act.hit1?" ✓":""}</small><b>${f2(act.tp1)}</b></div><div><small>TP2</small><b>${f2(act.target)}</b></div>`:`<div><small>Target</small><b>${f2(act.target)}</b></div>`}<div><small>Now</small><b class="${((ict.price-act.entry)*(bull?1:-1))>=0?"up":"dn"}">${f2(ict.price)}</b></div></div>
+      <p class="foot-note">${act.hit1?"TP1 reached: half closed, stop moved to entry. The rest runs with no risk.":"Tested strategy (proven on 2 years of data). Trade lasts up to 5 days."}</p>`;
     return;
   }
   if(live){
@@ -498,7 +498,7 @@ function renderAlert(){
     if(lastA)curAlert=lastA;
   }
 }
-const RES={win:["Target reached","up"],loss:["Stop hit","dn"],"timed out":["Closed after 12h","mut"],expired:["Expired, no trade","mut"],missed:["Missed, no trade","mut"],pending:["Waiting for the zone","mut"],filled:["In the trade","mut"]};
+const RES={win:["Target reached","up"],tp1:["Win at TP1","up"],loss:["Stop hit","dn"],"timed out":["Closed after 12h","mut"],expired:["Expired, no trade","mut"],missed:["Missed, no trade","mut"],pending:["Waiting for the zone","mut"],filled:["In the trade","mut"]};
 const resText=s=>(RES[s]||[s])[0];
 function nextNews(){const ev=((D.news||{}).events||[]).filter(e=>e.impact==="High").map(e=>({e,m:(pt(e.time)-Date.now())/60000})).filter(o=>o.m>-15).sort((a,b)=>a.m-b.m);return ev[0]||null}
 const fmtIn=m=>m<1?"now":m<60?Math.round(m)+" min":m<1440?Math.floor(m/60)+"h "+Math.round(m%60)+"m":Math.round(m/1440)+" days";

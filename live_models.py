@@ -46,12 +46,22 @@ def main():
                           "_t": dfp.index[j0]})
         return real_run(o, h, l, c, j0, j_end, sg, stop, tgt)
 
+    real_scaled = research._run_scaled
+
+    def recorder_scaled(o, h, l, c, j0, j_end, sg, stop, tp1_r, tp2_r, part=0.5):
+        if j0 >= n_real:
+            en = float(o[j0]); risk = abs(en - stop)
+            found.append({"entry": en, "dir": "bull" if sg > 0 else "bear", "stop": float(stop), "target": en + sg * tp2_r * risk,
+                          "tp1": en + sg * tp1_r * risk, "part": part, "_t": dfp.index[j0]})
+        return real_scaled(o, h, l, c, j0, j_end, sg, stop, tp1_r, tp2_r, part)
+
     research._run_trade = recorder
+    research._run_scaled = recorder_scaled
     sigs = []
     try:
         runs = {"sweep_htf": lambda d: research.sweep_htf(d, candidates), "value": research.value_models,
                 "sessions": research.session_breakouts, "trend_pullback": research.trend_pullback, "vwap_fade": research.vwap_fade,
-                "trend_breakout": research.trend_breakout}
+                "trend_breakout": research.trend_breakout, "trend_buy": research.trend_buy}
         for name, fn in runs.items():
             before = len(found)
             try:
@@ -75,6 +85,7 @@ def main():
                              "rr": round(abs(s["target"] - s["entry"]) / risk, 2) if risk else None})
     finally:
         research._run_trade = real_run
+        research._run_scaled = real_scaled
 
     bt = jl("backtest.json").get("models", {})
     for s in sigs:
