@@ -201,6 +201,20 @@ def model_alert(lm, state, now):
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
                "max_hold_s": hold_h * 3600, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
     print("sent", key)
+    try:   # the trade drawn on the chart, sent as a reply (the text alert above never waits for it)
+        import session
+        from engine import load
+        from levels import to_ny
+        from tg import send_photo
+        d = to_ny(load("5m", "20d")).iloc[:-1]
+        session.chart(d, jl("confluence.json"), jl("levels.json"), session.breakout_lines(d), "signal_chart.png",
+                      f"Gold · {'BUY' if bull else 'SELL'} signal · {local(now)}",
+                      position={"dir": s["dir"], "entry": s["entry"], "stop": s["stop"], "tp1": s.get("tp1"), "tp2": s["target"]})
+        send_photo("signal_chart.png", f"{'🟢 BUY' if bull else '🔴 SELL'} plan on the chart: entry, stop loss, "
+                   "TP1 (close half, move stop to entry) and TP2. Slanted lines are the 1H trendlines.",
+                   "Signal chart", reply_to=mid if isinstance(mid, int) else None)
+    except Exception as e:
+        print("signal chart failed:", e)
     return True
 
 
@@ -321,90 +335,6 @@ def main():
     ai = explain(facts)
     summ = (((bt.get("rules") or {}).get(ict.get("rules", "current")) or {}).get("summary") or {})
     lines = setup_message(mode, st, ict, fs, valid_until, summ, ai)
-    mid = send("\n".join(l for l in lines if l), ("BUY" if bull else "SELL") + " now")
-    if not mid:
-        return False
-    state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
-    json.dump(state, open("notify_state.json", "w"))
-    log_alert({"id": key, "kind": "model", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
-               "target": s["target"], "rr": s["rr"], "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
-               "msg_id": mid if isinstance(mid, int) else None, "status": "pending"})
-    print("sent", key)
-    return True
-
-
-def main():
-    ict, conf, lv, q, news, macro, bt, state = (jl(n) for n in ("ict.json", "confluence.json", "levels.json", "quality.json",
-                                                                  "news.json", "macro.json", "backtest.json", "notify_state.json"))
-    now = time.time()
-    if q.get("grade") == "Avoid":
-        print("quality is Avoid, no alert"); return
-    ns = news_soon(news, now=now)
-    if ns:
-        print("high-impact news soon, holding alerts:", ns); return
-    if model_alert(jl("live_models.json"), state, now):
-        return
-    st = ict.get("setup") or {}
-    ok, why = gate_setup(st, ict, now)
-    if not ok:
-        print("no alert:", why); return
-    fs = factors(st, ict, conf, lv, macro, now)
-    n_ok = sum(1 for _, good, _ in fs if good)
-    if n_ok < MIN_FACTORS:
-        print(f"no alert: only {n_ok} of {len(fs)} factors"); return
-    key = f"setup|{st['dir']}|{st.get('sweep_time')}"
-    rank = st["stage"]
-    upgrade = state.get("key") == key and rank > state.get("rank", 0)
-    if state.get("key") == key and not upgrade:
-        print("already alerted"); return
-    if not upgrade and now - state.get("t", 0) < COOLDOWN and n_ok <= state.get("factors", 0):
-        print("cooldown, not clearly better than the last alert"); return
-
-    mode = MODE if MODE in ("watch", "signal") else bt.get("alert_mode", "watch")
-    bull = st["dir"] == "bull"
-    sg = 1 if bull else -1
-    valid_until = ts(st["shift_time"]) + EXPIRE_MIN * 60 if st.get("shift_time") else now + EXPIRE_MIN * 60
-    if upgrade:   # same idea, price is now in the retest zone: short reply to the first alert
-        msg = (f"⏱ <b>Retest in play</b> · price {fmt(ict['price'])} is in the zone {fmt(st['zone'][0])}–{fmt(st['zone'][1])}. "
-               f"Same plan: entry {fmt(st['entry'])}, stop {fmt(st['stop'])}, target {fmt(st['target'])}.")
-        if send(msg, "Retest in play", reply_to=state.get("msg_id") if isinstance(state.get("msg_id"), int) else None):
-            state.update({"rank": rank, "t": now}); json.dump(state, open("notify_state.json", "w"))
-        return
-
-    facts = {"direction": "buy" if bull else "sell", "stage": st.get("label"), "swept": f"{st.get('sweep_name')} (extreme {st.get('sweep_extreme')})",
-             "entry": st["entry"], "stop": st["stop"], "target": st["target"], "rr": st["rr"], "zone": st["zone"],
-             "price_now": ict.get("price"), "reasons": st.get("reasons"),
-             "factors": [{"name": a, "ok": b, "detail": c} for a, b, c in fs], "backtest": backtest_line(bt, ict.get("rules", "current"))}
-    ai = explain(facts)
-    summ = (((bt.get("rules") or {}).get(ict.get("rules", "current")) or {}).get("summary") or {})
-    if mode == "watch":
-        lines = [
-            f"👀 <b>XAU.KH · Watch · {'Bullish' if bull else 'Bearish'} structure</b> · gold futures",
-            esc(f"{st.get('sweep_name')} swept, then structure shifted {'up' if bull else 'down'}."),
-            f"Zone to watch <code>{fmt(st['zone'][0])} – {fmt(st['zone'][1])}</code> · idea invalid {'below' if bull else 'above'} {fmt(st['stop'])}",
-            f"Next liquidity {fmt(st['target'])} · price now {fmt(ict['price'])} · until {local(valid_until)}",
-            f"<b>Factors {n_ok}/{len(fs)}</b>: " + " ".join(f"{'✅' if g else '▫️'}{esc(a)}" for a, g, _ in fs),
-            spot_line(st["entry"]),
-            "<b>Why:</b> " + esc(ai if ai else " ".join(st.get("reasons", []))),
-            "<i>Map, not a trade signal: in testing this setup has not shown an edge yet"
-            + (f" ({summ['filled']} trades, {summ['avg_R']:+.2f}R each)" if summ.get("filled") else "") + ". Use your own plan and risk.</i>",
-            TV, SITE,
-        ]
-    else:
-        lines = None
-    lines = lines or [
-        f"{'🟢' if bull else '🔴'} <b>XAU.KH · {'BUY' if bull else 'SELL'} idea</b> · gold futures",
-        esc(st.get("label", "")),
-        f"Entry <code>{fmt(st['entry'])}</code> · zone {fmt(st['zone'][0])}–{fmt(st['zone'][1])}",
-        f"Stop <code>{fmt(st['stop'])}</code> · Target <code>{fmt(st['target'])}</code> · R:R 1:{st['rr']}",
-        f"Valid until {local(valid_until)} · price now {fmt(ict['price'])}",
-        f"<b>Factors {n_ok}/{len(fs)}</b>: " + " ".join(f"{'✅' if g else '▫️'}{esc(a)}" for a, g, _ in fs),
-        spot_line(st["entry"]),
-        "<b>Why:</b> " + esc(ai if ai else " ".join(st.get("reasons", []))),
-        esc(backtest_line(bt, ict.get("rules", "current")) or ""),
-        "<i>Idea to confirm with your own entry model, not financial advice. The result will be posted as a reply.</i>",
-        TV, SITE,
-    ]
     mid = send("\n".join(l for l in lines if l), ("Watch" if mode == "watch" else "BUY" if bull else "SELL") + " idea")
     if mid:
         json.dump({"key": key, "rank": rank, "factors": n_ok, "t": now, "msg_id": mid, "model_keys": state.get("model_keys", [])},

@@ -57,7 +57,7 @@ def send(text, title="XAU.KH", reply_to=None):
     return mid
 
 
-def send_photo(path, caption, title="XAU.KH"):
+def send_photo(path, caption, title="XAU.KH", reply_to=None):
     """Sends a chart image with an HTML caption (Telegram limit: 1024 characters). Returns the message_id or None."""
     tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if not (tok and chat):
@@ -66,7 +66,10 @@ def send_photo(path, caption, title="XAU.KH"):
     import uuid
     b = uuid.uuid4().hex
     parts = []
-    for k, v in (("chat_id", chat), ("caption", caption[:1024]), ("parse_mode", "HTML")):
+    fields = [("chat_id", chat), ("caption", caption[:1024]), ("parse_mode", "HTML")]
+    if reply_to:
+        fields.append(("reply_parameters", json.dumps({"message_id": reply_to, "allow_sending_without_reply": True})))
+    for k, v in fields:
         parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode())
     parts.append(f'--{b}\r\nContent-Disposition: form-data; name="photo"; filename="chart.png"\r\nContent-Type: image/png\r\n\r\n'.encode()
                  + open(path, "rb").read() + b"\r\n")

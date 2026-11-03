@@ -18,9 +18,13 @@ def main():
     note = f"Dollar {dxc:+.2f}% and 10y yield {tyc:+.0f}bp in 24h: {verdict.lower()}"
     if score < 0 and gcc > .3 or score > 0 and gcc < -.3:
         note += ". Gold is moving against both, so the move is less trustworthy"
+    dx5 = (dx.iloc[-1] / dx.iloc[0] - 1) * 100
+    ty5 = (ty.iloc[-1] - ty.iloc[0]) * 100
+    gc5 = (gc.iloc[-1] / gc.iloc[0] - 1) * 100
     out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-           "dxy": {"last": round(float(dx.iloc[-1]), 2), "chg_pct": round(float(dxc), 2)},
-           "us10y": {"last": round(float(ty.iloc[-1]), 3), "chg_bp": round(float(tyc), 1)},
+           "dxy": {"last": round(float(dx.iloc[-1]), 2), "chg_pct": round(float(dxc), 2), "chg_5d_pct": round(float(dx5), 2)},
+           "us10y": {"last": round(float(ty.iloc[-1]), 3), "chg_bp": round(float(tyc), 1), "chg_5d_bp": round(float(ty5), 1)},
+           "gold_chg_5d_pct": round(float(gc5), 2),
            "gold_chg_pct": round(float(gcc), 2), "score": score, "verdict": verdict, "note": note}
     json.dump(out, open("macro.json", "w"), indent=2); print(note)
 

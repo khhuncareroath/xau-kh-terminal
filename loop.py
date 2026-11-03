@@ -93,6 +93,9 @@ def main():
             break
         time.sleep(max(0, nxt - time.time()))
     push()
+    if market_open():
+        os.makedirs("data/cache", exist_ok=True)
+        open("data/cache/next_shift", "w").write(str(time.time()))
     print(f"runner finished after {n} cycles, {(time.time() - start) / 60:.0f} min")
 
 

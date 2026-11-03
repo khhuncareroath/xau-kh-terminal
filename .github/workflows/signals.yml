@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write     # lets the runner start its own next shift, so there is no gap between shifts
 concurrency:
   group: gold-analysis
   cancel-in-progress: false   # a new start waits until the running loop ends, so there is never a gap or an overlap
@@ -46,3 +47,10 @@ jobs:
           git fetch -q --depth 1 origin spot-data && git show FETCH_HEAD:xau_5m.csv.gz > data/xau_5m.csv.gz && echo "spot history restored" || echo "no spot history, recent data only"
       - name: Analysis every 5 minutes
         run: python loop.py
+      - name: Start the next shift right away
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # loop.py leaves this flag only when the market is open, so weekends do not restart in a loop
+          if [ -f data/cache/next_shift ]; then gh workflow run signals.yml --ref "${GITHUB_REF_NAME}" || echo "could not start the next shift; the schedule will"; else echo "market closed: the schedule restarts on Sunday"; fi
