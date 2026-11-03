@@ -180,6 +180,9 @@ def model_alert(lm, state, now):
                     f"{b.get('avg_R'):+.2f}R per trade after costs.") if b.get("trades") else "",
                 (f"⚠️ {'Buy' if bull else 'Sell'} signals from this model averaged {side['avg_R']:+.2f}R ({side['trades']} trades): "
                  + ("the weaker side, consider a smaller size." if side["avg_R"] < 0.1 else "the stronger side.")) if side.get("trades") and s["model"] != "trend_buy" else None,
+                f"💰 Lot size (Exness, 1 lot = 100 oz): 0.01 lot risks <b>${abs(s['entry'] - s['stop']):,.0f}</b> on this stop. "
+                f"For 1% risk: $3,000 account → {max(0, int(30 / abs(s['entry'] - s['stop']))) / 100:.2f} lot · "
+                f"$10,000 → {max(0, int(100 / abs(s['entry'] - s['stop']))) / 100:.2f} lot. Exact size for your balance on the website.",
                 "", "<i>Risk a small, fixed part of your account (0.5–1%). Losses will happen. Not financial advice. "
                 "The result will be posted as a reply.</i>"]
     if LANG in ("km", "both"):
