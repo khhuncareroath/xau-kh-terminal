@@ -255,20 +255,6 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
       <div id="alertBody"></div>
     </div>
 
-    <div class="card enter o7" style="--i:6" id="calcCard">
-      <h2 data-t="Lot size (Exness)">Lot size (Exness)</h2>
-      <div class="calc">
-        <label><span data-t="Account balance (USD)">Account balance (USD)</span><input id="cBal" type="number" inputmode="decimal" min="0" step="10" value="1000"></label>
-        <div><span class="lbl" data-t="Risk per trade">Risk per trade</span>
-          <div class="seg" id="cRisk"><span class="knob"></span><button data-r="0.5">0.5%</button><button data-r="1">1%</button><button data-r="2">2%</button></div></div>
-        <label><span data-t="Account type">Account type</span><select id="cAcc">
-          <option value="std">Standard, Pro, Raw or Zero</option>
-          <option value="cent">Standard Cent (custom value)</option></select></label>
-        <label id="cCentWrap" hidden><span data-t="$ per $1 move for 0.01 lot (from MT5 specification)">$ per $1 move for 0.01 lot (from MT5 specification)</span><input id="cCent" type="number" inputmode="decimal" min="0" step="0.001" value="0.01"></label>
-      </div>
-      <div class="calc-out" id="cOut"></div>
-    </div>
-
     <div class="card enter o6" style="--i:5">
       <h2 data-t="Next big news">Next big news</h2>
       <div id="newsBody"></div>
@@ -548,51 +534,6 @@ function renderRecord(){
   $("#strats").innerHTML=models.map(({n,m})=>`<div class="strat"><div><b style="font-weight:600;font-size:15px">${esc(n)}</b><p>${(m.all||{}).trades||0} trades · ${(m.all||{}).win_rate_pct??"–"}% wins · ${word((m.all||{}).avg_R)}</p></div><span class="badge ${m.proven?"ok":"no"}">${m.proven?t("Proven"):t("Not yet")}</span></div>`).join("");
 }
 
-/* ---------- lot size calculator (Exness: 1 lot = 100 oz, so $1 move = $1 per 0.01 lot) ---------- */
-const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
-let cRisk=+(store.get("xau-risk")||1);
-function calcStop(){
-  const act=(D.alerts_log||[]).slice().reverse().find(a=>a.kind==="model"&&["pending","filled"].includes(a.status));
-  if(act)return{dist:Math.abs(act.entry-act.stop),tp1:act.tp1?Math.abs(act.tp1-act.entry):null,tp2:Math.abs(act.target-act.entry),src:"the current alert"};
-  const p=(D.ict||{}).price;if(!p)return null;
-  const d=p*0.0065;return{dist:d,tp1:d*0.75,tp2:d*3,src:"the typical trend signal (0.65% stop)"};
-}
-function renderCalc(){
-  const out=$("#cOut");if(!out)return;
-  const bal=+$("#cBal").value||0,st=calcStop(),cent=$("#cAcc").value==="cent";
-  $("#cCentWrap").hidden=!cent;
-  if(!st||bal<=0){out.innerHTML=`<p class="mut" style="margin:0">Enter your balance.</p>`;return}
-  const per001=cent?(+$("#cCent").value||0):1;           // $ per $1 move for 0.01 lot
-  if(per001<=0){out.innerHTML=`<p class="mut" style="margin:0">Enter the value from your MT5 symbol specification.</p>`;return}
-  const riskUsd=bal*cRisk/100,perLotStop=st.dist*per001;   // $ lost per 0.01 lot if the stop is hit
-  const steps=Math.floor(riskUsd/perLotStop+1e-9),lot=steps*0.01;
-  const minRiskPct=perLotStop/bal*100;
-  const money=v=>"$"+v.toLocaleString("en-US",{maximumFractionDigits:2,minimumFractionDigits:2});
-  let html="";
-  if(steps<1){
-    html=`<div class="warn">⚠️ Your account is too small for this stop at ${cRisk}% risk. The smallest trade (0.01 lot) would risk <b>${money(perLotStop)}</b>, which is <b>${minRiskPct.toFixed(1)}%</b> of your balance. Skip this trade, or ${cent?"lower the size":"use a Standard Cent account"}.</div>`;
-  }else{
-    html=`<div class="lot">${lot.toFixed(2)} <span style="font-size:17px;font-weight:600;color:var(--label2)">lot</span></div>
-      <div class="kv" style="margin:0"><div><small>If stop is hit</small><b class="dn">−${money(steps*perLotStop)}</b></div>
-      <div><small>Stop distance</small><b>${money(st.dist)}</b></div>
-      ${st.tp1?`<div><small>At TP1 (half closed)</small><b class="up">+${money(steps*st.tp1*per001/2)}</b></div>`:""}
-      <div><small>At TP2 (full plan)</small><b class="up">+${money(steps*per001*((st.tp1?st.tp1/2:0)+st.tp2*(st.tp1?0.5:1)))}</b></div></div>`;
-  }
-  out.innerHTML=html+`<p class="foot-note" style="margin:0">Based on ${st.src}. Exness gold: 1 lot = 100 oz, so a $1 move is $1 for 0.01 lot. Lot is rounded down so you never risk more than you chose.</p>`;
-}
-(()=>{
-  const seg=$("#cRisk");if(!seg)return;
-  const b0=seg.querySelector(`[data-r="${cRisk}"]`)||seg.querySelector('[data-r="1"]');
-  requestAnimationFrame(()=>segSelect(seg,b0));
-  seg.querySelectorAll("button").forEach(b=>b.onclick=()=>{cRisk=+b.dataset.r;store.set("xau-risk",cRisk);segSelect(seg,b);renderCalc()});
-  const bal=store.get("xau-bal");if(bal)$("#cBal").value=bal;
-  const acc=store.get("xau-acc");if(acc)$("#cAcc").value=acc;
-  const cv=store.get("xau-cent");if(cv)$("#cCent").value=cv;
-  $("#cBal").oninput=()=>{store.set("xau-bal",$("#cBal").value);renderCalc()};
-  $("#cAcc").onchange=()=>{store.set("xau-acc",$("#cAcc").value);renderCalc()};
-  $("#cCent").oninput=()=>{store.set("xau-cent",$("#cCent").value);renderCalc()};
-})();
-
 /* ---------- bottom sheet with plan vs actual ---------- */
 function openSheet(a){
   if(!a)return;const bull=a.dir==="bull",[rt,c]=RES[a.status]||["Live","mut"],sg=bull?1:-1;
@@ -724,7 +665,7 @@ addEventListener("scroll",()=>$("#top").classList.toggle("scrolled",scrollY>90),
 addEventListener("resize",()=>{requestAnimationFrame(drawChart);requestAnimationFrame(renderLadder)});
 
 function render(){
-  for(const f of [renderStatus,renderPrice,renderDirection,renderPlan,renderLadder,renderAlert,renderNews,renderRecord,renderCalc,drawChart]){try{f()}catch(e){console.error(f.name,e)}}
+  for(const f of [renderStatus,renderPrice,renderDirection,renderPlan,renderLadder,renderAlert,renderNews,renderRecord,drawChart]){try{f()}catch(e){console.error(f.name,e)}}
 }
 applyLang();
 show(["today","chart","record"].includes(location.hash.slice(1))?location.hash.slice(1):"today");
