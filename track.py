@@ -63,20 +63,22 @@ def step(a, bars):
 
 def reply_text(a):
     t = _reply_text(a)
-    return ("If traded as planned: " + t) if a.get("kind") == "watch" else t
+    return ("Watch idea result. If traded as planned: " + t) if a.get("kind") == "watch" else t
 
 
 def _reply_text(a):
     s = a["status"]
+    sg = 1 if a["dir"] == "bull" else -1
+    pts = lambda px: f"{(px - a['entry']) * sg:+.1f} points"
     if s == "win":
-        return f"{ICON[s]} <b>Target hit</b> at {fmt(a['target'])}: +{a['R']}R"
+        return f"{ICON[s]} <b>Target reached</b> at {fmt(a['target'])} ({pts(a['target'])})"
     if s == "loss":
-        return f"{ICON[s]} <b>Stopped</b> at {fmt(a['exit'])}: {a['R']}R"
+        return f"{ICON[s]} <b>Stop hit</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
     if s == "expired":
-        return f"{ICON[s]} <b>Expired</b>: price never came back to {fmt(a['entry'])}. No trade."
+        return f"{ICON[s]} <b>Expired</b>: price never came back to the zone. No trade."
     if s == "missed":
-        return f"{ICON[s]} <b>No fill</b>: price reached the target without touching the entry. No trade, not counted as a win."
-    return f"{ICON[s]} <b>Closed after 12h</b> at {fmt(a['exit'])}: {a['R']:+}R"
+        return f"{ICON[s]} <b>Missed</b>: price went to the target without coming back to the zone first. No trade."
+    return f"{ICON[s]} <b>Closed after 12 hours</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
 
 
 def summary(log):

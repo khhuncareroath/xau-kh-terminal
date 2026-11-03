@@ -21,6 +21,7 @@ env:
   SITE_URL: ${{ vars.SITE_URL }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
   AI_LANG: ${{ vars.AI_LANG || 'en' }}                  # 'km' adds a Khmer version
+  BOT_LANG: ${{ vars.BOT_LANG || 'en' }}                # Telegram alerts: en, km or both
   TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}         # optional: spot XAUUSD offset in alerts
   PYTHONWARNINGS: ignore
 jobs:

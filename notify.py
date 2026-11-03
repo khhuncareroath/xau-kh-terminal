@@ -13,6 +13,7 @@ The 7 factors are shown openly in the alert ("5 of 7"), and the backtest line te
 really did on past data. Env: MIN_RR (1.5), MIN_FACTORS (3), MAX_RISK_ATR (3), ALERT_EXPIRE_MIN (120),
 ALERT_COOLDOWN_H (3), SITE_URL, DISPLAY_TZ. Analysis ideas, not signals or advice."""
 import json
+import re
 import os
 import time
 from datetime import datetime, timezone
@@ -149,6 +150,135 @@ def model_alert(lm, state, now):
                  if b.get("trades") else ""),
              "<i>Risk a small, fixed part of your account (for example 0.5-1%). Not financial advice. The result will be posted as a reply.</i>",
              TV, SITE]
+    mid = send("\n".join(l for l in lines if l), ("BUY" if bull else "SELL") + " now")
+    if not mid:
+        return False
+    state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
+    json.dump(state, open("notify_state.json", "w"))
+    log_alert({"id": key, "kind": "model", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
+               "target": s["target"], "rr": s["rr"], "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
+               "msg_id": mid if isinstance(mid, int) else None, "status": "pending"})
+    print("sent", key)
+    return True
+
+
+LANG = os.environ.get("BOT_LANG", "en")   # en, km, or both
+STRONG = 5   # factors needed to call an idea "strong"
+
+
+def _swept_level(st):
+    m = re.search(r"at (\d{3,5}(?:\.\d+)?) was swept", " ".join(st.get("reasons", [])))
+    return float(m.group(1)) if m else st.get("sweep_extreme")
+
+
+def plain_story(st, fs, lang="en"):
+    """The why, in words a beginner understands. No jargon, three short lines at most."""
+    bull = st["dir"] == "bull"
+    lvl = _swept_level(st)
+    h1 = next((g for a, g, _ in fs if a == "1H trend agrees"), None)
+    if lang == "km":
+        a = (f"តម្លៃបានធ្លាក់ក្រោម {fmt(lvl)} (កន្លែងដែលអ្នកលក់ដាក់ stop) រួចឡើងវិញ។ អ្នកទិញកំពុងគ្រប់គ្រង។" if bull else
+             f"តម្លៃបានឡើងលើ {fmt(lvl)} (កន្លែងដែលអ្នកទិញដាក់ stop) រួចធ្លាក់វិញ។ អ្នកលក់កំពុងគ្រប់គ្រង។")
+        b = "និន្នាការ 1 ម៉ោង ស្របគ្នា។" if h1 else f"⚠️ និន្នាការ 1 ម៉ោង {'ចុះ' if bull else 'ឡើង'} — គំនិតនេះខ្សោយជាង។"
+    else:
+        a = (f"Price dipped below {fmt(lvl)}, where sellers keep their stops, then bounced back up. Buyers took control." if bull else
+             f"Price spiked above {fmt(lvl)}, where buyers keep their stops, then fell back. Sellers took control.")
+        b = "The 1-hour trend agrees." if h1 else f"⚠️ The 1-hour trend is {'down' if bull else 'up'}, so this idea is weaker."
+    return [a, b]
+
+
+def strength(n_ok, n):
+    return "●" * n_ok + "○" * (n - n_ok)
+
+
+def setup_message(mode, st, ict, fs, valid_until, summ, ai):
+    """Telegram text for the sweep -> shift -> retest idea. mode: watch (default) or signal (only once proven)."""
+    bull = st["dir"] == "bull"
+    n_ok, n = sum(1 for _, g, _ in fs if g), len(fs)
+    lo, hi = st["zone"]
+    tested = (f"{summ['filled']} past trades, {summ['avg_R']:+.2f}R each" if summ.get("filled") else "not tested yet")
+    out = []
+    if LANG in ("en", "both"):
+        if mode == "watch":
+            head = f"👀 <b>GOLD · WATCH {'BUY' if bull else 'SELL'} ZONE</b>"
+            note = f"<i>Not a trade signal. This setup has not made money in testing ({tested}). Use it as a map only.</i>"
+            zone_word = "Watch zone"
+        else:
+            head = f"{'🟢' if bull else '🔴'} <b>GOLD · {'BUY' if bull else 'SELL'} SETUP</b>"
+            note = f"<i>Tested: {tested}. Risk a small part of your account. Not financial advice.</i>"
+            zone_word = "Entry zone"
+        out += [head, "",
+                f"Price now   <b>{fmt(ict['price'])}</b>",
+                f"{zone_word}  <b>{fmt(lo)} – {fmt(hi)}</b>",
+                f"Wrong if {'below' if bull else 'above'}  <b>{fmt(st['stop'])}</b>",
+                f"Target      <b>{fmt(st['target'])}</b>",
+                f"⏰ Good until {local(valid_until)}", "",
+                "<b>Why</b>", *[esc(x) for x in plain_story(st, fs)],
+                f"Strength {strength(n_ok, n)} {n_ok}/{n}" + (" · strong" if n_ok >= STRONG else ""), "",
+                note]
+    if LANG in ("km", "both"):
+        if out:
+            out += ["", "— ខ្មែរ —"]
+        out += [f"{'👀' if mode == 'watch' else '🟢' if bull else '🔴'} <b>មាស · {'តំបន់តាមដាន' if mode == 'watch' else 'ការរៀបចំ'} {'ទិញ' if bull else 'លក់'}</b>",
+                f"តម្លៃឥឡូវ <b>{fmt(ict['price'])}</b>",
+                f"តំបន់ <b>{fmt(lo)} – {fmt(hi)}</b>",
+                f"ខុសបើ{'ធ្លាក់ក្រោម' if bull else 'ឡើងលើ'} <b>{fmt(st['stop'])}</b>",
+                f"គោលដៅ <b>{fmt(st['target'])}</b>",
+                f"⏰ រហូតដល់ {local(valid_until)}",
+                *[esc(x) for x in plain_story(st, fs, "km")],
+                f"កម្លាំង {strength(n_ok, n)} {n_ok}/{n}",
+                "<i>" + ("មិនមែនសញ្ញាជួញដូរទេ។ ប្រើជាផែនទីប៉ុណ្ណោះ។" if mode == "watch" else "មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។") + "</i>"]
+    if ai and LANG != "km":
+        out.insert(out.index("<b>Why</b>") + 1, esc(ai)) if "<b>Why</b>" in out else None
+    out.append(SITE or TV)
+    return out
+
+
+def main():
+    ict, conf, lv, q, news, macro, bt, state = (jl(n) for n in ("ict.json", "confluence.json", "levels.json", "quality.json",
+                                                                  "news.json", "macro.json", "backtest.json", "notify_state.json"))
+    now = time.time()
+    if q.get("grade") == "Avoid":
+        print("quality is Avoid, no alert"); return
+    ns = news_soon(news, now=now)
+    if ns:
+        print("high-impact news soon, holding alerts:", ns); return
+    if model_alert(jl("live_models.json"), state, now):
+        return
+    st = ict.get("setup") or {}
+    ok, why = gate_setup(st, ict, now)
+    if not ok:
+        print("no alert:", why); return
+    fs = factors(st, ict, conf, lv, macro, now)
+    n_ok = sum(1 for _, good, _ in fs if good)
+    if n_ok < MIN_FACTORS:
+        print(f"no alert: only {n_ok} of {len(fs)} factors"); return
+    key = f"setup|{st['dir']}|{st.get('sweep_time')}"
+    rank = st["stage"]
+    upgrade = state.get("key") == key and rank > state.get("rank", 0)
+    if state.get("key") == key and not upgrade:
+        print("already alerted"); return
+    if not upgrade and now - state.get("t", 0) < COOLDOWN and n_ok <= state.get("factors", 0):
+        print("cooldown, not clearly better than the last alert"); return
+
+    mode = MODE if MODE in ("watch", "signal") else bt.get("alert_mode", "watch")
+    bull = st["dir"] == "bull"
+    sg = 1 if bull else -1
+    valid_until = ts(st["shift_time"]) + EXPIRE_MIN * 60 if st.get("shift_time") else now + EXPIRE_MIN * 60
+    if upgrade:   # same idea, price is now in the retest zone: short reply to the first alert
+        msg = (f"⏱ <b>Retest in play</b> · price {fmt(ict['price'])} is in the zone {fmt(st['zone'][0])}–{fmt(st['zone'][1])}. "
+               f"Same plan: entry {fmt(st['entry'])}, stop {fmt(st['stop'])}, target {fmt(st['target'])}.")
+        if send(msg, "Retest in play", reply_to=state.get("msg_id") if isinstance(state.get("msg_id"), int) else None):
+            state.update({"rank": rank, "t": now}); json.dump(state, open("notify_state.json", "w"))
+        return
+
+    facts = {"direction": "buy" if bull else "sell", "stage": st.get("label"), "swept": f"{st.get('sweep_name')} (extreme {st.get('sweep_extreme')})",
+             "entry": st["entry"], "stop": st["stop"], "target": st["target"], "rr": st["rr"], "zone": st["zone"],
+             "price_now": ict.get("price"), "reasons": st.get("reasons"),
+             "factors": [{"name": a, "ok": b, "detail": c} for a, b, c in fs], "backtest": backtest_line(bt, ict.get("rules", "current"))}
+    ai = explain(facts)
+    summ = (((bt.get("rules") or {}).get(ict.get("rules", "current")) or {}).get("summary") or {})
+    lines = setup_message(mode, st, ict, fs, valid_until, summ, ai)
     mid = send("\n".join(l for l in lines if l), ("BUY" if bull else "SELL") + " now")
     if not mid:
         return False
