@@ -69,7 +69,7 @@ def main():
                 m = next((k for k, v in lists if any(x[0] == t for x in v)), None)
                 if m is None:
                     continue   # the model computed levels but then rejected the trade (for example the stop was too small)
-                s["trigger_time"] = str(df.index[-1])
+                s["trigger_time"] = str(t)   # planned entry time: identical on every cycle, so the alert is sent once
                 risk = abs(s["entry"] - s["stop"])
                 sigs.append({**{k: round(v, 2) if isinstance(v, float) else v for k, v in s.items()}, "model": m,
                              "rr": round(abs(s["target"] - s["entry"]) / risk, 2) if risk else None})

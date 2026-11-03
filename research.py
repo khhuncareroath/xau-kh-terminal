@@ -302,6 +302,9 @@ DESCRIBE = {"sweep_htf": "Sweep + structure shift, only with the 4H and Daily tr
             "trend_breakout": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target"}
 
 
+MAX_HOLD_H = {"trend_breakout": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+
+
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df)}

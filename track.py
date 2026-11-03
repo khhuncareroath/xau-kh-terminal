@@ -56,7 +56,7 @@ def step(a, bars):
             if (h >= a["target"]) if sg > 0 else (l <= a["target"]):
                 a.update(status="win", closed=t, exit=a["target"], R=round(a["rr"], 2))
                 return
-            if t - a["filled_at"] >= MAX_HOLD_S:
+            if t - a["filled_at"] >= a.get("max_hold_s", MAX_HOLD_S):
                 a.update(status="timed out", closed=t, exit=c, R=round((c - a["fill"]) * sg / risk, 2))
                 return
 
@@ -78,7 +78,8 @@ def _reply_text(a):
         return f"{ICON[s]} <b>Expired</b>: price never came back to the zone. No trade."
     if s == "missed":
         return f"{ICON[s]} <b>Missed</b>: price went to the target without coming back to the zone first. No trade."
-    return f"{ICON[s]} <b>Closed after 12 hours</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
+    hrs = round(a.get("max_hold_s", MAX_HOLD_S) / 3600)
+    return f"{ICON[s]} <b>Closed after {hrs} hours</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
 
 
 def summary(log):

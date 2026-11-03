@@ -479,6 +479,14 @@ function renderAlert(){
   const live=(st.stage===2||st.stage===3)&&st.entry&&(now-pt(st.shift_time))/60000<=120&&((ict.price-st.entry)*(st.dir==="bull"?1:-1))/Math.abs(st.entry-st.stop)<=0.5;
   const log=(D.alerts_log||[]).slice().reverse(),lastA=log[0];
   const body=$("#alertBody");curAlert=null;
+  const act=log.find(a=>a.kind==="model"&&["pending","filled"].includes(a.status));
+  if(act){
+    const bull=act.dir==="bull";curAlert=act;
+    body.innerHTML=`<div class="alert-head"><span class="badge ${bull?"buy":"sell"}">${t(bull?"Buy":"Sell")} · ${lang==="km"?"និន្នាការ 4H":"4H trend"}</span><span class="mut" style="font-size:13px">${dhm(pt(act.created))}</span></div>
+      <div class="kv"><div><small>Entry</small><b>${f2(act.entry)}</b></div><div><small>Stop loss</small><b>${f2(act.stop)}</b></div><div><small>Target</small><b>${f2(act.target)}</b></div><div><small>Now</small><b class="${((ict.price-act.entry)*(bull?1:-1))>=0?"up":"dn"}">${f2(ict.price)}</b></div></div>
+      <p class="foot-note">Tested strategy (proven on 2 years of data). Trade lasts up to 5 days.</p>`;
+    return;
+  }
   if(live){
     const bull=st.dir==="bull";curAlert={...st,kind:mode==="signal"?"setup":"watch",created:pt(st.shift_time)};
     body.innerHTML=`<div class="alert-head"><span class="badge ${mode==="signal"?(bull?"buy":"sell"):"watch"}">${mode==="signal"?t(bull?"Buy":"Sell"):t("Watch")+" · "+t(bull?"Buy":"Sell")}</span><span class="mut" style="font-size:13px">until ${hm(pt(st.shift_time)+7200e3)}</span></div>
@@ -507,11 +515,11 @@ function renderRecord(){
   const k=[[t("Wins"),r.wins??0,"up"],[t("Losses"),r.losses??0,"dn"],[t("No trade"),r.no_trade??0,""]];
   $("#kpis").innerHTML=k.map(([a,b,c])=>`<div class="kpi"><b class="${c}">${b}</b><small>${a}</small></div>`).join("");
   $("#alerts").innerHTML=log.length?log.slice(0,15).map((a,i)=>{const[rt,c]=RES[a.status]||[a.status,"mut"];const bull=a.dir==="bull";
-    return`<li class="tap" data-i="${i}" style="cursor:pointer"><span class="when">${dhm(pt(a.created))}</span><span><span class="badge ${a.kind==="watch"?"watch":bull?"buy":"sell"}">${a.kind==="watch"?t("Watch"):""} ${t(bull?"Buy":"Sell")}</span></span><span class="res-chip ${c}">${rt}</span></li>`}).join("")
+    return`<li class="tap" data-i="${i}" style="cursor:pointer"><span class="when">${dhm(pt(a.created))}</span><span><span class="badge ${a.kind==="watch"?"watch":bull?"buy":"sell"}">${a.kind==="watch"?t("Watch"):a.kind==="model"?"4H":""} ${t(bull?"Buy":"Sell")}</span></span><span class="res-chip ${c}">${rt}</span></li>`}).join("")
     :`<li class="mut">No alerts yet. Each new alert appears here with its result.</li>`;
   $$("#alerts li[data-i]").forEach(li=>li.onclick=()=>openSheet(log[+li.dataset.i]));
   const bt=D.backtest||{},cur=(bt.rules||{}).current||{},s=cur.summary||{},days=bt.data?Math.round((pt(bt.data.to)-pt(bt.data.from))/864e5):0;
-  $("#btNote").textContent=s.filled?`Tested on ${days} days of spot gold with a 15-minute delay and costs. A strategy is "proven" only if it stays profitable on new data. None has passed yet, so alerts are posted as Watch ideas.`:"Testing has not run yet.";
+  $("#btNote").textContent=s.filled?`Tested on ${days} days of spot gold with a 15-minute delay and costs. A strategy is "proven" only if it stays profitable on new data. `+(Object.values(bt.models||{}).some(m=>m.proven)?"Proven strategies send real BUY/SELL alerts; the rest stay as Watch ideas.":"None has passed yet, so alerts are posted as Watch ideas."):"Testing has not run yet.";
   const models=[{n:"Current setup (sweep, shift, retest)",m:{all:{trades:s.filled,avg_R:s.avg_R,win_rate_pct:s.win_rate_pct},proven:cur.proven}},...Object.entries(bt.models||{}).map(([k,m])=>({n:m.description,m}))]
     .sort((a,b)=>(b.m.proven-a.m.proven)||(((b.m.all||{}).avg_R??-9)-((a.m.all||{}).avg_R??-9)));
   const word=r=>r==null?"–":r>=0.1?"made money":r>-0.05?"about break-even":"lost money";
