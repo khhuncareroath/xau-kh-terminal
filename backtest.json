@@ -1,5 +1,5 @@
 {
-  "time": "2026-11-03 09:55 UTC",
+  "time": "2026-11-03 22:19 UTC",
   "data": {
     "bars": 141536,
     "from": "2024-11-03 18:00:00-05:00",
@@ -1469,6 +1469,76 @@
       "t_stat": 3.59,
       "proven": true,
       "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    },
+    "breakout_cisd": {
+      "description": "After a 4H breakout: sweep + CISD entry in London/New York, stop beyond the sweep, 3R target",
+      "all": {
+        "trades": 43,
+        "win_rate_pct": 42,
+        "avg_R": 0.646
+      },
+      "older_70pct": {
+        "trades": 36,
+        "win_rate_pct": 42,
+        "avg_R": 0.643
+      },
+      "newest_30pct": {
+        "trades": 7,
+        "win_rate_pct": 43,
+        "avg_R": 0.662
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 8,
+          "avg_R": 1.015
+        },
+        "2025-Q1": {
+          "trades": 6,
+          "avg_R": 0.874
+        },
+        "2025-Q2": {
+          "trades": 3,
+          "avg_R": -1.093
+        },
+        "2025-Q3": {
+          "trades": 5,
+          "avg_R": 1.332
+        },
+        "2025-Q4": {
+          "trades": 8,
+          "avg_R": 0.571
+        },
+        "2026-Q1": {
+          "trades": 6,
+          "avg_R": 0.304
+        },
+        "2026-Q2": {
+          "trades": 2,
+          "avg_R": -1.077
+        },
+        "2026-Q3": {
+          "trades": 3,
+          "avg_R": 1.64
+        },
+        "2026-Q4": {
+          "trades": 2,
+          "avg_R": 0.932
+        }
+      },
+      "by_direction": {
+        "short": {
+          "trades": 9,
+          "avg_R": 0.796
+        },
+        "long": {
+          "trades": 34,
+          "avg_R": 0.606
+        }
+      },
+      "positive_quarters": "5 of 5",
+      "t_stat": 2.13,
+      "proven": false,
+      "verdict": "Positive so far, but only 7 trades in the newest data (10 needed): waiting for more."
     }
   },
   "alert_mode": "watch"
