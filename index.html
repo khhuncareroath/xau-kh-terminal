@@ -19,6 +19,7 @@
   --r-lg:20px; --r-sm:10px;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;background:var(--navy);color:var(--paper);font:400 15px/1.5 var(--f-ui);-webkit-font-smoothing:antialiased}
 body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -89,6 +90,10 @@ h3{font:600 14px/1.3 var(--f-ui);margin:0 0 8px;color:var(--mut)}
 .chk.y{background:var(--jade);border-color:var(--jade)}
 .chk.y::after{content:"";position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid var(--navy);border-width:0 2px 2px 0;transform:rotate(45deg)}
 .why{font-size:14px;color:var(--paper);margin:14px 0 0;max-width:62ch}
+.mapl{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.mapl li{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:14px;align-items:baseline}
+.mapl li span{color:var(--mut);font-size:13px}
+.mapl li b{font-weight:600}
 .bias{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .bias div{text-align:center;padding:8px 4px;border-radius:var(--r-sm);background:var(--navy);border:1px solid var(--line);font-size:12px}
 .bias div b{display:block;font-size:14px}
@@ -298,7 +303,9 @@ const KM={"Now":"ឥឡូវនេះ","Chart":"ក្រាហ្វ","News":"
 "Ideas graded":"គំនិតបានដាក់ពិន្ទុ","Total R":"សរុប R","Open now":"កំពុងបើក","Proven":"បានបញ្ជាក់","Not proven":"មិនទាន់បញ្ជាក់",
 "trackNote":"គំនិតនីមួយៗដែលបូតផ្សាយ ត្រូវបានវាយតម្លៃដោយស្វ័យប្រវត្តិធៀបនឹងតម្លៃពិត ទាំងឈ្នះ និងចាញ់។ គ្មានអ្វីត្រូវលុបចោលទេ។",
 "footNote":"តម្លៃគឺ XAUUSD spot (Twelve Data និង Dukascopy)។ សកម្មភាពទីផ្សារវាស់ដោយ volume របស់ COMEX gold futures។ តម្លៃនៅ broker អាចខុសគ្នាបន្តិច។ ជាការវិភាគ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។",
-"Map, not a trade signal.":"ជាផែនទី មិនមែនសញ្ញាជួញដូរទេ។","factors":"កត្តា","of":"ក្នុងចំណោម"};
+"Map, not a trade signal.":"ជាផែនទី មិនមែនសញ្ញាជួញដូរទេ។","No trade setup right now":"មិនទាន់មានការរៀបចំជួញដូរនៅពេលនេះ",
+"The bot posts a Watch alert as soon as a setup forms. Meanwhile, here is the market.":"បូតនឹងផ្ញើការជូនដំណឹងតាមដាន ពេលមានការរៀបចំ។ ខាងក្រោមជាស្ថានភាពទីផ្សារ។",
+"Today":"ថ្ងៃនេះ","Trend":"និន្នាការ","Resistance":"ជាន់ទប់","Support":"ជាន់ទ្រ","Next news":"ព័ត៌មានបន្ទាប់","factors":"កត្តា","of":"ក្នុងចំណោម"};
 const t=s=>lang==="km"&&KM[s]?KM[s]:s;
 function applyLang(){document.documentElement.lang=lang==="km"?"km":"en";$$("[data-t]").forEach(el=>{const k=el.dataset.t;if(!el.dataset.en)el.dataset.en=el.textContent;el.textContent=lang==="km"&&KM[k]?KM[k]:el.dataset.en});$("#lang").textContent=lang==="km"?"EN":"ខ្មែរ"}
 
@@ -356,8 +363,7 @@ function engineView(){
     else{v.word="Watch";v.cls="watch "+st.dir;v.sub=(st.dir==="bull"?"Bullish":"Bearish")+" structure · "+t(st.label).toLowerCase();
       const s=((bt.rules||{}).current||{}).summary||{};
       v.note=t("Map, not a trade signal.")+(s.filled?` In testing this setup has not shown an edge yet (${s.filled} trades, ${sgnR(s.avg_R)} each).`:"")}
-  }else if(stage===4){v.sub="The last idea was voided";}
-  else if(stage===1){v.sub="Liquidity swept · waiting for a structure shift";}
+  }
   return v;
 }
 
@@ -380,6 +386,8 @@ function renderLean(){
   $("#leanSub").textContent=v.sub;
   $("#leanNote").textContent=v.note;
   $("#leanMeta").textContent="Engine view · 5m · "+(D.ict?hm(pt(D.ict.time)):"");
+  if(v.word==="Wait"){renderMap(v);return}
+  $("#steps").hidden=false;
   const s=v.stage,steps=[["Sweep",s>=1],["Shift",s>=2&&s!==4],["Retest",s===3]];
   $("#steps").innerHTML=steps.map(([n,on],i)=>{
     const cur=(s===1&&i===0)||(s===2&&i===1)||(s===3&&i===2);
@@ -398,6 +406,26 @@ function renderLean(){
     $("#plan").hidden=false;$("#plan").innerHTML=items.map(([k,val])=>`<div><small>${t(k)}</small><b>${val}</b></div>`).join("");
   }else $("#plan").hidden=true;
   $("#why").textContent=(v.st.reasons||[]).join(" ");
+}
+function renderMap(v){
+  const ict=D.ict||{},price=ict.price,lv=(D.levels||{}).ladder||[],tf=ict.timeframes||{};
+  $("#leanSub").textContent=t("No trade setup right now");
+  $("#leanNote").textContent=t("The bot posts a Watch alert as soon as a setup forms. Meanwhile, here is the market.");
+  $("#steps").hidden=true;$("#meter").hidden=true;$("#plan").hidden=true;$("#factors").innerHTML="";
+  const rows=[];
+  const pc=lv.find(x=>x.name==="Prev day close");
+  if(pc&&price){const c=price-pc.price;rows.push([t("Today"),`<b class="${c>=0?"up":"dn"}">${c>=0?"Up":"Down"} ${Math.abs(c).toFixed(1)} points</b> since yesterday's close`])}
+  const big=["D","4H","1H"].map(k=>(tf[k]||{}).bias),word=b=>b==="bull"?"up":b==="bear"?"down":"mixed";
+  const same=big.every(b=>b===big[0]&&b);
+  rows.push([t("Trend"),same?`<b class="${big[0]==="bull"?"up":"dn"}">${big[0]==="bull"?"Up":"Down"}</b> on Daily, 4H and 1H`:`<b>Mixed</b>: Daily ${word(big[0])}, 4H ${word(big[1])}, 1H ${word(big[2])}`]);
+  const zs=((D.confluence||{}).zones||[]).filter(z=>z.rating!=="C");
+  const sup=zs.filter(z=>z.high<price).sort((a,b)=>b.high-a.high)[0],res=zs.filter(z=>z.low>price).sort((a,b)=>a.low-b.low)[0];
+  if(res)rows.push([t("Resistance"),`<b>${f2(res.low)} – ${f2(res.high)}</b> <span>${(res.low-price).toFixed(1)} points above</span>`]);
+  if(sup)rows.push([t("Support"),`<b>${f2(sup.low)} – ${f2(sup.high)}</b> <span>${(price-sup.high).toFixed(1)} points below</span>`]);
+  const ins=zs.find(z=>z.low<=price&&z.high>=price);if(ins)rows.push([t("Now"),`Inside an ${ins.rating}-rated zone (${f2(ins.low)} – ${f2(ins.high)}): price often reacts here`]);
+  const nx=((D.news||{}).events||[]).filter(e=>e.impact==="High"&&pt(e.time)>Date.now()-15*60000).sort((a,b)=>pt(a.time)-pt(b.time))[0];
+  rows.push([t("Next news"),nx?`<b>${esc(nx.title)}</b> <span>${dhm(pt(nx.time))}</span>`:"No high-impact USD news this week"]);
+  $("#why").innerHTML=`<ul class="mapl">${rows.map(([a,b])=>`<li><span>${a}</span><div>${b}</div></li>`).join("")}</ul>`;
 }
 function renderBias(){
   const tf=(D.ict||{}).timeframes||{};
@@ -519,7 +547,7 @@ function drawChart(){
   // vwap
   if(CH.ov.vwap&&data.vwap){const map=new Map(data.vwap.map(v=>[v[0],v]));
     [[0,1.6,[]],[1,1,[4,4]],[-1,1,[4,4]],[2,1,[1,4]],[-2,1,[1,4]]].forEach(([k,w,dash])=>{g.setLineDash(dash);g.lineWidth=w;g.strokeStyle=k?"rgba(110,168,254,.45)":COL.vw;g.beginPath();let on=false;
-      for(let i=start;i<Math.min(end,C.length);i++){const v=map.get(C[i][0]);if(!v){on=false;continue}const yy=y(v[1]+k*v[2]);on?g.lineTo(x(i),yy):g.moveTo(x(i),yy);on=true}g.stroke()});g.setLineDash([]);g.lineWidth=1}
+      for(let i=start;i<Math.min(end,C.length);i++){const v=map.get(C[i][0]);if(!v){on=false;continue}const ms=C[i][0]*1000;if(nyHour(ms)===18&&new Date(ms).getUTCMinutes()<(CH.tf==="15m"?15:5))on=false;const yy=y(v[1]+k*v[2]);on?g.lineTo(x(i),yy):g.moveTo(x(i),yy);on=true}g.stroke()});g.setLineDash([]);g.lineWidth=1}
   // setup
   if(CH.ov.setup&&st.entry&&st.stage>=2&&st.stage!==4){
     g.globalAlpha=engineView().word==="Wait"?.45:1;
