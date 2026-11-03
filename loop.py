@@ -17,7 +17,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 CORE = ["levels.py", "ict.py", "confluence.py"]
-OPTIONAL = ["chart.py", "news.py", "macro.py", "quality.py", "grade.py", "spot.py", "track.py", "live_models.py", "postnews.py", "notify.py"]
+OPTIONAL = ["chart.py", "news.py", "macro.py", "quality.py", "grade.py", "spot.py", "track.py", "live_models.py", "postnews.py", "notify.py", "session.py"]
 LOOP_MIN = float(os.environ.get("LOOP_MINUTES", 330))
 PUSH_EVERY = int(os.environ.get("PUSH_EVERY", 2))
 STEP_TIMEOUT = 240

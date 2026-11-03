@@ -57,6 +57,29 @@ def send(text, title="XAU.KH", reply_to=None):
     return mid
 
 
+def send_photo(path, caption, title="XAU.KH"):
+    """Sends a chart image with an HTML caption (Telegram limit: 1024 characters). Returns the message_id or None."""
+    tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    if not (tok and chat):
+        print(f"photo not sent (no Telegram secrets): {path}\n{caption}")
+        return None
+    import uuid
+    b = uuid.uuid4().hex
+    parts = []
+    for k, v in (("chat_id", chat), ("caption", caption[:1024]), ("parse_mode", "HTML")):
+        parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode())
+    parts.append(f'--{b}\r\nContent-Disposition: form-data; name="photo"; filename="chart.png"\r\nContent-Type: image/png\r\n\r\n'.encode()
+                 + open(path, "rb").read() + b"\r\n")
+    parts.append(f"--{b}--\r\n".encode())
+    try:
+        req = urllib.request.Request(f"https://api.telegram.org/bot{tok}/sendPhoto", data=b"".join(parts),
+                                     headers={"Content-Type": f"multipart/form-data; boundary={b}"})
+        return json.load(urllib.request.urlopen(req, timeout=40)).get("result", {}).get("message_id")
+    except Exception as e:
+        print("telegram photo failed:", e)
+        return None
+
+
 def log_alert(entry):
     """Every idea that went out is recorded so track.py can grade it later."""
     path = "alerts_log.json"

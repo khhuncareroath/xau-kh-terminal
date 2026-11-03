@@ -1,0 +1,258 @@
+"""Session briefings and heads-up alerts for Telegram. Runs every cycle after ict.py and confluence.py.
+
+1. Briefing with a chart photo, 30 minutes before each session (New York time):
+     Asia 17:30 (Sun-Thu), London 01:30 (Mon-Fri), New York 07:00 (Mon-Fri).
+   Direction, key levels, the exact breakout lines of the trend model, what to look for, and the risks.
+2. Heads-up: when price comes within HEADS_UP_PCT of the trend model's breakout line, one early warning
+   ("if the 4H candle closes beyond X at 16:00, the signal triggers"), once per line per day.
+
+Everything here describes the market and the rules; the trade signal itself still comes from notify.py, and only
+from a proven model. Env: BOT_LANG (en, km, both), DISPLAY_TZ, SITE_URL."""
+import json
+import os
+import time
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
+import numpy as np
+import pandas as pd
+
+from engine import atr, live_source, load
+from ict import resample
+from levels import to_ny
+from tg import SITE, esc, fmt, local, send, send_photo
+
+NY = ZoneInfo("America/New_York")
+LANG = os.environ.get("BOT_LANG", "en")
+HEADS_UP_PCT = 0.0025          # 0.25% of price, about $10 at $3,900
+SESSIONS = [("Asia", 17, 30, (6, 0, 1, 2, 3)), ("London", 1, 30, (0, 1, 2, 3, 4)), ("New York", 7, 0, (0, 1, 2, 3, 4))]
+KM_SESSION = {"Asia": "អាស៊ី", "London": "ឡុងដ៍", "New York": "ញូវយ៉ក"}
+STATE = "session_state.json"
+
+
+def jl(n, d=None):
+    try:
+        return json.load(open(n))
+    except Exception:
+        return {} if d is None else d
+
+
+# ---------- the facts every message uses ----------
+
+def direction(ict, lv, price):
+    """Same score as the website: D 25, 4H 25, 1H 20, 15m 10, VWAP side 10, vs yesterday's close 10."""
+    tf = ict.get("timeframes") or {}
+    b = lambda k: 1 if (tf.get(k) or {}).get("bias") == "bull" else -1 if (tf.get(k) or {}).get("bias") == "bear" else 0
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    vw, pc = lad.get("VWAP"), lad.get("Prev day close")
+    score = 25 * b("D") + 25 * b("4H") + 20 * b("1H") + 10 * b("15m") + (10 * np.sign(price - vw) if vw else 0) + (10 * np.sign(price - pc) if pc else 0)
+    word = "Up" if score >= 50 else "Leaning up" if score >= 20 else "Sideways" if score > -20 else "Leaning down" if score > -50 else "Down"
+    return int(score), word, {k: b(k) for k in ("D", "4H", "1H")}
+
+
+def breakout_lines(df):
+    """The trend model's trigger: a 4H close above the highest high / below the lowest low of the previous 30
+    completed 4H candles. Returns (upper, lower, next 4H close time, ATR of 4H)."""
+    d4 = resample(df, "4H")
+    done = d4.iloc[:-1]                      # the last 4H candle is still forming
+    upper, lower = float(done["High"].tail(30).max()), float(done["Low"].tail(30).min())
+    next_close = d4.index[-1] + pd.Timedelta(hours=4)
+    return upper, lower, next_close, float(atr(d4).iloc[-2])
+
+
+def zones_near(conf, price):
+    zs = [z for z in conf.get("zones", []) if z.get("rating") in ("A", "B")]
+    res = sorted([z for z in zs if z["low"] > price], key=lambda z: z["low"])[:2]
+    sup = sorted([z for z in zs if z["high"] < price], key=lambda z: -z["high"])[:2]
+    ins = next((z for z in zs if z["low"] <= price <= z["high"]), None)
+    return res, sup, ins
+
+
+def news_in(news, start, hours):
+    out = []
+    for e in news.get("events", []):
+        t = datetime.fromisoformat(e["time"].replace("Z", "+00:00"))
+        if e.get("impact") == "High" and start <= t <= start + timedelta(hours=hours):
+            out.append((t, e["title"]))
+    return out
+
+
+# ---------- chart image ----------
+
+def chart(df, conf, lv, lines, path, title):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    d1 = resample(df, "1H").tail(72)
+    upper, lower, next_close, _ = lines
+    BG, CARD, INK, MUT, UP, DN, GOLD = "#000000", "#1C1C1E", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#E3B04B"
+    fig, ax = plt.subplots(figsize=(10, 5.6), dpi=150)
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(CARD)
+    x = np.arange(len(d1))
+    lo_y, hi_y = d1["Low"].min(), d1["High"].max()
+    price = float(df["Close"].iloc[-1])
+    pad = (hi_y - lo_y) * 0.08
+    view_lo, view_hi = lo_y - pad, hi_y + pad
+    for z in conf.get("zones", []):
+        if z.get("rating") in ("A", "B") and z["high"] > view_lo and z["low"] < view_hi:
+            col = DN if z["low"] > price else UP if z["high"] < price else GOLD
+            ax.axhspan(z["low"], z["high"], color=col, alpha=0.13 if z["rating"] == "A" else 0.07, lw=0)
+    lad = {k["name"]: k["price"] for k in lv.get("ladder", [])}
+    for name in ("Prev day high", "Prev day low", "Asia high", "Asia low"):
+        p = lad.get(name)
+        if p and view_lo < p < view_hi:
+            ax.axhline(p, color=MUT, lw=0.8, ls=(0, (2, 3)))
+            ax.text(len(d1) + 11.5, p, f"{name} {p:,.2f} ", color=MUT, va="bottom", ha="right", fontsize=8)
+    for p, lab, col in ((upper, "BUY line (4H close above)", UP), (lower, "SELL line (4H close below)", DN)):
+        if view_lo - pad * 3 < p < view_hi + pad * 3:
+            view_lo, view_hi = min(view_lo, p - pad / 2), max(view_hi, p + pad / 2)
+            ax.axhline(p, color=col, lw=1.4, ls="--")
+            ax.text(0.5, p, f" {lab}  {p:,.2f}", color=col, va="bottom", fontsize=9, fontweight="bold")
+    for i, r in enumerate(d1.itertuples()):
+        col = UP if r.Close >= r.Open else DN
+        ax.vlines(i, r.Low, r.High, color=col, lw=0.9)
+        ax.add_patch(plt.Rectangle((i - 0.32, min(r.Open, r.Close)), 0.64, max(abs(r.Close - r.Open), 0.05), color=col, lw=0))
+    ax.axhline(price, color=INK, lw=0.8, alpha=0.6)
+    ax.text(len(d1) + 0.5, price, f" {price:,.2f}", color=BG, va="center", fontsize=9, fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.25", fc=INK, ec="none"))
+    ax.set_xlim(-1, len(d1) + 12)
+    ax.set_ylim(view_lo, view_hi)
+    ticks = x[::12]
+    ax.set_xticks(ticks, [d1.index[i].tz_convert(local_tz()).strftime("%a %H:%M") for i in ticks], color=MUT, fontsize=8)
+    ax.tick_params(axis="y", colors=MUT, labelsize=8)
+    ax.yaxis.tick_right()
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    ax.grid(axis="y", color="#2C2C2E", lw=0.6)
+    ax.set_title(title, color=INK, fontsize=13, fontweight="bold", loc="left", pad=10)
+    fig.text(0.01, 0.01, "XAU.KH · 1H · spot XAUUSD · red zones resistance, green zones support, dashed lines = trend signal triggers",
+             color=MUT, fontsize=7)
+    fig.tight_layout()
+    fig.savefig(path, facecolor=BG)
+    plt.close(fig)
+
+
+def local_tz():
+    return ZoneInfo(os.environ.get("DISPLAY_TZ", "Asia/Phnom_Penh"))
+
+
+# ---------- messages ----------
+
+def briefing_text(name, ict, conf, lv, news, df, lines, start_utc):
+    price = float(df["Close"].iloc[-1])
+    score, word, b = direction(ict, lv, price)
+    res, sup, ins = zones_near(conf, price)
+    upper, lower, next_close, a4 = lines
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    pc = lad.get("Prev day close")
+    ev = news_in(news, start_utc, 4)
+    vol = float(atr(df).iloc[-1] / atr(df).rolling(288 * 20, min_periods=288).median().iloc[-1])
+    risks = []
+    if ev:
+        risks.append(f"High-impact news in this session: {', '.join(f'{t} at {local(x.timestamp())}' for x, t in ev)}. Expect fast moves and wider spreads.")
+    if vol >= 1.3:
+        risks.append(f"Volatility is {vol:.1f}x normal: use a smaller lot.")
+    if ins:
+        risks.append(f"Price is inside a zone ({fmt(ins['low'])}–{fmt(ins['high'])}): choppy moves are common here.")
+    if abs(score) < 20:
+        risks.append("No clear direction: avoid forcing trades in the middle of the range.")
+    elif (score > 0 and b["4H"] < 0) or (score < 0 and b["4H"] > 0):
+        risks.append("The 4-hour trend disagrees with the overall direction: be careful with size.")
+    now_ny = datetime.now(NY)
+    if now_ny.weekday() == 4 and name == "New York":
+        risks.append("Friday New York: positions held over the weekend can gap.")
+    look = []
+    d_up, d_dn = upper - price, price - lower
+    look.append(f"BUY signal if a 4H candle closes above <b>{fmt(upper)}</b> ({d_up:,.1f} away). "
+                f"SELL signal if one closes below <b>{fmt(lower)}</b> ({d_dn:,.1f} away). Next 4H close {local(next_close.timestamp())}.")
+    if name == "London" and lad.get("Asia high"):
+        look.append(f"Asia range {fmt(lad['Asia low'])}–{fmt(lad['Asia high'])}: a sweep of one side that snaps back often shows London's real direction.")
+    if res:
+        look.append(f"Resistance {fmt(res[0]['low'])}–{fmt(res[0]['high'])}: sellers may react there.")
+    if sup:
+        look.append(f"Support {fmt(sup[0]['low'])}–{fmt(sup[0]['high'])}: buyers may react there.")
+    head = {"Asia": "🌏", "London": "🇬🇧", "New York": "🇺🇸"}[name]
+    lines_en = [f"{head} <b>{name.upper()} SESSION · prep</b>",
+                f"Gold <b>{fmt(price)}</b>" + (f" ({price - pc:+,.1f} today)" if pc else ""),
+                f"Direction: <b>{word}</b> (score {score:+d}) · Daily {'↑' if b['D'] > 0 else '↓' if b['D'] < 0 else '–'} "
+                f"4H {'↑' if b['4H'] > 0 else '↓' if b['4H'] < 0 else '–'} 1H {'↑' if b['1H'] > 0 else '↓' if b['1H'] < 0 else '–'}",
+                "", "<b>👀 What to look for</b>", *[f"• {x}" for x in look],
+                "", "<b>⚠️ Risks</b>", *([f"• {esc(x)}" for x in risks] or ["• Nothing unusual. Normal risk rules apply."]),
+                "", "<i>A map for the session, not a trade signal. The bot sends BUY/SELL only when a tested setup completes.</i>"]
+    if LANG in ("km", "both"):
+        km = [f"{head} <b>រៀបចំសម័យ {KM_SESSION[name]}</b>", f"មាស <b>{fmt(price)}</b>",
+              f"ទិសដៅ: <b>{ {'Up': 'ឡើង', 'Leaning up': 'ទំនោរឡើង', 'Sideways': 'ចំហៀង', 'Leaning down': 'ទំនោរចុះ', 'Down': 'ចុះ'}[word]}</b>",
+              f"ទិញ បើ 4H បិទលើ <b>{fmt(upper)}</b> · លក់ បើ 4H បិទក្រោម <b>{fmt(lower)}</b>",
+              *([f"⚠️ ព័ត៌មានធំ: {', '.join(t for _, t in ev)}"] if ev else []),
+              "<i>ជាផែនទី មិនមែនសញ្ញាជួញដូរទេ។</i>"]
+        lines_en = km if LANG == "km" else lines_en + ["", "— ខ្មែរ —", *km]
+    return "\n".join(lines_en)
+
+
+def heads_up(df, lines, state):
+    price = float(df["Close"].iloc[-1])
+    upper, lower, next_close, _ = lines
+    day = datetime.now(NY).strftime("%Y-%m-%d")
+    sent = state.setdefault("heads_up", {})
+    for side, level in (("BUY", upper), ("SELL", lower)):
+        dist = (level - price) if side == "BUY" else (price - level)
+        key = f"{day}|{side}|{level:.2f}"
+        if 0 < dist <= price * HEADS_UP_PCT and key not in sent:
+            en = (f"⚡ <b>Heads up · possible {side}</b>\nGold {fmt(price)} is <b>{dist:,.1f} points</b> from the week's "
+                  f"{'high' if side == 'BUY' else 'low'} <b>{fmt(level)}</b>.\nIf the 4H candle closing at <b>{local(next_close.timestamp())}</b> "
+                  f"finishes {'above' if side == 'BUY' else 'below'} it, the bot sends a {side} signal.\n"
+                  f"<i>Get ready, don't enter yet. Breakouts sometimes fail: wait for the close.</i>")
+            km = (f"⚡ <b>ត្រៀមខ្លួន · អាច{'ទិញ' if side == 'BUY' else 'លក់'}</b>\nមាសនៅឆ្ងាយ {dist:,.1f} ពី {fmt(level)}។ "
+                  f"បើ 4H បិទ{'លើ' if side == 'BUY' else 'ក្រោម'}វានៅម៉ោង {local(next_close.timestamp())} បូតនឹងផ្ញើសញ្ញា។")
+            msg = km if LANG == "km" else en + ("\n\n" + km if LANG == "both" else "")
+            if send(msg, f"Heads up {side}"):
+                sent[key] = time.time()
+                print("heads-up sent", key)
+    state["heads_up"] = {k: v for k, v in sent.items() if time.time() - v < 3 * 86400}
+
+
+def due_session(state, now_utc):
+    now_ny = now_utc.astimezone(NY)
+    for name, hh, mm, days in SESSIONS:
+        if now_ny.weekday() not in days:
+            continue
+        at = now_ny.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        key = f"{at:%Y-%m-%d}|{name}"
+        if at <= now_ny < at + timedelta(minutes=25) and key not in state.get("briefed", {}):
+            start = at + timedelta(minutes=30)
+            return name, key, start.astimezone(timezone.utc)
+    return None
+
+
+def main():
+    state = jl(STATE)
+    ict, conf, lv, news = jl("ict.json"), jl("confluence.json"), jl("levels.json"), jl("news.json")
+    df = to_ny(load("5m", "20d"))
+    df = df[df["Volume"] >= 0].iloc[:-1]
+    if (time.time() - df.index[-1].timestamp()) / 60 > 40 and not os.environ.get("XAU_SIM"):
+        print("session: data is stale, nothing sent"); return
+    lines = breakout_lines(df)
+    heads_up(df, lines, state)
+    due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
+        (os.environ["SESSION_FORCE"], "forced|" + os.environ["SESSION_FORCE"], datetime.now(timezone.utc))
+    if due:
+        name, key, start = due
+        text = briefing_text(name, ict, conf, lv, news, df, lines, start)
+        path = "session_chart.png"
+        chart(df, conf, lv, lines, path, f"Gold · {name} session prep · {local(time.time())}")
+        if len(text) <= 1024:
+            mid = send_photo(path, text, f"{name} session")
+        else:   # Telegram captions are limited: photo with the headline, then the full briefing as a reply
+            mid = send_photo(path, text.split("\n\n")[0], f"{name} session")
+            if mid:
+                send(text, f"{name} session", reply_to=mid)
+        if mid or not os.environ.get("TELEGRAM_TOKEN"):
+            state.setdefault("briefed", {})[key] = time.time()
+            state["briefed"] = {k: v for k, v in state["briefed"].items() if time.time() - v < 7 * 86400}
+        print("session briefing:", name)
+    json.dump(state, open(STATE, "w"), indent=1)
+
+
+if __name__ == "__main__":
+    main()
