@@ -131,7 +131,10 @@ def spot_line(entry):
     return f"Spot XAUUSD ≈ futures − {sp['basis']:.1f} (entry ≈ {fmt(entry - sp['basis'])})"
 
 
-PLAIN = {"trend_tight": {
+PLAIN = {"breakout_cisd": {
+    "bull": "Gold broke above its 1-week range, then swept sellers' stops and flipped back up (CISD). Entry with the stop under the sweep.",
+    "bear": "Gold broke below its 1-week range, then swept buyers' stops and flipped back down (CISD). Entry with the stop above the sweep."},
+    "trend_tight": {
     "bull": "Gold just closed a 4-hour candle above its highest price of the past week. Breakouts like this often run further.",
     "bear": "Gold just closed a 4-hour candle below its lowest price of the past week. Breakdowns like this often run further."},
     "trend_buy": {

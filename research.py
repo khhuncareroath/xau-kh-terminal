@@ -284,6 +284,64 @@ def trend_tight(df):
     return trend_breakout(df, scaled=True, stop_pct=0.0065, tp1=0.75, tp2=3.0)
 
 
+def breakout_cisd(df, window_h=12):
+    """The member's entry (sweep -> CISD) combined with the proven direction: within 12 hours after a 4H close beyond the
+    1-week range, in the London (02-05 NY) or New York (07-11 NY) window, a 5m sweep of a key level against the breakout
+    direction followed by a CISD (close beyond the open of the candle run that delivered the sweep) -> market entry after the
+    alert delay, stop 0.1 ATR beyond the sweep extreme, target 3R, out after 12 hours.
+    Found as the best of about 130 combinations (43 trades, +0.65R, t=2.1), so it starts as research only."""
+    from backtest import find_sweeps, level_pools, swing_pools
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    a = atr(df).to_numpy()
+    n = len(df)
+    d4 = resample(df, "4H")
+    hi30 = d4["High"].rolling(30).max().shift(1).to_numpy()
+    lo30 = d4["Low"].rolling(30).min().shift(1).to_numpy()
+    c4 = d4["Close"].to_numpy()
+    brt, brs = [], []
+    for k in range(31, len(d4)):
+        sg = 1 if c4[k] > hi30[k] else -1 if c4[k] < lo30[k] else 0
+        if sg:
+            brt.append((d4.index[k] + pd.Timedelta(hours=4)).value)
+            brs.append(sg)
+    brt, brs = np.array(brt), np.array(brs)
+    hr = df.index.hour
+    kz = ((hr >= 2) & (hr < 5)) | ((hr >= 7) & (hr < 11))
+    out, busy = [], -1
+    for s in find_sweeps(df, a, level_pools(df) + swing_pools(df)):
+        i_s = s["i"]
+        sg = -1 if s["side"] == "buy-side" else 1
+        k = i_s
+        while k > 0 and ((c[k - 1] > o[k - 1]) if sg < 0 else (c[k - 1] < o[k - 1])) and i_s - k < 8:
+            k -= 1
+        cisd = (min(o[k:i_s + 1]) if sg < 0 else max(o[k:i_s + 1])) if i_s - k >= 1 else o[i_s]
+        conf = None
+        for j in range(i_s + 1, min(i_s + 13, n - 1)):
+            if (c[j] - s["extreme"]) * sg < 0:
+                break
+            if (c[j] < cisd) if sg < 0 else (c[j] > cisd):
+                conf = j
+                break
+        if conf is None or conf <= busy or not kz[conf]:
+            continue
+        t = df.index[conf].value
+        m = (brt <= t) & (brt >= t - window_h * 3600e9)
+        if not m.any() or brs[m][-1] != sg:
+            continue
+        j0 = conf + 1 + LAT
+        if j0 + 1 >= n:
+            continue
+        stop = s["extreme"] - sg * 0.1 * a[conf]
+        risk = (o[j0] - stop) * sg
+        if risk <= 0.5 or risk > 4 * a[conf]:
+            continue
+        r, j = _run_trade(o, h, l, c, j0, min(j0 + 144, n - 1), sg, stop, o[j0] + sg * 3 * risk)
+        if r is not None:
+            out.append((df.index[j0], r, "long" if sg > 0 else "short"))
+            busy = j
+    return out
+
+
 def trend_buy(df):
     """The alerted version of trend following: BUY signals only, half closed at 1R with the stop moved to entry,
     the rest held to 3R. Tested on its own so the proof covers exactly what members receive."""
@@ -321,7 +379,9 @@ def judge(trades, split_t):
         out["verdict"] = f"Not enough trades yet ({len(r)} of 30 needed)."
     elif r.mean() < 0.10:
         out["verdict"] = f"No edge: {r.mean():+.2f}R per trade after costs."
-    elif not (len(te) >= 10 and te.mean() > 0):
+    elif len(te) < 10:
+        out["verdict"] = f"Positive so far, but only {len(te)} trades in the newest data (10 needed): waiting for more."
+    elif te.mean() <= 0:
         out["verdict"] = "Positive overall but not on the newest data: probably luck so far."
     elif tstat < 2:
         out["verdict"] = f"Positive ({r.mean():+.2f}R) but not statistically clear yet (t={tstat:.1f}, need 2): could still be luck."
@@ -339,16 +399,17 @@ DESCRIBE = {"sweep_htf": "Sweep + structure shift, only with the 4H and Daily tr
             "vwap_fade": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
             "trend_breakout": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target",
             "trend_buy": "4H trend following, BUY only: half profit at 1R with the stop moved to entry, rest to 3R",
-            "trend_tight": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R"}
+            "trend_tight": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R",
+            "breakout_cisd": "After a 4H breakout: sweep + CISD entry in London/New York, stop beyond the sweep, 3R target"}
 TREND_PREFERENCE = ["trend_tight", "trend_buy", "trend_breakout"]   # same breakouts: alert only the first proven one
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "breakout_cisd": breakout_cisd(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}
