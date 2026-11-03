@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-03 10:05 UTC",
-  "price": 3905.45,
-  "last_bar": "2026-11-03 05:00:00-05:00",
-  "atr_5m": 3.19,
+  "time": "2026-11-03 10:15 UTC",
+  "price": 3908.18,
+  "last_bar": "2026-11-03 05:10:00-05:00",
+  "atr_5m": 3.36,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -55,13 +55,6 @@
       ],
       "fvgs": [
         {
-          "dir": "bull",
-          "lo": 3904.42,
-          "hi": 3905.55,
-          "status": "partial",
-          "time": "2026-11-03 04:30:00-05:00"
-        },
-        {
           "dir": "bear",
           "lo": 3908.85,
           "hi": 3910.53,
@@ -70,10 +63,17 @@
         },
         {
           "dir": "bull",
-          "lo": 3897.9,
-          "hi": 3901.57,
+          "lo": 3904.42,
+          "hi": 3905.55,
           "status": "partial",
-          "time": "2026-11-03 04:05:00-05:00"
+          "time": "2026-11-03 04:30:00-05:00"
+        },
+        {
+          "dir": "bear",
+          "lo": 3912.67,
+          "hi": 3913.89,
+          "status": "partial",
+          "time": "2026-11-03 01:55:00-05:00"
         }
       ]
     },
@@ -340,11 +340,11 @@
   },
   "sweeps": [
     {
-      "side": "buy-side",
-      "level": 3947.89,
-      "name": "15m swing high",
-      "extreme": 3948.76107,
-      "time": "2026-11-02 21:15:00-05:00"
+      "side": "sell-side",
+      "level": 3943.06,
+      "name": "1H swing low",
+      "extreme": 3942.59581,
+      "time": "2026-11-02 21:35:00-05:00"
     },
     {
       "side": "buy-side",
@@ -355,43 +355,41 @@
     },
     {
       "side": "sell-side",
-      "level": 3905.45,
+      "level": 3908.18,
       "name": "New York low",
-      "extreme": 3905.02968,
-      "time": "2026-11-03 03:05:00-05:00"
+      "extreme": 3907.08291,
+      "time": "2026-11-03 02:20:00-05:00"
     }
   ],
   "setup": {
     "stage": 2,
     "label": "Shift confirmed, waiting for the retest",
-    "dir": "bull",
+    "dir": "bear",
     "zone": [
-      3899.24,
-      3902.6
+      3947.4,
+      3950.7
     ],
-    "entry": 3900.92,
-    "stop": 3904.07,
-    "target": 3906.1,
-    "rr": 1.64,
+    "entry": 3949.05,
+    "stop": 3951.7,
+    "target": 3944.77,
+    "rr": 1.61,
     "reasons": [
-      "New York low at 3905.45 was swept and price closed back inside (sell-side liquidity taken).",
-      "Price closed beyond 3904.57: a bull structure shift right after the sweep.",
-      "Retest zone: order block 3899.24-3902.6.",
-      "1H structure is bear: this goes against it, so treat as lower quality."
+      "15m swing high at 3949.76 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3941.97: a bear structure shift right after the sweep.",
+      "Retest zone: order block 3947.4-3950.7.",
+      "1H structure is bear: agrees."
     ],
-    "sweep_time": "2026-11-03 03:05:00-05:00",
-    "shift_time": "2026-11-03 04:30:00-05:00",
-    "sweep_extreme": 3905.03,
-    "sweep_name": "New York low",
-    "displacement": true,
-    "risk_atr": 0.99,
+    "sweep_time": "2026-11-02 21:50:00-05:00",
+    "shift_time": "2026-11-02 22:15:00-05:00",
+    "sweep_extreme": 3950.7,
+    "sweep_name": "15m swing high",
+    "displacement": false,
+    "risk_atr": 0.79,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-03 00:05",
-      "11-03 00:10",
       "11-03 00:15",
       "11-03 00:20",
       "11-03 00:25",
@@ -449,11 +447,11 @@
       "11-03 04:45",
       "11-03 04:50",
       "11-03 04:55",
-      "11-03 05:00"
+      "11-03 05:00",
+      "11-03 05:05",
+      "11-03 05:10"
     ],
     "ts": [
-      1793682300,
-      1793682600,
       1793682900,
       1793683200,
       1793683500,
@@ -511,23 +509,11 @@
       1793699100,
       1793699400,
       1793699700,
-      1793700000
+      1793700000,
+      1793700300,
+      1793700600
     ],
     "candles": [
-      [
-        3922.09,
-        3927.73,
-        3922.09,
-        3927.43,
-        274.0
-      ],
-      [
-        3927.0,
-        3929.43,
-        3926.5,
-        3929.22,
-        245.0
-      ],
       [
         3928.79,
         3930.64,
@@ -925,19 +911,31 @@
         3909.77,
         3908.39,
         3909.39,
-        0.0
+        271.0
       ],
       [
         3909.21,
         3912.02,
         3905.18,
-        3905.45,
+        3905.83,
+        629.0
+      ],
+      [
+        3906.01,
+        3909.61,
+        3906.01,
+        3909.51,
+        0.0
+      ],
+      [
+        3909.32,
+        3909.32,
+        3907.21,
+        3908.18,
         468.5
       ]
     ],
     "vwap": [
-      3944.34,
-      3944.18,
       3944.0,
       3943.9,
       3943.78,
@@ -994,12 +992,12 @@
       3926.61,
       3926.45,
       3926.25,
-      3926.25,
-      3926.08
+      3926.16,
+      3925.94,
+      3925.94,
+      3925.79
     ],
     "sd": [
-      11.18,
-      11.23,
       11.3,
       11.34,
       11.41,
@@ -1056,25 +1054,12 @@
       19.58,
       19.57,
       19.54,
-      19.54,
-      19.54
+      19.53,
+      19.52,
+      19.52,
+      19.5
     ],
-    "marks": {
-      "sweep": {
-        "price": 3905.45,
-        "i": 36
-      },
-      "mss": {
-        "level": 3904.57,
-        "i": 53
-      },
-      "zone": {
-        "lo": 3899.24,
-        "hi": 3902.6,
-        "kind": "ob",
-        "i": 50
-      }
-    }
+    "marks": {}
   },
   "disclaimer": "Mechanical analysis ideas, not signals or advice."
 }
