@@ -131,7 +131,10 @@ def spot_line(entry):
     return f"Spot XAUUSD ≈ futures − {sp['basis']:.1f} (entry ≈ {fmt(entry - sp['basis'])})"
 
 
-PLAIN = {"trend_buy": {
+PLAIN = {"trend_tight": {
+    "bull": "Gold just closed a 4-hour candle above its highest price of the past week. Breakouts like this often run further.",
+    "bear": "Gold just closed a 4-hour candle below its lowest price of the past week. Breakdowns like this often run further."},
+    "trend_buy": {
     "bull": "Gold just closed a 4-hour candle above its highest price of the past week. Breakouts like this often run further.",
     "bear": ""},
     "trend_breakout": {
@@ -145,8 +148,10 @@ def model_alert(lm, state, now):
     if MODE == "watch":
         return False
     sigs = [s for s in lm.get("signals", []) if s.get("proven")]
-    if any(s["model"] == "trend_buy" for s in sigs):        # same breakout: alert only the proven child version
-        sigs = [s for s in sigs if s["model"] != "trend_breakout"]
+    import research
+    trend = [m for m in research.TREND_PREFERENCE if any(s["model"] == m for s in sigs)]
+    if trend:                                                # same breakout: alert only the preferred proven version
+        sigs = [s for s in sigs if s["model"] not in research.TREND_PREFERENCE or s["model"] == trend[0]]
     if not sigs or (now - ts(lm.get("last_bar", "1970-01-01T00:00:00+00:00"))) / 60 > STALE_MIN:
         return False
     s = max(sigs, key=lambda x: (x.get("backtest") or {}).get("avg_R") or 0)

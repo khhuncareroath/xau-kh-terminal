@@ -61,7 +61,8 @@ def main():
     try:
         runs = {"sweep_htf": lambda d: research.sweep_htf(d, candidates), "value": research.value_models,
                 "sessions": research.session_breakouts, "trend_pullback": research.trend_pullback, "vwap_fade": research.vwap_fade,
-                "trend_breakout": research.trend_breakout, "trend_buy": research.trend_buy}
+                "trend_breakout": research.trend_breakout, "trend_buy": research.trend_buy,
+                "trend_tight": research.trend_tight}
         for name, fn in runs.items():
             before = len(found)
             try:
