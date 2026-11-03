@@ -62,19 +62,36 @@ def step(a, bars):
 
 
 def reply_text(a):
+    t = _reply_text(a)
+    return ("Watch idea result. If traded as planned: " + t) if a.get("kind") == "watch" else t
+
+
+def _reply_text(a):
     s = a["status"]
+    sg = 1 if a["dir"] == "bull" else -1
+    pts = lambda px: f"{(px - a['entry']) * sg:+.1f} points"
     if s == "win":
-        return f"{ICON[s]} <b>Target hit</b> at {fmt(a['target'])}: +{a['R']}R"
+        return f"{ICON[s]} <b>Target reached</b> at {fmt(a['target'])} ({pts(a['target'])})"
     if s == "loss":
-        return f"{ICON[s]} <b>Stopped</b> at {fmt(a['exit'])}: {a['R']}R"
+        return f"{ICON[s]} <b>Stop hit</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
     if s == "expired":
-        return f"{ICON[s]} <b>Expired</b>: price never came back to {fmt(a['entry'])}. No trade."
+        return f"{ICON[s]} <b>Expired</b>: price never came back to the zone. No trade."
     if s == "missed":
-        return f"{ICON[s]} <b>No fill</b>: price reached the target without touching the entry. No trade, not counted as a win."
-    return f"{ICON[s]} <b>Closed after 12h</b> at {fmt(a['exit'])}: {a['R']:+}R"
+        return f"{ICON[s]} <b>Missed</b>: price went to the target without coming back to the zone first. No trade."
+    return f"{ICON[s]} <b>Closed after 12 hours</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
 
 
 def summary(log):
+    out = _summary(log)
+    for kind in ("setup", "watch", "post-news", "model"):
+        sub = [a for a in log if a.get("kind") == kind]
+        if sub:
+            out["by_kind"] = out.get("by_kind", {})
+            out["by_kind"][kind] = {k: v for k, v in _summary(sub).items() if k not in ("recent", "note", "time")}
+    return out
+
+
+def _summary(log):
     done = [a for a in log if a["status"] in ICON]
     traded = [a for a in done if a["status"] in ("win", "loss", "timed out")]
     R = [a["R"] for a in traded]
@@ -85,7 +102,7 @@ def summary(log):
             "win_rate_pct": round(100 * sum(r > 0 for r in R) / len(R)) if R else None,
             "total_R": round(sum(R), 2), "avg_R": round(sum(R) / len(R), 2) if R else None,
             "note": "Every alert ever sent is counted. R is before spread and commission. Small samples mislead.",
-            "recent": [{k: a.get(k) for k in ("kind", "dir", "entry", "stop", "target", "rr", "status", "R", "created", "closed")}
+            "recent": [{k: a.get(k) for k in ("kind", "dir", "entry", "stop", "target", "rr", "zone", "status", "R", "created", "closed", "event", "factors")}
                        for a in log[-30:]][::-1]}
 
 

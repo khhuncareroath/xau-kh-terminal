@@ -33,6 +33,7 @@ import pandas as pd
 from engine import atr, load_history
 from ict import order_block, resample, session_vwap, structure, swings
 from levels import to_ny, trade_dates
+import research
 
 COST = float(os.environ.get("BT_COST", 0.4))            # points per round trip: spread + slippage
 LAT = int(os.environ.get("BT_LATENCY_BARS", 3))         # 3 x 5m = 15 min from signal to people
@@ -343,7 +344,7 @@ def main():
     df = to_ny(load_history())
     df = df[df["Volume"] >= 0]
     res = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-           "data": {"bars": len(df), "from": str(df.index[0]), "to": str(df.index[-1]), "symbol": "GC=F (COMEX gold futures)"},
+           "data": {"bars": len(df), "from": str(df.index[0]), "to": str(df.index[-1]), "symbol": "XAUUSD spot (Dukascopy)" if os.environ.get("XAU_SOURCE") == "spot" else "GC=F (COMEX gold futures)"},
            "settings": {"cost_points": COST, "latency_min": 5 * LAT, "order_valid_min": 5 * EXPIRE, "min_rr": MIN_RR,
                         "max_risk_atr_v2": MAX_RISK_ATR}, "rules": {}}
     split_t = df.index[int(len(df) * 0.7)]
@@ -357,8 +358,14 @@ def main():
                                "recent": [{"time": str(df.index[t["i"]]), "dir": t["dir"], "entry": round(t["entry"], 2),
                                            "stop": round(t["stop"], 2), "target": round(t["target"], 2), "rr": round(t["rr"], 2),
                                            "result": t["result"], "R": t["R"]} for t in ts[-25:]]}
+        jt = research.judge([(df.index[t["i"]], t["R"]) for t in ts if t["result"] in ("win", "loss", "timed out")], split_t)
+        res["rules"][rules]["proven"] = jt["proven"]
         print(f"[{rules}] {s}")
-        print("  ", res["rules"][rules]["verdict"])
+        print("  ", res["rules"][rules]["verdict"], "| proven:", jt["proven"])
+    res["models"] = research.run_all(df, candidates, split_t)
+    for k, v in res["models"].items():
+        print(f"[model {k}] {v['all']} -> {v['verdict']}")
+    res["alert_mode"] = "signal" if res["rules"]["current"]["proven"] else "watch"
     with open("backtest.json", "w") as f:
         json.dump(res, f, indent=2, default=str)
 
