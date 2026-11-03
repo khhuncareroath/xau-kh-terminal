@@ -263,7 +263,7 @@ nav.tabs [aria-current=page]{color:var(--gold2)}
     </div>
   </section>
 </main>
-<p class="foot" data-t="footNote">Prices are COMEX gold futures from Yahoo Finance, delayed about 10 minutes. Spot XAUUSD at your broker differs by a few dollars. Analysis, not financial advice.</p>
+<p class="foot" data-t="footNote">Prices are spot XAUUSD (Twelve Data and Dukascopy); activity is measured with COMEX gold futures volume. Your broker's price can differ by a few cents. Analysis, not financial advice.</p>
 
 <dialog id="dlg"><div class="dlg-h"><h2 id="dTitle">Trade</h2><button id="dClose" aria-label="Close">×</button></div><div class="dlg-b" id="dBody"></div></dialog>
 
@@ -297,7 +297,7 @@ const KM={"Now":"ឥឡូវនេះ","Chart":"ក្រាហ្វ","News":"
 "Reaction":"ប្រតិកម្ម","Plan":"ផែនការ","No high-impact USD events listed":"មិនមានព្រឹត្តិការណ៍ USD ធំៗ","Win rate":"អត្រាឈ្នះ",
 "Ideas graded":"គំនិតបានដាក់ពិន្ទុ","Total R":"សរុប R","Open now":"កំពុងបើក","Proven":"បានបញ្ជាក់","Not proven":"មិនទាន់បញ្ជាក់",
 "trackNote":"គំនិតនីមួយៗដែលបូតផ្សាយ ត្រូវបានវាយតម្លៃដោយស្វ័យប្រវត្តិធៀបនឹងតម្លៃពិត ទាំងឈ្នះ និងចាញ់។ គ្មានអ្វីត្រូវលុបចោលទេ។",
-"footNote":"តម្លៃគឺ COMEX gold futures ពី Yahoo Finance យឺតប្រហែល ១០ នាទី។ តម្លៃ XAUUSD spot នៅ broker ខុសគ្នាពីរបីដុល្លារ។ ជាការវិភាគ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។",
+"footNote":"តម្លៃគឺ XAUUSD spot (Twelve Data និង Dukascopy)។ សកម្មភាពទីផ្សារវាស់ដោយ volume របស់ COMEX gold futures។ តម្លៃនៅ broker អាចខុសគ្នាបន្តិច។ ជាការវិភាគ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។",
 "Map, not a trade signal.":"ជាផែនទី មិនមែនសញ្ញាជួញដូរទេ។","factors":"កត្តា","of":"ក្នុងចំណោម"};
 const t=s=>lang==="km"&&KM[s]?KM[s]:s;
 function applyLang(){document.documentElement.lang=lang==="km"?"km":"en";$$("[data-t]").forEach(el=>{const k=el.dataset.t;if(!el.dataset.en)el.dataset.en=el.textContent;el.textContent=lang==="km"&&KM[k]?KM[k]:el.dataset.en});$("#lang").textContent=lang==="km"?"EN":"ខ្មែរ"}
@@ -366,7 +366,7 @@ function renderHeader(){
   const ict=D.ict||{},lv=D.levels||{},p=ict.price??lv.price;
   $("#hPrice").textContent=f2(p);
   const pc=(lv.ladder||[]).find(x=>x.name==="Prev day close");
-  if(pc&&p){const c=p-pc.price,pct=c/pc.price*100;$("#hChg").innerHTML=`<span class="${c>=0?"up":"dn"}">${c>=0?"+":""}${c.toFixed(1)} (${pct>=0?"+":""}${pct.toFixed(2)}%)</span> · GC futures`}
+  if(pc&&p){const c=p-pc.price,pct=c/pc.price*100;$("#hChg").innerHTML=`<span class="${c>=0?"up":"dn"}">${c>=0?"+":""}${c.toFixed(1)} (${pct>=0?"+":""}${pct.toFixed(2)}%)</span> · ${esc((D.chart||{}).symbol||"Gold")}`}
   const last=pt(ict.last_bar)||pt(ict.time),open=marketOpen(Date.now()),stale=open&&Date.now()-last>40*60000;
   const dot=$("#sDot"),txt=$("#sText");delete txt.dataset.en;txt.removeAttribute("data-t");
   if(!D.ict){dot.className="dot bad";txt.textContent="Live files not found. Check that the GitHub workflow is running.";return}

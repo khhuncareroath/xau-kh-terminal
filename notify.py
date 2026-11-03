@@ -29,7 +29,9 @@ EXPIRE_MIN = float(os.environ.get("ALERT_EXPIRE_MIN", 120))
 COOLDOWN = float(os.environ.get("ALERT_COOLDOWN_H", 3)) * 3600
 STALE_MIN = 40
 MODE = os.environ.get("ALERT_MODE", "auto")   # auto: trade-style only if backtest.json proves the rules; else "watch" posts
-TV = "https://www.tradingview.com/chart/?symbol=COMEX%3AGC1%21"
+from engine import live_source
+TV = ("https://www.tradingview.com/chart/?symbol=OANDA%3AXAUUSD" if live_source() == "spot"
+      else "https://www.tradingview.com/chart/?symbol=COMEX%3AGC1%21")
 NY = ZoneInfo("America/New_York")
 
 
@@ -141,7 +143,7 @@ def model_alert(lm, state, now):
         return False
     bull = s["dir"] == "bull"
     b = s.get("backtest") or {}
-    lines = [f"{'🟢' if bull else '🔴'} <b>XAU.KH · {'BUY' if bull else 'SELL'} now</b> · gold futures",
+    lines = [f"{'🟢' if bull else '🔴'} <b>XAU.KH · {'BUY' if bull else 'SELL'} now</b> · gold",
              esc(s["description"]),
              f"Entry <code>{fmt(s['entry'])}</code> (market) · Stop <code>{fmt(s['stop'])}</code> · Target <code>{fmt(s['target'])}</code> · R:R 1:{s['rr']}",
              f"Valid for 15 min, until {local(now + 900)}",

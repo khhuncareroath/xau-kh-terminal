@@ -40,5 +40,9 @@ jobs:
           git config --global user.name "analysis-bot"
           git config --global user.email "bot@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+      - name: Restore the spot XAUUSD history
+        run: |
+          mkdir -p data
+          git fetch -q --depth 1 origin spot-data && git show FETCH_HEAD:xau_5m.csv.gz > data/xau_5m.csv.gz && echo "spot history restored" || echo "no spot history, recent data only"
       - name: Analysis every 5 minutes
         run: python loop.py

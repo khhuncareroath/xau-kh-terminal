@@ -16,6 +16,10 @@ from engine import load
 
 def main():
     key = os.environ.get("TWELVEDATA_KEY")
+    from engine import live_source
+    if key and live_source() == "spot":
+        json.dump({"basis": 0, "t": time.time(), "note": "prices are already spot"}, open("spot.json", "w"))
+        print("spot: prices are already spot XAUUSD, no offset needed"); return
     if not key:
         print("spot: no TWELVEDATA_KEY, skipping"); return
     try:

@@ -62,7 +62,10 @@ def main():
             problems.append(f"{name} lacks {', '.join(miss)}")
         if open_ and a is not None and a > limit:
             problems.append(f"{name} is {round(a)} min old (limit {limit})")
-    out = {"time": now.strftime("%Y-%m-%d %H:%M UTC"), "ok": not problems, "market_open": open_, "job": job,
+    src = jl("data/cache/source.json") or {}
+    if os.environ.get("TWELVEDATA_KEY") and src.get("source") == "futures" and src.get("error"):
+        problems.append(f"spot prices unavailable, using delayed futures instead ({src['error'][:120]})")
+    out = {"time": now.strftime("%Y-%m-%d %H:%M UTC"), "ok": not problems, "data_source": src.get("source", "futures"), "market_open": open_, "job": job,
            "problems": problems, "files": files, "last_alert": prev.get("last_alert", 0), "alerting": prev.get("alerting", False)}
     t = time.time()
     if problems and (t - out["last_alert"] > COOLDOWN):

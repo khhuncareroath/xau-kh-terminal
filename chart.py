@@ -30,7 +30,9 @@ def main():
     df = to_ny(load("5m", "59d"))
     df = df[df["Volume"] >= 0]
     vm, vs = session_vwap(df)
-    out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "symbol": "GC=F", "tf": {}}
+    from engine import live_source
+    out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+           "symbol": "XAUUSD spot" if live_source() == "spot" else "GC futures", "tf": {}}
     for tf, n in KEEP.items():
         d = resample(df, tf).tail(n)
         item = {"candles": rows(d)}
