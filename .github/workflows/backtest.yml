@@ -25,6 +25,12 @@ jobs:
           path: data/xau_5m.csv.gz
           key: xau-spot-${{ github.run_id }}
           restore-keys: xau-spot-
+      - name: Restore the spot history from the spot-data branch if the cache is empty
+        run: |
+          mkdir -p data
+          if [ ! -s data/xau_5m.csv.gz ] && git fetch -q --depth 1 origin spot-data; then
+            git show FETCH_HEAD:xau_5m.csv.gz > data/xau_5m.csv.gz && echo "restored from spot-data"
+          fi
       - run: python dukascopy.py --check
       - run: python dukascopy.py          # first run: up to 2 years; it saves as it goes and stops after 25 min, then continues next run
       - name: Save the downloaded history now (even if a later step fails)
