@@ -242,7 +242,7 @@ def vwap_fade(df):
     return out
 
 
-def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None):
+def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2=3.0):
     """Higher-timeframe trend following: a 4H candle closes above the highest high (or below the lowest low) of the
     previous 30 4H candles (about 1 week). Enter after the alert delay, stop 2 x the 4H ATR away, target 3R,
     out after 5 days at most. Gold trended strongly in 2024-26, so check the long and short results separately."""
@@ -268,7 +268,7 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None):
             continue
         stop = o[j0] - sg * 2 * a4[k] if stop_pct is None else o[j0] * (1 - sg * stop_pct)
         if scaled:   # half at 1R (stop moves to entry), rest to 3R
-            r, j, _ = _run_scaled(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, 1.0, 3.0)
+            r, j, _ = _run_scaled(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, tp1, tp2)
         else:
             r, j = _run_trade(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, o[j0] + sg * 3 * 2 * a4[k])
         if r is not None:
@@ -279,9 +279,9 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None):
 
 def trend_tight(df):
     """Trend following with a tight stop (0.65% of price, about $25 at $3,900) on the same 4H breakouts, both
-    directions: half closed at 1R with the stop moved to entry, rest to 3R. On 2 years of spot gold: 90 trades,
-    64% profitable, +0.42R per trade, positive in 7 of 8 quarters, t=3.2."""
-    return trend_breakout(df, scaled=True, stop_pct=0.0065)
+    directions: half closed at TP1 = 0.75R (stop moves to entry), rest to TP2 = 3R. On 2 years of spot gold:
+    169 trades, 69% profitable, +0.30R per trade, positive in 8 of 9 quarters, t=3.7. (TP1 at 1R gave 64% / +0.37R.)"""
+    return trend_breakout(df, scaled=True, stop_pct=0.0065, tp1=0.75, tp2=3.0)
 
 
 def trend_buy(df):
@@ -339,7 +339,7 @@ DESCRIBE = {"sweep_htf": "Sweep + structure shift, only with the 4H and Daily tr
             "vwap_fade": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
             "trend_breakout": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target",
             "trend_buy": "4H trend following, BUY only: half profit at 1R with the stop moved to entry, rest to 3R",
-            "trend_tight": "4H trend following with a tight 0.65% stop: half profit at 1R with the stop moved to entry, rest to 3R"}
+            "trend_tight": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R"}
 TREND_PREFERENCE = ["trend_tight", "trend_buy", "trend_breakout"]   # same breakouts: alert only the first proven one
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
