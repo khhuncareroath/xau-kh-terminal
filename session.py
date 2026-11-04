@@ -758,13 +758,17 @@ def market_map(df, lv, lines, path):
     lows = sorted({p for _, _, k, p in sw if k == "L" and p < price}, reverse=True)
     adr, today = daily_range_stats(df)
     gap = 0.3 * (adr or price * 0.012)
+    tday = (df.index - pd.Timedelta(hours=18)).date
+    dop = float(df["Open"][tday == tday[-1]].iloc[0])
+    dstep = 0.25 * adr if adr else None
     cands = [y for y in (wk_hi, wk_lo, upper, lower, vah, val, poc, lad.get("Prev day high"), lad.get("Prev day low"),
                          *[p for _, _, _, p in sw]) if y]
     up_trig = highs[0] if highs else None
     dn_trig = lows[0] if lows else None
     up_tgt = min((y for y in cands if up_trig and y >= up_trig + gap), default=None)
     dn_tgt = max((y for y in cands if dn_trig and y <= dn_trig - gap), default=None)
-    ys = [float(d1["Low"].min()), float(d1["High"].max()), *(y for y in (up_tgt, dn_tgt) if y)]
+    ys = [float(d1["Low"].min()), float(d1["High"].max()), *(y for y in (up_tgt, dn_tgt) if y),
+          *((dop + 2.2 * dstep, dop - 2.2 * dstep) if dstep else ())]
     lo, hi = min(ys), max(ys); pad = (hi - lo) * 0.06
     fig = plt.figure(figsize=(12, 6.6), dpi=150); fig.patch.set_facecolor(BG)
     ax = fig.add_axes([0.035, 0.08, 0.72, 0.76]); vp = fig.add_axes([0.755, 0.08, 0.09, 0.76], sharey=ax)
@@ -775,10 +779,29 @@ def market_map(df, lv, lines, path):
         a_.tick_params(colors=MUT, labelsize=8, length=0)
     ax.set_ylim(lo - pad, hi + pad); ax.set_xlim(-1, N + RIGHT); ax.yaxis.tick_left()
     vp.yaxis.tick_right()
+    if dstep:
+        xs = np.where((d1.index - pd.Timedelta(hours=18)).date == tday[-1])[0]
+        x_a = (xs[0] - 0.5) if len(xs) else N - 1
+        ZC = [("Normal", "99%", "#30D158", 0.10), ("Extended", "80%", "#FFD60A", 0.10), ("Stretched", "53%", "#FF9F0A", 0.12)]
+        for k_, (nm, pc, zc, al) in enumerate(ZC):
+            for sgn in (1, -1):
+                y0, y1 = dop + sgn * k_ * dstep, dop + sgn * (k_ + 1) * dstep
+                ax.add_patch(Rectangle((x_a, min(y0, y1)), N + RIGHT - 1 - x_a, abs(y1 - y0), color=zc, alpha=al, lw=0, zorder=0))
+            for sgn in (1, -1):
+                ax.text(x_a + 0.6, dop + sgn * (k_ + 0.5) * dstep, f"{nm} {pc}", color=zc, fontsize=7, ha="left", va="center",
+                        fontweight="bold", alpha=0.9)
+        ax.plot([x_a, N + RIGHT - 1], [dop, dop], color=INK, lw=0.9, ls=(0, (1, 2)))
+        ax.text(N + RIGHT - 1.5, dop, "day open ", color=INK, fontsize=7, va="bottom", ha="right")
+        stp_now = (price - dop) / dstep
+        zone_now = "Normal" if abs(stp_now) < 1 else "Extended" if abs(stp_now) < 2 else "Stretched" if abs(stp_now) < 3 else "Extreme"
     for i, (o_, h_, l_, c_) in enumerate(d1[["Open", "High", "Low", "Close"]].to_numpy()):
         col = UP if c_ >= o_ else DN
         ax.plot([i, i], [l_, h_], color=col, lw=0.8)
         ax.add_patch(Rectangle((i - 0.31, min(o_, c_)), 0.62, max(abs(c_ - o_), 0.05), color=col, lw=0))
+    if dstep:
+        ax.annotate(f"NOW: {zone_now}", xy=(N - 1, price), xytext=(N + 1.5, price),
+                    color=INK, fontsize=8, fontweight="bold", va="center",
+                    bbox=dict(boxstyle="round,pad=0.3", fc="#2C2C2E", ec="none"), arrowprops=dict(arrowstyle="-", color=INK, lw=0.8))
     for i, p, t, k in labels[-10:]:
         ax.text(i, p, t, color=(UP if t in ("HH", "HL") else DN if t in ("LH", "LL") else MUT), fontsize=7.5, fontweight="bold",
                 ha="center", va="bottom" if k == "H" else "top")
@@ -791,7 +814,6 @@ def market_map(df, lv, lines, path):
             drawn.append(y)
             ax.plot([0, N + RIGHT - 1], [y, y], color=col, lw=0.8, ls=ls, alpha=0.85)
             ax.text(1, y, f"{name} {y:,.2f}", color=col, fontsize=7, va="bottom")
-    ax.axhspan(val, vah, color=GOLD, alpha=0.05, lw=0)
     vp.barh(bins[:-1], vol, height=1.0, color=BLUE, alpha=0.55, align="edge")
     vp.axhline(poc, color=GOLD, lw=1); vp.set_xticks([]); vp.text(0, 0.995, "volume", transform=vp.transAxes, color=MUT, fontsize=7, va="top")
     ax.axhline(price, color=INK, lw=0.6, alpha=0.4)
@@ -805,21 +827,16 @@ def market_map(df, lv, lines, path):
     struct = "Bullish structure (HH + HL)" if score_up >= 3 else "Bearish structure (LH + LL)" if score_dn >= 3 else "Mixed structure (range)"
     fig.text(0.035, 0.94, f"Gold · Daily Market Map · {local(time.time())}", color=INK, fontsize=14, fontweight="bold")
     fig.text(0.035, 0.905, f"{struct}  ·  price {price:,.2f}", color=GOLD, fontsize=10.5)
-    fig.text(0.035, 0.03, "HH/HL = higher high / higher low (buyers) · LH/LL = lower high / lower low (sellers) · dashed = if/then scenarios · a map, not a signal",
+    fig.text(0.035, 0.03, "HH/HL = buyers · LH/LL = sellers · zones = XAU.KH Day Range (open ± ¼ ADR steps, % of days reached) · a map, not a signal",
              color=MUT, fontsize=7.5)
     fig.savefig(path, facecolor=BG); plt.close(fig)
-    tday = (df.index - pd.Timedelta(hours=18)).date
-    dop = float(df["Open"][tday == tday[-1]].iloc[0]) if len(df) else None
-    dstep = 0.25 * adr if adr else None
-    dop = dop if dstep else None
     txt = [f"🗺 <b>DAILY MARKET MAP</b> · Gold <b>{fmt(price)}</b>",
            f"Structure (1H): {struct}",
            *([f"🟢 If price breaks above <b>{fmt(up_trig)}</b> (last swing high) → next target {fmt(up_tgt)}"] if up_trig and up_tgt else []),
            *([f"🔴 If price breaks below <b>{fmt(dn_trig)}</b> (last swing low) → next target {fmt(dn_tgt)}"] if dn_trig and dn_tgt else []),
            f"🟡 POC 5 days (busiest price): {fmt(poc)} · value area {fmt(val)}–{fmt(vah)}",
-           *([f"📐 Day levels from the open {fmt(dop)} (step ${dstep:,.0f} = ¼ ADR): ±1 {fmt(dop + dstep)} / {fmt(dop - dstep)} (hit 99% of days) · "
-              f"±2 {fmt(dop + 2 * dstep)} / {fmt(dop - 2 * dstep)} (80%) · ±3 {fmt(dop + 3 * dstep)} / {fmt(dop - 3 * dstep)} (53%: stretched, don't chase)"]
-             if dop else []),
+           *([f"📐 <b>Day Range</b>: price is in the <b>{zone_now}</b> zone ({stp_now:+.1f} steps from the open)"
+              + (" · stretched: don't chase" if abs(stp_now) >= 2 else "")] if dstep else []),
            *([f"📏 Gold usually moves <b>${adr:,.0f}</b> a day (ADR); today so far ${today:,.0f} ({min(999, round(100 * today / adr))}% used)."
               + (" Most of today's move may be done: careful chasing." if today >= 0.8 * adr else "")] if adr else []),
            "", "<i>A map to read the market, not a signal. Signals come only from ✅ / 🟡 setups.</i>"]
