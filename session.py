@@ -808,11 +808,18 @@ def market_map(df, lv, lines, path):
     fig.text(0.035, 0.03, "HH/HL = higher high / higher low (buyers) · LH/LL = lower high / lower low (sellers) · dashed = if/then scenarios · a map, not a signal",
              color=MUT, fontsize=7.5)
     fig.savefig(path, facecolor=BG); plt.close(fig)
+    tday = (df.index - pd.Timedelta(hours=18)).date
+    dop = float(df["Open"][tday == tday[-1]].iloc[0]) if len(df) else None
+    dstep = 0.25 * adr if adr else None
+    dop = dop if dstep else None
     txt = [f"🗺 <b>DAILY MARKET MAP</b> · Gold <b>{fmt(price)}</b>",
            f"Structure (1H): {struct}",
            *([f"🟢 If price breaks above <b>{fmt(up_trig)}</b> (last swing high) → next target {fmt(up_tgt)}"] if up_trig and up_tgt else []),
            *([f"🔴 If price breaks below <b>{fmt(dn_trig)}</b> (last swing low) → next target {fmt(dn_tgt)}"] if dn_trig and dn_tgt else []),
            f"🟡 POC 5 days (busiest price): {fmt(poc)} · value area {fmt(val)}–{fmt(vah)}",
+           *([f"📐 Day levels from the open {fmt(dop)} (step ${dstep:,.0f} = ¼ ADR): ±1 {fmt(dop + dstep)} / {fmt(dop - dstep)} (hit 99% of days) · "
+              f"±2 {fmt(dop + 2 * dstep)} / {fmt(dop - 2 * dstep)} (80%) · ±3 {fmt(dop + 3 * dstep)} / {fmt(dop - 3 * dstep)} (53%: stretched, don't chase)"]
+             if dop else []),
            *([f"📏 Gold usually moves <b>${adr:,.0f}</b> a day (ADR); today so far ${today:,.0f} ({min(999, round(100 * today / adr))}% used)."
               + (" Most of today's move may be done: careful chasing." if today >= 0.8 * adr else "")] if adr else []),
            "", "<i>A map to read the market, not a signal. Signals come only from ✅ / 🟡 setups.</i>"]
