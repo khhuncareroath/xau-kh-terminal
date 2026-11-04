@@ -27,6 +27,16 @@ def fmt(p):
     return f"{p:,.2f}"
 
 
+def mark_post():
+    """Remembers when the channel last got a message (session.py's quiet-time check-in uses it)."""
+    try:
+        import time as _t
+        os.makedirs("data/cache", exist_ok=True)
+        open("data/cache/last_post", "w").write(str(_t.time()))
+    except Exception:
+        pass
+
+
 def send(text, title="XAU.KH", reply_to=None):
     """Sends to Telegram (HTML) and ntfy. Returns the Telegram message_id (or True if only ntfy worked, None if nothing)."""
     tok, chat, topic = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID"), os.environ.get("NTFY_TOPIC")
@@ -54,6 +64,8 @@ def send(text, title="XAU.KH", reply_to=None):
             print("ntfy failed:", e)
     if not mid:
         print("nothing sent (no secrets or all failed). Message was:\n" + text)
+    else:
+        mark_post()
     return mid
 
 
@@ -77,7 +89,10 @@ def send_photo(path, caption, title="XAU.KH", reply_to=None):
     try:
         req = urllib.request.Request(f"https://api.telegram.org/bot{tok}/sendPhoto", data=b"".join(parts),
                                      headers={"Content-Type": f"multipart/form-data; boundary={b}"})
-        return json.load(urllib.request.urlopen(req, timeout=40)).get("result", {}).get("message_id")
+        mid = json.load(urllib.request.urlopen(req, timeout=40)).get("result", {}).get("message_id")
+        if mid:
+            mark_post()
+        return mid
     except Exception as e:
         print("telegram photo failed:", e)
         return None

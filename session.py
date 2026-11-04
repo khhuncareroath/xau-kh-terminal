@@ -1318,6 +1318,79 @@ def pulse_send(ict, conf, lv, news, df, lines, macro, why):
         return send(text, "Gold pulse")
 
 
+MINDSET = [
+    ("No setup = no risk. Waiting is a position too.", "គ្មាន setup = គ្មានហានិភ័យ។ ការរង់ចាំក៏ជាទីតាំងមួយដែរ។"),
+    ("Pros wait for their price. Amateurs chase it.", "អ្នកជំនាញរង់ចាំតម្លៃរបស់ខ្លួន។ អ្នកថ្មីដេញតាម។"),
+    ("Your job today: protect your account first, profit second.", "ការងារថ្ងៃនេះ: ការពារគណនីជាមុន ចំណេញជាក្រោយ។"),
+    ("One good trade beats five forced ones.", "ការជួញដូរល្អមួយ ល្អជាងការបង្ខំចូល 5 ដង។"),
+    ("The market pays patience. It charges impatience.", "ទីផ្សារផ្ដល់រង្វាន់ដល់អ្នកអត់ធ្មត់។"),
+    ("Use the quiet time: review your last 3 trades in the journal.", "ប្រើពេលស្ងាត់: ពិនិត្យការជួញដូរ 3 ចុងក្រោយក្នុង journal។"),
+    ("Small risk keeps you in the game until the big move comes.", "ហានិភ័យតិច ធ្វើឱ្យអ្នកនៅក្នុងហ្គេម រហូតដល់ចលនាធំមកដល់។"),
+]
+CHECKIN_GAP_H = 3
+
+
+def quiet_checkin(ict, lv, news, df, lines, state):
+    """When the channel has been silent for 3 hours (09:00-23:00 local, weekdays), one short check-in with the card:
+    where gold is, how much of the day's range is used, exactly what the bot is waiting for, next event, a mindset line.
+    Max 2 a day."""
+    loc = datetime.now(local_tz())
+    if loc.weekday() > 4 or not (9 <= loc.hour < 23):
+        return
+    try:
+        last = float(open("data/cache/last_post").read())
+    except Exception:
+        last = time.time()
+        os.makedirs("data/cache", exist_ok=True)
+        open("data/cache/last_post", "w").write(str(last))
+    day = loc.strftime("%Y-%m-%d")
+    done = [t for t in state.get("checkins", []) if t.startswith(day)]
+    if time.time() - last < CHECKIN_GAP_H * 3600 or len(done) >= 2:
+        return
+    price = float(df["Close"].iloc[-1])
+    score, word, b = direction(ict, lv, price)
+    upper, lower = lines[0], lines[1]
+    adr, today = daily_range_stats(df)
+    used = today / adr if adr else None
+    p = vp_plan(df)
+    plan_ok = p and p.get("side") and abs(p["edge"] - p["inval"]) <= p["edge"] * 0.006
+    arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
+    nxt = []
+    now_ny = datetime.now(NY)
+    for nm, hh, mm, days in SESSIONS:
+        at = now_ny.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        if at <= now_ny:
+            at += timedelta(days=1)
+        nxt.append((at, f"{nm} plan"))
+    for e in news.get("events", []):
+        if e.get("impact") == "High":
+            t = datetime.fromisoformat(e["time"].replace("Z", "+00:00"))
+            if t > datetime.now(timezone.utc):
+                nxt.append((t.astimezone(NY), esc(e["title"])))
+    nx = min(nxt, key=lambda x: x[0]) if nxt else None
+    m_en, m_km = MINDSET[(loc.toordinal() * 2 + len(done)) % len(MINDSET)]
+    rng = ("" if used is None else
+           f"📐 Day Range {used * 100:.0f}% used: " + ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done"))
+    lines_ = [f"🧭 <b>MARKET CHECK-IN</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
+              *([rng] if rng else []),
+              "", "<b>The bot is waiting for:</b>",
+              f"• 4H close above <b>{fmt(upper)}</b> → BUY · below <b>{fmt(lower)}</b> → SELL",
+              f"• Plan: {'SELL' if plan_ok and p['side'] == 'SELL' else 'BUY'} at POC <b>{fmt(p['edge'])}</b> after a 15m close" if plan_ok else "• Plan: none this session",
+              *([f"⏭ Next: {nx[1]} at {local(nx[0].timestamp())}"] if nx else []),
+              "", f"💡 <i>{m_en}</i>", f"<i>{m_km}</i>"]
+    text = "\n".join(lines_)
+    try:
+        card(df, price, word, score, plan_areas(df), "checkin_card.png", f"MARKET CHECK-IN · {local(time.time())}")
+        ok = send_photo("checkin_card.png", text, "Check-in")
+    except Exception as e:
+        print("check-in card failed:", e)
+        ok = send(text, "Check-in")
+    if ok or not os.environ.get("TELEGRAM_TOKEN"):
+        state["checkins"] = done + [loc.strftime("%Y-%m-%d %H:%M")]
+        open("data/cache/last_post", "w").write(str(time.time()))
+        print("check-in sent")
+
+
 def pulse_worth(state, ict, lv, df, lines):
     """Send the hourly pulse only when it tells something new: direction changed, a big move, or a line is close."""
     price = float(df["Close"].iloc[-1])
@@ -1449,6 +1522,7 @@ def main():
         pre_news(news, state)
         macro_shift(macro, news, state)
         plan_watch(df, state)
+        quiet_checkin(ict, lv, news, df, lines, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
