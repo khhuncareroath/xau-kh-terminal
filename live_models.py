@@ -95,6 +95,12 @@ def main():
         s["proven"] = bool(m.get("proven"))
         s["backtest"] = m.get("all")
         s["description"] = research.DESCRIBE.get(s["model"], s["model"])
+        if s["model"] in research.TREND_PREFERENCE:   # STRONG COMBO label: how much of a normal day has already moved
+            try:
+                u = research.day_used(df, pd.Timestamp(s["trigger_time"]))
+                s["day_used"] = round(u, 2) if u is not None else None
+            except Exception as e:
+                print("day_used failed:", e)
     out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "last_bar": str(df.index[-1]),
            "price": round(last, 2), "signals": sigs}
     json.dump(out, open("live_models.json", "w"), indent=1)

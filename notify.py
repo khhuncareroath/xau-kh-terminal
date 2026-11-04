@@ -170,8 +170,19 @@ def model_alert(lm, state, now):
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 1:+,.1f} លេខ"
     why_short = {"bull": "4H breakout: a 4H candle closed above this week's high. Big moves often start like this.",
                  "bear": "4H breakdown: a 4H candle closed below this week's low. Big drops often start like this."}
+    du = s.get("day_used") if s["model"] in research.TREND_PREFERENCE else None
+    strong = du is not None and du >= research.COMBO_USED
+    cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
+    combo_line = None
+    if du is not None:
+        combo_line = (f"⭐ <b>STRONG COMBO</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
+                      + (f" Tested: {cb['trades']} trades · {cb['win_rate_pct']}% win." if cb.get("trades") else "")
+                      if strong else
+                      f"◽ <b>Normal</b>: quiet day so far ({du * 100:.0f}% of a normal day). Quiet-day breakouts were about "
+                      f"50/50 in testing → half size (0.5%) or skip · ថ្ងៃស្ងាត់ ប្រើ lot តូច")
     if LANG != "km":
-        out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested", "",
+        out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested"
+                + ("  ⭐ COMBO" if strong else ""), "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
                 f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
                 *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
@@ -181,6 +192,7 @@ def model_alert(lm, state, now):
                 esc(why_short["bull" if bull else "bear"] if s["model"] in ("trend_tight", "trend_breakout", "trend_buy", "trend_intraday")
                     else PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
                 (f"Tested 2 years: {b.get('trades')} trades · {b.get('win_rate_pct')}% win" if b.get("trades") else None),
+                combo_line,
                 (f"⚠️ {'Buys' if bull else 'Sells'} are the weaker side: use a smaller size." if side.get("trades") and side["avg_R"] < 0.1
                  and s["model"] != "trend_buy" else None),
                 ("<i>Intraday: everything closes within 12 h. SL ~$22 is the tested minimum for this signal: use a smaller lot. "

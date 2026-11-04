@@ -2,8 +2,8 @@
 
 The signals are found by running the exact live rules (research.py, the same code the backtest and live_models.py
 use, with the 15-minute alert delay and the $0.40 cost) on the recent candles. Each signal gets an XAU.KH pin on the
-chart and a result pill on the "proof strip" at the bottom. A signal that was also really sent to the channel is
-marked LIVE. This is our own design (tier rings + result pills), not a copy of any indicator.
+chart (a flag pin) and its result as gold bars on the strip below. A signal that was also really sent to the channel is
+marked LIVE. This is our own design (flag pins + gold-bar strip), not a copy of any indicator.
 
 Used by session.py: the Friday weekly proof and one quiet-hours check-in a day. Run alone to make proof.png."""
 import time
@@ -72,108 +72,136 @@ def _live_match(t, df, log):
     return False
 
 
+def _ingot(ax, x, y0, h, w, fc, ec, alpha=1.0, z=5):
+    """A gold bar (trapezoid ingot): XAU.KH's result token. h > 0 grows up from y0, h < 0 hangs below."""
+    from matplotlib.patches import Polygon
+    top = y0 + h
+    inset = w * 0.22
+    pts = [(x - w / 2, y0), (x + w / 2, y0), (x + w / 2 - inset, top), (x - w / 2 + inset, top)]
+    ax.add_patch(Polygon(pts, closed=True, fc=fc, ec=ec, lw=1.0, alpha=alpha, zorder=z, joinstyle="round"))
+    # shine line on the top face
+    ax.plot([x - w / 2 + inset * 1.3, x + w / 2 - inset * 1.3], [top - h * 0.18] * 2, color="#FFFFFF", alpha=0.35 * alpha, lw=0.8, zorder=z + 1)
+
+
 def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
-    """Draws the proof picture. Returns (path, caption text, list of trades shown)."""
+    """Draws the XAU.KH 'Gold Vault' proof picture: flag pins on the chart, every result stacked as gold bars below
+    (1 bar = 0.5R won; a red bar = a loss). Returns (path, list of trades shown)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from matplotlib.patches import FancyBboxPatch, Rectangle
+    from matplotlib.patches import FancyBboxPatch, Polygon, Rectangle
     plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, PANEL, GRID, INK, MUT, UP, DN = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0A0A0C", "#111114", "#1C1C21", "#EDEDF2", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
     trades = replay(df)
     start = df.index[-1] - pd.Timedelta(days=days)
     shown = [t for t in trades if df.index[t["j0"]] >= start]
     for t in shown:
         t["live"] = _live_match(t, df, log)
+        t["combo"] = False
+        if t["model"] == "trend_intraday":
+            try:
+                t["combo"] = (research.day_used(df, df.index[t["j0"]]) or 0) >= research.COMBO_USED
+            except Exception:
+                pass
     d1 = resample(df[df.index >= start], "1H")
     N = len(d1)
     pos = lambda j: int(np.clip(d1.index.searchsorted(df.index[j], side="right") - 1, 0, N - 1))
-    fig = plt.figure(figsize=(13, 7.4), dpi=150); fig.patch.set_facecolor(BG)
-    ax = fig.add_axes([0.045, 0.30, 0.70, 0.56]); st_ax = fig.add_axes([0.045, 0.08, 0.70, 0.17], sharex=ax)
-    sb = fig.add_axes([0.77, 0.08, 0.21, 0.78])
-    for a_ in (ax, st_ax, sb):
+    fig = plt.figure(figsize=(13, 8.0), dpi=150); fig.patch.set_facecolor(BG)
+    ax = fig.add_axes([0.05, 0.31, 0.92, 0.47]); st_ax = fig.add_axes([0.05, 0.075, 0.92, 0.21], sharex=ax)
+    for a_ in (ax, st_ax):
         a_.set_facecolor(PANEL); a_.set_xticks([])
         for sp in a_.spines.values(): sp.set_visible(False)
         a_.tick_params(colors=MUT, labelsize=8, length=0)
     ax.grid(axis="y", color=GRID, lw=0.6); ax.set_xlim(-1, N + 1)
     for i, (o_, h_, l_, c_) in enumerate(d1[["Open", "High", "Low", "Close"]].to_numpy()):
-        col = "#3A6F55" if c_ >= o_ else "#7A3A3A"
+        col = "#36614D" if c_ >= o_ else "#6E3838"
         ax.plot([i, i], [l_, h_], color=col, lw=0.7)
         ax.add_patch(Rectangle((i - 0.32, min(o_, c_)), 0.64, max(abs(c_ - o_), 0.05), color=col, lw=0))
     lo, hi = float(d1["Low"].min()), float(d1["High"].max()); rng = hi - lo
-    ax.set_ylim(lo - rng * 0.08, hi + rng * 0.10)
-    # day separators + weekday labels
+    ax.set_ylim(lo - rng * 0.12, hi + rng * 0.14)
     tday = (d1.index - pd.Timedelta(hours=18)).date
     last_lab = -99
     for k in range(1, N):
         if tday[k] != tday[k - 1]:
             for a_ in (ax, st_ax):
                 a_.axvline(k - 0.5, color=GRID, lw=0.8)
-            if k - last_lab >= 8:   # trading day named by the day it mostly trades (Sunday 18:00 open = Monday)
-                st_ax.text(k, -1.55, (pd.Timestamp(tday[k]) + pd.Timedelta(days=1)).strftime("%a %d"), color=MUT,
+            if k - last_lab >= 8:
+                st_ax.text(k, -1.75, (pd.Timestamp(tday[k]) + pd.Timedelta(days=1)).strftime("%a %d"), color=MUT,
                            fontsize=7, ha="left", va="top")
                 last_lab = k
-    ax.text(0.5, 0.5, "XAU.KH", transform=ax.transAxes, color="#FFFFFF", alpha=0.025, fontsize=80, fontweight="bold",
+    ax.text(0.5, 0.5, "XAU.KH", transform=ax.transAxes, color=GOLD, alpha=0.035, fontsize=84, fontweight="bold",
             ha="center", va="center", zorder=0)
-    # signal pins: tier ring + direction, a line from entry to exit coloured by the result
+    # flag pins: a pole from the entry and a pennant in the tier colour with B / S
     for t in shown:
         x0, x1 = pos(t["j0"]), pos(t["j"])
         name, tier, ring = TIERS[t["model"]]
-        good = t["R"] > 0
-        res_col = UP if good else DN if t["status"] != "open" else INK
+        res_col = INK if t["status"] == "open" else UP if t["R"] > 0 else DN
         ex = float(df["Close"].iloc[t["j"]]) if t["status"] in ("time", "open") else \
             t["tgt"] if t["status"] == "win" else t["entry"] if t["status"] == "tp1" else t["stop"]
-        ax.plot([x0, max(x1, x0 + 0.6)], [t["entry"], ex], color=res_col, lw=1.6, alpha=0.9, zorder=4)
-        ax.plot([x0 - 0.8, x0 + 0.8], [t["stop"], t["stop"]], color=DN, lw=0.8, alpha=0.6, zorder=3)
-        y_pin = t["entry"] - t["sg"] * rng * 0.07
-        ax.plot([x0, x0], [t["entry"], y_pin], color=ring, lw=0.8, zorder=4)
-        ax.scatter([x0], [y_pin], s=150, facecolor=PANEL, edgecolor=ring, linewidths=1.8, zorder=6)
-        ax.text(x0, y_pin, "▲" if t["sg"] > 0 else "▼", color=UP if t["sg"] > 0 else DN, fontsize=6.5,
-                ha="center", va="center", zorder=7, fontweight="bold")
-        if t.get("live"):
-            ax.text(x0, y_pin - t["sg"] * rng * 0.035, "LIVE", color=ring, fontsize=6, ha="center",
-                    va="top" if t["sg"] > 0 else "bottom", fontweight="bold", zorder=7)
-    # proof strip: one result pill per signal, height = R
-    st_ax.set_ylim(-1.6, 3.4); st_ax.axhline(0, color=MUT, lw=0.6, alpha=0.6)
-    st_ax.text(0, 3.2, "PROOF STRIP · every signal's result in R (risk units) · wins AND losses", color=MUT, fontsize=7, va="top")
+        ax.plot([x0, max(x1, x0 + 0.6)], [t["entry"], ex], color=res_col, lw=1.8, alpha=0.95, zorder=4, solid_capstyle="round")
+        ax.scatter([max(x1, x0 + 0.6)], [ex], s=14, color=res_col, zorder=5)
+        ax.plot([x0 - 0.9, x0 + 0.9], [t["stop"], t["stop"]], color=DN, lw=0.9, alpha=0.55, zorder=3)
+        sg = t["sg"]; pole = rng * 0.11
+        y_top = t["entry"] - sg * pole
+        ax.plot([x0, x0], [t["entry"], y_top], color=ring, lw=1.1, zorder=5)
+        fh = rng * 0.045; fw = 3.2
+        yb = y_top if sg > 0 else y_top - fh      # pennant hangs off the far end of the pole
+        ax.add_patch(Polygon([(x0, yb), (x0, yb + fh), (x0 + fw, yb + fh / 2)], closed=True, fc=ring, ec="none", zorder=6))
+        ax.text(x0 + 1.0, yb + fh / 2, "B" if sg > 0 else "S", color=BG, fontsize=6.5, fontweight="bold", ha="center",
+                va="center", zorder=7)
+        tags = (["★ COMBO"] if t.get("combo") else []) + (["LIVE"] if t.get("live") else [])
+        if tags:
+            ax.text(x0, yb - rng * 0.012 if sg > 0 else yb + fh + rng * 0.012, " · ".join(tags), color=GOLD, fontsize=6.3,
+                    fontweight="bold", ha="left", va="top" if sg > 0 else "bottom", zorder=7)
+    # GOLD BAR STRIP: each win stacks gold bars (1 bar = 0.5R), a loss hangs one red bar per 0.5R lost
+    st_ax.set_ylim(-1.9, 4.4); st_ax.axhline(0, color=GOLD, lw=0.6, alpha=0.35)
+    st_ax.text(0, 4.25, "GOLD BAR STRIP · 1 bar = 0.5R · gold = won · red = lost · every result, nothing hidden",
+               color=MUT, fontsize=7, va="top")
+    unit = 0.34
     for t in shown:
-        x = pos(t["j0"]); r = max(-1.3, min(3.1, t["R"]))
-        col = INK if t["status"] == "open" else UP if t["R"] > 0 else DN
-        st_ax.add_patch(FancyBboxPatch((x - 0.9, min(0, r)), 1.8, max(abs(r), 0.08), boxstyle="round,pad=0,rounding_size=0.4",
-                                       fc=col, ec=TIERS[t["model"]][2], lw=1.0, alpha=0.9, mutation_aspect=0.25))
-        st_ax.text(x, r + (0.12 if r >= 0 else -0.12), "open" if t["status"] == "open" else f"{t['R']:+.1f}",
-                   color=col, fontsize=6.5, ha="center", va="bottom" if r >= 0 else "top", fontweight="bold")
+        x = pos(t["j0"]); r = t["R"]
+        if t["status"] == "open":
+            _ingot(st_ax, x, 0.05, unit * 0.9, 2.2, "none", INK, alpha=0.8)
+            st_ax.text(x, unit + 0.15, "open", color=INK, fontsize=6.5, ha="center", va="bottom", fontweight="bold")
+            continue
+        k = max(1, int(round(abs(r) / 0.5)))
+        for q in range(min(k, 6)):
+            if r > 0:
+                _ingot(st_ax, x, 0.05 + q * (unit + 0.06), unit, 3.0, GOLD, "#8A6A22")
+            else:
+                _ingot(st_ax, x, -0.05 - q * (unit + 0.06), -unit, 3.0, "#B3393B", "#5A1C1D")
+        top = 0.05 + min(k, 6) * (unit + 0.06)
+        st_ax.text(x, top + 0.05 if r > 0 else -top - 0.05, f"{r:+.1f}R", color=GOLD if r > 0 else DN, fontsize=7,
+                   ha="center", va="bottom" if r > 0 else "top", fontweight="bold")
     st_ax.set_yticks([])
-    # scoreboard
-    sb.set_xlim(0, 1); sb.set_ylim(0, 1); sb.set_yticks([])
+    # header: XAU.KH vault cards
     closed = [t for t in shown if t["status"] != "open"]
     W = sum(t["R"] > 0 for t in closed); tot = sum(t["R"] for t in closed)
-    sb.text(0.07, 0.95, f"LAST {days} DAYS", color=MUT, fontsize=8, fontweight="bold")
-    sb.text(0.07, 0.87, f"{W} / {len(closed)} won" if closed else "no closed signals", color=INK, fontsize=17, fontweight="bold")
-    sb.text(0.07, 0.82, f"{tot:+.1f}R total" if closed else "", color=UP if tot > 0 else DN if tot < 0 else MUT,
-            fontsize=12, fontweight="bold")
-    y = 0.72
     models = (bt or {}).get("models", {})
-    for m, (name, tier, ring) in TIERS.items():
-        mine = [t for t in closed if t["model"] == m]
-        opn = sum(t["model"] == m and t["status"] == "open" for t in shown)
-        a = (models.get(m) or {}).get("all") or {}
-        sb.scatter([0.11], [y + 0.012], s=70, facecolor=PANEL, edgecolor=ring, linewidths=1.8)
-        sb.text(0.20, y, name, color=INK, fontsize=9.5, fontweight="bold", va="bottom")
-        sb.text(0.20, y - 0.035, tier, color=ring, fontsize=7, fontweight="bold", va="bottom")
-        sb.text(0.20, y - 0.075, (f"{len(mine)} here · {sum(t['R'] > 0 for t in mine)} won · {sum(t['R'] for t in mine):+.1f}R"
-                                  if mine else "none closed in this window") + (f" · {opn} open" if opn else ""),
-                color=INK, fontsize=7.5, va="bottom")
-        if a:
-            sb.text(0.20, y - 0.11, f"2 yrs: {a.get('trades')} trades · {a.get('win_rate_pct')}% · {a.get('avg_R', 0):+.2f}R",
-                    color=MUT, fontsize=7, va="bottom")
-        y -= 0.19
-    sb.text(0.07, 0.10, "Ring = tier   ▲ BUY ▼ SELL\nLine = entry → exit\nRed dash = SL", color=MUT, fontsize=7, va="bottom",
-            linespacing=1.5)
-    sb.text(0.07, 0.03, "Same rules as live · 15-min delay\n+ costs included", color=MUT, fontsize=6.5, va="bottom")
+    ti = (models.get("trend_intraday") or {}).get("all") or {}
+    cb = (models.get("trend_combo") or {}).get("all") or {}
     stamp = local(time.time()) if local else ""
-    fig.text(0.045, 0.94, f"XAU.KH · Signal Proof · {stamp}", color=INK, fontsize=15, fontweight="bold")
-    fig.text(0.045, 0.905, "Every intraday signal on the chart, wins and losses, nothing hidden", color="#E3B04B", fontsize=10.5)
+    fig.text(0.05, 0.955, "XAU.KH", color=GOLD, fontsize=16, fontweight="bold")
+    fig.text(0.128, 0.955, f"SIGNAL PROOF  ·  last {days} days  ·  {stamp}", color=INK, fontsize=14, fontweight="bold")
+    cards = [(f"{W}/{len(closed)}" if closed else "–", "signals won", INK),
+             (f"{tot:+.1f}R" if closed else "–", "total result", UP if tot > 0 else DN if tot < 0 else MUT),
+             (f"{ti.get('win_rate_pct', '–')}%", f"4H Breakout · 2 yrs · {ti.get('trades', '')} trades", GOLD),
+             (f"{cb.get('win_rate_pct', '–')}%", f"★ COMBO · 2 yrs · {cb.get('trades', '')} trades", GOLD)]
+    cw = 0.92 / len(cards)
+    for k_, (big, small, col) in enumerate(cards):
+        cx = 0.05 + k_ * cw
+        fig.patches.append(FancyBboxPatch((cx, 0.815), cw - 0.012, 0.105, boxstyle="round,pad=0,rounding_size=0.012",
+                                          transform=fig.transFigure, fc=PANEL, ec=GRID, lw=1))
+        fig.text(cx + 0.015, 0.868, big, color=col, fontsize=17, fontweight="bold", va="center")
+        fig.text(cx + 0.015, 0.832, small, color=MUT, fontsize=7.5, va="center")
+    # legend
+    lx = 0.05
+    for m, (name, tier, ring) in TIERS.items():
+        fig.patches.append(Polygon([(lx, 0.027), (lx, 0.047), (lx + 0.011, 0.037)], closed=True, transform=fig.transFigure, fc=ring))
+        fig.text(lx + 0.015, 0.037, f"{name} ({tier.lower()})", color=INK, fontsize=7.5, va="center")
+        lx += 0.17
+    fig.text(0.97, 0.037, "flag = entry · line = entry → exit · red dash = SL · same rules as live, 15-min delay + costs",
+             color=MUT, fontsize=7, va="center", ha="right")
     fig.savefig(path, facecolor=BG); plt.close(fig)
     return path, shown
 
