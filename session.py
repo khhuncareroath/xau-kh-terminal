@@ -541,17 +541,19 @@ def plan_areas(df):
 
 
 def plan_line(p, price=None):
+    km_s = {"Asia": "អាស៊ី", "London": "ឡុងដ៍", "New York": "ញូវយ៉ក"}
     if not p:
-        return "🟡 <b>PLAN</b>: no data for the last session."
+        return "🟡 <b>ផែនការ (Plan)</b>: មិនទាន់មានទិន្នន័យ។"
     if not p.get("side"):
-        return f"🟡 <b>PLAN</b>: none · {p['from']} profile D-shape (buyers = sellers). Wait."
+        return f"🟡 <b>ផែនការ (Plan): គ្មាន</b> · អ្នកទិញ និងអ្នកលក់ស្មើគ្នា (D-shape)។ រង់ចាំ។"
     s = p["side"] == "SELL"
     risk = abs(p["edge"] - p["inval"])
     if risk > p["edge"] * 0.006:
-        return (f"🟡 <b>PLAN</b>: skipped · stop would be ${risk:,.0f} (too big for intraday, over 0.6%). Wait for the ⚡ signal.")
-    return (f"🟡 <b>PLAN: {'SELL' if s else 'BUY'} {fmt(p['edge'])}</b> (POC)\n"
-            f"{p['from']} {'b-shape: sellers' if s else 'P-shape: buyers'} in control · entry after a 15m close {'below' if s else 'above'} · "
-            f"SL {'above' if s else 'below'} pullback (~${risk:,.0f}) · TP 1.5R · only while 📐 Day Range < 70% used")
+        return f"🟡 <b>ផែនការ (Plan): រំលង</b> · SL ធំពេក (${risk:,.0f}) សម្រាប់ intraday។ រង់ចាំសញ្ញា ⚡។"
+    return (f"🟡 <b>ផែនការ: {'លក់ SELL' if s else 'ទិញ BUY'} {fmt(p['edge'])}</b>\n"
+            f"• ហេតុផល: សម័យ{km_s.get(p['from'], p['from'])} {'b-shape (អ្នកលក់គ្រប់គ្រង)' if s else 'P-shape (អ្នកទិញគ្រប់គ្រង)'}\n"
+            f"• រង់ចាំ: តម្លៃត្រឡប់មក POC {fmt(p['edge'])} ហើយទៀន 15m បិទ{'ក្រោម' if s else 'លើ'}វា\n"
+            f"• SL ~${risk:,.0f} · TP 1.5R · បូតនឹងផ្ញើពេលចូលបាន")
 
 
 def analysis_chart(df, lv, conf, lines, path, title):
@@ -850,57 +852,79 @@ def market_map(df, lv, lines, path):
 
 
 def card(df, price, word, score, areas, path, label):
-    """Small image for Telegram: a big direction arrow, the price, the last 24h line with the sell and buy levels."""
+    """Update card: brand header, big price with hour change, direction badge, 24h line with gradient fill,
+    the plan level and the 4H signal lines, and a Day Range bar showing how far today has stretched."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from matplotlib.patches import FancyBboxPatch, Polygon, Circle
+    from matplotlib.patches import FancyBboxPatch, Circle, Polygon
     plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, CARD, INK, MUT, UP, DN, FLAT = "#000000", "#1C1C1E", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#8E8E93"
+    BG, CARD, INK, MUT, UP, DN, GOLD, FLAT = "#07070A", "#141418", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#E3B04B", "#A1A1AA"
     col = UP if score >= 20 else DN if score <= -20 else FLAT
-    fig = plt.figure(figsize=(8, 4.2), dpi=150)
-    fig.patch.set_facecolor(BG)
+    upper, lower, _, _ = breakout_lines(df)
+    hour_ago = float(df["Close"].iloc[-13]) if len(df) > 13 else price
+    adr, today = daily_range_stats(df)
+    fig = plt.figure(figsize=(9, 4.6), dpi=170); fig.patch.set_facecolor(BG)
     bg = fig.add_axes([0, 0, 1, 1]); bg.axis("off"); bg.set_xlim(0, 1); bg.set_ylim(0, 1)
-    bg.add_patch(FancyBboxPatch((0.02, 0.04), 0.96, 0.92, boxstyle="round,pad=0,rounding_size=0.04", fc=CARD, ec="none"))
-    # left: arrow badge
-    a = fig.add_axes([0.05, 0.30, 0.25, 0.48]); a.axis("off"); a.set_xlim(-1, 1); a.set_ylim(-1, 1); a.set_aspect("equal")
-    a.add_patch(Circle((0, 0), 0.95, fc=col, alpha=0.18, ec="none"))
-    shape = {1: [(-0.38, -0.05), (0, 0.5), (0.38, -0.05), (0.14, -0.05), (0.14, -0.5), (-0.14, -0.5), (-0.14, -0.05)]}
-    pts = shape[1]
-    if score <= -20:
-        pts = [(x, -y) for x, y in pts]
-    elif -20 < score < 20:
-        pts = [(y, x) for x, y in pts]                                 # sideways: arrow pointing right
+    grad = np.linspace(0, 1, 256).reshape(1, -1)
+    bg.imshow(np.vstack([grad] * 2), extent=(0, 1, 0, 1), cmap=matplotlib.colors.LinearSegmentedColormap.from_list("g", ["#14110A", BG, "#0A0D12"]),
+              aspect="auto", zorder=0, alpha=1)
+    bg.add_patch(FancyBboxPatch((0.025, 0.05), 0.95, 0.9, boxstyle="round,pad=0,rounding_size=0.035", fc=CARD, ec="#2A2414", lw=1.2, zorder=1))
+    bg.add_patch(FancyBboxPatch((0.045, 0.83), 0.115, 0.08, boxstyle="round,pad=0,rounding_size=0.02", fc=GOLD, ec="none", zorder=2))
+    bg.text(0.1025, 0.87, "XAU.KH", color="#0B0B0D", fontsize=10, fontweight="bold", ha="center", va="center", zorder=3)
+    bg.text(0.175, 0.87, label, color=MUT, fontsize=9, va="center", zorder=3)
+    # direction badge
+    a = fig.add_axes([0.05, 0.27, 0.2, 0.48]); a.axis("off"); a.set_xlim(-1, 1); a.set_ylim(-1, 1); a.set_aspect("equal")
+    for r_, al in ((0.98, 0.10), (0.82, 0.18)):
+        a.add_patch(Circle((0, 0), r_, fc=col, alpha=al, ec="none"))
+    pts = [(-0.36, -0.05), (0, 0.48), (0.36, -0.05), (0.13, -0.05), (0.13, -0.48), (-0.13, -0.48), (-0.13, -0.05)]
+    pts = [(x, -y) for x, y in pts] if score <= -20 else [(y, x) for x, y in pts] if -20 < score < 20 else pts
     a.add_patch(Polygon(pts, closed=True, fc=col, ec="none"))
-    bg.text(0.175, 0.20, word, color=col, ha="center", va="center", fontsize=17, fontweight="bold")
-    bg.text(0.175, 0.11, "direction", color=MUT, ha="center", va="center", fontsize=9)
-    # top right: label and price
-    bg.text(0.36, 0.85, label, color=MUT, fontsize=10, va="center")
-    bg.text(0.36, 0.72, f"{price:,.2f}", color=INK, fontsize=24, fontweight="bold", va="center")
-    # right: last 24h with levels
+    bg.text(0.15, 0.2, {"Up": "UP", "Leaning up": "LEANING UP", "Sideways": "SIDEWAYS", "Leaning down": "LEANING DOWN", "Down": "DOWN"}.get(word, word),
+            color=col, fontsize=13, fontweight="bold", ha="center", zorder=3)
+    bg.text(0.15, 0.135, "direction", color=MUT, fontsize=8, ha="center", zorder=3)
+    # price
+    ch = price - hour_ago
+    bg.text(0.3, 0.72, f"{price:,.2f}", color=INK, fontsize=27, fontweight="bold", va="center", zorder=3)
+    bg.text(0.3, 0.615, f"{'▲' if ch >= 0 else '▼'} {abs(ch):,.1f} last hour", color=UP if ch >= 0 else DN, fontsize=10, va="center", zorder=3)
+    # 24h line
     d = resample(df, "15m").tail(96)
-    ax = fig.add_axes([0.36, 0.30, 0.42, 0.32]); ax.set_facecolor(CARD); ax.axis("off")
-    y = d["Close"].to_numpy(); x = range(len(y))
-    lv_ = [areas[k]["edge"] for k in areas]
-    lo, hi = min(list(y) + lv_), max(list(y) + lv_)
-    ax.set_ylim(lo - (hi - lo) * 0.08, hi + (hi - lo) * 0.08); ax.set_xlim(0, len(y) + 2)
-    ax.plot(x, y, color=INK, lw=1.6)
-    ax.fill_between(x, y, lo - (hi - lo) * 0.08, color=INK, alpha=0.05)
-    ax.plot([len(y) - 1], [y[-1]], "o", color=INK, ms=5)
-    bg.text(0.36, 0.25, "last 24 hours", color=MUT, fontsize=8, va="center")
-    # levels list on the right
-    yy = 0.62
-    for k in ("SELL", "BUY"):
-        if k not in areas:
-            continue
-        c = DN if k == "SELL" else UP
-        ax.axhline(areas[k]["edge"], color=c, lw=1, ls=(0, (3, 3)))
-        bg.add_patch(FancyBboxPatch((0.80, yy - 0.085), 0.16, 0.17, boxstyle="round,pad=0,rounding_size=0.02", fc=c, alpha=0.15, ec="none"))
-        bg.text(0.88, yy + 0.035, f"{'Sell' if k == 'SELL' else 'Buy'} {areas[k]['edge']:,.0f}", color=c, ha="center", va="center", fontsize=11, fontweight="bold")
-        bg.text(0.88, yy - 0.04, f"stop {areas[k]['inval']:,.0f}", color=MUT, ha="center", va="center", fontsize=8.5)
-        yy -= 0.22
-    fig.savefig(path, facecolor=BG)
-    plt.close(fig)
+    ax = fig.add_axes([0.3, 0.27, 0.43, 0.29]); ax.axis("off")
+    y = d["Close"].to_numpy(); x = np.arange(len(y))
+    lo_, hi_ = y.min(), y.max(); pad = (hi_ - lo_) * 0.12 or 1
+    ax.set_ylim(lo_ - pad, hi_ + pad); ax.set_xlim(0, len(y) + 1)
+    for k_ in range(6):
+        ax.fill_between(x, y, lo_ - pad, color=col, alpha=0.035, lw=0)
+    ax.plot(x, y, color=col, lw=2.0, solid_capstyle="round")
+    ax.plot([x[-1]], [y[-1]], "o", color=col, ms=6, mec=BG, mew=1.5)
+    bg.text(0.3, 0.215, "last 24 hours", color=MUT, fontsize=7.5, zorder=3)
+    # right column chips
+    chips = []
+    if areas:
+        k, v = next(iter(areas.items()))
+        chips.append((f"PLAN {k}", f"{v['edge']:,.0f}", UP if k == "BUY" else DN))
+    else:
+        chips.append(("PLAN", "none", MUT))
+    chips.append(("4H BUY above", f"{upper:,.0f}", UP))
+    chips.append(("4H SELL below", f"{lower:,.0f}", DN))
+    yy = 0.74
+    for t1, t2, c_ in chips:
+        bg.add_patch(FancyBboxPatch((0.765, yy - 0.065), 0.19, 0.13, boxstyle="round,pad=0,rounding_size=0.02", fc=c_, alpha=0.13, ec="none", zorder=2))
+        bg.text(0.78, yy + 0.025, t1, color=MUT, fontsize=7.5, va="center", zorder=3)
+        bg.text(0.78, yy - 0.025, t2, color=c_, fontsize=12.5, fontweight="bold", va="center", zorder=3)
+        yy -= 0.16
+    # Day Range bar
+    if adr:
+        used = min(today / adr, 1.3)
+        x0, w = 0.3, 0.655
+        bg.text(x0, 0.13, "DAY RANGE USED", color=MUT, fontsize=7.5, va="center", zorder=3)
+        for lo_f, hi_f, c_ in ((0, 0.7, UP), (0.7, 1.0, "#FFD60A"), (1.0, 1.3, "#FF9F0A")):
+            bg.add_patch(FancyBboxPatch((x0 + w * lo_f / 1.3, 0.075), w * (hi_f - lo_f) / 1.3, 0.03, boxstyle="round,pad=0,rounding_size=0.008",
+                                        fc=c_, alpha=0.25, ec="none", zorder=2))
+        bg.add_patch(FancyBboxPatch((x0, 0.075), w * used / 1.3, 0.03, boxstyle="round,pad=0,rounding_size=0.008",
+                                    fc=UP if used < 0.7 else "#FFD60A" if used < 1 else "#FF9F0A", ec="none", zorder=3))
+        bg.text(x0 + w + 0.005, 0.13, f"{today / adr * 100:.0f}%", color=INK, fontsize=9, fontweight="bold", ha="right", va="center", zorder=3)
+    fig.savefig(path, facecolor=BG); plt.close(fig)
     return path
 
 
@@ -1024,17 +1048,12 @@ def session_range(df, name, days=20):
 
 
 def no_trade_guide(name, p, lv, df):
-    """For sessions without a tested setup: usual range, key levels, risk advice. Short and technical."""
+    """Sessions without a tested setup: usual range and risk advice (Khmer, short)."""
     rng = session_range(df, name)
-    out = ["", f"🧭 <b>NO SETUP · how to handle {name}</b>"]
-    parts = []
+    out = ["", "🧭 <b>គ្មាន setup ទេ</b>"]
     if rng:
-        parts.append(f"usual range ~${rng:,.0f}")
-    if p:
-        parts.append(f"POC {fmt(p['poc'])} · VA {fmt(p['val'])}–{fmt(p['vah'])}")
-    if parts:
-        out.append("• " + " · ".join(parts))
-    out.append("• Trading anyway: <b>0.25% risk</b>, SL outside the VA (range trades were slightly negative in tests)")
+        out.append(f"• សម័យនេះច្រើនតែឡើងចុះ ~${rng:,.0f}")
+    out.append("• បើចង់ជួញដូរ: ហានិភ័យ <b>0.25%</b> ប៉ុណ្ណោះ · ឬរង់ចាំគឺល្អជាង")
     return out
 
 
@@ -1070,10 +1089,10 @@ def while_you_slept(df, news):
     hi_, lo_ = float(x["High"].max()), float(x["Low"].min())
     ev = [e["title"] for e in news.get("events", []) if e.get("impact") == "High"
           and start.astimezone(timezone.utc) <= datetime.fromisoformat(e["time"].replace("Z", "+00:00")) <= now.astimezone(timezone.utc)]
-    out = ["", f"🌙 <b>While you slept</b> (New York session): gold {fmt(o_)} → {fmt(c_)} (<b>{c_ - o_:+,.1f}</b>) · "
-               f"high {fmt(hi_)} · low {fmt(lo_)}"]
+    out = ["", f"🌙 <b>ពេលអ្នកគេង</b> (សម័យញូវយ៉ក): មាស {fmt(o_)} → {fmt(c_)} (<b>{c_ - o_:+,.1f}</b>) · "
+               f"ខ្ពស់ {fmt(hi_)} · ទាប {fmt(lo_)}"]
     if ev:
-        out.append("📰 Released: " + esc(", ".join(dict.fromkeys(ev))))
+        out.append("📰 ព័ត៌មានបានចេញ: " + esc(", ".join(dict.fromkeys(ev))))
     return out
 
 
@@ -1213,25 +1232,22 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     vol = float(atr(df).iloc[-1] / atr(df).rolling(288 * 20, min_periods=288).median().iloc[-1])
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
     head = {"Asia": "🌏", "London": "🇬🇧", "New York": "🇺🇸"}[name]
-    risk = (f"📰 {esc(ev[0][1])} at {local(ev[0][0].timestamp())}: no new trades 15 min before/after." if ev else
-            "⚠️ Gold is moving faster than usual today: use a smaller lot." if vol >= 1.3 else
-            "⚠️ No clear direction right now: don't force a trade." if abs(score) < 20 else None)
+    risk = (f"📰 ព័ត៌មានធំ {esc(ev[0][1])} ម៉ោង {local(ev[0][0].timestamp())}: កុំចូលថ្មី 15 នាទីមុន/ក្រោយ" if ev else
+            "⚠️ មាសប្រែប្រួលលឿនជាងធម្មតា: ប្រើ lot តូច" if vol >= 1.3 else
+            "⚠️ ទិសដៅមិនទាន់ច្បាស់: កុំបង្ខំចូល" if abs(score) < 20 else None)
     ts = trend_state(df)
-    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
-    bw = lambda v: "Bullish ↑" if v > 0 else "Bearish ↓" if v < 0 else "Range"
-    struct = f"Swing 4H: {bw(ts)} · Internal 1H: {bw(b['1H'])}"
-    rng = f"Yesterday {fmt(lad['Prev day low'])}–{fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
-    out = [f"{head} <b>{name.upper()}</b> · Gold <b>{fmt(price)}</b>", struct + (f" · {rng}" if rng else ""),
+    bw = lambda v: "ឡើង ↑" if v > 0 else "ចុះ ↓" if v < 0 else "ចំហៀង ↔"
+    struct = f"និន្នាការធំ (4H): <b>{bw(ts)}</b> · ឥឡូវ (1H): <b>{bw(b['1H'])}</b>"
+    out = [f"{head} <b>សម័យ {KM_SESSION[name]} ({name})</b> · មាស <b>{fmt(price)}</b>", struct,
            *(while_you_slept(df, news) if name == "Asia" else []),
            "",
            plan_line(plan := vp_plan(df), price),
-           f"⚡ <b>4H SIGNAL</b> (69% win): BUY if 4H closes > {fmt(upper)} · SELL < {fmt(lower)}",
+           "",
+           f"⚡ <b>សញ្ញាធំ 4H</b> (ឈ្នះ 69%): ទិញ បើបិទលើ <b>{fmt(upper)}</b> · លក់ បើបិទក្រោម <b>{fmt(lower)}</b>",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
-           *([f"📦 Asia box {fmt(bx['lo'])}–{fmt(bx['hi'])} · POI1 {fmt(bx['up1'])} / {fmt(bx['dn1'])} (1 in 3 days)"]
-             if name != "Asia" and (bx := asia_box(df)) else []),
            *([risk] if risk else []),
-           "", "<i>⚡✅ tested · 🟡 plan = 0.5% risk</i>"]
+           "", "<i>✅ សញ្ញាបានសាកល្បង · 🟡 ផែនការ = ហានិភ័យ 0.5%</i>"]
     if LANG == "km":
         out = [f"{head} <b>សម័យ {KM_SESSION[name]}</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
                *[f"{'🔴 លក់' if k == 'SELL' else '🟢 ទិញ'} <b>{fmt(areas[k]['edge'])}</b> · stop {fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
@@ -1267,16 +1283,21 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     price = float(df["Close"].iloc[-1])
     hour_ago = float(df["Close"].iloc[-13]) if len(df) > 13 else price
     score, word, b = direction(ict, lv, price)
-    areas = intraday_areas(lv, conf, price)
+    upper, lower = lines[0], lines[1]
     nx = sorted([(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e["title"]) for e in news.get("events", [])
                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > datetime.now(timezone.utc)])[:1]
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
     p = vp_plan(df)
-    lv_line = (f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} {fmt(p['edge'])} (POC) after a 15m close {'below' if p['side'] == 'SELL' else 'above'}"
-               if p and p.get("side") and abs(p["edge"] - p["inval"]) <= p["edge"] * 0.006 else "🟡 No plan this session")
-    out = [f"⏱ Gold <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} in the last hour) · {word} {arrow}",
-           *([lv_line] if lv_line else []),
-           *([f"📰 {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600 else [])]
+    plan_ok = p and p.get("side") and abs(p["edge"] - p["inval"]) <= p["edge"] * 0.006
+    near = min(upper - price, price - lower) <= price * 0.004
+    out = [f"⏱ មាស <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} ក្នុង 1 ម៉ោង) · {KW[word]} {arrow}"]
+    if near:
+        up = upper - price < price - lower
+        out.append(f"⚡ ជិតខ្សែសញ្ញា 4H <b>{fmt(upper if up else lower)}</b> (នៅ {abs((upper if up else lower) - price):,.1f}): "
+                   f"បើទៀន 4H បិទ{'លើ' if up else 'ក្រោម'} → សញ្ញា {'ទិញ BUY' if up else 'លក់ SELL'}។ កុំចូលមុន។")
+    out.append(f"🟡 ផែនការ: {'លក់ SELL' if p['side'] == 'SELL' else 'ទិញ BUY'} នៅ POC {fmt(p['edge'])}" if plan_ok else "🟡 សម័យនេះគ្មានផែនការ")
+    if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600:
+        out.append(f"📰 {esc(nx[0][1])} ម៉ោង {local(nx[0][0].timestamp())}")
     return "\n".join(out)
 
 
@@ -1301,13 +1322,13 @@ def pulse_worth(state, ict, lv, df, lines):
     hour_ago = float(df["Close"].iloc[-13]) if len(df) > 13 else price
     upper, lower = lines[0], lines[1]
     if last.get("word") and last["word"] != word:
-        return f"direction changed to {word}"
+        return f"ទិសដៅប្ដូរទៅ {KW[word]}"
     if abs(price - hour_ago) >= price * 0.004:
-        return "big move in the last hour"
+        return "ចលនាធំក្នុង 1 ម៉ោង"
     if min(upper - price, price - lower) <= price * 0.004:
-        return "near a 4H signal line"
+        return "ជិតខ្សែសញ្ញា 4H"
     if not last:
-        return "today's first update"
+        return "ព័ត៌មានដំបូងថ្ងៃនេះ"
     return None
 
 
