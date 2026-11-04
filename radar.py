@@ -39,6 +39,24 @@ def status(df, lines):
             "to_buy": upper - price, "to_sell": price - lower, "near": near}
 
 
+def finger_marks(df, d15):
+    """(position in d15, 1 or 2) for the 15m candles where the trading day crossed 70% (🖕) / 100% (🖕🖕) of a normal
+    day. Only real crossings on a candle in view (not a day that was already past the level when the chart starts);
+    if one candle jumps past both levels, only 🖕🖕 is shown."""
+    res = {}
+    prev = research.day_used(df, d15.index[0]) or 0.0 if len(d15) else 0.0
+    td = (d15.index - pd.Timedelta(hours=18)).date
+    for i, t in enumerate(d15.index):
+        if i and td[i] != td[i - 1]:
+            prev = 0.0
+        u = research.day_used(df, t + pd.Timedelta(minutes=15)) or 0.0   # day range at this candle's close
+        for lvl, f in ((research.COMBO_USED, 1), (research.PREMIUM_USED, 2)):
+            if prev < lvl <= u:
+                res[i] = max(res.get(i, 0), f)
+        prev = u
+    return sorted(res.items())
+
+
 def chart(df, lines, path, local=None, title="Strategy Radar"):
     import matplotlib
     matplotlib.use("Agg")
@@ -78,6 +96,14 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
             yy = yhi - span * 0.04 if col == UP else ylo + span * 0.04
             ax.text(N + 8, yy, f"{word} {y:,.2f} {'↑' if col == UP else '↓'} {dist:,.0f} away", color=col, fontsize=8,
                     ha="right", va="top" if col == UP else "bottom", fontweight="bold")
+    # 🖕 on the 15m candle where the day crossed 70% (COMBO zone), 🖕🖕 where it crossed 100% (PREMIUM zone)
+    for i, f in finger_marks(df, d):
+        y = float(d["High"].iloc[i]) + span * 0.045
+        for q in range(f):
+            _finger(ax, i + (q - (f - 1) / 2) * 1.6, y, 0.12)
+        ax.text(i, y + span * 0.05, "PREMIUM" if f == 2 else "COMBO", color=PREM if f == 2 else GOLD, fontsize=6.5,
+                fontweight="bold", ha="center", va="bottom")
+        yhi = max(yhi, y + span * 0.12); ax.set_ylim(ylo, yhi)
     ax.axhline(p, color=INK, lw=0.6, alpha=0.4)
     ax.annotate(f"{p:,.2f}", xy=(N - 1, p), xytext=(N + 1, p), color=BG, fontsize=8, fontweight="bold", va="center",
                 bbox=dict(boxstyle="round,pad=0.3", fc=INK, ec="none"))
