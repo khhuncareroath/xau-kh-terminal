@@ -387,7 +387,7 @@ def vp_shape(df, th=0.55, rr=1.5):
                 ext = l[touched:i + 1].min() if sg > 0 else h[touched:i + 1].max()
                 stop = min(wrong, ext - 0.5) if sg > 0 else max(wrong, ext + 0.5)
                 risk = abs(o[j0] - stop)
-                if risk > o[j0] * 0.008:
+                if risk > o[j0] * 0.006:          # intraday risk cap: skip plans with a stop over 0.6% (~$24)
                     break
                 r, j = _run_trade(o, h, l, c, j0, min(nxt[-1] + 36, n - 1), sg, stop, o[j0] + sg * rr * risk)
                 if r is not None:

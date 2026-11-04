@@ -473,23 +473,25 @@ def vp_plan(df):
 
 def plan_areas(df):
     p = vp_plan(df)
-    if not p or not p.get("side"):
+    if not p or not p.get("side") or abs(p["edge"] - p["inval"]) > p["edge"] * 0.006:
         return {}
     price = float(df["Close"].iloc[-1])
     return {p["side"]: {"side": p["side"], "edge": p["edge"], "lo": p["edge"], "hi": p["edge"], "inval": p["inval"],
                         "names": ["POC"], "dist": round(abs(p["edge"] - price), 1), "target": None}}
 
 
-def plan_line(p):
+def plan_line(p, price=None):
     if not p:
-        return "🟡 No plan yet: not enough data from the last session."
+        return "🟡 <b>PLAN</b>: no data for the last session."
     if not p.get("side"):
-        return (f"🟡 <b>No plan for {p['for']}</b>: {p['from']} volume profile was a D-shape (buyers and sellers even). Better to wait.")
+        return f"🟡 <b>PLAN</b>: none · {p['from']} profile D-shape (buyers = sellers). Wait."
     s = p["side"] == "SELL"
-    return (f"🟡 <b>Plan for {p['for']}: {'SELL' if s else 'BUY'} near {fmt(p['edge'])}</b>\n"
-            f"Why: {p['from']} volume profile was a {'b-shape (most volume at the bottom: sellers in control)' if s else 'P-shape (most volume at the top: buyers in control)'}.\n"
-            f"How: wait for a pullback to the POC {fmt(p['edge'])} (busiest price), then a 15m candle close back {'below' if s else 'above'} it. "
-            f"SL {'above' if s else 'below'} the pullback · TP 1.5R (1.5× your risk).")
+    risk = abs(p["edge"] - p["inval"])
+    if risk > p["edge"] * 0.006:
+        return (f"🟡 <b>PLAN</b>: skipped · stop would be ${risk:,.0f} (too big for intraday, over 0.6%). Wait for the ⚡ signal.")
+    return (f"🟡 <b>PLAN: {'SELL' if s else 'BUY'} {fmt(p['edge'])}</b> (POC)\n"
+            f"{p['from']} {'b-shape: sellers' if s else 'P-shape: buyers'} in control · entry after a 15m close {'below' if s else 'above'} · "
+            f"SL {'above' if s else 'below'} pullback (~${risk:,.0f}) · TP 1.5R")
 
 
 def analysis_chart(df, lv, conf, lines, path, title):
@@ -587,7 +589,7 @@ def analysis_chart(df, lv, conf, lines, path, title):
         axR.annotate("", xy=(px[-1], py[-1]), xytext=(px[-2], py[-2]), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.2))
         tag = f"Plan: {'BUY' if bull else 'SELL'} the pullback to the POC (busiest price) after a 15m close {'above' if bull else 'below'} · TP 1.5R"
     else:
-        tag = "No plan: D-shape volume profile (buyers and sellers even). Wait for the 4H signal."
+        tag = "No plan this session (D-shape profile or stop too big for intraday). Wait for the 4H signal."
     fig.text(0.035, 0.94, title, color=INK, fontsize=14, fontweight="bold")
     fig.text(0.035, 0.905, tag, color=GOLD, fontsize=10)
     fig.text(0.035, 0.03, "XAU.KH · POC = busiest price of the last session · R = your risk · a plan, not a promise", color=MUT, fontsize=7.5)
@@ -938,20 +940,17 @@ def session_range(df, name, days=20):
 
 
 def no_trade_guide(name, p, lv, df):
-    """For sessions without a tested setup: what to expect, the important prices, and how to keep risk small."""
-    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    """For sessions without a tested setup: usual range, key levels, risk advice. Short and technical."""
     rng = session_range(df, name)
-    out = ["", f"🧭 <b>How to handle {name}</b> (no tested setup)"]
+    out = ["", f"🧭 <b>NO SETUP · how to handle {name}</b>"]
+    parts = []
     if rng:
-        out.append(f"• {name} usually moves about <b>${rng:,.0f}</b> low to high.")
-    keys = []
+        parts.append(f"usual range ~${rng:,.0f}")
     if p:
-        keys.append(f"POC {fmt(p['poc'])} (busiest price) · value area {fmt(p['val'])}–{fmt(p['vah'])} (where 70% of trading happened)")
-    if lad.get("Prev day high"):
-        keys.append(f"yesterday's low {fmt(lad['Prev day low'])} and high {fmt(lad['Prev day high'])}")
-    if keys:
-        out.append("• Important prices: " + " · ".join(keys))
-    out.append("• Trading anyway? <b>0.25% risk max</b>, SL outside the range. Range trades (buy VAL, sell VAH = value area low/high) were slightly negative in testing.")
+        parts.append(f"POC {fmt(p['poc'])} · VA {fmt(p['val'])}–{fmt(p['vah'])}")
+    if parts:
+        out.append("• " + " · ".join(parts))
+    out.append("• Trading anyway: <b>0.25% risk</b>, SL outside the VA (range trades were slightly negative in tests)")
     return out
 
 
@@ -1136,20 +1135,19 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     ts = trend_state(df)
     lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
     bw = lambda v: "Bullish ↑" if v > 0 else "Bearish ↓" if v < 0 else "Range"
-    struct = f"Swing (4H, big trend): {bw(ts)} · Internal (1H, right now): {bw(b['1H'])}"
-    rng = f"Yesterday: low {fmt(lad['Prev day low'])} · high {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
-    out = [f"{head} <b>{name.upper()} SESSION</b> · Gold <b>{fmt(price)}</b>", struct, *([rng] if rng else []),
+    struct = f"Swing 4H: {bw(ts)} · Internal 1H: {bw(b['1H'])}"
+    rng = f"Yesterday {fmt(lad['Prev day low'])}–{fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
+    out = [f"{head} <b>{name.upper()}</b> · Gold <b>{fmt(price)}</b>", struct + (f" · {rng}" if rng else ""),
            *(while_you_slept(df, news) if name == "Asia" else []),
            "",
-           plan_line(plan := vp_plan(df)),
-           "", f"⚡ <b>4H breakout signal</b> (tested, 69% win): BUY if a 4H candle closes above {fmt(upper)} · SELL if below {fmt(lower)} (week high/low)",
+           plan_line(plan := vp_plan(df), price),
+           f"⚡ <b>4H SIGNAL</b> (69% win): BUY if 4H closes > {fmt(upper)} · SELL < {fmt(lower)}",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
-           *([f"📦 Asia box {fmt(bx['lo'])}–{fmt(bx['hi'])} (${bx['r']:,.0f}) · POI 1: {fmt(bx['up1'])} / {fmt(bx['dn1'])} "
-               f"(hit 1 in 3 days) · POI 2: {fmt(bx['up2'])} / {fmt(bx['dn2'])} (1 in 9)"]
+           *([f"📦 Asia box {fmt(bx['lo'])}–{fmt(bx['hi'])} · POI1 {fmt(bx['up1'])} / {fmt(bx['dn1'])} (1 in 3 days)"]
              if name != "Asia" and (bx := asia_box(df)) else []),
            *([risk] if risk else []),
-           "", "<i>✅ = tested signal · 🟡 = plan, keep risk small (0.5%)</i>"]
+           "", "<i>⚡✅ tested · 🟡 plan = 0.5% risk</i>"]
     if LANG == "km":
         out = [f"{head} <b>សម័យ {KM_SESSION[name]}</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
                *[f"{'🔴 លក់' if k == 'SELL' else '🟢 ទិញ'} <b>{fmt(areas[k]['edge'])}</b> · stop {fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
@@ -1190,8 +1188,8 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > datetime.now(timezone.utc)])[:1]
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
     p = vp_plan(df)
-    lv_line = (f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} at the POC {fmt(p['edge'])} (busiest price) after a 15m close {'below' if p['side'] == 'SELL' else 'above'}"
-               if p and p.get("side") else "🟡 No plan this session: D-shape profile (buyers and sellers even)")
+    lv_line = (f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} {fmt(p['edge'])} (POC) after a 15m close {'below' if p['side'] == 'SELL' else 'above'}"
+               if p and p.get("side") and abs(p["edge"] - p["inval"]) <= p["edge"] * 0.006 else "🟡 No plan this session")
     out = [f"⏱ Gold <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} in the last hour) · {word} {arrow}",
            *([lv_line] if lv_line else []),
            *([f"📰 {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600 else [])]
