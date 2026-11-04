@@ -24,7 +24,7 @@ import pandas as pd
 from engine import atr, live_source, load
 from ict import resample
 from levels import to_ny
-from tg import SITE, esc, fmt, local, send, send_photo
+from tg import SITE, esc, fmt, local, log_alert, send, send_photo
 
 NY = ZoneInfo("America/New_York")
 LANG = os.environ.get("BOT_LANG", "en")
@@ -308,6 +308,49 @@ def trend_state(df):
     return 0
 
 
+def plan_entry(df, a, key, state, c15):
+    """Entry in signal style when price came to the with-trend zone and a 15m candle closed back from it.
+    Same rules as the one-trade-a-day test (2 years: about break-even with the 4H trend), so it is labelled as a plan
+    trade with a small risk, unlike the tested 4H signal. One per trading day, 01:00-12:00 New York only.
+    The result is graded by track.py and posted as a reply, like every signal."""
+    s = a["side"] == "SELL"
+    a["status"] = "entry checked"
+    ny = datetime.now(NY)
+    day = (ny - timedelta(hours=18)).strftime("%Y-%m-%d")
+    if not (1 <= ny.hour < 12) or state.get("plan_day") == day or trend_state(df) != (-1 if s else 1):
+        return
+    since = df[df.index >= pd.Timestamp(a["touch_t"], unit="s", tz="UTC")]
+    ext = float(since["High"].max()) if s else float(since["Low"].min())
+    stop = max(a["inval"], ext + 0.5) if s else min(a["inval"], ext - 0.5)
+    entry = c15
+    risk = abs(stop - entry)
+    if risk < 2:
+        return
+    tp = entry - 2 * risk if s else entry + 2 * risk
+    pips = lambda px: f"{(px - entry) * (-1 if s else 1) * 10:+,.0f} pips"
+    lvl = a.get("names", ["the level"])[0]
+    msg = "\n".join([
+        f"{'🔴' if s else '🟢'} <b>GOLD {'SELL' if s else 'BUY'} NOW · {'លក់' if s else 'ទិញ'}ឥឡូវ</b>  <i>(plan trade)</i>", "",
+        f"Entry  <b>{fmt(entry)}</b>",
+        f"SL       <b>{fmt(stop)}</b>  ({pips(stop)})",
+        f"TP       <b>{fmt(tp)}</b>  ({pips(tp)})", "",
+        f"Price tested {esc(lvl)} {fmt(a['edge'])} and the 15m closed back {'below' if s else 'above'} · with the 4H trend.",
+        "⏰ Closes by 17:00 New York if TP/SL not hit",
+        "", "<i>Plan trade, not the tested 4H signal: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>"])
+    mid = send(msg, ("SELL" if s else "BUY") + " plan", reply_to=a.get("msg_id"))
+    if not mid and os.environ.get("TELEGRAM_TOKEN"):
+        return
+    state["plan_day"] = day
+    a["status"] = "entered"
+    now = time.time()
+    close_ny = ny.replace(hour=17, minute=0, second=0, microsecond=0)
+    log_alert({"id": f"plan|{key}", "kind": "plan", "dir": "bear" if s else "bull", "entry": round(entry, 2), "stop": round(stop, 2),
+               "target": round(tp, 2), "rr": 2.0, "created": now, "valid_until": now + 900, "price_at_alert": round(entry, 2),
+               "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": round(entry, 2),
+               "max_hold_s": max(1800, int(close_ny.timestamp() - now))})
+    print("plan entry sent", key)
+
+
 def near_level_alert(df, lv, conf, ict, state):
     """Calm 'price is near your level' alert: only the sell/buy levels shown in the session prep, each at most once a
     day, at most one alert an hour, nothing when the big direction is strongly against it.
@@ -324,6 +367,16 @@ def near_level_alert(df, lv, conf, ict, state):
         s = a["side"] == "SELL"
         if now - a["t"] > 8 * 3600:
             a["status"] = "expired"
+            continue
+        if not a.get("touched"):                                               # price reached the zone?
+            since = df[df.index >= pd.Timestamp(a["t"] - 300, unit="s", tz="UTC")]
+            hit = since[since["High"] >= a["edge"]] if s else since[since["Low"] <= a["edge"]]
+            if len(hit):
+                a["touched"], a["touch_t"] = True, hit.index[0].timestamp()
+        done15 = d15.index[-2] + pd.Timedelta(minutes=15) if len(d15) > 2 else None
+        if a.get("touched") and done15 is not None and done15.timestamp() > a["touch_t"] + 300 \
+                and ((s and a["inval"] > c15 < a["edge"]) or (not s and a["inval"] < c15 > a["edge"])):
+            plan_entry(df, a, key, state, c15)                                  # 15m closed back from the zone: entry
             continue
         if (s and c15 > a["inval"]) or (not s and c15 < a["inval"]):
             a["status"] = "failed"
@@ -351,7 +404,7 @@ def near_level_alert(df, lv, conf, ict, state):
                    f"Wait for a 15m candle to close back {'below' if s else 'above'} {fmt(a['edge'])} · stop {'above' if s else 'below'} {fmt(a['inval'])}")
             mid = send(msg, f"Near {k}")
             if mid or not os.environ.get("TELEGRAM_TOKEN"):
-                sent[key] = {"t": now, "side": k, "edge": a["edge"], "inval": a["inval"], "status": "watch",
+                sent[key] = {"t": now, "side": k, "edge": a["edge"], "inval": a["inval"], "status": "watch", "names": a["names"],
                              "msg_id": mid if isinstance(mid, int) else None}
                 state["near_last"] = now
                 print("near-level alert", key)
@@ -779,6 +832,10 @@ def weekly_report(df, log, alog, bt, week_start):
         out.append("No closed signals yet.")
     if m:
         out.append(f"Backtest for comparison: {m.get('trades')} trades, {m.get('win_rate_pct')}% won, {m.get('avg_R', 0):+.2f}R per trade.")
+    pw = [a for a in log if a.get("kind") == "plan" and a.get("created", 0) >= ws and a.get("R") is not None]
+    if pw:
+        pR = [a["R"] for a in pw]
+        out += ["", f"<b>Plan trades this week</b>: {len(pR)} · {sum(r > 0 for r in pR)} won · {sum(pR):+.2f}R"]
     aw = [x for x in alog if x.get("closed", 0) >= ws]
     if aw:
         h = sum(x["result"] == "held" for x in aw)

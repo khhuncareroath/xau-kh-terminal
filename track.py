@@ -93,7 +93,7 @@ def _reply_text(a):
     sg = 1 if a["dir"] == "bull" else -1
     pips = lambda px: f"{(px - a['entry']) * sg * 10:+,.0f} pips"
     if s == "win":
-        return f"🏆 <b>TP2 hit</b> {pips(a['target'])} · ដល់ TP2"
+        return f"🏆 <b>TP{'2' if a.get('tp1') else ''} hit</b> {pips(a['target'])} · ដល់ TP"
     if s == "tp1":
         return f"✅ <b>Closed in profit</b>: TP1 {pips(a['tp1'])}, rest at entry · ឈ្នះ"
     if s == "loss":
@@ -109,7 +109,7 @@ def _reply_text(a):
 
 def summary(log):
     out = _summary(log)
-    for kind in ("setup", "watch", "post-news", "model"):
+    for kind in ("setup", "watch", "post-news", "model", "plan"):
         sub = [a for a in log if a.get("kind") == kind]
         if sub:
             out["by_kind"] = out.get("by_kind", {})
