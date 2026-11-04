@@ -647,6 +647,116 @@ def trade_chart(df, lv, sig, path):
     return path
 
 
+MAP_HOUR_LOCAL = 10      # Daily Market Map, weekdays, local time (quiet Asia hours)
+
+
+def daily_range_stats(df):
+    """Median daily high-low range of the last 20 trading days, and today's range so far."""
+    day = (df.index - pd.Timedelta(hours=18)).date
+    g = df.groupby(day)
+    rng = (g["High"].max() - g["Low"].min())
+    today = float(rng.iloc[-1])
+    adr = float(rng.iloc[-21:-1].median()) if len(rng) > 21 else None
+    return adr, today
+
+
+def market_map(df, lv, lines, path):
+    """Full analysis picture: 1H candles of the last ~5 days, swing structure (HH/HL/LH/LL), a 5-day volume profile
+    with its POC, key levels, the 4H signal lines and two if/then scenarios. Returns (path, text)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+    import research
+    from ict import swings
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD, BLUE = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B", "#5AC8FA"
+    d1 = resample(df, "1H").tail(110)
+    price = float(df["Close"].iloc[-1])
+    upper, lower, _, _ = lines
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    wk = df[df.index >= df.index[-1] - pd.Timedelta(days=7)]
+    wk_hi, wk_lo = float(wk["High"].max()), float(wk["Low"].min())
+    # 5-day volume profile
+    last5 = np.where(df.index >= df.index[-1] - pd.Timedelta(days=5))[0]
+    H_, L_, C_, V_ = (df[c].to_numpy() for c in ("High", "Low", "Close", "Volume"))
+    poc, val, vah, plo, phi = research._vp(H_, L_, C_, V_, last5)
+    tp_ = (H_[last5] + L_[last5] + C_[last5]) / 3
+    bins = np.arange(np.floor(plo), np.ceil(phi) + 1, 1.0)
+    vol, _ = np.histogram(tp_, bins=bins, weights=np.maximum(V_[last5], 1))
+    # swing structure on 1H
+    sw = swings(d1, 4)                                   # stronger 1H swings (4 candles each side)
+    labels, lastH, lastL = [], None, None
+    for _, i, k, p in sw:
+        if k == "H":
+            labels.append((i, p, "HH" if lastH is not None and p > lastH else "LH" if lastH is not None else "H", k)); lastH = p
+        else:
+            labels.append((i, p, "HL" if lastL is not None and p > lastL else "LL" if lastL is not None else "L", k)); lastL = p
+    highs = sorted({p for _, _, k, p in sw if k == "H" and p > price})
+    lows = sorted({p for _, _, k, p in sw if k == "L" and p < price}, reverse=True)
+    adr, today = daily_range_stats(df)
+    gap = 0.3 * (adr or price * 0.012)
+    cands = [y for y in (wk_hi, wk_lo, upper, lower, vah, val, poc, lad.get("Prev day high"), lad.get("Prev day low"),
+                         *[p for _, _, _, p in sw]) if y]
+    up_trig = highs[0] if highs else None
+    dn_trig = lows[0] if lows else None
+    up_tgt = min((y for y in cands if up_trig and y >= up_trig + gap), default=None)
+    dn_tgt = max((y for y in cands if dn_trig and y <= dn_trig - gap), default=None)
+    ys = [float(d1["Low"].min()), float(d1["High"].max()), *(y for y in (up_tgt, dn_tgt) if y)]
+    lo, hi = min(ys), max(ys); pad = (hi - lo) * 0.06
+    fig = plt.figure(figsize=(12, 6.6), dpi=150); fig.patch.set_facecolor(BG)
+    ax = fig.add_axes([0.035, 0.08, 0.72, 0.76]); vp = fig.add_axes([0.755, 0.08, 0.09, 0.76], sharey=ax)
+    N, RIGHT = len(d1), 22
+    for a_ in (ax, vp):
+        a_.set_facecolor(PANEL); a_.grid(axis="y", color=GRID, lw=0.6); a_.set_xticks([])
+        for sp in a_.spines.values(): sp.set_visible(False)
+        a_.tick_params(colors=MUT, labelsize=8, length=0)
+    ax.set_ylim(lo - pad, hi + pad); ax.set_xlim(-1, N + RIGHT); ax.yaxis.tick_left()
+    vp.yaxis.tick_right()
+    for i, (o_, h_, l_, c_) in enumerate(d1[["Open", "High", "Low", "Close"]].to_numpy()):
+        col = UP if c_ >= o_ else DN
+        ax.plot([i, i], [l_, h_], color=col, lw=0.8)
+        ax.add_patch(Rectangle((i - 0.31, min(o_, c_)), 0.62, max(abs(c_ - o_), 0.05), color=col, lw=0))
+    for i, p, t, k in labels[-10:]:
+        ax.text(i, p, t, color=(UP if t in ("HH", "HL") else DN if t in ("LH", "LL") else MUT), fontsize=7.5, fontweight="bold",
+                ha="center", va="bottom" if k == "H" else "top")
+    drawn = []
+    for name, y, col, ls in (("4H BUY signal above", upper, UP, (0, (5, 3))), ("4H SELL signal below", lower, DN, (0, (5, 3))),
+                             ("Week high", wk_hi, MUT, (0, (1, 3))), ("Week low", wk_lo, MUT, (0, (1, 3))),
+                             ("Yesterday high", lad.get("Prev day high"), MUT, (0, (2, 3))), ("Yesterday low", lad.get("Prev day low"), MUT, (0, (2, 3))),
+                             ("POC 5 days (busiest price)", poc, GOLD, "-")):
+        if y and lo - pad < y < hi + pad and all(abs(y - z) > (hi - lo) * 0.015 for z in drawn):
+            drawn.append(y)
+            ax.plot([0, N + RIGHT - 1], [y, y], color=col, lw=0.8, ls=ls, alpha=0.85)
+            ax.text(1, y, f"{name} {y:,.2f}", color=col, fontsize=7, va="bottom")
+    ax.axhspan(val, vah, color=GOLD, alpha=0.05, lw=0)
+    vp.barh(bins[:-1], vol, height=1.0, color=BLUE, alpha=0.55, align="edge")
+    vp.axhline(poc, color=GOLD, lw=1); vp.set_xticks([]); vp.text(0, 0.995, "volume", transform=vp.transAxes, color=MUT, fontsize=7, va="top")
+    ax.axhline(price, color=INK, lw=0.6, alpha=0.4)
+    x0 = N - 1
+    for trig, tgt, col, word in ((up_trig, up_tgt, UP, "above"), (dn_trig, dn_tgt, DN, "below")):
+        if trig and tgt:
+            ax.plot([x0, x0 + 6, x0 + 9, x0 + 18], [price, trig, trig - (trig - price) * 0.3, tgt], color=col, lw=1.2, ls=(0, (3, 2)))
+            ax.annotate("", xy=(x0 + 18, tgt), xytext=(x0 + 15, tgt + (trig - tgt) * 0.15), arrowprops=dict(arrowstyle="-|>", color=col, lw=1.2))
+            ax.text(x0 + 17.5, tgt, f"{tgt:,.0f} ", color=col, fontsize=8.5, va="bottom" if col == UP else "top", ha="right", fontweight="bold")
+    score_up = sum(1 for _, _, t, _ in labels[-4:] if t in ("HH", "HL")); score_dn = sum(1 for _, _, t, _ in labels[-4:] if t in ("LH", "LL"))
+    struct = "Bullish structure (HH + HL)" if score_up >= 3 else "Bearish structure (LH + LL)" if score_dn >= 3 else "Mixed structure (range)"
+    fig.text(0.035, 0.94, f"Gold · Daily Market Map · {local(time.time())}", color=INK, fontsize=14, fontweight="bold")
+    fig.text(0.035, 0.905, f"{struct}  ·  price {price:,.2f}", color=GOLD, fontsize=10.5)
+    fig.text(0.035, 0.03, "HH/HL = higher high / higher low (buyers) · LH/LL = lower high / lower low (sellers) · dashed = if/then scenarios · a map, not a signal",
+             color=MUT, fontsize=7.5)
+    fig.savefig(path, facecolor=BG); plt.close(fig)
+    txt = [f"🗺 <b>DAILY MARKET MAP</b> · Gold <b>{fmt(price)}</b>",
+           f"Structure (1H): {struct}",
+           *([f"🟢 If price breaks above <b>{fmt(up_trig)}</b> (last swing high) → next target {fmt(up_tgt)}"] if up_trig and up_tgt else []),
+           *([f"🔴 If price breaks below <b>{fmt(dn_trig)}</b> (last swing low) → next target {fmt(dn_tgt)}"] if dn_trig and dn_tgt else []),
+           f"🟡 POC 5 days (busiest price): {fmt(poc)} · value area {fmt(val)}–{fmt(vah)}",
+           *([f"📏 Gold usually moves <b>${adr:,.0f}</b> a day (ADR); today so far ${today:,.0f} ({min(999, round(100 * today / adr))}% used)."
+              + (" Most of today's move may be done: careful chasing." if today >= 0.8 * adr else "")] if adr else []),
+           "", "<i>A map to read the market, not a signal. Signals come only from ✅ / 🟡 setups.</i>"]
+    return path, "\n".join(txt)
+
+
 def card(df, price, word, score, areas, path, label):
     """Small image for Telegram: a big direction arrow, the price, the last 24h line with the sell and buy levels."""
     import matplotlib
@@ -1107,6 +1217,17 @@ def main():
         site_file(df, lv, conf, ict, news, macro, state)
     except Exception as e:
         print("intraday.json failed:", e)
+    loc = datetime.now(local_tz())
+    mkey = loc.strftime("%Y-%m-%d")
+    if (loc.weekday() < 5 and loc.hour == MAP_HOUR_LOCAL and loc.minute < 25 and mkey not in state.get("map", {})) or os.environ.get("MAP_FORCE"):
+        try:
+            path, text = market_map(df, lv, lines, "market_map.png")
+            if send_photo(path, text, "Market map") or not os.environ.get("TELEGRAM_TOKEN"):
+                state.setdefault("map", {})[mkey] = time.time()
+                state["map"] = {k: v for k, v in state["map"].items() if time.time() - v < 7 * 86400}
+                print("market map sent")
+        except Exception as e:
+            print("market map failed:", e)
     now_ny = datetime.now(NY)
     wkey = now_ny.strftime("%G-W%V")
     if (now_ny.weekday() == 4 and now_ny.hour == 16 and now_ny.minute >= 30 and wkey not in state.get("weekly_report", {})) \
