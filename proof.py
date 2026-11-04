@@ -65,6 +65,8 @@ def replay(df):
             trades[before:] = [t for t in trades[before:] if df.index[t["j0"]] in keep]
     finally:
         research._run_trade, research._run_scaled = real_t, real_s
+    prem = {(t["j0"], t["sg"]) for t in trades if t["model"] == "trend_premium"}
+    trades = [t for t in trades if not (t["model"] == "trend_intraday" and (t["j0"], t["sg"]) in prem)]   # live sends one
     return sorted(trades, key=lambda t: t["j0"])
 
 
