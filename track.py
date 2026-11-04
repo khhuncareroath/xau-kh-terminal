@@ -18,6 +18,7 @@ from tg import fmt, send
 MAX_HOLD_S = 12 * 3600
 ICON = {"win": "✅", "tp1": "✅", "loss": "❌", "expired": "⌛", "missed": "🏃", "timed out": "⏹"}
 TRADED = ("win", "tp1", "loss", "timed out")
+COST = 0.4   # $ per trade, same as research.COST (Exness standard spread is about $0.24)
 
 
 def jl(n, d):
@@ -126,7 +127,7 @@ def _summary(log):
             "no_trade": sum(a["status"] in ("expired", "missed") for a in done),
             "win_rate_pct": round(100 * sum(r > 0 for r in R) / len(R)) if R else None,
             "total_R": round(sum(R), 2), "avg_R": round(sum(R) / len(R), 2) if R else None,
-            "note": "Every alert ever sent is counted. R is before spread and commission. Small samples mislead.",
+            "note": "Every alert ever sent is counted. R is after a $0.40 spread/commission per trade, like the backtest. Small samples mislead.",
             "recent": [{k: a.get(k) for k in ("kind", "dir", "entry", "stop", "target", "rr", "zone", "status", "R", "created", "closed", "event", "factors")}
                        for a in log[-30:]][::-1]}
 
@@ -143,6 +144,9 @@ def main():
         for a in live:
             before, had_tp1 = a["status"], a.get("hit1", False)
             step(a, bars)
+            if a["status"] in TRADED and "R_gross" not in a and a.get("R") is not None:   # same cost as the backtest
+                risk = abs(a["entry"] - a["stop"]) or 1
+                a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
             if a.get("hit1") and not had_tp1:
                 send(f"🎯 <b>TP1 reached</b> at {fmt(a['tp1'])}: close half now and move your stop to {fmt(a['fill'])}. "
                      f"The rest runs to {fmt(a['target'])} with no risk.", "TP1", reply_to=a.get("msg_id"))

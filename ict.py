@@ -25,12 +25,24 @@ TARGETS = os.environ.get("XAU_RULES", "current")   # "v2" = target only swings t
 RULES = {"15m": "15min", "1H": "1h", "4H": "4h", "D": "24h"}  # 24h bins start 18:00 New York (futures day)
 
 
+GRID_4H = pd.Timestamp("2000-01-03 02:00", tz="UTC")   # 4H candles open at 02/06/10/14/18/22 UTC, whatever the data window
+AGG = {"Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"}
+
+
 def resample(df, tf):
+    """Candles that do not depend on where the data starts: the live 20-day window and the 2-year backtest must build
+    the same 4H and daily candles (pandas anchors bins to the first timestamp unless an origin is fixed)."""
     if tf == "5m":
         return df
-    kw = {"offset": "2h"} if tf == "4H" else {"offset": "18h"} if tf == "D" else {}
-    return df.resample(RULES[tf], **kw).agg(
-        {"Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"}).dropna()
+    if tf == "4H":
+        return df.resample("4h", origin=GRID_4H).agg(AGG).dropna()
+    if tf == "D":   # futures day 18:00-17:00 New York wall clock, correct across daylight-saving changes
+        x = df.copy()
+        x.index = x.index.tz_convert("America/New_York") + pd.Timedelta(hours=6)
+        d = x.resample("1D").agg(AGG).dropna()
+        d.index = d.index - pd.Timedelta(hours=6)
+        return d.tz_convert(df.index.tz) if df.index.tz is not None else d
+    return df.resample(RULES[tf]).agg(AGG).dropna()
 
 
 def swings(df, n=N):

@@ -266,6 +266,9 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2
         j0 = i + 1 + LAT
         if j0 + 1 >= n:
             continue
+        nr = df.attrs.get("n_real")   # live run (live_models.py pads flat candles after the last real one)
+        if nr is not None and (i >= nr or j0 > nr):
+            continue                  # the 4H candle has not really closed yet, or the alert delay has not passed
         stop = o[j0] - sg * 2 * a4[k] if stop_pct is None else o[j0] * (1 - sg * stop_pct)
         if scaled:   # half at 1R (stop moves to entry), rest to 3R
             r, j, _ = _run_scaled(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, tp1, tp2)
@@ -280,7 +283,9 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2
 def trend_tight(df):
     """Trend following with a tight stop (0.65% of price, about $25 at $3,900) on the same 4H breakouts, both
     directions: half closed at TP1 = 0.75R (stop moves to entry), rest to TP2 = 3R. On 2 years of spot gold:
-    169 trades, 69% profitable, +0.30R per trade, positive in 8 of 9 quarters, t=3.7. (TP1 at 1R gave 64% / +0.37R.)"""
+    about 170 trades, 69% profitable, about +0.30R per trade (see backtest.json for the current numbers). The stop and
+    TP1 were picked on the full sample; an independent walk-forward check found nearby settings (stop 0.55-1%, TP1
+    0.5-1.5R) all positive, so it is not a fragile optimum. (TP1 at 1R gave 64% / +0.37R.)"""
     return trend_breakout(df, scaled=True, stop_pct=0.0065, tp1=0.75, tp2=3.0)
 
 
@@ -299,8 +304,12 @@ def breakout_cisd(df, window_h=12):
     lo30 = d4["Low"].rolling(30).min().shift(1).to_numpy()
     c4 = d4["Close"].to_numpy()
     brt, brs = [], []
+    nr = df.attrs.get("n_real")
+    last_real = df.index[nr - 1] if nr else None
     for k in range(31, len(d4)):
         sg = 1 if c4[k] > hi30[k] else -1 if c4[k] < lo30[k] else 0
+        if sg and last_real is not None and d4.index[k] + pd.Timedelta(hours=4) > last_real + pd.Timedelta(minutes=5):
+            continue                  # live: that 4H candle is still forming
         if sg:
             brt.append((d4.index[k] + pd.Timedelta(hours=4)).value)
             brs.append(sg)

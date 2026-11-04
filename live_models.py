@@ -36,12 +36,13 @@ def main():
     pad_idx = [df.index[-1] + pd.Timedelta(minutes=5 * (k + 1)) for k in range(PAD)]
     pad = pd.DataFrame({"Open": last, "High": last, "Low": last, "Close": last, "Volume": 0.0}, index=pad_idx)
     dfp = pd.concat([df, pad])
+    dfp.attrs["n_real"] = n_real   # models use it to refuse candles that have not really closed yet
 
     found = []
     real_run = research._run_trade
 
     def recorder(o, h, l, c, j0, j_end, sg, stop, tgt):
-        if j0 >= n_real:
+        if j0 >= n_real - 2:   # entry now, or up to 10 minutes ago if a cycle was missed
             found.append({"entry": float(o[j0]), "dir": "bull" if sg > 0 else "bear", "stop": float(stop), "target": float(tgt),
                           "_t": dfp.index[j0]})
         return real_run(o, h, l, c, j0, j_end, sg, stop, tgt)
@@ -49,7 +50,7 @@ def main():
     real_scaled = research._run_scaled
 
     def recorder_scaled(o, h, l, c, j0, j_end, sg, stop, tp1_r, tp2_r, part=0.5):
-        if j0 >= n_real:
+        if j0 >= n_real - 2:
             en = float(o[j0]); risk = abs(en - stop)
             found.append({"entry": en, "dir": "bull" if sg > 0 else "bear", "stop": float(stop), "target": en + sg * tp2_r * risk,
                           "tp1": en + sg * tp1_r * risk, "part": part, "_t": dfp.index[j0]})
