@@ -1404,6 +1404,53 @@ def quiet_checkin(ict, lv, news, df, lines, state):
         print("check-in sent")
 
 
+RADAR_QUIET_MIN = 90     # 4H-close radar only when the channel has been quiet this long
+
+
+def radar_post(df, lines, state):
+    """Strategy Radar (radar.py): live picture of where our strategy stands, posted when the day enters the 🖕 COMBO
+    zone (70%) or the 🖕🖕 PREMIUM zone (100%), once each per day, and after a 4H candle closes if the channel has
+    been quiet for 90+ minutes (08:00-24:00 local). Never right after another post (10 min)."""
+    import radar
+    rs = state.setdefault("radar", {})
+    loc = datetime.now(local_tz())
+    try:
+        last = float(open("data/cache/last_post").read())
+    except Exception:
+        last = 0
+    quiet = (time.time() - last) / 60
+    if quiet < 10 or loc.weekday() == 5 or not (6 <= loc.hour < 24):
+        return
+    tday = str((df.index[-1] - pd.Timedelta(hours=18)).date())
+    if rs.get("day") != tday:
+        rs.clear(); rs["day"] = tday
+    st = radar.status(df, lines)
+    why = None
+    if st["zone"] == 2 and not rs.get("premium"):
+        why = "premium"
+    elif st["zone"] >= 1 and not rs.get("combo"):
+        why = "combo"
+    d4 = resample(df, "4H")
+    closed = str(d4.index[-2]) if len(d4) > 1 else None
+    fresh = len(d4) > 1 and (df.index[-1] - (d4.index[-1])) <= pd.Timedelta(minutes=30)
+    if why is None and closed and closed != rs.get("last4h") and fresh and quiet >= RADAR_QUIET_MIN and 8 <= loc.hour < 24:
+        why = "4h"
+    if closed:
+        rs["last4h"] = closed if why in (None, "4h") or rs.get("last4h") is None else rs["last4h"]
+    if why is None:
+        return
+    title = {"combo": "Combo zone", "premium": "Premium zone", "4h": "Strategy Radar"}[why]
+    path, st = radar.chart(df, lines, "radar.png", local=local, title=title)
+    ok = send_photo(path, radar.caption(st, why, local(lines[2].timestamp())), title)
+    if ok or not os.environ.get("TELEGRAM_TOKEN"):
+        if why == "premium":
+            rs["premium"] = rs["combo"] = True
+        elif why == "combo":
+            rs["combo"] = True
+        rs["last4h"] = closed
+        print("radar sent:", why)
+
+
 PROOF_MIN_NEW = 3        # post the Signal Proof only when at least 3 new signals have closed since the last one
 PROOF_GAP_H = 12
 
@@ -1561,6 +1608,7 @@ def main():
         plan_watch(df, state)
         quiet_checkin(ict, lv, news, df, lines, state)
         proof_post(df, state)
+        radar_post(df, lines, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
