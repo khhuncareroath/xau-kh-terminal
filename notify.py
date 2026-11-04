@@ -150,7 +150,7 @@ def model_alert(lm, state, now):
     Entry is at the current price, as the backtest assumes. ALERT_MODE=watch turns these off. Returns True if sent."""
     if MODE == "watch":
         return False
-    sigs = [s for s in lm.get("signals", []) if s.get("proven")]
+    sigs = [s for s in lm.get("signals", []) if s.get("proven") and s.get("model") not in PLAN_MODELS]
     import research
     trend = [m for m in research.TREND_PREFERENCE if any(s["model"] == m for s in sigs)]
     if trend:                                                # same breakout: alert only the preferred proven version
@@ -300,7 +300,7 @@ def plan_alert(lm, state, now):
     """Plan trade from a candidate model (all nearby settings positive in testing, not yet past the proof bar)."""
     if MODE == "watch":
         return False
-    sigs = [s for s in lm.get("signals", []) if s.get("model") in PLAN_MODELS and not s.get("proven")]
+    sigs = [s for s in lm.get("signals", []) if s.get("model") in PLAN_MODELS]   # stays a plan trade (0.5%) until live results confirm
     if not sigs or (now - ts(lm.get("last_bar", "1970-01-01T00:00:00+00:00"))) / 60 > STALE_MIN:
         return False
     s = sigs[0]
@@ -317,7 +317,7 @@ def plan_alert(lm, state, now):
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
         f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
         reason["bull" if bull else "bear"],
-        "Tested 2 years: about half win, small profit overall · closes within 8 h",
+        "Tested 2 years: 50% win, +0.18R per trade · Day Range < 70% used · closes within 8 h",
         "", "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>"])
     mid = send(msg, ("BUY" if bull else "SELL") + " plan")
     if not mid:

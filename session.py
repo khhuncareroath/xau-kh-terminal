@@ -381,9 +381,15 @@ def plan_watch(df, state):
     x = df[df.index >= start]
     entered = any(e.get("kind") == "plan" and e.get("created", 0) >= start.timestamp() for e in jl("alerts_log.json", []))
     msg = None
+    adr, today = daily_range_stats(df)
+    used = today / adr if adr else 0
     if inside and len(x) and "touch" not in rec["sent"] and not entered:
         hit = (x["High"] >= p["edge"]).any() if s_ else (x["Low"] <= p["edge"]).any()
-        if hit:
+        if hit and used >= 0.7:
+            msg, tag = (f"🟡 <b>PLAN UPDATE · price is at the POC {fmt(p['edge'])}, but the plan is skipped</b>\n"
+                        f"📐 Day Range already {used * 100:.0f}% used: little room left for the move. "
+                        f"In testing, plans this late lost money. <b>No trade.</b>"), "touch"
+        elif hit:
             msg, tag = (f"🟡 <b>PLAN UPDATE · price is at the POC {fmt(p['edge'])}</b>\n"
                         f"Next: wait for a 15m candle to close {'below' if s_ else 'above'} {fmt(p['edge'])}. "
                         f"The {'SELL' if s_ else 'BUY'} entry comes here automatically. Don't enter before it."), "touch"
@@ -545,7 +551,7 @@ def plan_line(p, price=None):
         return (f"🟡 <b>PLAN</b>: skipped · stop would be ${risk:,.0f} (too big for intraday, over 0.6%). Wait for the ⚡ signal.")
     return (f"🟡 <b>PLAN: {'SELL' if s else 'BUY'} {fmt(p['edge'])}</b> (POC)\n"
             f"{p['from']} {'b-shape: sellers' if s else 'P-shape: buyers'} in control · entry after a 15m close {'below' if s else 'above'} · "
-            f"SL {'above' if s else 'below'} pullback (~${risk:,.0f}) · TP 1.5R")
+            f"SL {'above' if s else 'below'} pullback (~${risk:,.0f}) · TP 1.5R · only while 📐 Day Range < 70% used")
 
 
 def analysis_chart(df, lv, conf, lines, path, title):

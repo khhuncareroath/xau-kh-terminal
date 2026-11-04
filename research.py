@@ -340,7 +340,7 @@ def _vp(h, l, c, v, ix):
     return bins[p], bins[a], bins[b], lo, hi
 
 
-def vp_shape(df, th=0.55, rr=1.5):
+def vp_shape(df, th=0.55, rr=1.5, max_used=0.7):
     """Volume-profile shape of the previous session (from the member's order-flow PDF). Sessions (New York time):
     Asia 18-02, London 02-07, New York 07-12. POC in the top third = P shape (buyers won) -> in the next session buy
     the pullback to the POC; bottom third = b shape -> sell the pullback to the POC. Entry after price touches the POC
@@ -361,6 +361,10 @@ def vp_shape(df, th=0.55, rr=1.5):
         if s_ >= 0:
             groups.setdefault((d, s_), []).append(i)
     order = sorted(groups)
+    days = sorted(set(date))
+    dpos = {d: np.where(date == d)[0] for d in days}
+    drng = {d: h[dpos[d]].max() - l[dpos[d]].min() for d in days}
+    dix = {d: k for k, d in enumerate(days)}
     out = []
     for g0, g1 in zip(order[:-1], order[1:]):
         prev, nxt = np.array(groups[g0]), groups[g1]
@@ -384,6 +388,13 @@ def vp_shape(df, th=0.55, rr=1.5):
                 j0 = i + 1 + LAT
                 if j0 + 1 >= n or (nr is not None and j0 > nr):
                     break
+                if max_used:   # XAU.KH Day Range: skip when most of the normal daily move is already used
+                    dd = date[i]; kk = dix[dd]
+                    if kk >= 10:                                     # live window is 20 days: use what is there
+                        adr = np.median([drng[x] for x in days[max(0, kk - 20):kk]])
+                        pp = dpos[dd][dpos[dd] <= i]
+                        if (h[pp].max() - l[pp].min()) / adr >= max_used:
+                            break
                 ext = l[touched:i + 1].min() if sg > 0 else h[touched:i + 1].max()
                 stop = min(wrong, ext - 0.5) if sg > 0 else max(wrong, ext + 0.5)
                 risk = abs(o[j0] - stop)
