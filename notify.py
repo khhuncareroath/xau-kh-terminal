@@ -167,7 +167,7 @@ def model_alert(lm, state, now):
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
-    pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
+    pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 1:+,.1f} លេខ"
     why_short = {"bull": "4H breakout: a 4H candle closed above this week's high. Big moves often start like this.",
                  "bear": "4H breakdown: a 4H candle closed below this week's low. Big drops often start like this."}
     if LANG != "km":
@@ -183,7 +183,9 @@ def model_alert(lm, state, now):
                 (f"Tested 2 years: {b.get('trades')} trades · {b.get('win_rate_pct')}% win" if b.get("trades") else None),
                 (f"⚠️ {'Buys' if bull else 'Sells'} are the weaker side: use a smaller size." if side.get("trades") and side["avg_R"] < 0.1
                  and s["model"] != "trend_buy" else None),
-                f"⏰ Enter within 15 min · can stay open up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · holds up to {hold_h} h",
+                ("<i>Wide SL on purpose: a 1–5 day 4H trade, not a scalp. Tighter SL tested worse, so use a smaller lot. "
+                 "SL ធំ ព្រោះជាការជួញដូរ 4H · ប្រើ lot តូច</i>") if s["model"] in ("trend_tight", "trend_breakout", "trend_buy") else None,
+                f"⏰ Enter within 15 min · holds up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · holds up to {hold_h} h",
                 "", "<i>Risk 0.5–1% of your account · ប្រើហានិភ័យ 0.5–1% ប៉ុណ្ណោះ</i>"]
     else:
         out += [f"{'🟢' if bull else '🔴'} <b>មាស · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>",
@@ -308,7 +310,7 @@ def plan_alert(lm, state, now):
     if key in state.get("model_keys", []):
         return False
     bull = s["dir"] == "bull"
-    pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
+    pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 1:+,.1f} លេខ"
     reason = {"bull": "P-shape volume profile (buyers in control). Price pulled back to the POC (busiest price) and a 15m candle closed above it.",
               "bear": "b-shape volume profile (sellers in control). Price pulled back to the POC (busiest price) and a 15m candle closed below it."}
     msg = "\n".join([

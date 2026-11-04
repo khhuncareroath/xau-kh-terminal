@@ -91,7 +91,7 @@ def reply_text(a):
 def _reply_text(a):
     s = a["status"]
     sg = 1 if a["dir"] == "bull" else -1
-    pips = lambda px: f"{(px - a['entry']) * sg * 10:+,.0f} pips"
+    pips = lambda px: f"{(px - a['entry']) * sg * 1:+,.1f} លេខ"
     if s == "win":
         return f"🏆 <b>TP{'2' if a.get('tp1') else ''} hit</b> {pips(a['target'])} · ដល់ TP"
     if s == "tp1":
@@ -148,7 +148,7 @@ def main():
                 risk = abs(a["entry"] - a["stop"]) or 1
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
             if a.get("hit1") and not had_tp1:
-                send(f"🎯 <b>TP1 hit</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 10:+,.0f} pips · close half, "
+                send(f"🎯 <b>TP1 hit</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 1:+,.1f} លេខ · close half, "
                      f"move SL to {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))

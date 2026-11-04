@@ -333,7 +333,7 @@ def plan_entry(df, a, key, state, c15):
     if risk < 2:
         return
     tp = entry - 2 * risk if s else entry + 2 * risk
-    pips = lambda px: f"{(px - entry) * (-1 if s else 1) * 10:+,.0f} pips"
+    pips = lambda px: f"{(px - entry) * (-1 if s else 1) * 1:+,.1f} លេខ"
     lvl = a.get("names", ["the level"])[0]
     msg = "\n".join([
         f"{'🔴' if s else '🟢'} <b>GOLD {'SELL' if s else 'BUY'} NOW · {'លក់' if s else 'ទិញ'}ឥឡូវ</b>  <i>(plan trade)</i>", "",
@@ -671,7 +671,7 @@ def trade_chart(df, lv, sig, path):
     BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
     bull = sig["dir"] == "bull"
     en, sl, tp = sig["entry"], sig["stop"], sig["target"]
-    pips = lambda px: f"{(px - en) * (1 if bull else -1) * 10:+,.0f} pips"
+    pips = lambda px: f"{(px - en) * (1 if bull else -1):+,.1f} $"
     p = vp_plan(df) or {}
     lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
     d = resample(df, "15m").tail(100)
