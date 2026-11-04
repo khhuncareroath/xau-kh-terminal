@@ -730,7 +730,7 @@ def daily_range_stats(df):
     return adr, today
 
 
-def market_map(df, lv, lines, path):
+def market_map(df, lv, lines, path, tf="1H", bars=110, strength=4, title="Daily Market Map", focus=None):
     """Full analysis picture: 1H candles of the last ~5 days, swing structure (HH/HL/LH/LL), a 5-day volume profile
     with its POC, key levels, the 4H signal lines and two if/then scenarios. Returns (path, text)."""
     import matplotlib
@@ -741,7 +741,7 @@ def market_map(df, lv, lines, path):
     from ict import swings
     plt.rcParams["font.family"] = "DejaVu Sans"
     BG, PANEL, GRID, INK, MUT, UP, DN, GOLD, BLUE = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B", "#5AC8FA"
-    d1 = resample(df, "1H").tail(110)
+    d1 = resample(df, tf).tail(bars)
     price = float(df["Close"].iloc[-1])
     upper, lower, _, _ = lines
     lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
@@ -755,7 +755,7 @@ def market_map(df, lv, lines, path):
     bins = np.arange(np.floor(plo), np.ceil(phi) + 1, 1.0)
     vol, _ = np.histogram(tp_, bins=bins, weights=np.maximum(V_[last5], 1))
     # swing structure on 1H
-    sw = swings(d1, 4)                                   # stronger 1H swings (4 candles each side)
+    sw = swings(d1, strength)
     labels, lastH, lastL = [], None, None
     for _, i, k, p in sw:
         if k == "H":
@@ -775,7 +775,7 @@ def market_map(df, lv, lines, path):
     dn_trig = lows[0] if lows else None
     up_tgt = min((y for y in cands if up_trig and y >= up_trig + gap), default=None)
     dn_tgt = max((y for y in cands if dn_trig and y <= dn_trig - gap), default=None)
-    ys = [float(d1["Low"].min()), float(d1["High"].max()), *(y for y in (up_tgt, dn_tgt) if y),
+    ys = [float(d1["Low"].min()), float(d1["High"].max()), *(y for y in (up_tgt, dn_tgt, focus) if y),
           *((dop + 2.2 * dstep, dop - 2.2 * dstep) if dstep else ())]
     lo, hi = min(ys), max(ys); pad = (hi - lo) * 0.06
     fig = plt.figure(figsize=(12, 6.6), dpi=150); fig.patch.set_facecolor(BG)
@@ -833,7 +833,7 @@ def market_map(df, lv, lines, path):
             ax.text(x0 + 17.5, tgt, f"{tgt:,.0f} ", color=col, fontsize=8.5, va="bottom" if col == UP else "top", ha="right", fontweight="bold")
     score_up = sum(1 for _, _, t, _ in labels[-4:] if t in ("HH", "HL")); score_dn = sum(1 for _, _, t, _ in labels[-4:] if t in ("LH", "LL"))
     struct = "Bullish structure (HH + HL)" if score_up >= 3 else "Bearish structure (LH + LL)" if score_dn >= 3 else "Mixed structure (range)"
-    fig.text(0.035, 0.94, f"Gold · Daily Market Map · {local(time.time())}", color=INK, fontsize=14, fontweight="bold")
+    fig.text(0.035, 0.94, f"Gold · {title} ({tf}) · {local(time.time())}", color=INK, fontsize=14, fontweight="bold")
     fig.text(0.035, 0.905, f"{struct}  ·  price {price:,.2f}", color=GOLD, fontsize=10.5)
     fig.text(0.035, 0.03, "HH/HL = buyers · LH/LL = sellers · zones = XAU.KH Day Range (open ± ¼ ADR steps, % of days reached) · a map, not a signal",
              color=MUT, fontsize=7.5)
@@ -1264,13 +1264,18 @@ def heads_up(df, lines, state):
         dist = (level - price) if side == "BUY" else (price - level)
         key = f"{day}|{side}|{level:.2f}"
         if 0 < dist <= price * HEADS_UP_PCT and key not in sent:
-            en = (f"⚡ <b>Possible {side}</b>: gold {fmt(price)} is {dist:,.1f} from {fmt(level)}.\n"
-                  f"{side} signal if the 4H candle closing at {local(next_close.timestamp())} finishes {'above' if side == 'BUY' else 'below'} it. "
-                  f"<i>Don't enter early.</i>")
-            km = (f"⚡ <b>ត្រៀមខ្លួន · អាច{'ទិញ' if side == 'BUY' else 'លក់'}</b>\nមាសនៅឆ្ងាយ {dist:,.1f} ពី {fmt(level)}។ "
-                  f"បើ 4H បិទ{'លើ' if side == 'BUY' else 'ក្រោម'}វានៅម៉ោង {local(next_close.timestamp())} បូតនឹងផ្ញើសញ្ញា។")
-            msg = km if LANG == "km" else en + ("\n\n" + km if LANG == "both" else "")
-            if send(msg, f"Heads up {side}"):
+            up = side == "BUY"
+            msg = "\n".join([f"{'🟢' if up else '🔴'} <b>{side} SIGNAL MAY BE NEXT</b> · {'ជិតសញ្ញាទិញ' if up else 'ជិតសញ្ញាលក់'}",
+                              f"Gold <b>{fmt(price)}</b> · only <b>{dist:,.1f}</b> from the 4H line <b>{fmt(level)}</b>",
+                              f"⏰ 4H candle closes <b>{local(next_close.timestamp())}</b> {'above' if up else 'below'} it → ✅ {side}",
+                              "<i>Get ready, don't enter early · ត្រៀមខ្លួន កុំចូលមុន</i>"])
+            try:
+                ok = send_photo(market_map(df, jl("levels.json"), lines, "headsup_map.png", tf="15m", bars=96, strength=3,
+                                           title=f"{side} signal watch", focus=level)[0], msg, f"Heads up {side}")
+            except Exception as e:
+                print("heads-up chart failed:", e)
+                ok = send(msg, f"Heads up {side}")
+            if ok:
                 sent[key] = time.time()
                 print("heads-up sent", key)
     state["heads_up"] = {k: v for k, v in sent.items() if time.time() - v < 3 * 86400}
@@ -1327,7 +1332,7 @@ MINDSET = [
     ("Use the quiet time: review your last 3 trades in the journal.", "ប្រើពេលស្ងាត់: ពិនិត្យការជួញដូរ 3 ចុងក្រោយក្នុង journal។"),
     ("Small risk keeps you in the game until the big move comes.", "ហានិភ័យតិច ធ្វើឱ្យអ្នកនៅក្នុងហ្គេម រហូតដល់ចលនាធំមកដល់។"),
 ]
-CHECKIN_GAP_H = 3
+CHECKIN_GAP_H = 2
 
 
 def quiet_checkin(ict, lv, news, df, lines, state):
@@ -1335,7 +1340,7 @@ def quiet_checkin(ict, lv, news, df, lines, state):
     where gold is, how much of the day's range is used, exactly what the bot is waiting for, next event, a mindset line.
     Max 2 a day."""
     loc = datetime.now(local_tz())
-    if loc.weekday() > 4 or not (9 <= loc.hour < 23):
+    if loc.weekday() > 4 or not (8 <= loc.hour < 24):
         return
     try:
         last = float(open("data/cache/last_post").read())
@@ -1345,7 +1350,7 @@ def quiet_checkin(ict, lv, news, df, lines, state):
         open("data/cache/last_post", "w").write(str(last))
     day = loc.strftime("%Y-%m-%d")
     done = [t for t in state.get("checkins", []) if t.startswith(day)]
-    if time.time() - last < CHECKIN_GAP_H * 3600 or len(done) >= 2:
+    if time.time() - last < CHECKIN_GAP_H * 3600 or len(done) >= 4:
         return
     price = float(df["Close"].iloc[-1])
     score, word, b = direction(ict, lv, price)
@@ -1372,14 +1377,23 @@ def quiet_checkin(ict, lv, news, df, lines, state):
     zone = "" if used is None else ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done")
     wait = (f"{'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else
             f"4H close > {fmt(upper)} = BUY · < {fmt(lower)} = SELL")
-    text = "\n".join([f"🧭 <b>MARKET CHECK-IN</b> · {fmt(price)} {arrow}" + (f" · Day Range {used * 100:.0f}% ({zone})" if used is not None else ""),
-                       f"⏳ Waiting for: <b>{wait}</b>" + (f" · next: {nx[1]} {local(nx[0].timestamp())}" if nx else ""),
+    kind = len(done) % 3
+    d15 = resample(df, "15m")
+    mv = float(df["Close"].iloc[-1] - d15["Close"].iloc[-9]) if len(d15) > 9 else 0.0   # last 2 hours
+    head = (["⚡ <b>15M LIVE READ</b>", "🗺 <b>MARKET MAP</b>", "🎯 <b>SETUP WATCH</b>"][kind] +
+            f" · Gold <b>{fmt(price)}</b> ({mv:+,.1f} in 2h) {arrow}")
+    text = "\n".join([head,
+                       f"⏳ Waiting for: <b>{wait}</b>",
+                       *([f"📐 Day Range {used * 100:.0f}% · {zone}"] if used is not None else []),
+                       *([f"⏭ {nx[1]} {local(nx[0].timestamp())}"] if nx else []),
                        f"💡 <i>{m_km}</i>"])
     try:
-        if len(done) % 2 == 0:
+        if kind == 0:
+            path, _ = market_map(df, lv, lines, "checkin_15m.png", tf="15m", bars=96, strength=3, title="Live Read")
+        elif kind == 1:
             path, _ = market_map(df, lv, lines, "checkin_map.png")
         else:
-            path = analysis_chart(df, lv, {}, lines, "checkin_plan.png", f"Gold · check-in · {local(time.time())}")
+            path = analysis_chart(df, lv, {}, lines, "checkin_plan.png", f"Gold · setup watch · {local(time.time())}")
         ok = send_photo(path, text, "Check-in")
     except Exception as e:
         print("check-in chart failed:", e)
