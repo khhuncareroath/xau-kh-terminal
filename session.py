@@ -31,7 +31,7 @@ LANG = os.environ.get("BOT_LANG", "en")
 if LANG == "both":   # English messages already carry Khmer labels inline; no second full block
     LANG = "en"
 HEADS_UP_PCT = 0.0025          # 0.25% of price, about $10 at $3,900
-SESSIONS = [("Asia", 17, 30, (6, 0, 1, 2, 3)), ("London", 1, 30, (0, 1, 2, 3, 4)), ("New York", 7, 0, (0, 1, 2, 3, 4))]
+SESSIONS = [("Asia", 17, 30, (6, 0, 1, 2, 3)), ("London", 2, 5, (0, 1, 2, 3, 4)), ("New York", 7, 0, (0, 1, 2, 3, 4))]
 KM_SESSION = {"Asia": "អាស៊ី", "London": "ឡុងដ៍", "New York": "ញូវយ៉ក"}
 STATE = "session_state.json"
 
@@ -425,6 +425,67 @@ def _trendlines(d1):
     return [(pts, kind) for pts, kind in ((hs, "res"), (ls, "sup")) if len(pts) == 2 and pts[1][0] - pts[0][0] >= 3]
 
 
+SESS_WIN = {0: (18, 2), 1: (2, 7), 2: (7, 12)}          # same sessions as research.vp_shape (New York hours)
+SESS_NAME = {0: "Asia", 1: "London", 2: "New York"}
+
+
+def vp_plan(df):
+    """The 🟡 plan-trade setup for the current/next session: shape of the last finished session's volume profile.
+    Same rules as research.vp_shape (so the prep shows exactly what the bot will trade)."""
+    import research
+    idx = df.index
+    hr = idx.hour + idx.minute / 60
+    date = (idx - pd.Timedelta(hours=18)).date
+    sess = np.where((hr >= 18) | (hr < 2), 0, np.where(hr < 7, 1, np.where(hr < 12, 2, -1)))
+    groups = {}
+    for i, (d, s_) in enumerate(zip(date, sess)):
+        if s_ >= 0:
+            groups.setdefault((d, s_), []).append(i)
+    keys = sorted(groups)
+    now = datetime.now(NY)
+    h = now.hour + now.minute / 60
+    cur = 0 if (h >= 18 or h < 2) else 1 if h < 7 else 2 if h < 12 else -1
+    if keys and cur >= 0 and keys[-1][1] == cur and (now - timedelta(hours=18)).date() == keys[-1][0]:
+        keys = keys[:-1]                                   # that session is still running: use the one before
+    if not keys:
+        return None
+    k = keys[-1]
+    ix = np.array(groups[k])
+    if len(ix) < 30:
+        return None
+    hi_, lo_, c_, v_ = (df[c].to_numpy() for c in ("High", "Low", "Close", "Volume"))
+    poc, val, vah, lo, hi = research._vp(hi_, lo_, c_, v_, ix)
+    pos = (poc - lo) / (hi - lo) if hi > lo else 0.5
+    nxt = SESS_NAME[(k[1] + 1) % 3]
+    base = {"from": SESS_NAME[k[1]], "for": nxt, "poc": round(float(poc), 2), "val": round(float(val), 2), "vah": round(float(vah), 2)}
+    if pos >= 0.66:
+        return {**base, "shape": "P", "side": "BUY", "edge": base["poc"], "inval": base["val"]}
+    if pos <= 0.34:
+        return {**base, "shape": "b", "side": "SELL", "edge": base["poc"], "inval": base["vah"]}
+    return {**base, "shape": "D", "side": None}
+
+
+def plan_areas(df):
+    p = vp_plan(df)
+    if not p or not p.get("side"):
+        return {}
+    price = float(df["Close"].iloc[-1])
+    return {p["side"]: {"side": p["side"], "edge": p["edge"], "lo": p["edge"], "hi": p["edge"], "inval": p["inval"],
+                        "names": ["POC"], "dist": round(abs(p["edge"] - price), 1), "target": None}}
+
+
+def plan_line(p):
+    if not p:
+        return "🟡 Plan trade: not enough data for the last session."
+    if not p.get("side"):
+        return (f"🟡 {p['from']} volume was balanced (D shape): <b>no plan trade</b> in {p['for']}. "
+                f"Wait for the ✅ 4H signal.")
+    s = p["side"] == "SELL"
+    return (f"🟡 {p['from']} volume built at the {'bottom (b shape): sellers won' if s else 'top (P shape): buyers won'}.\n"
+            f"Plan for {p['for']}: <b>{'sell' if s else 'buy'} the pullback to {fmt(p['edge'])}</b> (POC) "
+            f"after a 15m close back {'below' if s else 'above'} · stop beyond {fmt(p['inval'])} · target 2R")
+
+
 def analysis_chart(df, lv, conf, lines, path, title):
     """Mentor-style picture: 4H context on the left, 15m execution on the right. Yesterday's range, the with-trend
     zone with its position box (entry, stop, 2R target), a dashed projected path, and short structure labels."""
@@ -436,8 +497,8 @@ def analysis_chart(df, lv, conf, lines, path, title):
     BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
     price = float(df["Close"].iloc[-1])
     ts = trend_state(df)
-    areas = intraday_areas(lv, conf, price)
-    side = "BUY" if ts > 0 else "SELL" if ts < 0 else None
+    areas = plan_areas(df)
+    side = next(iter(areas), None)
     plan = areas.get(side) if side else None
     lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
     upper, lower, _, _ = lines
@@ -496,7 +557,7 @@ def analysis_chart(df, lv, conf, lines, path, title):
         axR.add_patch(Rectangle((x0, min(en, stp)), x1 - x0, abs(en - stp), color=DN, alpha=0.25, lw=0))
         axR.add_patch(Rectangle((0, plan["lo"] - 0.6), N, plan["hi"] - plan["lo"] + 1.2, color=GOLD, alpha=0.12, lw=0))
         for y, txt, col, va in ((tgt, f"Target {tgt:,.2f}", UP, "bottom" if bull else "top"),
-                                (en, f"{'Buy' if bull else 'Sell'} zone {en:,.2f}", GOLD, "top" if bull else "bottom"),
+                                (en, f"POC {'buy' if bull else 'sell'} zone {en:,.2f}", GOLD, "top" if bull else "bottom"),
                                 (stp, f"Stop {stp:,.2f}", DN, "top" if bull else "bottom")):
             axR.plot([x0, x1], [y, y], color=col, lw=1)
             axR.text(x0 + 0.6, y, txt, color=col, fontsize=8, va=va, fontweight="bold")
@@ -505,12 +566,12 @@ def analysis_chart(df, lv, conf, lines, path, title):
         py = [price, en, en + (tgt - en) * 0.45, en + (tgt - en) * 0.3, tgt]
         axR.plot(px, py, color=INK, lw=1.2, ls=(0, (3, 2)), alpha=0.9)
         axR.annotate("", xy=(px[-1], py[-1]), xytext=(px[-2], py[-2]), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.2))
-        tag = f"Target {'Buy' if bull else 'Sell'}  ·  wait for a 15m close back {'above' if bull else 'below'} the zone"
+        tag = f"Plan: {'buy' if bull else 'sell'} the pullback to the POC  ·  wait for a 15m close back {'above' if bull else 'below'}"
     else:
-        tag = "No 4H trend yet: wait for the breakout signal"
+        tag = "Balanced volume (D shape): no plan trade this session, wait for the 4H signal"
     fig.text(0.035, 0.94, title, color=INK, fontsize=14, fontweight="bold")
     fig.text(0.035, 0.905, tag, color=GOLD, fontsize=10)
-    fig.text(0.035, 0.03, "XAU.KH · spot XAUUSD · zone = with-trend level from the plan · a map, not a promise", color=MUT, fontsize=7.5)
+    fig.text(0.035, 0.03, "XAU.KH · spot XAUUSD · zone = POC of the last session volume profile (plan trade rules) · a map, not a promise", color=MUT, fontsize=7.5)
     fig.savefig(path, facecolor=BG)
     plt.close(fig)
     return path
@@ -697,12 +758,10 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     struct = f"Swing (4H) {bw(ts)} · Internal (1H) {bw(b['1H'])}"
     rng = f"Yesterday's range {fmt(lad['Prev day low'])} – {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
     out = [f"{head} <b>{name.upper()}</b> · Gold <b>{fmt(price)}</b> · {word} {arrow}", struct, *([rng] if rng else []), "",
-           *[f"{'🔴 Sell' if k == 'SELL' else '🟢 Buy'} <b>{fmt(areas[k]['edge'])}</b> · stop {'above' if k == 'SELL' else 'below'} "
-             f"{fmt(areas[k]['inval'])}" + (" ✅ with trend" if ts == (1 if k == "BUY" else -1) else " · against trend, skip")
-             for k in ("SELL", "BUY") if k in areas],
+           plan_line(vp_plan(df)),
            f"⚡ 4H close above {fmt(upper)} = BUY signal · below {fmt(lower)} = SELL signal",
            *([risk] if risk else []),
-           "", "<i>Wait for a 15m candle to close back from the level before entering.</i>"]
+           "", "<i>✅ 4H signal: tested, 69% win · 🟡 plan trade: small edge, risk 0.5%</i>"]
     if LANG == "km":
         out = [f"{head} <b>សម័យ {KM_SESSION[name]}</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
                *[f"{'🔴 លក់' if k == 'SELL' else '🟢 ទិញ'} <b>{fmt(areas[k]['edge'])}</b> · stop {fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
@@ -742,7 +801,9 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     nx = sorted([(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e["title"]) for e in news.get("events", [])
                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > datetime.now(timezone.utc)])[:1]
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
-    lv_line = " · ".join(f"{'🔴 Sell' if k == 'SELL' else '🟢 Buy'} {fmt(areas[k]['edge'])}" for k in ("SELL", "BUY") if k in areas)
+    p = vp_plan(df)
+    lv_line = (f"🟡 Plan: {'sell' if p['side'] == 'SELL' else 'buy'} the pullback to {fmt(p['edge'])} (POC)" if p and p.get("side")
+               else "🟡 No plan trade this session (balanced volume)")
     out = [f"⏱ Gold <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} in 1h) · {word} {arrow}",
            *([lv_line] if lv_line else []),
            *([f"📰 {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600 else [])]
@@ -754,7 +815,7 @@ def pulse_send(ict, conf, lv, news, df, lines, macro, why):
     try:
         price = float(df["Close"].iloc[-1])
         sc, wd, _ = direction(ict, lv, price)
-        card(df, price, wd, sc, intraday_areas(lv, conf, price), "pulse_card.png", f"GOLD · UPDATE · {local(time.time())}")
+        card(df, price, wd, sc, plan_areas(df), "pulse_card.png", f"GOLD · UPDATE · {local(time.time())}")
         return send_photo("pulse_card.png", text, "Gold pulse")
     except Exception as e:
         print("pulse card failed:", e)
@@ -880,7 +941,8 @@ def main():
     heads_up(df, lines, state)
     try:
         intraday_alerts(df, lv, conf, ict, state, news)   # old 🟠 alerts: off unless INTRADAY_ALERTS=on
-        near_level_alert(df, lv, conf, ict, state)
+        if os.environ.get("LEVEL_ALERTS") == "on":   # level heads-ups had no edge in testing: off
+            near_level_alert(df, lv, conf, ict, state)
         pre_news(news, state)
     except Exception as e:
         print("level alerts failed:", e)
