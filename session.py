@@ -1292,17 +1292,22 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     near = min(upper - price, price - lower) <= price * 0.004
     out = [f"⏱ មាស <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} ក្នុង 1 ម៉ោង) · {KW[word]} {arrow}"]
     if near:
-        up = upper - price < price - lower
-        out.append(f"⚡ ជិតខ្សែសញ្ញា 4H <b>{fmt(upper if up else lower)}</b> (នៅ {abs((upper if up else lower) - price):,.1f}): "
-                   f"បើទៀន 4H បិទ{'លើ' if up else 'ក្រោម'} → សញ្ញា {'ទិញ BUY' if up else 'លក់ SELL'}។ កុំចូលមុន។")
-    out.append(f"🟡 ផែនការ: {'លក់ SELL' if p['side'] == 'SELL' else 'ទិញ BUY'} នៅ POC {fmt(p['edge'])}" if plan_ok else "🟡 សម័យនេះគ្មានផែនការ")
+        up = abs(upper - price) < abs(price - lower)
+        lvl = upper if up else lower
+        nxt4 = resample(df, "4H").index[-1] + pd.Timedelta(hours=4)
+        beyond = price > upper if up else price < lower
+        out.append(f"⚡ <b>4H {'BUY' if up else 'SELL'} line {fmt(lvl)}</b>: price is {'already ' + ('above' if up else 'below') if beyond else f'{abs(lvl - price):,.1f} away'}. "
+                   f"{'BUY' if up else 'SELL'} signal only if the 4H candle closing at {local(nxt4.timestamp())} is {'above' if up else 'below'} it. Don't enter early.")
+    out.append(f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else "🟡 No plan this session: wait")
     if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600:
         out.append(f"📰 {esc(nx[0][1])} ម៉ោង {local(nx[0][0].timestamp())}")
     return "\n".join(out)
 
 
 def pulse_send(ict, conf, lv, news, df, lines, macro, why):
-    text = pulse_text(ict, conf, lv, news, df, lines, macro).replace("\n", f" · 🔔 {why}\n", 1)
+    text = pulse_text(ict, conf, lv, news, df, lines, macro)
+    if "4H" not in why:
+        text = text.replace("\n", f" · 🔔 {why}\n", 1)
     try:
         price = float(df["Close"].iloc[-1])
         sc, wd, _ = direction(ict, lv, price)
