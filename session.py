@@ -273,6 +273,28 @@ def intraday_alerts(df, lv, conf, ict, state, news):
     state["intraday"] = {k: v for k, v in st.items() if now - v["t"] < 3 * 86400}
 
 
+def pre_news(news, state):
+    """One calm warning 30 minutes before high-impact USD news (events at the same minute grouped)."""
+    now = datetime.now(timezone.utc)
+    sent = state.setdefault("pre_news", {})
+    groups = {}
+    for e in news.get("events", []):
+        if e.get("impact") == "High":
+            t = datetime.fromisoformat(e["time"].replace("Z", "+00:00"))
+            if timedelta(minutes=20) <= t - now <= timedelta(minutes=35):
+                groups.setdefault(t, []).append(e["title"])
+    for t, titles in sorted(groups.items()):
+        key = t.isoformat()
+        if key in sent:
+            continue
+        msg = (f"📰 <b>In {round((t - now).total_seconds() / 60)} min ({local(t.timestamp())})</b>: {esc(', '.join(dict.fromkeys(titles)))}\n"
+               f"Big moves likely. No new entries 15 min before → 15 min after.")
+        if send(msg, "News soon") or not os.environ.get("TELEGRAM_TOKEN"):
+            sent[key] = time.time()
+            print("pre-news sent", key)
+    state["pre_news"] = {k: v for k, v in sent.items() if time.time() - v < 3 * 86400}
+
+
 def near_level_alert(df, lv, conf, ict, state):
     """Calm 'price is near your level' alert: only the sell/buy levels shown in the session prep, each at most once a
     day, at most one alert an hour, nothing when the big direction is strongly against it.
@@ -510,7 +532,11 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     risk = (f"📰 {esc(ev[0][1])} at {local(ev[0][0].timestamp())}: expect fast moves" if ev else
             f"⚠️ Volatile ({vol:.1f}x normal): use a smaller lot" if vol >= 1.3 else
             "⚠️ No clear direction: don't force trades" if abs(score) < 20 else None)
-    out = [f"{head} <b>{name.upper()}</b> · Gold <b>{fmt(price)}</b> · {word} {arrow}", "",
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    bw = lambda v: "Bull ↑" if v > 0 else "Bear ↓" if v < 0 else "Range"
+    struct = f"Swing (4H) {bw(b['4H'])} · Internal (1H) {bw(b['1H'])}"
+    rng = f"Yesterday's range {fmt(lad['Prev day low'])} – {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
+    out = [f"{head} <b>{name.upper()}</b> · Gold <b>{fmt(price)}</b> · {word} {arrow}", struct, *([rng] if rng else []), "",
            *[f"{'🔴 Sell' if k == 'SELL' else '🟢 Buy'} <b>{fmt(areas[k]['edge'])}</b> · stop {'above' if k == 'SELL' else 'below'} "
              f"{fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
            f"⚡ 4H close above {fmt(upper)} = BUY signal · below {fmt(lower)} = SELL signal",
@@ -690,6 +716,7 @@ def main():
     try:
         intraday_alerts(df, lv, conf, ict, state, news)   # old 🟠 alerts: off unless INTRADAY_ALERTS=on
         near_level_alert(df, lv, conf, ict, state)
+        pre_news(news, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \

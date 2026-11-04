@@ -91,20 +91,20 @@ def reply_text(a):
 def _reply_text(a):
     s = a["status"]
     sg = 1 if a["dir"] == "bull" else -1
-    pts = lambda px: f"{(px - a['entry']) * sg:+.1f} points"
+    pips = lambda px: f"{(px - a['entry']) * sg * 10:+,.0f} pips"
     if s == "win":
-        return f"{ICON[s]} <b>Target reached · ដល់គោលដៅ</b> at {fmt(a['target'])} ({pts(a['target'])})"
+        return f"🏆 <b>TP2 hit</b> {pips(a['target'])} · ដល់ TP2"
     if s == "tp1":
-        return (f"{ICON[s]} <b>Win · ឈ្នះ: half closed at TP1</b> {fmt(a['tp1'])} ({pts(a['tp1'])}), "
-                f"the rest closed at entry with no loss. +{a['R']}R")
+        return f"✅ <b>Closed in profit</b>: TP1 {pips(a['tp1'])}, rest at entry · ឈ្នះ"
     if s == "loss":
-        return f"{ICON[s]} <b>Stop hit · ប៉ះកាត់ខាត</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
+        return f"❌ <b>SL hit</b> {pips(a['exit'])} · ប៉ះ SL"
     if s == "expired":
-        return f"{ICON[s]} <b>Expired · ផុតកំណត់</b>: price never came back to the zone. No trade."
+        return "⚪ <b>Expired</b>: price never reached the entry. No trade."
     if s == "missed":
-        return f"{ICON[s]} <b>Missed · ខកខាន</b>: price went to the target without coming back to the zone first. No trade."
+        return "⚪ <b>Missed</b>: price left without the entry. No trade."
     hrs = round(a.get("max_hold_s", MAX_HOLD_S) / 3600)
-    return f"{ICON[s]} <b>Closed after {hrs} hours · បិទ</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
+    return f"⏱ <b>Closed after {hrs // 24} days</b> at {fmt(a['exit'])} ({pips(a['exit'])})" if hrs >= 48 else \
+        f"⏱ <b>Closed after {hrs} h</b> at {fmt(a['exit'])} ({pips(a['exit'])})"
 
 
 def summary(log):
@@ -148,8 +148,8 @@ def main():
                 risk = abs(a["entry"] - a["stop"]) or 1
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
             if a.get("hit1") and not had_tp1:
-                send(f"🎯 <b>TP1 reached · ដល់ TP1</b> at {fmt(a['tp1'])}: close half now and move your stop to {fmt(a['fill'])}. "
-                     f"The rest runs to {fmt(a['target'])} with no risk.\nបិទពាក់កណ្ដាលឥឡូវ ហើយប្ដូរ stop មក {fmt(a['fill'])}។", "TP1", reply_to=a.get("msg_id"))
+                send(f"🎯 <b>TP1 hit</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 10:+,.0f} pips · close half, "
+                     f"move SL to {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))

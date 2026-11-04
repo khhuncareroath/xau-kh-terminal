@@ -167,30 +167,29 @@ def model_alert(lm, state, now):
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
-    if LANG in ("en", "both"):
-        out += [f"{'🟢' if bull else '🔴'} <b>GOLD · {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>", "",
-                f"Entry · ចូល        <b>{fmt(s['entry'])}</b> (market price)",
-                f"Stop loss · កាត់ខាត  <b>{fmt(s['stop'])}</b>",
-                *([f"TP1 <b>{fmt(s['tp1'])}</b> → close half, move stop to {fmt(s['entry'])}\n      បិទពាក់កណ្ដាល ហើយប្ដូរ stop មកចំណុចចូល",
-                   f"TP2 <b>{fmt(s['target'])}</b> (rest of the trade · ចំណែកនៅសល់)"] if s.get("tp1") else
-                  [f"Target      <b>{fmt(s['target'])}</b>  (1:{s['rr']})"]),
-                f"⏰ Enter within 15 min · trade lasts up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · trade lasts up to {hold_h} hours", "",
-                "<b>Why · ហេតុផល</b>", esc(PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
-                esc(f"Tested on 2 years of spot gold: {b.get('trades')} trades, {b.get('win_rate_pct')}% were profitable, "
-                    f"{b.get('avg_R'):+.2f}R per trade after costs.") if b.get("trades") else "",
-                (f"⚠️ {'Buy' if bull else 'Sell'} signals from this model averaged {side['avg_R']:+.2f}R ({side['trades']} trades): "
-                 + ("the weaker side, consider a smaller size." if side["avg_R"] < 0.1 else "the stronger side.")) if side.get("trades") and s["model"] != "trend_buy" else None,
-                "", "<i>Risk a small, fixed part of your account (0.5–1%). Losses will happen. Not financial advice. "
-                "The result will be posted as a reply.\nប្រើហានិភ័យតិច 0.5–1% នៃគណនី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។</i>"]
-    if LANG in ("km", "both"):
-        if out:
-            out += ["", "— ខ្មែរ —"]
-        out += [f"{'🟢' if bull else '🔴'} <b>មាស · {'ទិញ' if bull else 'លក់'} ឥឡូវ</b>",
-                f"ចូល <b>{fmt(s['entry'])}</b> (តម្លៃទីផ្សារ)", f"Stop loss <b>{fmt(s['stop'])}</b>",
-                *([f"TP1 <b>{fmt(s['tp1'])}</b> → បិទពាក់កណ្ដាល ហើយប្ដូរ stop មកចំណុចចូល", f"TP2 <b>{fmt(s['target'])}</b>"] if s.get("tp1")
-                  else [f"គោលដៅ <b>{fmt(s['target'])}</b>"]),
-                "<i>ប្រើហានិភ័យតិច (0.5–1% នៃគណនី)។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។</i>"]
-    out.append(TV)
+    pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
+    why_short = {"bull": "4H candle closed above this week's high.", "bear": "4H candle closed below this week's low."}
+    if LANG != "km":
+        out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>", "",
+                f"Entry  <b>{fmt(s['entry'])}</b>",
+                f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
+                *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
+                   f"TP2    <b>{fmt(s['target'])}</b>  ({pips(s['target'])})"] if s.get("tp1") else
+                  [f"TP     <b>{fmt(s['target'])}</b>  ({pips(s['target'])})"]),
+                "",
+                esc(why_short["bull" if bull else "bear"] if s["model"] in ("trend_tight", "trend_breakout", "trend_buy")
+                    else PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
+                (f"Tested 2 years: {b.get('trades')} trades · {b.get('win_rate_pct')}% win" if b.get("trades") else None),
+                (f"⚠️ {'Buys' if bull else 'Sells'} are the weaker side: use a smaller size." if side.get("trades") and side["avg_R"] < 0.1
+                 and s["model"] != "trend_buy" else None),
+                f"⏰ Enter within 15 min · holds up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · holds up to {hold_h} h",
+                "", "<i>Risk 0.5–1% of your account · ប្រើហានិភ័យ 0.5–1% ប៉ុណ្ណោះ</i>"]
+    else:
+        out += [f"{'🟢' if bull else '🔴'} <b>មាស · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>",
+                f"ចូល <b>{fmt(s['entry'])}</b>", f"SL <b>{fmt(s['stop'])}</b>",
+                *([f"TP1 <b>{fmt(s['tp1'])}</b> → បិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", f"TP2 <b>{fmt(s['target'])}</b>"] if s.get("tp1")
+                  else [f"TP <b>{fmt(s['target'])}</b>"]),
+                "<i>ប្រើហានិភ័យ 0.5–1% នៃគណនីប៉ុណ្ណោះ។</i>"]
     mid = send("\n".join(l for l in out if l is not None), ("BUY" if bull else "SELL") + " now")
     if not mid:
         return False
