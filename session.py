@@ -994,6 +994,82 @@ def while_you_slept(df, news):
     return out
 
 
+EVENT_DIR = [   # (keywords, what "higher than forecast" usually means for gold): -1 = gold down, +1 = gold up
+    (("cpi", "pce", "ppi", "inflation"), -1), (("non-farm", "nonfarm", "payroll", "employment change"), -1),
+    (("unemployment rate",), 1), (("jobless claims", "unemployment claims"), 1), (("gdp",), -1), (("ism", "pmi"), -1),
+    (("retail sales",), -1), (("jolts", "job openings"), -1), (("average hourly earnings",), -1)]
+
+
+def macro_card(macro, news, path, cot=None):
+    """Picture: one tile per fundamental (value, arrow, effect on gold), the next big news with its two outcomes,
+    and which setups the fundamentals favour. Returns (path, short caption) or None without data."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    BG, CARD, INK, MUT, UP, DN, FLAT, GOLD = "#0B0B0D", "#1C1C1E", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#8E8E93", "#E3B04B"
+    tiles = []   # (title, value, change text, change dir, effect on gold +1/-1/0)
+    d, y, vx, spx = (macro.get(k) or {} for k in ("dxy", "us10y", "vix", "spx"))
+    if d.get("last") is not None:
+        ch = d.get("chg_pct", 0); dr = 1 if ch > 0.05 else -1 if ch < -0.05 else 0
+        tiles.append(("DXY", "US dollar", f"{d['last']}", f"{ch:+.2f}%", dr, -dr))
+    if y.get("last") is not None:
+        ch = y.get("chg_bp", 0); dr = 1 if ch > 2 else -1 if ch < -2 else 0
+        tiles.append(("US10Y", "bond yield", f"{y['last']:.2f}%", f"{ch:+.0f} bp", dr, -dr))
+    if vx.get("last") is not None:
+        ch = vx.get("chg_pct", 0); dr = 1 if ch >= 5 else -1 if ch <= -5 else 0
+        eff = 1 if vx["last"] >= 25 or ch >= 10 else -1 if vx["last"] < 16 and ch <= 0 else 0
+        tiles.append(("VIX", "fear index", f"{vx['last']}", f"{ch:+.0f}%", dr, eff))
+    if cot and cot.get("net_change") is not None:
+        ch = cot["net_change"]; dr = 1 if ch > 0 else -1 if ch < 0 else 0
+        tiles.append(("COT", "big funds", f"{'long' if cot['net'] > 0 else 'short'} {abs(cot['net']) / 1000:,.0f}k", f"{ch / 1000:+,.0f}k", dr, dr))
+    if not tiles:
+        return None
+    now = datetime.now(timezone.utc)
+    nxt = sorted([(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e) for e in news.get("events", [])
+                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > now], key=lambda x: x[0])[:1]
+    fig = plt.figure(figsize=(10, 5.6), dpi=150); fig.patch.set_facecolor(BG)
+    ax = fig.add_axes([0, 0, 1, 1]); ax.axis("off"); ax.set_xlim(0, 1); ax.set_ylim(0, 1)
+    ax.text(0.04, 0.93, "What moves gold today", color=INK, fontsize=17, fontweight="bold", va="center")
+    ax.text(0.96, 0.93, local(time.time()), color=MUT, fontsize=10, va="center", ha="right")
+    w = 0.92 / len(tiles)
+    for k, (code, name, val, chg, dr, eff) in enumerate(tiles):
+        x = 0.04 + k * w
+        ax.add_patch(FancyBboxPatch((x + 0.006, 0.47), w - 0.012, 0.37, boxstyle="round,pad=0,rounding_size=0.02", fc=CARD, ec="none"))
+        cx = x + w / 2
+        ax.text(cx, 0.80, code, color=INK, fontsize=13, fontweight="bold", ha="center")
+        ax.text(cx, 0.755, name, color=MUT, fontsize=8.5, ha="center")
+        ax.text(cx, 0.68, val, color=INK, fontsize=14, fontweight="bold", ha="center")
+        ax.text(cx, 0.625, f"{'▲' if dr > 0 else '▼' if dr < 0 else '■'} {chg}", color=MUT,
+                fontsize=10, ha="center")
+        ec = UP if eff > 0 else DN if eff < 0 else FLAT
+        ax.add_patch(FancyBboxPatch((x + 0.02, 0.495), w - 0.04, 0.075, boxstyle="round,pad=0,rounding_size=0.015", fc=ec, alpha=0.18, ec="none"))
+        ax.text(cx, 0.532, f"Gold {'↑' if eff > 0 else '↓' if eff < 0 else '–'}", color=ec, fontsize=12, fontweight="bold", ha="center", va="center")
+    # next big news with both outcomes
+    if nxt:
+        t, e = nxt[0]
+        sgn = next((v for keys, v in EVENT_DIR if any(kw in e["title"].lower() for kw in keys)), None)
+        ax.text(0.04, 0.40, f"Next big news · {local(t.timestamp())} {t.astimezone(local_tz()):%a}", color=MUT, fontsize=9.5)
+        ax.text(0.04, 0.355, esc(e["title"]) + (f"   (forecast {e['forecast']})" if e.get("forecast") else ""), color=INK, fontsize=12, fontweight="bold")
+        if sgn:
+            for j, (lab, g) in enumerate((("Higher than forecast", sgn), ("Lower than forecast", -sgn))):
+                x = 0.04 + j * 0.465
+                c = UP if g > 0 else DN
+                ax.add_patch(FancyBboxPatch((x, 0.17), 0.445, 0.13, boxstyle="round,pad=0,rounding_size=0.02", fc=c, alpha=0.14, ec="none"))
+                ax.text(x + 0.02, 0.235, lab, color=INK, fontsize=10.5, va="center")
+                ax.text(x + 0.425, 0.235, f"Gold {'↑' if g > 0 else '↓'}  ·  {'BUY' if g > 0 else 'SELL'} setups", color=c, fontsize=11,
+                        fontweight="bold", va="center", ha="right")
+    tally = sum(t_[5] for t_ in tiles)
+    side = "BUY" if tally > 0 else "SELL" if tally < 0 else None
+    msg = (f"Fundamentals lean gold {'UP' if tally > 0 else 'DOWN'}: {side} setups have the wind behind them" if side
+           else "Fundamentals are mixed: trade the chart setups only")
+    ax.text(0.04, 0.075, msg, color=(UP if tally > 0 else DN if tally < 0 else GOLD), fontsize=12, fontweight="bold", va="center")
+    ax.text(0.96, 0.075, "usual effect, not a promise", color=MUT, fontsize=8, va="center", ha="right")
+    fig.savefig(path, facecolor=BG); plt.close(fig)
+    return path, f"🏛 <b>Fundamentals</b>: {msg}."
+
+
 def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     """Short: direction, one sell level, one buy level, the big signal lines, the one risk that matters most."""
     price = float(df["Close"].iloc[-1])
@@ -1229,6 +1305,13 @@ def main():
             mid = send_photo(path, text.split("\n\n")[0], f"{name} session")
             if mid:
                 send(text, f"{name} session", reply_to=mid)
+        if name == "Asia" or os.environ.get("MACRO_CARD_FORCE"):   # fundamentals as a picture, once a day with the morning prep
+            try:
+                mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
+                if mc:
+                    send_photo(mc[0], mc[1], "Fundamentals", reply_to=mid if isinstance(mid, int) else None)
+            except Exception as e:
+                print("macro card failed:", e)
         if mid or not os.environ.get("TELEGRAM_TOKEN"):
             state.setdefault("briefed", {})[key] = time.time()
             state["briefed"] = {k: v for k, v in state["briefed"].items() if time.time() - v < 7 * 86400}
