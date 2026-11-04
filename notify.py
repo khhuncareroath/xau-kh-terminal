@@ -296,7 +296,7 @@ def setup_message(mode, st, ict, fs, valid_until, summ, ai):
     return out
 
 
-PLAN_MODELS = ("vp_shape",)          # promising but not yet proven: sent as "plan trade", small risk, results posted
+PLAN_MODELS = ("vp_shape", "range_extreme")          # promising but not yet proven: sent as "plan trade", small risk, results posted
 WATCH_ALERTS = os.environ.get("WATCH_ALERTS", "off") == "on"   # old ICT watch ideas lost money in testing: off
 
 
@@ -313,16 +313,23 @@ def plan_alert(lm, state, now):
         return False
     bull = s["dir"] == "bull"
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 1:+,.1f} លេខ"
-    reason = {"bull": "P-shape volume profile (buyers in control). Price pulled back to the POC (busiest price) and a 15m candle closed above it.",
-              "bear": "b-shape volume profile (sellers in control). Price pulled back to the POC (busiest price) and a 15m candle closed below it."}
+    exp = s["model"] == "range_extreme"
+    if exp:
+        reason = {"bull": "Day Range extreme: gold stretched 3 steps below the day open in an uptrend and a 15m candle closed back. Target: the day open.",
+                  "bear": "Day Range extreme: gold stretched 3 steps above the day open in a downtrend and a 15m candle closed back. Target: the day open."}
+    else:
+      reason = {"bull": "P-shape volume profile (buyers in control). Price pulled back to the POC (busiest price) and a 15m candle closed above it.",
+                "bear": "b-shape volume profile (sellers in control). Price pulled back to the POC (busiest price) and a 15m candle closed below it."}
     msg = "\n".join([
-        f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  🟡 <i>plan trade</i>", "",
+        f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  "
+        + ("🔷 <i>EXPERIMENTAL</i>" if exp else "🟡 <i>plan trade</i>"), "",
         f"Entry  <b>{fmt(s['entry'])}</b>",
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
         f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
         reason["bull" if bull else "bear"],
-        "Tested 2 years: 50% win, +0.18R per trade · Day Range < 70% used · closes within 8 h",
-        "", "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>"])
+        ("Tested 2 years: 60 trades, 50% win, +0.33R · not proven yet · closes by noon New York" if exp else
+         "Tested 2 years: 50% win, +0.18R per trade · Day Range < 70% used · closes within 8 h"),
+        "", ("<i>Experimental: risk 0.25% max · ហានិភ័យ 0.25% ប៉ុណ្ណោះ</i>" if exp else "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>")])
     mid = send(msg, ("BUY" if bull else "SELL") + " plan")
     if not mid:
         return False
@@ -331,7 +338,7 @@ def plan_alert(lm, state, now):
     log_alert({"id": key, "kind": "plan", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
                "target": s["target"], "rr": s.get("rr"), "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
-               "max_hold_s": 8 * 3600})
+               "max_hold_s": (12 if exp else 8) * 3600})
     print("plan sent", key)
     try:   # the trade on a chart with support / resistance, as a reply
         import session

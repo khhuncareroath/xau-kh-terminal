@@ -414,6 +414,56 @@ def vp_shape(df, th=0.55, rr=1.5, max_used=0.7):
     return out
 
 
+def range_extreme(df):
+    """XAU.KH Day Range extreme (our version of the CRAZII KTR idea): day open +/- 3 steps of a quarter ADR (14-day
+    median range). When price stretches to -3 steps in a 4H uptrend (or +3 in a downtrend) between 01:00 and 12:00
+    New York and a 15m candle closes back inside, trade the snap-back to the day open. Stop a quarter step beyond the
+    extreme. 2 years: 59 trades, 51% win, +0.35R, t=1.5 (best of 39 tested versions, not proven). Experimental tier."""
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    idx = df.index; n = len(df); nr = df.attrs.get("n_real")
+    d4 = resample(df, "4H")
+    hi30, lo30 = d4["High"].rolling(30).max().shift(1), d4["Low"].rolling(30).min().shift(1)
+    cur, st = 0, []
+    for k in range(len(d4)):
+        cur = 1 if d4["Close"].iloc[k] > hi30.iloc[k] else -1 if d4["Close"].iloc[k] < lo30.iloc[k] else cur
+        st.append(cur)
+    trend = pd.Series(st, index=d4.index + pd.Timedelta(hours=4)).reindex(idx, method="ffill").fillna(0).to_numpy()
+    td = (idx - pd.Timedelta(hours=18)).date
+    days = sorted(set(td)); pos = {d: np.where(td == d)[0] for d in days}
+    rng = {d: h[pos[d]].max() - l[pos[d]].min() for d in days}
+    hr = idx.hour; out = []
+    for di in range(10, len(days)):
+        d = days[di]; p = pos[d]
+        if len(p) < 12:
+            continue
+        D = 0.25 * np.median([rng[x] for x in days[max(0, di - 14):di]]); OP = o[p[0]]
+        touched = {}; done = False
+        for i in p:
+            if done or nr is not None and i >= nr:
+                break
+            if not (1 <= hr[i] < 12):
+                continue
+            for sg in (1, -1):
+                if trend[i] != sg:
+                    continue
+                L = OP - sg * 3 * D
+                if (l[i] <= L) if sg > 0 else (h[i] >= L):
+                    touched.setdefault(sg, i)
+                if sg in touched and i > touched[sg] and i - touched[sg] <= 12 and idx[i].minute % 15 == 10 and ((c[i] > L) if sg > 0 else (c[i] < L)):
+                    j0 = i + 1 + LAT
+                    if j0 + 1 >= n or (nr is not None and j0 > nr):
+                        done = True; break
+                    ext = l[touched[sg]:i + 1].min() if sg > 0 else h[touched[sg]:i + 1].max()
+                    stop = ext - 0.25 * D if sg > 0 else ext + 0.25 * D
+                    if (OP - o[j0]) * sg <= 0 or abs(o[j0] - stop) < 1:
+                        continue
+                    r, j = _run_trade(o, h, l, c, j0, min(p[-1], n - 1), sg, stop, OP)
+                    if r is not None:
+                        out.append((idx[j0], r, "long" if sg > 0 else "short"))
+                    done = True; break
+    return out
+
+
 def breakout_cisd(df, window_h=12):
     """The member's entry (sweep -> CISD) combined with the proven direction: within 12 hours after a 4H close beyond the
     1-week range, in the London (02-05 NY) or New York (07-11 NY) window, a 5m sweep of a key level against the breakout
@@ -524,7 +574,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
+DESCRIBE = {"range_extreme": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
+            "trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
             "vp_shape": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
             "crt_daily": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
             "sweep_htf": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
@@ -542,11 +593,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "range_extreme": range_extreme(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}
