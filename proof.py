@@ -183,9 +183,10 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
         if n_f:   # the XAU.KH mark: one finger = COMBO, two = PREMIUM
             for q in range(n_f):
                 _finger(ax, x0 + 4.6 + q * 2.6, yb + fh / 2, 0.15)
-        tags = (["PREMIUM"] if n_f == 2 else ["COMBO"] if n_f == 1 else []) + (["LIVE"] if t.get("live") else [])
+        tags = [("KE TV HX" if sg > 0 else "LUK MOA")] + (["PREMIUM"] if n_f == 2 else ["COMBO"] if n_f == 1 else []) + \
+            (["LIVE"] if t.get("live") else [])
         if tags:
-            ax.text(x0, yb - rng * 0.012 if sg > 0 else yb + fh + rng * 0.012, " · ".join(tags), color=GOLD, fontsize=6.3,
+            ax.text(x0, yb - rng * 0.012 if sg > 0 else yb + fh + rng * 0.012, " · ".join(tags), color=UP if sg > 0 else DN, fontsize=6.8,
                     fontweight="bold", ha="left", va="top" if sg > 0 else "bottom", zorder=7)
     # GOLD BAR STRIP: each win stacks gold bars (1 bar = 0.5R), a loss hangs one red bar per 0.5R lost
     st_ax.set_ylim(-1.9, 4.4); st_ax.axhline(0, color=GOLD, lw=0.6, alpha=0.35)
