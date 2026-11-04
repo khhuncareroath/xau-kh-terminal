@@ -8,26 +8,27 @@ import urllib.request
 
 from tg import send
 
-VERSION = "2026-11-04c"
+VERSION = "2026-11-04d"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
-✅ <b>BUY/SELL NOW ✅ tested</b>: the 4H breakout traded intraday (2 years: 62% win, closes within 12 h). Risk 1% max.
-🟡 <b>BUY/SELL NOW 🟡 plan trade</b>: promising, not proven yet. Risk 0.5% max.
-🎯 <b>TP1 hit</b>: close half, move SL to entry. The rest runs with no risk.
+✅ <b>BUY/SELL NOW</b>: tested 4H breakout. Closes within 12 h. Risk 1% max.
+🖕 <b>COMBO</b>: breakout on a moving day (68% win in test) · full size
+🖕🖕 <b>PREMIUM SWING</b>: breakout on a big day (77% win) · hold 1–5 days
+◽ <b>Normal</b>: quiet-day breakout · half size or skip
+🤬 <b>Smaller setup</b> (🟡 plan / 🔷 experimental): small size 0.25–0.5%
+🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
-🇬🇧🇺🇸🌏 <b>Session plan</b>: the map for the session. ✅ = level with the trend.
-🔔 <b>Near level</b>: heads-up only. Wait for the 15m candle to close.
-📰 <b>News in 30 min</b>: no new entries 15 min before and after.
-📊 <b>Friday report</b>: every result, wins and losses.
-🧾 <b>Signal proof</b>: chart of the latest signals, wins AND losses.
+📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
+📏 Day Meter: 70% = 🖕 zone · 100% = 🖕🖕 zone
+KE TV HX = buy · LUK MOA = sell (on the charts)
+🧾 <b>Signal proof</b> / 📊 Friday report: every result, wins AND losses.
+📰 News in 30 min: no new entries 15 min before and after.
 
-💡 <b>Small loss = small lot, not a small SL.</b>
-SL 25 points × 0.02 lot = about $50 risk. Pick the lot so the loss is 0.5–1% of your account.
-$1 move = 10 pips.
+💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
 
-🇰🇭 សញ្ញា ✅ = បានសាកល្បង 2 ឆ្នាំ · 🟡 = ផែនការ ហានិភ័យ 0.5% ប៉ុណ្ណោះ
+🇰🇭 🖕🖕 = ល្អបំផុត · 🖕 = ល្អ · 🤬 = តូច ប្រើ lot តូច
 ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
