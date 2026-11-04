@@ -228,6 +228,9 @@ def intraday_alerts(df, lv, conf, ict, state, news):
         key = f"{day}|{side}|{round(a['edge'])}"
         if key in st or a["dist"] > price * NEAR_PCT:
             continue
+        strong = a["strength"] >= 2 or "A zone" in a["names"]           # several levels agree, or a top-rated zone
+        if not strong or "against" in _trend_word(b, side):                # essential only: skip weak or counter-trend areas
+            continue
         s = side == "SELL"
         risk = abs(a["inval"] - a["edge"])
         risks = [f"Might stop out if price keeps pushing {'up' if s else 'down'}: a 15m close {'above' if s else 'below'} {fmt(a['inval'])} "
@@ -480,6 +483,25 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     return "\n".join(x for x in lines_en if x)
 
 
+def pulse_worth(state, ict, lv, df, lines):
+    """Send the hourly pulse only when it tells something new: direction changed, a big move, or a line is close."""
+    price = float(df["Close"].iloc[-1])
+    _, word, _ = direction(ict, lv, price)
+    last = state.get("pulse_last") or {}
+    state["pulse_last"] = {"word": word, "price": price}
+    hour_ago = float(df["Close"].iloc[-13]) if len(df) > 13 else price
+    upper, lower = lines[0], lines[1]
+    if last.get("word") and last["word"] != word:
+        return f"direction changed to {word}"
+    if abs(price - hour_ago) >= price * 0.004:
+        return "big move in the last hour"
+    if min(upper - price, price - lower) <= price * 0.004:
+        return "near a 4H signal line"
+    if not last:
+        return "first pulse"
+    return None
+
+
 def due_pulse(state, now_utc):
     now_ny = now_utc.astimezone(NY)
     if now_ny.weekday() > 4 or now_ny.hour not in PULSE_HOURS_NY or now_ny.minute >= 10:
@@ -533,7 +555,11 @@ def main():
         print("session briefing:", name)
     pk = due_pulse(state, datetime.now(timezone.utc)) if not due else None
     if pk:
-        if send(pulse_text(ict, conf, lv, news, df, lines, macro), "Gold pulse") or not os.environ.get("TELEGRAM_TOKEN"):
+        why = pulse_worth(state, ict, lv, df, lines)
+        if not why:
+            state.setdefault("pulsed", {})[pk] = time.time()
+            print("pulse skipped: nothing new")
+        elif send(pulse_text(ict, conf, lv, news, df, lines, macro).replace("</b>\n", f"</b>\n🔔 <b>{why[0].upper() + why[1:]}</b>\n", 1), "Gold pulse") or not os.environ.get("TELEGRAM_TOKEN"):
             state.setdefault("pulsed", {})[pk] = time.time()
             state["pulsed"] = {k: v for k, v in state["pulsed"].items() if time.time() - v < 3 * 86400}
             print("pulse sent", pk)
