@@ -50,6 +50,21 @@ a{color:var(--blue);text-decoration:none}
 .up{color:var(--up)}.dn{color:var(--dn)}.mut{color:var(--label2)}
 body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
+
+/* ---------- guide ---------- */
+.g-card h2{margin-bottom:12px}
+.g-row{display:flex;gap:12px;padding:10px 0;border-top:.5px solid var(--sep)}.g-row:first-of-type{border-top:0;padding-top:0}
+.g-row p{margin:3px 0 0;font-size:14.5px;color:var(--label2)}
+.g-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--fill)}
+.g-ok{background:color-mix(in srgb,var(--up) 18%,transparent)}.g-plan{background:color-mix(in srgb,var(--gold) 20%,transparent)}
+.km-sub{font-family:"Kantumruy Pro",var(--font);font-size:13px;color:var(--label2);margin:3px 0 0}
+.g-steps{margin:0;padding-left:20px;display:grid;gap:9px;font-size:15px}.g-steps li::marker{color:var(--gold);font-weight:700}
+.g-no{margin:0 0 6px;padding:0;list-style:none;display:grid;gap:8px;font-size:15px}
+.g-time{display:grid;gap:8px}.g-time div{display:flex;gap:12px;font-size:15px}.g-time b{min-width:64px;color:var(--gold)}
+.g-links{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.g-links>*{display:grid;gap:2px;padding:12px 8px;border-radius:var(--r2);background:var(--fill);text-align:center;font-weight:600;font-size:14px;color:var(--label)}
+.g-links small{font-weight:400;font-size:11.5px;color:var(--label2)}
+
 /* ---------- top bar ---------- */
 .top{position:sticky;top:0;z-index:30;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
   border-bottom:.5px solid var(--sep);padding:calc(10px + env(safe-area-inset-top)) 20px 10px;display:flex;align-items:center;gap:12px}
@@ -208,7 +223,7 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
 .mini canvas{position:absolute;inset:0;width:100%;height:100%}
 
 /* ---------- tab bar ---------- */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);
   background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
   border-top:.5px solid var(--sep);padding:7px 6px calc(7px + env(safe-area-inset-bottom))}
 .tabbar button,.tabbar a{display:grid;justify-items:center;gap:3px;font-size:10.5px;font-weight:500;color:var(--label2);transition:color .2s}
@@ -228,7 +243,7 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
     <button data-v="chart" role="tab" data-t="Chart">Chart</button>
     <button data-v="record" role="tab" data-t="Record">Record</button>
     <a href="challenge.html" style="padding:0 12px;align-self:center;font-size:13px;font-weight:600;color:var(--gold)">🏆 Challenge</a>
-    <a href="academy.html" style="padding:6px 14px;font-size:13px;font-weight:600;color:var(--label)" data-t="Learn">Learn</a>
+    <button data-v="guide" role="tab" data-t="Guide">Guide</button>
   </div>
   <div class="mini-px num" id="miniPx">–</div>
   <button class="pill-btn" id="lang" aria-label="Switch language">ខ្មែរ</button>
@@ -331,6 +346,66 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
 </section>
 
 <!-- ================= RECORD ================= -->
+<section class="view" id="v-guide" aria-label="Guide">
+  <h1 class="large">How to use XAU.KH</h1>
+  <p class="sub">What each message means, and when to follow it.<br><span class="km-sub">របៀបប្រើ និងពេលណាគួរតាម</span></p>
+  <div class="grid">
+    <div class="col">
+    <div class="card enter g-card" style="--i:0">
+      <h2>The 3 kinds of message</h2>
+      <div class="g-row"><span class="g-ic g-ok">✅</span><div><b>BUY / SELL NOW · tested</b><p>The 4H breakout signal. Tested 2 years: 69% win. <b>Follow it.</b> Risk 1%.</p><p class="km-sub">សញ្ញាដែលបានសាកល្បង · តាមបាន · ហានិភ័យ 1%</p></div></div>
+      <div class="g-row"><span class="g-ic g-plan">🟡</span><div><b>BUY / SELL NOW · plan trade</b><p>Volume-profile trade at the POC. 50% win, wins are 1.5× the losses. <b>Follow with half size.</b> Risk 0.5%.</p><p class="km-sub">ផែនការ · តាមបាន តែហានិភ័យ 0.5%</p></div></div>
+      <div class="g-row"><span class="g-ic g-map">🗺</span><div><b>Plans, maps, updates, news</b><p>Session plan, market map, hourly update, fundamentals, news. <b>Information only: never enter from these.</b></p><p class="km-sub">ព័ត៌មានប៉ុណ្ណោះ · កុំចូលពីសារទាំងនេះ</p></div></div>
+    </div>
+    <div class="card enter g-card" style="--i:1">
+      <h2>When a signal arrives</h2>
+      <ol class="g-steps">
+        <li><b>Enter within 15 minutes</b> at the price shown. Later than that, skip it.</li>
+        <li><b>Set SL and TP right away.</b> Never trade without the SL.</li>
+        <li><b>Lot size = your risk.</b> SL 25 points × 0.02 lot ≈ $50. Pick the lot so a loss is 1% (✅) or 0.5% (🟡) of your account.</li>
+        <li><b>🎯 TP1 hit:</b> close half, move SL to entry. The rest can't lose.</li>
+        <li><b>Result reply</b> (🏆 / ✅ / ❌) closes the trade. Then wait for the next one.</li>
+      </ol>
+    </div>
+    </div>
+    <div class="col">
+    <div class="card enter g-card" style="--i:2">
+      <h2>Don't follow when…</h2>
+      <ul class="g-no">
+        <li>📰 Big news is within 15 minutes</li>
+        <li>⏱ The signal is older than 15 minutes, or price already moved far</li>
+        <li>🟡 The plan says <i>skipped</i>, <i>expired</i> or <i>don't chase</i></li>
+        <li>😤 You just lost and want it back fast (revenge trading)</li>
+        <li>💸 You'd risk more than 1–2% in total across open trades</li>
+      </ul>
+      <p class="km-sub">កុំតាម ពេលព័ត៌មានធំ ពេលយឺត ឬពេលខឹងចង់យកសងវិញ</p>
+    </div>
+    <div class="card enter g-card" style="--i:3">
+      <h2>A normal day (Phnom Penh time)</h2>
+      <div class="g-time">
+        <div><b>05:30</b><span>🌏 Asia plan + 🏛 fundamentals</span></div>
+        <div><b>10:00</b><span>🗺 Daily market map</span></div>
+        <div><b>12:00</b><span>📘 Lesson</span></div>
+        <div><b>14:05</b><span>🇬🇧 London plan</span></div>
+        <div><b>19:00</b><span>🇺🇸 New York plan</span></div>
+        <div><b>Any time</b><span>✅ / 🟡 signals · 📰 news warnings</span></div>
+        <div><b>Friday</b><span>📊 Weekly proof: every result</span></div>
+      </div>
+      <p class="foot-note">Quiet day = no tested setup. That is the bot being careful, not broken.</p>
+    </div>
+    <div class="card enter g-card" style="--i:4">
+      <h2>On this website</h2>
+      <div class="g-links">
+        <button onclick="show('record')">📊 Record<small>every result</small></button>
+        <a href="challenge.html">🏆 Challenge<small>grow level by level</small></a>
+        <button onclick="show('chart')">📈 Chart<small>live gold</small></button>
+      </div>
+    </div>
+    </div>
+  </div>
+  <p class="foot-note" style="text-align:center;margin-top:8px">Not financial advice. Losses happen even with tested signals.</p>
+</section>
+
 <section class="view" id="v-record" aria-label="Record">
   <h1 class="large" data-t="Record">Record</h1>
   <p class="sub" data-t="Every alert, graded automatically. Nothing is deleted.">Every alert, graded automatically. Nothing is deleted.</p>
@@ -350,7 +425,7 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
   <button data-v="chart"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 6-8 3 3"/><path d="M3 21h18"/></svg><span data-t="Chart">Chart</span></button>
   <button data-v="record"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="3.5" height="8" rx="1"/><rect x="10.25" y="6" width="3.5" height="13" rx="1"/><rect x="16.5" y="9" width="3.5" height="10" rx="1"/></svg><span data-t="Record">Record</span></button>
   <a href="challenge.html" style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;color:inherit;font-size:10px;font-weight:500"><svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg><span>Challenge</span></a>
-  <a href="academy.html"><svg viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3.5 2.5 8.5 2.5 12 0v-5"/></svg><span data-t="Learn">Learn</span></a>
+  <button data-v="guide"><svg viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3.5 2.5 8.5 2.5 12 0v-5"/></svg><span data-t="Guide">Guide</span></button>
 </nav>
 
 <script>
@@ -372,7 +447,7 @@ const KM={"Today":"ថ្ងៃនេះ","Chart":"ក្រាហ្វ","Recor
 "footNote":"តម្លៃ៖ XAUUSD spot (Twelve Data, Dukascopy)។ សកម្មភាព៖ volume COMEX gold futures។ ជាការវិភាគ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។",
 "Up":"ឡើង","Leaning up":"ទំនោរឡើង","Sideways":"ចំហៀង","Leaning down":"ទំនោរចុះ","Down":"ចុះ",
 "Resistance":"ជាន់ទប់","Support":"ជាន់ទ្រ","Watch":"តាមដាន","Buy":"ទិញ","Sell":"លក់","No alert right now":"មិនមានការជូនដំណឹងនៅពេលនេះ",
-"Wins":"ឈ្នះ","Lot size (Exness)":"ទំហំ Lot (Exness)","Account balance (USD)":"សមតុល្យគណនី (USD)","Risk per trade":"ហានិភ័យក្នុងមួយការជួញដូរ","Account type":"ប្រភេទគណនី","Losses":"ចាញ់","No trade":"មិនបានចូល","Proven":"បានបញ្ជាក់","Not yet":"មិនទាន់","Market closed":"ទីផ្សារបិទ","Updated":"បានធ្វើបច្ចុប្បន្នភាព","Today's areas":"តំបន់សំខាន់ៗថ្ងៃនេះ","What moves gold now":"អ្វីដែលធ្វើឱ្យមាសប្រែប្រួល","econNote":"ផ្អែកលើទិន្នន័យដុល្លារ ទិន្នផលសញ្ញាប័ណ្ណ និងប្រតិទិនព័ត៌មាន។ ជាច្បាប់ទូទៅ មិនមែនការសន្យាទេ។"};
+"Wins":"ឈ្នះ","Lot size (Exness)":"ទំហំ Lot (Exness)","Account balance (USD)":"សមតុល្យគណនី (USD)","Risk per trade":"ហានិភ័យក្នុងមួយការជួញដូរ","Account type":"ប្រភេទគណនី","Losses":"ចាញ់","No trade":"មិនបានចូល","Proven":"បានបញ្ជាក់","Not yet":"មិនទាន់","Market closed":"ទីផ្សារបិទ","Updated":"បានធ្វើបច្ចុប្បន្នភាព","Guide":"របៀបប្រើ","Today's areas":"តំបន់សំខាន់ៗថ្ងៃនេះ","What moves gold now":"អ្វីដែលធ្វើឱ្យមាសប្រែប្រួល","econNote":"ផ្អែកលើទិន្នន័យដុល្លារ ទិន្នផលសញ្ញាប័ណ្ណ និងប្រតិទិនព័ត៌មាន។ ជាច្បាប់ទូទៅ មិនមែនការសន្យាទេ។"};
 const t=s=>lang==="km"&&KM[s]?KM[s]:s;
 function applyLang(){document.documentElement.lang=lang==="km"?"km":"en";$$("[data-t]").forEach(el=>{const k=el.dataset.t;if(!el.dataset.en)el.dataset.en=el.textContent;el.textContent=lang==="km"&&KM[k]?KM[k]:el.dataset.en});$("#lang").textContent=lang==="km"?"EN":"ខ្មែរ";$("#gDown").textContent=t("Down");$("#gUp").textContent=t("Up")}
 
@@ -696,7 +771,7 @@ function render(){
   for(const f of [renderStatus,renderPrice,renderDirection,renderPlan,renderLadder,renderAreas,renderAlert,renderNews,renderRecord,drawChart]){try{f()}catch(e){console.error(f.name,e)}}
 }
 applyLang();
-show(["today","chart","record"].includes(location.hash.slice(1))?location.hash.slice(1):"today");
+show(["today","chart","record","guide"].includes(location.hash.slice(1))?location.hash.slice(1):"today");
 load();setInterval(load,60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
 })();
