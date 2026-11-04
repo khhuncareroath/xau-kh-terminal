@@ -1,6 +1,59 @@
 {
- "time": "2026-11-04 10:15 UTC",
- "last_bar": "2026-11-04 05:05:00-05:00",
- "price": 4044.4,
- "signals": []
+ "time": "2026-11-04 10:25 UTC",
+ "last_bar": "2026-11-04 05:15:00-05:00",
+ "price": 4047.32,
+ "signals": [
+  {
+   "entry": 4044.38,
+   "dir": "bull",
+   "stop": 3962.65,
+   "target": 4289.58,
+   "trigger_time": "2026-11-04 05:15:00-05:00",
+   "model": "trend_breakout",
+   "rr": 3.0,
+   "proven": true,
+   "backtest": {
+    "trades": 92,
+    "win_rate_pct": 43,
+    "avg_R": 0.354
+   },
+   "description": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target"
+  },
+  {
+   "entry": 4044.38,
+   "dir": "bull",
+   "stop": 3962.65,
+   "target": 4289.58,
+   "tp1": 4126.11,
+   "part": 0.5,
+   "trigger_time": "2026-11-04 05:15:00-05:00",
+   "model": "trend_buy",
+   "rr": 3.0,
+   "proven": false,
+   "backtest": {
+    "trades": 60,
+    "win_rate_pct": 60,
+    "avg_R": 0.342
+   },
+   "description": "4H trend following, BUY only: half profit at 1R with the stop moved to entry, rest to 3R"
+  },
+  {
+   "entry": 4044.38,
+   "dir": "bull",
+   "stop": 4018.09,
+   "target": 4123.24,
+   "tp1": 4064.1,
+   "part": 0.5,
+   "trigger_time": "2026-11-04 05:15:00-05:00",
+   "model": "trend_tight",
+   "rr": 3.0,
+   "proven": true,
+   "backtest": {
+    "trades": 172,
+    "win_rate_pct": 69,
+    "avg_R": 0.293
+   },
+   "description": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R"
+  }
+ ]
 }
