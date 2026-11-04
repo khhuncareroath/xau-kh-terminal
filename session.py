@@ -361,7 +361,7 @@ def plan_watch(df, state):
     """Follow-ups for the session's 🟡 plan, so nobody is left guessing (max 2 per plan):
     1) price reached the POC -> what to wait for now; 2) at session end without an entry -> plan expired,
     or price left without a pullback -> don't chase. The entry itself comes from notify.py (plan trade)."""
-    p = vp_plan(df)
+    p = vp_plan(df, raw=True)   # raw: a plan already posted still gets its follow-up if the day got busy later
     if not p or not p.get("side") or abs(p["edge"] - p["inval"]) > p["edge"] * 0.006:
         return
     now = datetime.now(NY)
@@ -495,9 +495,25 @@ SESS_WIN = {0: (18, 2), 1: (2, 7), 2: (7, 12)}          # same sessions as resea
 SESS_NAME = {0: "Asia", 1: "London", 2: "New York"}
 
 
-def vp_plan(df):
+def vp_plan(df, raw=False):
     """The 🟡 plan-trade setup for the current/next session: shape of the last finished session's volume profile.
-    Same rules as research.vp_shape (so the prep shows exactly what the bot will trade)."""
+    Same rules as research.vp_shape (so the prep shows exactly what the bot will trade), including its Day Range
+    filter: when today already moved 70%+ of a normal day the bot will NOT take the plan, so the plan comes back
+    with side=None and "skip_used" (raw=True returns the plan anyway, for plan_watch follow-ups)."""
+    p = _vp_plan(df)
+    if raw or not p or not p.get("side"):
+        return p
+    import research
+    try:
+        u = research.day_used(df, df.index[-1] + pd.Timedelta(minutes=5)) or 0.0
+    except Exception:
+        u = 0.0
+    if u >= 0.7:
+        return {**p, "side": None, "skip_used": round(u, 2), "skipped_side": p["side"]}
+    return p
+
+
+def _vp_plan(df):
     import research
     idx = df.index
     hr = idx.hour + idx.minute / 60
@@ -544,6 +560,10 @@ def plan_line(p, price=None):
     km_s = {"Asia": "អាស៊ី", "London": "ឡុងដ៍", "New York": "ញូវយ៉ក"}
     if not p:
         return "🟡 <b>ផែនការ (Plan)</b>: មិនទាន់មានទិន្នន័យ។"
+    if p.get("skip_used"):
+        return (f"🟡 <b>ផែនការ (Plan): រំលង</b> · ថ្ងៃនេះមាសរត់ {p['skip_used'] * 100:.0f}% នៃថ្ងៃធម្មតាហើយ (Day Range)\n"
+                f"• POC {fmt(p['edge'])} · plans this late lost money in testing → <b>no plan trade</b>\n"
+                f"• រង់ចាំសញ្ញា ⚡ 4H (🖕 / 🖕🖕) វិញ")
     if not p.get("side"):
         return f"🟡 <b>ផែនការ (Plan): គ្មាន</b> · អ្នកទិញ និងអ្នកលក់ស្មើគ្នា (D-shape)។ រង់ចាំ។"
     s = p["side"] == "SELL"
