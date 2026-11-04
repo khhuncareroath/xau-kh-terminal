@@ -370,6 +370,97 @@ def _trendlines(d1):
     return [(pts, kind) for pts, kind in ((hs, "res"), (ls, "sup")) if len(pts) == 2 and pts[1][0] - pts[0][0] >= 3]
 
 
+def analysis_chart(df, lv, conf, lines, path, title):
+    """Mentor-style picture: 4H context on the left, 15m execution on the right. Yesterday's range, the with-trend
+    zone with its position box (entry, stop, 2R target), a dashed projected path, and short structure labels."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
+    price = float(df["Close"].iloc[-1])
+    ts = trend_state(df)
+    areas = intraday_areas(lv, conf, price)
+    side = "BUY" if ts > 0 else "SELL" if ts < 0 else None
+    plan = areas.get(side) if side else None
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    upper, lower, _, _ = lines
+    fig = plt.figure(figsize=(12, 6.2), dpi=150)
+    fig.patch.set_facecolor(BG)
+    axL = fig.add_axes([0.035, 0.09, 0.33, 0.76]); axR = fig.add_axes([0.43, 0.09, 0.52, 0.76])
+
+    def candles(ax, d, w=0.62):
+        for i, (o_, h_, l_, c_) in enumerate(d[["Open", "High", "Low", "Close"]].to_numpy()):
+            col = UP if c_ >= o_ else DN
+            ax.plot([i, i], [l_, h_], color=col, lw=0.8)
+            ax.add_patch(Rectangle((i - w / 2, min(o_, c_)), w, max(abs(c_ - o_), 0.05), color=col, lw=0))
+
+    def style(ax, lo, hi, n, label):
+        ax.set_facecolor(PANEL); ax.set_ylim(lo, hi); ax.set_xlim(-1, n)
+        ax.grid(axis="y", color=GRID, lw=0.6); ax.set_xticks([])
+        for sp in ax.spines.values(): sp.set_visible(False)
+        ax.tick_params(colors=MUT, labelsize=8, length=0); ax.yaxis.tick_right()
+        ax.text(0.01, 0.97, label, transform=ax.transAxes, color=MUT, fontsize=9, va="top", fontweight="bold")
+
+    # ---- left: 4H context
+    d4 = resample(df, "4H").tail(42)
+    lo4, hi4 = float(d4["Low"].min()), float(d4["High"].max()); p4 = (hi4 - lo4) * 0.06
+    style(axL, lo4 - p4, hi4 + p4, len(d4) + 4, "4H · context")
+    candles(axL, d4)
+    for y, txt, col in ((upper, "BUY signal above", UP), (lower, "SELL signal below", DN)):
+        if lo4 - p4 < y < hi4 + p4:
+            axL.axhline(y, color=col, lw=0.9, ls=(0, (4, 3)), alpha=0.8)
+            axL.text(0.5, y, f" {txt} {y:,.0f}", color=col, fontsize=7.5, va="bottom")
+    sc = UP if ts > 0 else DN if ts < 0 else MUT
+    fig.text(0.035, 0.865, f" Swing (4H): {'Bull ↑' if ts > 0 else 'Bear ↓' if ts < 0 else 'Range'} ", color=sc, fontsize=10.5,
+             fontweight="bold", va="bottom", bbox=dict(boxstyle="round,pad=0.3", fc=PANEL, ec=sc, lw=0.8))
+
+    # ---- right: 15m execution
+    d = resample(df, "15m").tail(110)
+    ys = [float(d["Low"].min()), float(d["High"].max())]
+    if plan:
+        risk = abs(plan["edge"] - plan["inval"]); tgt = plan["edge"] + (2 * risk if side == "BUY" else -2 * risk)
+        ys += [plan["inval"], tgt]
+    lo, hi = min(ys), max(ys); pd_ = (hi - lo) * 0.07
+    N = len(d); RIGHT = 30
+    style(axR, lo - pd_, hi + pd_, N + RIGHT, "15m · execution")
+    candles(axR, d)
+    for name, col in (("Prev day high", MUT), ("Prev day low", MUT)):
+        y = lad.get(name)
+        if y and lo - pd_ < y < hi + pd_:
+            axR.plot([0, N + RIGHT - 2], [y, y], color=col, lw=0.8, ls=(0, (2, 3)))
+            axR.text(1, y, f"{'Yesterday high' if 'high' in name else 'Yesterday low'} {y:,.2f}", color=col, fontsize=7.5, va="bottom")
+    axR.axhline(price, color=INK, lw=0.6, alpha=0.4)
+    axR.text(N + RIGHT + 0.3, price, f"{price:,.2f}", color=BG, fontsize=8, va="center", ha="left", fontweight="bold",
+             bbox=dict(boxstyle="round,pad=0.25", fc=INK, ec="none"), clip_on=False, zorder=5)
+    if plan:
+        bull = side == "BUY"; x0, x1 = N + 3, N + RIGHT - 2
+        en, stp = plan["edge"], plan["inval"]
+        axR.add_patch(Rectangle((x0, min(en, tgt)), x1 - x0, abs(tgt - en), color=UP, alpha=0.18, lw=0))
+        axR.add_patch(Rectangle((x0, min(en, stp)), x1 - x0, abs(en - stp), color=DN, alpha=0.25, lw=0))
+        axR.add_patch(Rectangle((0, plan["lo"] - 0.6), N, plan["hi"] - plan["lo"] + 1.2, color=GOLD, alpha=0.12, lw=0))
+        for y, txt, col, va in ((tgt, f"Target {tgt:,.2f}", UP, "bottom" if bull else "top"),
+                                (en, f"{'Buy' if bull else 'Sell'} zone {en:,.2f}", GOLD, "top" if bull else "bottom"),
+                                (stp, f"Stop {stp:,.2f}", DN, "top" if bull else "bottom")):
+            axR.plot([x0, x1], [y, y], color=col, lw=1)
+            axR.text(x0 + 0.6, y, txt, color=col, fontsize=8, va=va, fontweight="bold")
+        # projected path: now -> zone -> target
+        px = [N - 1, x0 + 3, x0 + 8, x0 + 13, x1 - 3]
+        py = [price, en, en + (tgt - en) * 0.45, en + (tgt - en) * 0.3, tgt]
+        axR.plot(px, py, color=INK, lw=1.2, ls=(0, (3, 2)), alpha=0.9)
+        axR.annotate("", xy=(px[-1], py[-1]), xytext=(px[-2], py[-2]), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.2))
+        tag = f"Target {'Buy' if bull else 'Sell'}  ·  wait for a 15m close back {'above' if bull else 'below'} the zone"
+    else:
+        tag = "No 4H trend yet: wait for the breakout signal"
+    fig.text(0.035, 0.94, title, color=INK, fontsize=14, fontweight="bold")
+    fig.text(0.035, 0.905, tag, color=GOLD, fontsize=10)
+    fig.text(0.035, 0.03, "XAU.KH · spot XAUUSD · zone = with-trend level from the plan · a map, not a promise", color=MUT, fontsize=7.5)
+    fig.savefig(path, facecolor=BG)
+    plt.close(fig)
+    return path
+
+
 def card(df, price, word, score, areas, path, label):
     """Small image for Telegram: a big direction arrow, the price, the last 24h line with the sell and buy levels."""
     import matplotlib
@@ -739,10 +830,8 @@ def main():
     if due:
         name, key, start = due
         text = briefing_text(name, ict, conf, lv, news, df, lines, start, macro)
-        path = "session_card.png"
-        price = float(df["Close"].iloc[-1])
-        sc, wd, _ = direction(ict, lv, price)
-        card(df, price, wd, sc, intraday_areas(lv, conf, price), path, f"GOLD · {name.upper()} SESSION · {local(time.time())}")
+        path = "session_plan.png"
+        analysis_chart(df, lv, conf, lines, path, f"Gold · {name} session plan · {local(time.time())}")
         if len(text) <= 1024:
             mid = send_photo(path, text, f"{name} session")
         else:   # Telegram captions are limited: photo with the headline, then the full briefing as a reply
