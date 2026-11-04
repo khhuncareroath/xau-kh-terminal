@@ -273,6 +273,33 @@ def intraday_alerts(df, lv, conf, ict, state, news):
     state["intraday"] = {k: v for k, v in st.items() if now - v["t"] < 3 * 86400}
 
 
+def near_level_alert(df, lv, conf, ict, state):
+    """Calm 'price is near your level' alert: only the sell/buy levels shown in the session prep, each at most once a
+    day, at most one alert an hour, nothing when the big direction is strongly against it, and no follow-up messages."""
+    price = float(df["Close"].iloc[-1])
+    now = time.time()
+    if now - state.get("near_last", 0) < 3600:
+        return
+    score, word, _ = direction(ict, lv, price)
+    day = (datetime.now(NY) - timedelta(hours=18)).strftime("%Y-%m-%d")       # trading day starts 18:00 New York
+    sent = state.setdefault("near", {})
+    for k, a in intraday_areas(lv, conf, price).items():
+        key = f"{day}|{k}|{a['edge']:.0f}"
+        if key in sent or a["dist"] > price * NEAR_PCT:
+            continue
+        if (k == "SELL" and score >= 50) or (k == "BUY" and score <= -50):
+            continue                                                     # strong trend the other way: skip quietly
+        s = k == "SELL"
+        msg = (f"🔔 Gold <b>{fmt(price)}</b> is near the {'🔴 Sell' if s else '🟢 Buy'} level <b>{fmt(a['edge'])}</b> ({a['dist']:,.1f} away)\n"
+               f"Wait for a 15m candle to close back {'below' if s else 'above'} {fmt(a['edge'])} · stop {'above' if s else 'below'} {fmt(a['inval'])}")
+        if send(msg, f"Near {k}") or not os.environ.get("TELEGRAM_TOKEN"):
+            sent[key] = now
+            state["near_last"] = now
+            print("near-level alert", key)
+        break
+    state["near"] = {x: v for x, v in sent.items() if now - v < 3 * 86400}
+
+
 # ---------- chart image ----------
 
 def _trendlines(d1):
@@ -637,9 +664,10 @@ def main():
     lines = breakout_lines(df)
     heads_up(df, lines, state)
     try:
-        intraday_alerts(df, lv, conf, ict, state, news)
+        intraday_alerts(df, lv, conf, ict, state, news)   # old 🟠 alerts: off unless INTRADAY_ALERTS=on
+        near_level_alert(df, lv, conf, ict, state)
     except Exception as e:
-        print("intraday alerts failed:", e)
+        print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
         (os.environ["SESSION_FORCE"], "forced|" + os.environ["SESSION_FORCE"], datetime.now(timezone.utc))
     if due:
