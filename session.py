@@ -483,7 +483,8 @@ def plan_line(p):
     s = p["side"] == "SELL"
     return (f"🟡 {p['from']} volume built at the {'bottom (b shape): sellers won' if s else 'top (P shape): buyers won'}.\n"
             f"Plan for {p['for']}: <b>{'sell' if s else 'buy'} the pullback to {fmt(p['edge'])}</b> (POC) "
-            f"after a 15m close back {'below' if s else 'above'} · stop beyond {fmt(p['inval'])} · target 1.5R")
+            f"after a 15m close back {'below' if s else 'above'} · stop {'above the pullback high' if s else 'below the pullback low'} "
+            f"(at least past {fmt(p['inval'])}) · target 1.5R")
 
 
 def analysis_chart(df, lv, conf, lines, path, title):
@@ -739,6 +740,37 @@ def local_tz():
 
 # ---------- messages ----------
 
+def session_range(df, name, days=20):
+    """Typical high-low range of that session over the last `days` sessions (median, $)."""
+    k = {v: k for k, v in SESS_NAME.items()}[name]
+    a, b = SESS_WIN[k]
+    hr = df.index.hour
+    m = ((hr >= a) | (hr < b)) if a > b else ((hr >= a) & (hr < b))
+    x = df[m]
+    day = (x.index - pd.Timedelta(hours=18)).date
+    r = (x.groupby(day)["High"].max() - x.groupby(day)["Low"].min()).tail(days)
+    return float(r.median()) if len(r) >= 5 else None
+
+
+def no_trade_guide(name, p, lv, df):
+    """For sessions without a tested setup: what to expect, the key levels, and how to manage risk if trading anyway."""
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    rng = session_range(df, name)
+    out = ["", f"🧭 <b>No tested setup for {name}: session guide</b>"]
+    if rng:
+        out.append(f"• {name} usually moves about <b>${rng:,.0f}</b> high to low (last 20 days).")
+    keys = []
+    if p:
+        keys.append(f"POC {fmt(p['poc'])} · value {fmt(p['val'])}–{fmt(p['vah'])} ({p['from']})")
+    if lad.get("Prev day high"):
+        keys.append(f"yesterday {fmt(lad['Prev day low'])}–{fmt(lad['Prev day high'])}")
+    if keys:
+        out.append("• Key levels: " + " · ".join(keys))
+    out.append("• If you trade anyway: range trades (buy the value low, sell the value high) were slightly negative in "
+               "testing. Use <b>0.25% risk max</b>, stop outside the range, or simply wait.")
+    return out
+
+
 def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     """Short: direction, one sell level, one buy level, the big signal lines, the one risk that matters most."""
     price = float(df["Close"].iloc[-1])
@@ -758,8 +790,10 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     struct = f"Swing (4H) {bw(ts)} · Internal (1H) {bw(b['1H'])}"
     rng = f"Yesterday's range {fmt(lad['Prev day low'])} – {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
     out = [f"{head} <b>{name.upper()}</b> · Gold <b>{fmt(price)}</b> · {word} {arrow}", struct, *([rng] if rng else []), "",
-           plan_line(vp_plan(df)),
+           plan_line(plan := vp_plan(df)),
            f"⚡ 4H close above {fmt(upper)} = BUY signal · below {fmt(lower)} = SELL signal",
+           *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
+             else ([f"Key levels: POC {fmt(plan['poc'])} · value {fmt(plan['val'])}–{fmt(plan['vah'])}"] if plan else [])),
            *([risk] if risk else []),
            "", "<i>✅ 4H signal: tested, 69% win · 🟡 plan trade: small edge, risk 0.5%</i>"]
     if LANG == "km":
@@ -906,6 +940,13 @@ def weekly_report(df, log, alog, bt, week_start):
         if alog:
             H = sum(x["result"] == "held" for x in alog)
             out.append(f"All time: {H} of {len(alog)} held ({round(100 * H / len(alog))}%).")
+    try:
+        from cot import cot_line
+        cl = cot_line(jl("cot.json"))
+        if cl:
+            out += ["", esc(cl)]
+    except Exception:
+        pass
     out += ["", "<i>R = profit measured in risk units: +1R means you made what you risked. "
                 "1 week is a small sample; judge the record over months.</i>"]
     if LANG == "km":
@@ -996,6 +1037,13 @@ def main():
             body = ["🏛 <b>THE WEEK FOR GOLD · big US events</b>", ""]
             for t, title in ev[:8]:
                 body += [f"<b>{local(t.timestamp())} {t.astimezone(local_tz()):%a}</b> · {esc(title)}", f"   {esc(explain_event(title))}"]
+            try:
+                from cot import cot_line
+                cl = cot_line(jl("cot.json"))
+                if cl:
+                    body += ["", esc(cl)]
+            except Exception as e:
+                print("cot line failed:", e)
             body += ["", "<i>Rules of thumb, not promises: the surprise versus the forecast matters more than the number itself.</i>"]
             if send("\n".join(body), "Week ahead"):
                 state.setdefault("weekly", {})[wk] = time.time()
