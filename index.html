@@ -249,6 +249,20 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
 html,body{background:transparent!important}
 .card{background:color-mix(in srgb,var(--card) 78%,transparent)!important;backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);
   border:.5px solid color-mix(in srgb,var(--label) 9%,transparent)}
+
+/* ---------- Apple-style motion ---------- */
+.js-rv .card,.js-rv .rv{opacity:0;transform:translateY(28px) scale(.975);filter:blur(6px);
+  transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1),filter .9s cubic-bezier(.22,1,.36,1);transition-delay:var(--d,0ms);animation:none!important}
+.js-rv .card.in,.js-rv .rv.in{opacity:1;transform:none;filter:none}
+.view{transition:opacity .45s cubic-bezier(.22,1,.36,1)}
+.view.fadein{animation:viewIn .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+h1.large,main>h1{transform-origin:left bottom;transition:transform .2s linear,opacity .2s linear;will-change:transform}
+.card{transition:transform .35s cubic-bezier(.34,1.45,.64,1),box-shadow .35s}
+@media (hover:hover){.card:hover{transform:translateY(-2px)}}
+button,.btn,.chips button,.seg button,.tabbar a,.tabbar button{transition:transform .25s cubic-bezier(.34,1.45,.64,1)}
+button:active,.btn:active,.tabbar a:active,.tabbar button:active{transform:scale(.95)}
+@media (prefers-reduced-motion:reduce){.js-rv .card,.js-rv .rv{opacity:1!important;transform:none!important;filter:none!important;transition:none}h1.large,main>h1{transform:none!important}}
 </style>
 </head>
 <body>
@@ -795,6 +809,22 @@ show(["today","chart","record","guide"].includes(location.hash.slice(1))?locatio
 load();setInterval(load,60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
 })();
+</script>
+
+<script>
+/* Apple-style reveal: cards fade/rise/unblur as they enter the screen, staggered; big title shrinks on scroll */
+(()=>{try{
+  const rm=matchMedia("(prefers-reduced-motion: reduce)").matches;if(rm||!("IntersectionObserver" in window))return;
+  document.documentElement.classList.add("js-rv");
+  const io=new IntersectionObserver(es=>{let k=0;for(const e of es)if(e.isIntersecting){e.target.style.setProperty("--d",(k++*70)+"ms");e.target.classList.add("in");io.unobserve(e.target)}},{threshold:.08,rootMargin:"0px 0px -6% 0px"});
+  const watch=()=>document.querySelectorAll(".card:not(.in),.rv:not(.in)").forEach(c=>{const r=c.getBoundingClientRect();if(r.width===0)return;io.observe(c)});
+  watch();new MutationObserver(()=>watch()).observe(document.body,{attributes:true,subtree:true,attributeFilter:["class","hidden"]});
+  setTimeout(()=>document.querySelectorAll(".card,.rv").forEach(c=>c.classList.add("in")),4000);   // never leave anything hidden
+  const tick=()=>{const y=scrollY;document.querySelectorAll("h1.large,main>h1").forEach(h=>{if(!h.offsetParent)return;const k=Math.min(1,y/160);
+    h.style.transform=`scale(${1-k*.12}) translateY(${-k*6}px)`;h.style.opacity=1-k*.5})};addEventListener("scroll",()=>requestAnimationFrame(tick),{passive:true});
+  document.addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;setTimeout(()=>{document.querySelectorAll(".view.on").forEach(v=>{v.classList.remove("fadein");void v.offsetWidth;v.classList.add("fadein")});
+    document.querySelectorAll(".view.on .card").forEach(c=>c.classList.remove("in"));watch()},0)});
+}catch(e){document.documentElement.classList.remove("js-rv")}})();
 </script>
 </body>
 </html>
