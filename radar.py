@@ -40,6 +40,19 @@ def _trend_series(df):
     return pd.Series(st, index=d4.index + pd.Timedelta(hours=4)).reindex(df.index, method="ffill").fillna(0).to_numpy()
 
 
+def trend_open(df):
+    """Open 4H-breakout trades in the replay of the live rules. While BOTH the intraday and the swing version hold a
+    trade, a new 4H close beyond a line sends NO new signal (the backtest skips it the same way). Returns
+    (busy, list of open trades)."""
+    from proof import replay
+    try:
+        op = [t for t in replay(df, ["trend_intraday", "trend_tight"]) if t["status"] == "open"]
+    except Exception as e:
+        print("trend_open failed:", e)
+        return False, []
+    return {t["model"] for t in op} >= {"trend_intraday", "trend_tight"}, op
+
+
 def status(df, lines):
     price = float(df["Close"].iloc[-1])
     upper, lower = lines[0], lines[1]
@@ -52,7 +65,20 @@ def status(df, lines):
         c = d4["Close"].iloc[k]
         tr = 1 if c > hi30.iloc[k] else -1 if c < lo30.iloc[k] else tr
     near = min(upper - price, price - lower)
-    return {"price": price, "upper": upper, "lower": lower, "used": used, "zone": zone, "trend": tr,
+    busy, op = trend_open(df)
+    live = None
+    try:   # the trade members actually got (alerts_log), for the levels shown
+        import json
+        live = next((a for a in reversed(json.load(open("alerts_log.json"))) if a.get("kind") == "model"
+                     and a.get("status") in ("filled", "pending", "tp1")), None)
+    except Exception:
+        pass
+    if busy:
+        ref = next((t for t in op if t["model"] == "trend_tight"), op[-1])
+        if not (live and (live.get("dir") == "bull") == (ref["sg"] > 0) and abs(live.get("entry", 0) - ref["entry"]) <= 5):
+            live = {"dir": "bull" if ref["sg"] > 0 else "bear", "entry": ref["entry"], "stop": ref["stop"],
+                    "tp1": ref.get("tp1"), "target": ref["tgt"], "status": "filled"}
+    return {"busy": busy, "open": op, "live": live, "price": price, "upper": upper, "lower": lower, "used": used, "zone": zone, "trend": tr,
             "to_buy": upper - price, "to_sell": price - lower, "near": near}
 
 
@@ -182,7 +208,11 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
     mt.text(0.5, -0.06, "DAY METER\nhow much of a normal\nday gold has moved", color=MUT, fontsize=7, ha="center", va="top",
             transform=mt.transData, linespacing=1.3)
     # header
-    if st["zone"] == 2:
+    if st.get("busy"):
+        o_ = st["open"][-1]
+        head, col, nf = (f"TRADE RUNNING · {'BUY' if o_['sg'] > 0 else 'SELL'} {o_['entry']:,.2f} still open: no new 4H signal until it closes",
+                         INK, 0)
+    elif st["zone"] == 2:
         head, col, nf = "PREMIUM ZONE · a 4H close beyond a line = PREMIUM SWING", PREM, 2
     elif st["zone"] == 1:
         head, col, nf = "COMBO ZONE · a 4H close beyond a line = COMBO signal", GOLD, 1
@@ -217,7 +247,10 @@ KM_TREND = {1: "ទំនោរឡើង", -1: "ទំនោរចុះ", 0: "�
 def caption(st, why, next_close_local):
     tr = st["trend"]
     z = st["zone"]
-    zone_line = ("🖕🖕 <b>PREMIUM zone</b>: a 4H close beyond a line now = PREMIUM SWING (77% in test)" if z == 2 else
+    o_ = (st.get("open") or [None])[-1]
+    zone_line = (f"✅ A 4H {'BUY' if o_['sg'] > 0 else 'SELL'} from this move is still running (entry {o_['entry']:,.2f}): "
+                 f"<b>no new 4H signal until it closes</b> · ទុកការជួញដូរមុនឲ្យរត់" if st.get("busy") else
+                 "🖕🖕 <b>PREMIUM zone</b>: a 4H close beyond a line now = PREMIUM SWING (77% in test)" if z == 2 else
                  "🖕 <b>COMBO zone</b>: a 4H close beyond a line now = COMBO signal (68% in test)" if z == 1 else
                  "◽ Day still quiet: a breakout now would be a Normal signal (half size)")
     side = ("BUY" if st["to_buy"] < st["to_sell"] else "SELL")
@@ -225,7 +258,10 @@ def caption(st, why, next_close_local):
     head = {"combo": "🖕 <b>COMBO ZONE OPEN</b>", "premium": "🖕🖕 <b>PREMIUM ZONE OPEN</b>", "4h": "📡 <b>STRATEGY RADAR</b>"}[why]
     lines = [f"{head} · Gold <b>{st['price']:,.2f}</b>",
              f"📏 Day Meter <b>{st['used'] * 100:.0f}%</b> of a normal day · {zone_line}",
-             (f"🎯 Closest: <b>{side}</b> line {st['upper'] if side == 'BUY' else st['lower']:,.2f} · {dist:,.1f} away" if dist > 0 else
+             (f"🎯 Running: {'BUY' if L['dir'] == 'bull' else 'SELL'} {L['entry']:,.2f} · SL {L['stop']:,.2f}"
+              + (f" · TP1 {L['tp1']:,.2f}" if L.get("tp1") and L.get("status") != "tp1" else "") + f" · TP2 {L['target']:,.2f}"
+              if st.get("busy") and (L := st.get("live")) else
+              f"🎯 Closest: <b>{side}</b> line {st['upper'] if side == 'BUY' else st['lower']:,.2f} · {dist:,.1f} away" if dist > 0 or st.get("busy") else
               f"🔥 Price is already {'above the BUY' if side == 'BUY' else 'below the SELL'} line "
               f"{st['upper'] if side == 'BUY' else st['lower']:,.2f}: if the 4H candle CLOSES there → ✅ {side} signal"),
              f"{'📈' if tr > 0 else '📉' if tr < 0 else '↔'} 4H trend {'UP' if tr > 0 else 'DOWN' if tr < 0 else 'none'} · {KM_TREND[tr]}",

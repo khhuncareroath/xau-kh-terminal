@@ -1263,7 +1263,9 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
            "",
            plan_line(plan := vp_plan(df), price),
            "",
-           f"⚡ <b>សញ្ញាធំ 4H</b> (ឈ្នះ 62% · intraday): ទិញ បើបិទលើ <b>{fmt(upper)}</b> · លក់ បើបិទក្រោម <b>{fmt(lower)}</b>",
+           (f"⚡ <b>សញ្ញាធំ 4H</b>: ការជួញដូរ 4H មុននៅបើកនៅឡើយ · <b>no new 4H signal until it closes</b>"
+            if _trend_busy(df) else
+            f"⚡ <b>សញ្ញាធំ 4H</b> (ឈ្នះ 63% · 🖕 68% · 🖕🖕 77%): ទិញ បើបិទលើ <b>{fmt(upper)}</b> · លក់ បើបិទក្រោម <b>{fmt(lower)}</b>"),
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
            *([risk] if risk else []),
@@ -1275,7 +1277,21 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     return "\n".join(out)
 
 
+def _trend_busy(df):
+    try:
+        import radar
+        return radar.trend_open(df)[0]
+    except Exception:
+        return False
+
+
 def heads_up(df, lines, state):
+    try:
+        import radar
+        if radar.trend_open(df)[0]:   # a 4H trade from this move is running: the next close sends no new signal
+            return
+    except Exception as e:
+        print("heads-up busy check failed:", e)
     price = float(df["Close"].iloc[-1])
     upper, lower, next_close, _ = lines
     day = datetime.now(NY).strftime("%Y-%m-%d")
@@ -1314,7 +1330,7 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
     p = vp_plan(df)
     plan_ok = p and p.get("side") and abs(p["edge"] - p["inval"]) <= p["edge"] * 0.006
-    near = min(upper - price, price - lower) <= price * 0.004
+    near = min(upper - price, price - lower) <= price * 0.004 and not _trend_busy(df)
     out = [f"⏱ មាស <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} ក្នុង 1 ម៉ោង) · {KW[word]} {arrow}"]
     if near:
         up = abs(upper - price) < abs(price - lower)
@@ -1396,7 +1412,8 @@ def quiet_checkin(ict, lv, news, df, lines, state):
     m_en, m_km = MINDSET[(loc.toordinal() * 2 + len(done)) % len(MINDSET)]
     zone = "" if used is None else ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done")
     wait = (f"{'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else
-            f"4H close > {fmt(upper)} = BUY · < {fmt(lower)} = SELL")
+            ("the open 4H trade to finish (no new 4H signal until then)" if _trend_busy(df) else
+             f"4H close > {fmt(upper)} = BUY · < {fmt(lower)} = SELL"))
     kind = len(done) % 3
     d15 = resample(df, "15m")
     mv = float(df["Close"].iloc[-1] - d15["Close"].iloc[-9]) if len(d15) > 9 else 0.0   # last 2 hours
@@ -1457,6 +1474,9 @@ def radar_post(df, lines, state):
         why = "4h"
     if closed:
         rs["last4h"] = closed if why in (None, "4h") or rs.get("last4h") is None else rs["last4h"]
+    if why in ("combo", "premium") and st.get("busy"):   # a 4H trade is running: no "zone open" promise, mark it done
+        rs["combo"] = True; rs["premium"] = rs.get("premium") or why == "premium"
+        why = None
     if why is None:
         return
     title = {"combo": "Combo zone", "premium": "Premium zone", "4h": "Strategy Radar"}[why]
@@ -1480,6 +1500,11 @@ def proof_post(df, state):
     have closed since the last proof post. Checked every 30 minutes, 08:00-23:00 local, at most every 12 hours."""
     ps = state.setdefault("proof", {})
     loc = datetime.now(local_tz())
+    try:   # never in the same minute as another post
+        if time.time() - float(open("data/cache/last_post").read()) < 600:
+            return
+    except Exception:
+        pass
     if not (8 <= loc.hour < 23) or time.time() - ps.get("checked", 0) < 1800 or time.time() - ps.get("sent", 0) < PROOF_GAP_H * 3600:
         return
     ps["checked"] = time.time()

@@ -23,8 +23,8 @@ TIERS = {   # model: (short name, tier, ring colour)
 TIER_KM = {"TESTED": "បានសាកល្បង", "PLAN": "ផែនការ", "EXPERIMENTAL": "សាកល្បង"}
 
 
-def replay(df):
-    """Every trade of the three intraday models on df: entry/exit index, side, stop, target(s), R, status."""
+def replay(df, models=None):
+    """Every trade of the models (default: the proof tiers) on df: entry/exit index, side, stop, target(s), R, status."""
     trades = []
     real_t, real_s = research._run_trade, research._run_scaled
     cur = {}
@@ -53,7 +53,7 @@ def replay(df):
 
     research._run_trade, research._run_scaled = rec_t, rec_s
     try:
-        for m in TIERS:
+        for m in (models or TIERS):
             cur["m"] = m
             before = len(trades)
             try:
