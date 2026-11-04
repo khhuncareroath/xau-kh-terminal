@@ -60,14 +60,14 @@ def cot_line(c):
     """One plain sentence for Telegram, or None."""
     if not c or c.get("net") is None or c.get("net_change") is None:
         return None
-    ch = c["net_change"]
-    side = "net long" if c["net"] > 0 else "net short"
-    move = "added" if (ch > 0) == (c["net"] > 0) else "cut"
+    ch, up = c["net_change"], c["net"] > 0
+    more = (ch > 0) == up
     pos = c.get("range_pct")
-    where = (" · near a 1-year high: crowded, a sharp drop is possible if they sell" if pos is not None and pos >= 85 else
-             " · near a 1-year low: little selling left, room to buy back" if pos is not None and pos <= 15 else "")
-    return (f"🏦 Big money (CFTC, week of {c['date']}): hedge funds are {side} {abs(c['net']):,} contracts, "
-            f"{move} {abs(ch):,} this week{where}.")
+    where = (" Their bet is near a 1-year high: if they start selling, gold can drop fast." if pos is not None and pos >= 85 else
+             " Their bet is near a 1-year low: they have room to buy back." if pos is not None and pos <= 15 else "")
+    return (f"🏦 Big funds (official CFTC data, {c['date']}): betting on gold going {'UP' if up else 'DOWN'} "
+            f"({abs(c['net']):,} contracts). This week they made that bet {'bigger' if more else 'smaller'} "
+            f"by {abs(ch):,}.{where}")
 
 
 if __name__ == "__main__":

@@ -168,7 +168,8 @@ def model_alert(lm, state, now):
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
-    why_short = {"bull": "4H candle closed above this week's high.", "bear": "4H candle closed below this week's low."}
+    why_short = {"bull": "Gold broke above this week's highest price (4-hour chart). Big moves often start like this.",
+                 "bear": "Gold broke below this week's lowest price (4-hour chart). Big drops often start like this."}
     if LANG != "km":
         out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested", "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
@@ -182,7 +183,7 @@ def model_alert(lm, state, now):
                 (f"Tested 2 years: {b.get('trades')} trades · {b.get('win_rate_pct')}% win" if b.get("trades") else None),
                 (f"⚠️ {'Buys' if bull else 'Sells'} are the weaker side: use a smaller size." if side.get("trades") and side["avg_R"] < 0.1
                  and s["model"] != "trend_buy" else None),
-                f"⏰ Enter within 15 min · holds up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · holds up to {hold_h} h",
+                f"⏰ Enter within 15 min · can stay open up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · holds up to {hold_h} h",
                 "", "<i>Risk 0.5–1% of your account · ប្រើហានិភ័យ 0.5–1% ប៉ុណ្ណោះ</i>"]
     else:
         out += [f"{'🟢' if bull else '🔴'} <b>មាស · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>",
@@ -308,15 +309,15 @@ def plan_alert(lm, state, now):
         return False
     bull = s["dir"] == "bull"
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
-    reason = {"bull": "Last session's volume built at the top (P shape: buyers won). Price pulled back to the POC and the 15m closed back above.",
-              "bear": "Last session's volume built at the bottom (b shape: sellers won). Price pulled back to the POC and the 15m closed back below."}
+    reason = {"bull": "Last session, buyers were in control. Price came back to the busiest price and a 15-min candle closed above it.",
+              "bear": "Last session, sellers were in control. Price came back to the busiest price and a 15-min candle closed below it."}
     msg = "\n".join([
         f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  🟡 <i>plan trade</i>", "",
         f"Entry  <b>{fmt(s['entry'])}</b>",
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
         f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
         reason["bull" if bull else "bear"],
-        "Tested 2 years: small edge, not proven · closes within 8 h",
+        "Tested 2 years: about half win, small profit overall · closes within 8 h",
         "", "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>"])
     mid = send(msg, ("BUY" if bull else "SELL") + " plan")
     if not mid:
