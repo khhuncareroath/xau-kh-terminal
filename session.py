@@ -357,6 +357,60 @@ def plan_entry(df, a, key, state, c15):
     print("plan entry sent", key)
 
 
+def plan_watch(df, state):
+    """Follow-ups for the session's 🟡 plan, so nobody is left guessing (max 2 per plan):
+    1) price reached the POC -> what to wait for now; 2) at session end without an entry -> plan expired,
+    or price left without a pullback -> don't chase. The entry itself comes from notify.py (plan trade)."""
+    p = vp_plan(df)
+    if not p or not p.get("side") or abs(p["edge"] - p["inval"]) > p["edge"] * 0.006:
+        return
+    now = datetime.now(NY)
+    k = {v: k for k, v in SESS_NAME.items()}[p["for"]]
+    a, b = SESS_WIN[k]
+    h = now.hour + now.minute / 60
+    inside = (h >= a or h < b) if a > b else (a <= h < b)
+    day = (now - timedelta(hours=18)).strftime("%Y-%m-%d")
+    key = f"{day}|{p['for']}|{p['edge']:.0f}"
+    w = state.setdefault("plan_watch", {})
+    rec = w.setdefault(key, {"t": time.time(), "sent": []})
+    s_ = p["side"] == "SELL"
+    price = float(df["Close"].iloc[-1])
+    start = now.replace(hour=a, minute=0, second=0, microsecond=0)
+    if start > now:
+        start -= timedelta(days=1)
+    x = df[df.index >= start]
+    entered = any(e.get("kind") == "plan" and e.get("created", 0) >= start.timestamp() for e in jl("alerts_log.json", []))
+    msg = None
+    if inside and len(x) and "touch" not in rec["sent"] and not entered:
+        hit = (x["High"] >= p["edge"]).any() if s_ else (x["Low"] <= p["edge"]).any()
+        if hit:
+            msg, tag = (f"🟡 <b>PLAN UPDATE · price is at the POC {fmt(p['edge'])}</b>\n"
+                        f"Next: wait for a 15m candle to close {'below' if s_ else 'above'} {fmt(p['edge'])}. "
+                        f"The {'SELL' if s_ else 'BUY'} entry comes here automatically. Don't enter before it."), "touch"
+    risk = abs(p["edge"] - p["inval"])
+    if not msg and inside and "missed" not in rec["sent"] and "touch" not in rec["sent"] and not entered:
+        if (s_ and price < p["edge"] - 2 * risk) or (not s_ and price > p["edge"] + 2 * risk):
+            msg, tag = (f"🟡 <b>PLAN UPDATE · price left without a pullback</b>\n"
+                        f"{'Sellers' if s_ else 'Buyers'} were right, but there is no entry at a good price now. "
+                        f"<b>Don't chase.</b> Wait for the next plan."), "missed"
+    rec.update({"for": p["for"], "start": start.timestamp(), "end_h": b})
+    if msg and (send(msg, "Plan update") or not os.environ.get("TELEGRAM_TOKEN")):
+        rec["sent"].append(tag)
+        print("plan update:", tag)
+    log = jl("alerts_log.json", [])
+    for kk, r in w.items():                       # close earlier plans whose session is over
+        if kk == key or "touch" not in r.get("sent", []) or {"end", "missed"} & set(r["sent"]) or not r.get("start"):
+            continue
+        if time.time() - r["start"] < 3 * 3600:
+            continue
+        if any(e.get("kind") == "plan" and e.get("created", 0) >= r["start"] for e in log):
+            r["sent"].append("end"); continue
+        if send(f"🟡 <b>PLAN UPDATE · {r['for']} plan expired</b>: no 15m confirmation, so <b>no trade</b>. "
+                f"No confirmation = no risk. That is the rule working.", "Plan update") or not os.environ.get("TELEGRAM_TOKEN"):
+            r["sent"].append("end"); print("plan update: end", kk)
+    state["plan_watch"] = {kk: vv for kk, vv in w.items() if time.time() - vv["t"] < 2 * 86400}
+
+
 def near_level_alert(df, lv, conf, ict, state):
     """Calm 'price is near your level' alert: only the sell/buy levels shown in the session prep, each at most once a
     day, at most one alert an hour, nothing when the big direction is strongly against it.
@@ -1338,6 +1392,7 @@ def main():
             near_level_alert(df, lv, conf, ict, state)
         pre_news(news, state)
         macro_shift(macro, news, state)
+        plan_watch(df, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
