@@ -376,7 +376,9 @@ def near_level_alert(df, lv, conf, ict, state):
         done15 = d15.index[-2] + pd.Timedelta(minutes=15) if len(d15) > 2 else None
         if a.get("touched") and done15 is not None and done15.timestamp() > a["touch_t"] + 300 \
                 and ((s and a["inval"] > c15 < a["edge"]) or (not s and a["inval"] < c15 > a["edge"])):
-            plan_entry(df, a, key, state, c15)                                  # 15m closed back from the zone: entry
+            if os.environ.get("LEVEL_PLAN") == "on":                           # old level entry (break-even in testing): off
+                plan_entry(df, a, key, state, c15)
+            a["status"] = "entry checked"
             continue
         if (s and c15 > a["inval"]) or (not s and c15 < a["inval"]):
             a["status"] = "failed"

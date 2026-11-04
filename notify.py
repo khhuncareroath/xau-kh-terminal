@@ -291,6 +291,46 @@ def setup_message(mode, st, ict, fs, valid_until, summ, ai):
     return out
 
 
+PLAN_MODELS = ("vp_shape",)          # promising but not yet proven: sent as "plan trade", small risk, results posted
+WATCH_ALERTS = os.environ.get("WATCH_ALERTS", "off") == "on"   # old ICT watch ideas lost money in testing: off
+
+
+def plan_alert(lm, state, now):
+    """Plan trade from a candidate model (all nearby settings positive in testing, not yet past the proof bar)."""
+    if MODE == "watch":
+        return False
+    sigs = [s for s in lm.get("signals", []) if s.get("model") in PLAN_MODELS and not s.get("proven")]
+    if not sigs or (now - ts(lm.get("last_bar", "1970-01-01T00:00:00+00:00"))) / 60 > STALE_MIN:
+        return False
+    s = sigs[0]
+    key = f"plan|{s['model']}|{s['trigger_time']}"
+    if key in state.get("model_keys", []):
+        return False
+    bull = s["dir"] == "bull"
+    pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
+    reason = {"bull": "Last session's volume built at the top (P shape: buyers won). Price pulled back to the POC and the 15m closed back above.",
+              "bear": "Last session's volume built at the bottom (b shape: sellers won). Price pulled back to the POC and the 15m closed back below."}
+    msg = "\n".join([
+        f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  <i>(plan trade)</i>", "",
+        f"Entry  <b>{fmt(s['entry'])}</b>",
+        f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
+        f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
+        reason["bull" if bull else "bear"],
+        "Tested 2 years: positive, not yet proven · closes within 8 h",
+        "", "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>"])
+    mid = send(msg, ("BUY" if bull else "SELL") + " plan")
+    if not mid:
+        return False
+    state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
+    json.dump(state, open("notify_state.json", "w"))
+    log_alert({"id": key, "kind": "plan", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
+               "target": s["target"], "rr": s.get("rr"), "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
+               "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
+               "max_hold_s": 8 * 3600})
+    print("plan sent", key)
+    return True
+
+
 def main():
     ict, conf, lv, q, news, macro, bt, state = (jl(n) for n in ("ict.json", "confluence.json", "levels.json", "quality.json",
                                                                   "news.json", "macro.json", "backtest.json", "notify_state.json"))
@@ -300,8 +340,11 @@ def main():
     ns = news_soon(news, now=now)
     if ns:
         print("high-impact news soon, holding alerts:", ns); return
-    if model_alert(jl("live_models.json"), state, now):
+    lm = jl("live_models.json")
+    if model_alert(lm, state, now) or plan_alert(lm, state, now):
         return
+    if not WATCH_ALERTS:
+        print("watch alerts off"); return
     st = ict.get("setup") or {}
     ok, why = gate_setup(st, ict, now)
     if not ok:

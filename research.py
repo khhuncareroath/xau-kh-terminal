@@ -322,6 +322,78 @@ def crt_daily(df):
     return out
 
 
+def _vp(h, l, c, v, ix):
+    """Volume profile of the candles ix ($0.50 bins on the typical price): POC, value area low/high (70%), low, high."""
+    lo, hi = l[ix].min(), h[ix].max()
+    bins = np.arange(np.floor(lo), np.ceil(hi) + 0.5, 0.5)
+    vol = np.zeros(len(bins))
+    tp = (h[ix] + l[ix] + c[ix]) / 3
+    np.add.at(vol, np.clip(((tp - bins[0]) / 0.5).astype(int), 0, len(bins) - 1), np.maximum(v[ix], 1))
+    p = int(vol.argmax()); a = b = p; acc, tot = vol[p], vol.sum()
+    while acc < 0.7 * tot:
+        up = vol[b + 1] if b + 1 < len(vol) else -1
+        dn = vol[a - 1] if a > 0 else -1
+        if up >= dn:
+            b += 1; acc += up
+        else:
+            a -= 1; acc += dn
+    return bins[p], bins[a], bins[b], lo, hi
+
+
+def vp_shape(df, th=0.66, rr=2.0):
+    """Volume-profile shape of the previous session (from the member's order-flow PDF). Sessions (New York time):
+    Asia 18-02, London 02-07, New York 07-12. POC in the top third = P shape (buyers won) -> in the next session buy
+    the pullback to the POC; bottom third = b shape -> sell the pullback to the POC. Entry after price touches the POC
+    and a 15m candle closes back, stop beyond the value area (or the touch extreme), target 2R, one trade per session.
+    D shapes (range trading VAL/VAH) lost money in testing and are skipped.
+    2 years of spot gold: 181 trades, 46% win, +0.15R, t=1.5; all 12 nearby settings positive, shorts positive too.
+    Not proven yet (t < 2), so it runs as a 'plan trade' until judge() says otherwise."""
+    o, h, l, c, v = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close", "Volume"))
+    idx = df.index; n = len(df)
+    nr = df.attrs.get("n_real")
+    hr = idx.hour + idx.minute / 60
+    date = (idx - pd.Timedelta(hours=18)).date
+    sess = np.where((hr >= 18) | (hr < 2), 0, np.where(hr < 7, 1, np.where(hr < 12, 2, -1)))
+    groups = {}
+    for i, (d, s_) in enumerate(zip(date, sess)):
+        if s_ >= 0:
+            groups.setdefault((d, s_), []).append(i)
+    order = sorted(groups)
+    out = []
+    for g0, g1 in zip(order[:-1], order[1:]):
+        prev, nxt = np.array(groups[g0]), groups[g1]
+        if len(prev) < 30 or len(nxt) < 4:
+            continue
+        poc, val, vah, lo, hi = _vp(h, l, c, v, prev)
+        pos = (poc - lo) / (hi - lo) if hi > lo else 0.5
+        if th > pos > 1 - th:
+            continue
+        sg, wrong = (1, val) if pos >= th else (-1, vah)
+        touched = None
+        for i in nxt:
+            if nr is not None and i >= nr:
+                break
+            if touched is None and ((l[i] <= poc) if sg > 0 else (h[i] >= poc)):
+                touched = i
+                continue
+            if touched is None or i - touched > 12 or (i + 1) % 3:
+                continue
+            if (c[i] > poc) if sg > 0 else (c[i] < poc):
+                j0 = i + 1 + LAT
+                if j0 + 1 >= n or (nr is not None and j0 > nr):
+                    break
+                ext = l[touched:i + 1].min() if sg > 0 else h[touched:i + 1].max()
+                stop = min(wrong, ext - 0.5) if sg > 0 else max(wrong, ext + 0.5)
+                risk = abs(o[j0] - stop)
+                if risk > o[j0] * 0.008:
+                    break
+                r, j = _run_trade(o, h, l, c, j0, min(nxt[-1] + 36, n - 1), sg, stop, o[j0] + sg * rr * risk)
+                if r is not None:
+                    out.append((idx[j0], r, "long" if sg > 0 else "short"))
+                break
+    return out
+
+
 def breakout_cisd(df, window_h=12):
     """The member's entry (sweep -> CISD) combined with the proven direction: within 12 hours after a 4H close beyond the
     1-week range, in the London (02-05 NY) or New York (07-11 NY) window, a 5m sweep of a key level against the breakout
@@ -432,7 +504,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"crt_daily": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
+DESCRIBE = {"vp_shape": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
+            "crt_daily": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
             "sweep_htf": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
             "value_80": "Volume profile 80% rule: back inside yesterday's value, target the far edge",
             "acceptance": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation",
@@ -448,11 +521,11 @@ TREND_PREFERENCE = ["trend_tight", "trend_buy", "trend_breakout"]   # same break
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}
