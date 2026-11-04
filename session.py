@@ -913,7 +913,7 @@ def heads_up(df, lines, state):
     state["heads_up"] = {k: v for k, v in sent.items() if time.time() - v < 3 * 86400}
 
 
-PULSE_HOURS_NY = {3, 4, 9, 10, 11, 12}      # on the hour during London (02-05) and New York (08-12), between the preps
+PULSE_HOURS_NY = {20, 21, 22, 23, 0, 1, 3, 4, 9, 10, 11, 12}   # Asia, London, New York; sent only if pulse_worth() finds news
 
 
 def pulse_text(ict, conf, lv, news, df, lines, macro):
