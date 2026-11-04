@@ -329,6 +329,17 @@ def plan_alert(lm, state, now):
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
                "max_hold_s": 8 * 3600})
     print("plan sent", key)
+    try:   # the trade on a chart with support / resistance, as a reply
+        import session
+        from engine import load
+        from levels import to_ny
+        from tg import send_photo
+        d = to_ny(load("5m", "20d")).iloc[:-1]
+        session.trade_chart(d, jl("levels.json"), s, "plan_chart.png")
+        send_photo("plan_chart.png", "Where to enter, where your risk is (SL) and the support / resistance around it.",
+                   "Plan chart", reply_to=mid if isinstance(mid, int) else None)
+    except Exception as e:
+        print("plan chart failed:", e)
     return True
 
 

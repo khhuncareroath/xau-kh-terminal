@@ -577,6 +577,63 @@ def analysis_chart(df, lv, conf, lines, path, title):
     return path
 
 
+def trade_chart(df, lv, sig, path):
+    """Picture for a plan trade: 15m candles, the entry / SL / TP box with pips, and the support and resistance
+    around it (POC, value area high/low of the last session, yesterday's high/low), each labelled in plain words."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
+    bull = sig["dir"] == "bull"
+    en, sl, tp = sig["entry"], sig["stop"], sig["target"]
+    pips = lambda px: f"{(px - en) * (1 if bull else -1) * 10:+,.0f} pips"
+    p = vp_plan(df) or {}
+    lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
+    d = resample(df, "15m").tail(100)
+    lv_ = [("POC · busiest price", p.get("poc"), GOLD, "-"),
+           ("VAH · value area high (resistance)", p.get("vah"), DN, (0, (3, 3))),
+           ("VAL · value area low (support)", p.get("val"), UP, (0, (3, 3))),
+           ("Yesterday high (resistance)", lad.get("Prev day high"), MUT, (0, (1, 3))),
+           ("Yesterday low (support)", lad.get("Prev day low"), MUT, (0, (1, 3)))]
+    ys = [float(d["Low"].min()), float(d["High"].max()), en, sl, tp]
+    lo, hi = min(ys), max(ys); pad = (hi - lo) * 0.08
+    lv_ = [x for x in lv_ if x[1] and lo - pad * 3 < x[1] < hi + pad * 3]
+    for _, y, _, _ in lv_:
+        lo, hi = min(lo, y), max(hi, y)
+    pad = (hi - lo) * 0.07
+    N, RIGHT = len(d), 26
+    fig = plt.figure(figsize=(11, 6.4), dpi=150); fig.patch.set_facecolor(BG)
+    ax = fig.add_axes([0.04, 0.08, 0.84, 0.76]); ax.set_facecolor(PANEL)
+    ax.set_ylim(lo - pad, hi + pad); ax.set_xlim(-1, N + RIGHT)
+    ax.grid(axis="y", color=GRID, lw=0.6); ax.set_xticks([])
+    for sp in ax.spines.values(): sp.set_visible(False)
+    ax.tick_params(colors=MUT, labelsize=8, length=0); ax.yaxis.tick_right()
+    for i, (o_, h_, l_, c_) in enumerate(d[["Open", "High", "Low", "Close"]].to_numpy()):
+        col = UP if c_ >= o_ else DN
+        ax.plot([i, i], [l_, h_], color=col, lw=0.8)
+        ax.add_patch(Rectangle((i - 0.31, min(o_, c_)), 0.62, max(abs(c_ - o_), 0.05), color=col, lw=0))
+    for name, y, col, ls in lv_:
+        ax.plot([0, N + 1], [y, y], color=col, lw=0.9, ls=ls, alpha=0.9)
+        ax.text(1, y, f"{name} {y:,.2f}", color=col, fontsize=7.5, va="bottom", alpha=0.95)
+    x0, x1 = N + 1, N + RIGHT - 2
+    ax.add_patch(Rectangle((x0, min(en, tp)), x1 - x0, abs(tp - en), color=UP, alpha=0.2, lw=0))
+    ax.add_patch(Rectangle((x0, min(en, sl)), x1 - x0, abs(en - sl), color=DN, alpha=0.28, lw=0))
+    for y, txt, col, va in ((tp, f"TP {tp:,.2f}  ({pips(tp)})", UP, "bottom" if bull else "top"),
+                            (en, f"{'BUY' if bull else 'SELL'} entry {en:,.2f}", INK, "bottom" if not bull else "top"),
+                            (sl, f"SL {sl:,.2f}  ({pips(sl)})  = your risk", DN, "top" if bull else "bottom")):
+        ax.plot([x0, x1], [y, y], color=col, lw=1.2)
+        ax.text(x0 + 0.5, y, txt, color=col, fontsize=8.5, va=va, fontweight="bold")
+    ax.annotate("", xy=(x1 - 2, tp), xytext=(x0 + 2, en), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.1, ls="--"))
+    fig.text(0.04, 0.93, f"{'🟢' if bull else '🔴'} Gold {'BUY' if bull else 'SELL'} plan".replace("🟢 ", "").replace("🔴 ", ""),
+             color=UP if bull else DN, fontsize=15, fontweight="bold")
+    fig.text(0.04, 0.885, f"Entry {en:,.2f}  ·  SL {sl:,.2f}  ·  TP {tp:,.2f}  ·  risk 0.5% max", color=INK, fontsize=10.5)
+    fig.text(0.04, 0.03, "Green box = profit area to TP · red box = risk to SL · dotted lines = support / resistance", color=MUT, fontsize=8)
+    fig.savefig(path, facecolor=BG); plt.close(fig)
+    return path
+
+
 def card(df, price, word, score, areas, path, label):
     """Small image for Telegram: a big direction arrow, the price, the last 24h line with the sell and buy levels."""
     import matplotlib
