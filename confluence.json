@@ -1,13 +1,13 @@
 {
-  "time": "2026-11-04 01:25 UTC",
-  "price": 3950.42,
-  "atr_5m": 7.38,
+  "time": "2026-11-04 01:35 UTC",
+  "price": 3953.31,
+  "atr_5m": 7.81,
   "zones": [
     {
       "low": 3968.7,
-      "high": 3972.77,
-      "mid": 3970.73,
-      "score": 8.0,
+      "high": 3984.65,
+      "mid": 3976.68,
+      "score": 11.0,
       "rating": "B",
       "families": [
         "ICT PD array",
@@ -21,75 +21,89 @@
         {
           "name": "1H bear FVG",
           "price": 3972.27
+        },
+        {
+          "name": "1H bear FVG",
+          "price": 3984.15
         }
       ],
       "role": "resistance",
-      "distance": 20.31,
+      "distance": 23.37,
       "location": "premium",
       "reasons": [
-        "2 level(s) agree across 2 source type(s): Prev day high 3969.2, 1H bear FVG 3972.27",
+        "3 level(s) agree across 2 source type(s): Prev day high 3969.2, 1H bear FVG 3972.27, 1H bear FVG 3984.15",
         "Zone sits in the premium half of yesterday's range.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
     },
     {
-      "low": 3949.92,
-      "high": 3964.45,
-      "mid": 3957.18,
-      "score": 10.0,
-      "rating": "B",
+      "low": 3952.81,
+      "high": 3966.47,
+      "mid": 3959.64,
+      "score": 13.0,
+      "rating": "A",
       "families": [
         "ICT PD array",
-        "ICT session liquidity"
+        "ICT session liquidity",
+        "VWAP"
       ],
       "sources": [
         {
           "name": "London high",
-          "price": 3950.41898
+          "price": 3953.30507
         },
         {
           "name": "London low",
-          "price": 3950.41898
+          "price": 3953.30507
         },
         {
           "name": "New York high",
-          "price": 3950.41898
+          "price": 3953.30507
         },
         {
           "name": "New York low",
-          "price": 3950.41898
+          "price": 3953.30507
+        },
+        {
+          "name": "VWAP +2s",
+          "price": 3953.89
         },
         {
           "name": "15m bear FVG",
           "price": 3956.17
         },
         {
-          "name": "Asia high",
-          "price": 3957.26
-        },
-        {
           "name": "5m bear FVG",
           "price": 3958.96
         },
         {
+          "name": "Asia high",
+          "price": 3960.24
+        },
+        {
           "name": "15m bear FVG",
           "price": 3963.95
+        },
+        {
+          "name": "5m bear FVG",
+          "price": 3965.97
         }
       ],
       "role": "price inside zone",
-      "distance": 6.76,
+      "distance": 6.33,
       "location": "premium",
       "reasons": [
-        "8 level(s) agree across 2 source type(s): London high 3950.41898, London low 3950.41898, New York high 3950.41898, New York low 3950.41898, 15m bear FVG 3956.17, Asia high 3957.26, 5m bear FVG 3958.96, 15m bear FVG 3963.95",
+        "10 level(s) agree across 3 source type(s): London high 3953.30507, London low 3953.30507, New York high 3953.30507, New York low 3953.30507, VWAP +2s 3953.89, 15m bear FVG 3956.17, 5m bear FVG 3958.96, Asia high 3960.24, 15m bear FVG 3963.95, 5m bear FVG 3965.97",
         "Zone sits in the premium half of yesterday's range.",
+        "VWAP 2-sigma band: statistically stretched, so mean reversion toward VWAP is common but not guaranteed.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
     },
     {
-      "low": 3934.73,
-      "high": 3945.76,
-      "mid": 3940.24,
-      "score": 13.0,
+      "low": 3933.41,
+      "high": 3947.38,
+      "mid": 3940.39,
+      "score": 17.0,
       "rating": "A",
       "families": [
         "ICT PD array",
@@ -98,20 +112,12 @@
       ],
       "sources": [
         {
-          "name": "5m bull FVG",
-          "price": 3935.23
+          "name": "Prev POC",
+          "price": 3933.91
         },
         {
-          "name": "15m bull FVG",
-          "price": 3935.56
-        },
-        {
-          "name": "VWAP +1s",
-          "price": 3936.08
-        },
-        {
-          "name": "VWAP +2s",
-          "price": 3940.65
+          "name": "VWAP",
+          "price": 3936.02
         },
         {
           "name": "Prev VAH",
@@ -119,57 +125,60 @@
         },
         {
           "name": "5m bull FVG",
-          "price": 3945.26
+          "price": 3944.61
+        },
+        {
+          "name": "VWAP +1s",
+          "price": 3944.96
+        },
+        {
+          "name": "15m bull FVG",
+          "price": 3946.88
         }
       ],
       "role": "support",
-      "distance": -10.18,
+      "distance": -12.91,
       "location": "premium",
       "reasons": [
-        "6 level(s) agree across 3 source type(s): 5m bull FVG 3935.23, 15m bull FVG 3935.56, VWAP +1s 3936.08, VWAP +2s 3940.65, Prev VAH 3941.69, 5m bull FVG 3945.26",
+        "6 level(s) agree across 3 source type(s): Prev POC 3933.91, VWAP 3936.02, Prev VAH 3941.69, 5m bull FVG 3944.61, VWAP +1s 3944.96, 15m bull FVG 3946.88",
         "Zone sits in the premium half of yesterday's range.",
+        "POC = the price with the most traded volume; price is often pulled back to it.",
         "Value-area edge: acceptance beyond it can start a trend, rejection often sends price back through value.",
-        "VWAP 2-sigma band: statistically stretched, so mean reversion toward VWAP is common but not guaranteed.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
     },
     {
-      "low": 3919.22,
-      "high": 3934.41,
-      "mid": 3926.81,
-      "score": 25.0,
+      "low": 3917.66,
+      "high": 3930.88,
+      "mid": 3924.27,
+      "score": 18.5,
       "rating": "A",
       "families": [
         "ICT PD array",
         "ICT reference",
         "ICT session liquidity",
-        "VWAP",
-        "Volume profile"
+        "VWAP"
       ],
       "sources": [
+        {
+          "name": "VWAP -2s",
+          "price": 3918.16
+        },
         {
           "name": "Asia low",
           "price": 3919.72
         },
         {
           "name": "1H bull FVG",
-          "price": 3919.76
-        },
-        {
-          "name": "VWAP -2s",
-          "price": 3922.37
-        },
-        {
-          "name": "1H bull FVG",
           "price": 3926.19
-        },
-        {
-          "name": "VWAP -1s",
-          "price": 3926.94
         },
         {
           "name": "15m bull OB",
           "price": 3927.04
+        },
+        {
+          "name": "VWAP -1s",
+          "price": 3927.09
         },
         {
           "name": "5m bull OB",
@@ -182,23 +191,14 @@
         {
           "name": "Prev day close",
           "price": 3930.38
-        },
-        {
-          "name": "VWAP",
-          "price": 3931.51
-        },
-        {
-          "name": "Prev POC",
-          "price": 3933.91
         }
       ],
       "role": "support",
-      "distance": -23.61,
+      "distance": -29.04,
       "location": "discount",
       "reasons": [
-        "11 level(s) agree across 5 source type(s): Asia low 3919.72, 1H bull FVG 3919.76, VWAP -2s 3922.37, 1H bull FVG 3926.19, VWAP -1s 3926.94, 15m bull OB 3927.04, 5m bull OB 3928.85, Midnight open 3930.29, Prev day close 3930.38, VWAP 3931.51, Prev POC 3933.91",
+        "8 level(s) agree across 4 source type(s): VWAP -2s 3918.16, Asia low 3919.72, 1H bull FVG 3926.19, 15m bull OB 3927.04, VWAP -1s 3927.09, 5m bull OB 3928.85, Midnight open 3930.29, Prev day close 3930.38",
         "Zone sits in the discount half of yesterday's range.",
-        "POC = the price with the most traded volume; price is often pulled back to it.",
         "VWAP 2-sigma band: statistically stretched, so mean reversion toward VWAP is common but not guaranteed.",
         "Order block: the last opposite candle before a move that broke structure; price often reacts when it returns.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
@@ -230,7 +230,7 @@
         }
       ],
       "role": "support",
-      "distance": -49.04,
+      "distance": -51.93,
       "location": "discount",
       "reasons": [
         "3 level(s) agree across 3 source type(s): Prev day low 3896.21, Prev VAL 3896.78, 1H bull OB 3906.55",
@@ -243,7 +243,8 @@
   "sweeps": [],
   "profile_state": {
     "open": 3930.29,
-    "open_type": "inside yesterday's value"
+    "open_type": "inside yesterday's value",
+    "acceptance": "Two 30m closes above VAH 3941.69: buyers accepted higher prices."
   },
   "fast_move_zones": [
     {
@@ -265,21 +266,21 @@
   ],
   "playbooks": [
     {
-      "zone": "3919.22-3934.41",
+      "zone": "3917.66-3930.88",
       "rating": "A",
-      "text": "IF price trades into 3919.22-3934.41 and rejects it (a sweep below that closes back above), look for longs toward 3957.18. Idea is invalid on a 5m close below 3911.84.",
+      "text": "IF price trades into 3917.66-3930.88 and rejects it (a sweep below that closes back above), look for longs toward 3959.64. Idea is invalid on a 5m close below 3909.85.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     },
     {
-      "zone": "3895.71-3907.05",
+      "zone": "3933.41-3947.38",
       "rating": "A",
-      "text": "IF price trades into 3895.71-3907.05 and rejects it (a sweep below that closes back above), look for longs toward 3957.18. Idea is invalid on a 5m close below 3888.33.",
+      "text": "IF price trades into 3933.41-3947.38 and rejects it (a sweep below that closes back above), look for longs toward 3959.64. Idea is invalid on a 5m close below 3925.6.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     },
     {
-      "zone": "3968.7-3972.77",
+      "zone": "3968.7-3984.65",
       "rating": "B",
-      "text": "IF price trades into 3968.7-3972.77 and rejects it (a sweep above that closes back below), look for shorts toward 3940.24. Idea is invalid on a 5m close above 3980.15.",
+      "text": "IF price trades into 3968.7-3984.65 and rejects it (a sweep above that closes back below), look for shorts toward 3940.39. Idea is invalid on a 5m close above 3992.46.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     }
   ],
