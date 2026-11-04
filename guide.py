@@ -7,12 +7,12 @@ import urllib.request
 
 from tg import send
 
-VERSION = "2026-11-04"
+VERSION = "2026-11-04b"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
-✅ <b>BUY/SELL NOW ✅ tested</b>: the 4H signal (2 years: 69% win). Risk 1% max.
+✅ <b>BUY/SELL NOW ✅ tested</b>: the 4H breakout traded intraday (2 years: 62% win, closes within 12 h). Risk 1% max.
 🟡 <b>BUY/SELL NOW 🟡 plan trade</b>: promising, not proven yet. Risk 0.5% max.
 🎯 <b>TP1 hit</b>: close half, move SL to entry. The rest runs with no risk.
 

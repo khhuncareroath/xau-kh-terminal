@@ -178,14 +178,16 @@ def model_alert(lm, state, now):
                    f"TP2    <b>{fmt(s['target'])}</b>  ({pips(s['target'])})"] if s.get("tp1") else
                   [f"TP     <b>{fmt(s['target'])}</b>  ({pips(s['target'])})"]),
                 "",
-                esc(why_short["bull" if bull else "bear"] if s["model"] in ("trend_tight", "trend_breakout", "trend_buy")
+                esc(why_short["bull" if bull else "bear"] if s["model"] in ("trend_tight", "trend_breakout", "trend_buy", "trend_intraday")
                     else PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
                 (f"Tested 2 years: {b.get('trades')} trades · {b.get('win_rate_pct')}% win" if b.get("trades") else None),
                 (f"⚠️ {'Buys' if bull else 'Sells'} are the weaker side: use a smaller size." if side.get("trades") and side["avg_R"] < 0.1
                  and s["model"] != "trend_buy" else None),
-                ("<i>Wide SL on purpose: a 1–5 day 4H trade, not a scalp. Tighter SL tested worse, so use a smaller lot. "
-                 "SL ធំ ព្រោះជាការជួញដូរ 4H · ប្រើ lot តូច</i>") if s["model"] in ("trend_tight", "trend_breakout", "trend_buy") else None,
-                f"⏰ Enter within 15 min · holds up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · holds up to {hold_h} h",
+                ("<i>Intraday: everything closes within 12 h. SL ~$22 is the tested minimum for this signal: use a smaller lot. "
+                 "បិទក្នុងថ្ងៃ · ប្រើ lot តូច</i>") if s["model"] == "trend_intraday" else
+                ("<i>Swing trade, 1–5 days: wide SL on purpose, use a smaller lot · SL ធំ ប្រើ lot តូច</i>")
+                if s["model"] in ("trend_tight", "trend_breakout", "trend_buy") else None,
+                f"⏰ Enter within 15 min · holds up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · closes within {hold_h} h",
                 "", "<i>Risk 0.5–1% of your account · ប្រើហានិភ័យ 0.5–1% ប៉ុណ្ណោះ</i>"]
     else:
         out += [f"{'🟢' if bull else '🔴'} <b>មាស · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>",

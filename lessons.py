@@ -17,8 +17,8 @@ LESSONS = [
     ("Risk is set by the lot, not the stop",
      "A tight SL feels safe but gets hit by normal noise. Keep the SL where the idea is wrong, then shrink the lot.\n"
      "Gold: 0.01 lot = $1 per $1 move. SL 25 points × 0.02 lot = $50. Choose the lot so a loss is 0.5–1% of your account."),
-    ("Why 69% still means losing streaks",
-     "With a 69% win rate, 3 losses in a row will still happen a few times a year. That is normal, not broken.\n"
+    ("Why 62% still means losing streaks",
+     "With a 62% win rate, 3 losses in a row will still happen a few times a year. That is normal, not broken.\n"
      "If you risk 1% per trade, 3 losses = -3%. If you risk 10%, 3 losses = -27%. Small risk is what lets you reach the wins."),
     ("TP1: close half, move SL to entry",
      "After TP1 the rest of the trade cannot lose. Many 'wins' in our record are exactly this: half at TP1, half back at entry.\n"
@@ -28,7 +28,7 @@ LESSONS = [
      "Forcing a trade on a quiet day is where most accounts lose money."),
     ("The 4H breakout in one line",
      "When a 4H candle closes above the highest price of the past week (30 candles), buy. Below the lowest, sell.\n"
-     "Big moves start with a breakout. Tested on 2 years of spot gold: 169 trades, 69% profitable."),
+     "Big moves start with a breakout. Tested on 2 years of spot gold: 217 intraday trades, 62% profitable."),
     ("Volume profile: P, b and D",
      "P shape = most volume at the top of the session: buyers won. b shape = at the bottom: sellers won. D = balanced.\n"
      "Our 🟡 plan trade buys a P pullback to the POC and sells a b pullback. D = no trade."),
@@ -80,8 +80,8 @@ KM = [
     ("ហានិភ័យកំណត់ដោយ lot មិនមែនដោយ SL ទេ",
      "SL តូចពេក ងាយប៉ះដោយការឡើងចុះធម្មតា។ ដាក់ SL នៅកន្លែងដែលគំនិតខុស ហើយបន្ថយ lot វិញ។\n"
      "មាស: 0.01 lot = $1 ក្នុងការឡើងចុះ $1។ SL 25 × 0.02 lot = $50។ ជ្រើស lot ឱ្យខាតមិនលើស 0.5–1% នៃគណនី។"),
-    ("ឈ្នះ 69% ក៏នៅតែមានចាញ់ជាប់ៗគ្នា",
-     "ឈ្នះ 69% ក៏អាចចាញ់ 3 ដងជាប់គ្នា ពីរបីដងក្នុងមួយឆ្នាំ។ នេះធម្មតា មិនមែនខូចទេ។\n"
+    ("ឈ្នះ 62% ក៏នៅតែមានចាញ់ជាប់ៗគ្នា",
+     "ឈ្នះ 62% ក៏អាចចាញ់ 3 ដងជាប់គ្នា ពីរបីដងក្នុងមួយឆ្នាំ។ នេះធម្មតា មិនមែនខូចទេ។\n"
      "ហានិភ័យ 1% → ចាញ់ 3 ដង = -3%។ ហានិភ័យ 10% → ចាញ់ 3 ដង = -27%។"),
     ("TP1: បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល",
      "ក្រោយ TP1 ចំណែកនៅសល់មិនអាចខាតទៀតទេ។\n"
@@ -91,7 +91,7 @@ KM = [
      "ការបង្ខំចូលនៅថ្ងៃស្ងាត់ ជាមូលហេតុដែលគណនីភាគច្រើនខាត។"),
     ("សញ្ញា 4H ក្នុងមួយបន្ទាត់",
      "ទៀន 4H បិទលើតម្លៃខ្ពស់បំផុតនៃមួយសប្តាហ៍មុន → ទិញ។ បិទក្រោមតម្លៃទាបបំផុត → លក់។\n"
-     "សាកល្បង 2 ឆ្នាំ: 169 ដង ចំណេញ 69%។"),
+     "សាកល្បង 2 ឆ្នាំ: 217 ដង ចំណេញ 62%។"),
     ("Volume Profile: P, b និង D",
      "P = volume ច្រើននៅខាងលើ: អ្នកទិញឈ្នះ។ b = នៅខាងក្រោម: អ្នកលក់ឈ្នះ។ D = ស្មើគ្នា។\n"
      "🟡 ទិញ P ពេលតម្លៃត្រឡប់មក POC · លក់ b ពេលត្រឡប់មក POC · D = មិនចូល។"),

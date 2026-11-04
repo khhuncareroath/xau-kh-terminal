@@ -1243,7 +1243,7 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
            "",
            plan_line(plan := vp_plan(df), price),
            "",
-           f"⚡ <b>សញ្ញាធំ 4H</b> (ឈ្នះ 69%): ទិញ បើបិទលើ <b>{fmt(upper)}</b> · លក់ បើបិទក្រោម <b>{fmt(lower)}</b>",
+           f"⚡ <b>សញ្ញាធំ 4H</b> (ឈ្នះ 62% · intraday): ទិញ បើបិទលើ <b>{fmt(upper)}</b> · លក់ បើបិទក្រោម <b>{fmt(lower)}</b>",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
            *([risk] if risk else []),

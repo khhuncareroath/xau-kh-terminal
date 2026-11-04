@@ -242,7 +242,7 @@ def vwap_fade(df):
     return out
 
 
-def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2=3.0):
+def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2=3.0, hold_bars=5 * 288):
     """Higher-timeframe trend following: a 4H candle closes above the highest high (or below the lowest low) of the
     previous 30 4H candles (about 1 week). Enter after the alert delay, stop 2 x the 4H ATR away, target 3R,
     out after 5 days at most. Gold trended strongly in 2024-26, so check the long and short results separately."""
@@ -271,13 +271,20 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2
             continue                  # the 4H candle has not really closed yet, or the alert delay has not passed
         stop = o[j0] - sg * 2 * a4[k] if stop_pct is None else o[j0] * (1 - sg * stop_pct)
         if scaled:   # half at 1R (stop moves to entry), rest to 3R
-            r, j, _ = _run_scaled(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, tp1, tp2)
+            r, j, _ = _run_scaled(o, h, l, c, j0, min(j0 + hold_bars, n - 1), sg, stop, tp1, tp2)
         else:
-            r, j = _run_trade(o, h, l, c, j0, min(j0 + 5 * 288, n - 1), sg, stop, o[j0] + sg * 3 * 2 * a4[k])
+            r, j = _run_trade(o, h, l, c, j0, min(j0 + hold_bars, n - 1), sg, stop, o[j0] + sg * 3 * 2 * a4[k])
         if r is not None:
             out.append((df.index[j0], r, "long" if sg > 0 else "short"))
             busy_t = df.index[j]
     return out
+
+
+def trend_intraday(df):
+    """Intraday version of the 4H breakout (for day traders): same entry, SL 0.55% (~$22), half at 0.75R with the
+    stop to entry, rest to 3R, everything closed after 12 hours. 2 years: 217 trades, 62% win, +0.15R, t=2.4.
+    Weaker than the 5-day swing version (+0.30R) but every trade ends the same day."""
+    return trend_breakout(df, scaled=True, stop_pct=0.0055, tp1=0.75, tp2=3.0, hold_bars=144)
 
 
 def trend_tight(df):
@@ -517,7 +524,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"vp_shape": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
+DESCRIBE = {"trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
+            "vp_shape": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
             "crt_daily": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
             "sweep_htf": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
             "value_80": "Volume profile 80% rule: back inside yesterday's value, target the far edge",
@@ -530,15 +538,15 @@ DESCRIBE = {"vp_shape": "Volume profile shape of the last session (P = buy, b = 
             "trend_buy": "4H trend following, BUY only: half profit at 1R with the stop moved to entry, rest to 3R",
             "trend_tight": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R",
             "breakout_cisd": "After a 4H breakout: sweep + CISD entry in London/New York, stop beyond the sweep, 3R target"}
-TREND_PREFERENCE = ["trend_tight", "trend_buy", "trend_breakout"]   # same breakouts: alert only the first proven one
+TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakout"]   # same breakouts: alert only the first proven one
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}
