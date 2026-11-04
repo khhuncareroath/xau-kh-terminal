@@ -458,9 +458,9 @@ def vp_plan(df):
     pos = (poc - lo) / (hi - lo) if hi > lo else 0.5
     nxt = SESS_NAME[(k[1] + 1) % 3]
     base = {"from": SESS_NAME[k[1]], "for": nxt, "poc": round(float(poc), 2), "val": round(float(val), 2), "vah": round(float(vah), 2)}
-    if pos >= 0.66:
+    if pos >= 0.55:
         return {**base, "shape": "P", "side": "BUY", "edge": base["poc"], "inval": base["val"]}
-    if pos <= 0.34:
+    if pos <= 0.45:
         return {**base, "shape": "b", "side": "SELL", "edge": base["poc"], "inval": base["vah"]}
     return {**base, "shape": "D", "side": None}
 
@@ -483,7 +483,7 @@ def plan_line(p):
     s = p["side"] == "SELL"
     return (f"🟡 {p['from']} volume built at the {'bottom (b shape): sellers won' if s else 'top (P shape): buyers won'}.\n"
             f"Plan for {p['for']}: <b>{'sell' if s else 'buy'} the pullback to {fmt(p['edge'])}</b> (POC) "
-            f"after a 15m close back {'below' if s else 'above'} · stop beyond {fmt(p['inval'])} · target 2R")
+            f"after a 15m close back {'below' if s else 'above'} · stop beyond {fmt(p['inval'])} · target 1.5R")
 
 
 def analysis_chart(df, lv, conf, lines, path, title):
@@ -536,7 +536,7 @@ def analysis_chart(df, lv, conf, lines, path, title):
     d = resample(df, "15m").tail(110)
     ys = [float(d["Low"].min()), float(d["High"].max())]
     if plan:
-        risk = abs(plan["edge"] - plan["inval"]); tgt = plan["edge"] + (2 * risk if side == "BUY" else -2 * risk)
+        risk = abs(plan["edge"] - plan["inval"]); tgt = plan["edge"] + (1.5 * risk if side == "BUY" else -1.5 * risk)
         ys += [plan["inval"], tgt]
     lo, hi = min(ys), max(ys); pd_ = (hi - lo) * 0.07
     N = len(d); RIGHT = 30

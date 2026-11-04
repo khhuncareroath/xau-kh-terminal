@@ -340,14 +340,15 @@ def _vp(h, l, c, v, ix):
     return bins[p], bins[a], bins[b], lo, hi
 
 
-def vp_shape(df, th=0.66, rr=2.0):
+def vp_shape(df, th=0.55, rr=1.5):
     """Volume-profile shape of the previous session (from the member's order-flow PDF). Sessions (New York time):
     Asia 18-02, London 02-07, New York 07-12. POC in the top third = P shape (buyers won) -> in the next session buy
     the pullback to the POC; bottom third = b shape -> sell the pullback to the POC. Entry after price touches the POC
     and a 15m candle closes back, stop beyond the value area (or the touch extreme), target 2R, one trade per session.
     D shapes (range trading VAL/VAH) lost money in testing and are skipped.
-    2 years of spot gold (15m closes by the clock, same as live): 183 trades, 43% win, +0.09R, t=1.0; all 12 nearby
-    settings positive (+0.09 to +0.19R, t 1.0-1.9). Not proven (t < 2): runs as a 'plan trade' until judge() says so.
+    Settings th=0.55 / 1.5R chosen for frequency (about 3.4 trades a week; the member wants daily entries):
+    2 years of spot gold: 350 trades, 47% win, +0.09R, t=1.5, newest 30% +0.08R. Every setting from 0.50 to 0.75 and
+    1-3R was positive (+0.01 to +0.19R). Not proven (t < 2): runs as a 'plan trade' until judge() says so.
     (An earlier version counted 15m candles from the data start, which did not match live; replay test now 8/8.)"""
     o, h, l, c, v = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close", "Volume"))
     idx = df.index; n = len(df)
