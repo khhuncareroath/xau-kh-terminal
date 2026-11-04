@@ -349,7 +349,7 @@ def plan_alert(lm, state, now):
                 "bear": "b-shape volume profile (sellers in control). Price pulled back to the POC (busiest price) and a 15m candle closed below it."}
     msg = "\n".join([
         f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  "
-        + ("🔷 <i>EXPERIMENTAL</i>" if exp else "🟡 <i>plan trade</i>"), "",
+        + ("🤬 🔷 <i>EXPERIMENTAL</i>" if exp else "🤬 🟡 <i>plan trade · small size</i>"), "",
         f"Entry  <b>{fmt(s['entry'])}</b>",
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
         f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
