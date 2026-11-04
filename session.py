@@ -28,6 +28,8 @@ from tg import SITE, esc, fmt, local, send, send_photo
 
 NY = ZoneInfo("America/New_York")
 LANG = os.environ.get("BOT_LANG", "en")
+if LANG == "both":   # English messages already carry Khmer labels inline; no second full block
+    LANG = "en"
 HEADS_UP_PCT = 0.0025          # 0.25% of price, about $10 at $3,900
 SESSIONS = [("Asia", 17, 30, (6, 0, 1, 2, 3)), ("London", 1, 30, (0, 1, 2, 3, 4)), ("New York", 7, 0, (0, 1, 2, 3, 4))]
 KM_SESSION = {"Asia": "អាស៊ី", "London": "ឡុងដ៍", "New York": "ញូវយ៉ក"}
@@ -129,6 +131,7 @@ def news_in(news, start, hours):
 INTRA_LEVELS = ("Prev day high", "Prev day low", "Prev VAH", "Prev VAL")   # fixed for the whole day
 NAMES = {"Prev day high": "yesterday's high", "Prev day low": "yesterday's low", "Prev VAH": "yesterday's value high",
          "Prev VAL": "yesterday's value low", "Asia high": "Asia high", "Asia low": "Asia low", "A zone": "strong zone"}
+KW = {"Up": "ឡើង", "Leaning up": "ទំនោរឡើង", "Sideways": "ចំហៀង", "Leaning down": "ទំនោរចុះ", "Down": "ចុះ"}
 INTRADAY_ALERTS = os.environ.get("INTRADAY_ALERTS", "off") == "on"   # 🟠 push alerts: off by default (too noisy)
 INTRA_MAX_PCT = 0.009          # look up to 0.9% away (about $35)
 NEAR_PCT = 0.0012              # "getting close" alert at 0.12% (about $5)
@@ -402,8 +405,8 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     for k in ("SELL", "BUY"):
         if k in areas:
             x = areas[k]
-            plan.append(f"{'🔴 Sell' if k == 'SELL' else '🟢 Buy'} near <b>{fmt(x['edge'])}</b> ({esc(x['names'][0])}) · wrong if "
-                        f"{'above' if k == 'SELL' else 'below'} {fmt(x['inval'])}")
+            plan.append(f"{'🔴 Sell លក់' if k == 'SELL' else '🟢 Buy ទិញ'} near <b>{fmt(x['edge'])}</b> ({esc(x['names'][0])})\n"
+                        f"    wrong if {'above' if k == 'SELL' else 'below'} {fmt(x['inval'])} · ខុស បើ{'ឡើងលើ' if k == 'SELL' else 'ធ្លាក់ក្រោម'}")
     risks = []
     if ev:
         risks.append(f"📰 {esc(ev[0][1])} at {local(ev[0][0].timestamp())}: fast moves, wider spreads")
@@ -412,12 +415,12 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     if abs(score) < 20 and len(risks) < 2:
         risks.append("No clear direction: don't force trades")
     eco = economy_lines(macro or {}, {}, start_utc, 0)[:1]
-    en = [f"{head} <b>{name.upper()} SESSION</b> · gold <b>{fmt(price)}</b>",
-          f"Direction: <b>{word} {arrow}</b>",
-          "", "<b>🎯 Plan</b>", *plan,
-          "<i>Enter only after a 15m candle closes back away from the level.</i>",
-          "", f"⚡ <b>Big signal</b>: 4H close above {fmt(upper)} = BUY · below {fmt(lower)} = SELL",
-          *(["", "<b>⚠️ Risk</b>", *risks] if risks else []),
+    en = [f"{head} <b>{name.upper()} SESSION · សម័យ{KM_SESSION[name]}</b>", f"Gold · មាស <b>{fmt(price)}</b>",
+          f"Direction · ទិសដៅ: <b>{word} {arrow}</b> ({KW[word]})",
+          "", "<b>🎯 Plan · ផែនការ</b>", *plan,
+          "<i>Enter only after a 15m candle closes back away from the level.\nចូលតែក្រោយទៀន 15m បិទត្រឡប់មកវិញ។</i>",
+          "", f"⚡ <b>Big signal · សញ្ញាធំ</b>\n4H close above {fmt(upper)} = BUY ទិញ\n4H close below {fmt(lower)} = SELL លក់",
+          *(["", "<b>⚠️ Risk · ហានិភ័យ</b>", *risks] if risks else []),
           *(["", f"🏛 {esc(eco[0])}"] if eco else [])]
     if LANG in ("km", "both"):
         kw = {"Up": "ឡើង", "Leaning up": "ទំនោរឡើង", "Sideways": "ចំហៀង", "Leaning down": "ទំនោរចុះ", "Down": "ចុះ"}[word]
@@ -439,10 +442,10 @@ def heads_up(df, lines, state):
         dist = (level - price) if side == "BUY" else (price - level)
         key = f"{day}|{side}|{level:.2f}"
         if 0 < dist <= price * HEADS_UP_PCT and key not in sent:
-            en = (f"⚡ <b>Heads up · possible {side}</b>\nGold {fmt(price)} is <b>{dist:,.1f} points</b> from the week's "
+            en = (f"⚡ <b>Heads up · possible {side} · ត្រៀម{'ទិញ' if side == 'BUY' else 'លក់'}</b>\nGold {fmt(price)} is <b>{dist:,.1f} points</b> from the week's "
                   f"{'high' if side == 'BUY' else 'low'} <b>{fmt(level)}</b>.\nIf the 4H candle closing at <b>{local(next_close.timestamp())}</b> "
                   f"finishes {'above' if side == 'BUY' else 'below'} it, the bot sends a {side} signal.\n"
-                  f"<i>Get ready, don't enter yet. Breakouts sometimes fail: wait for the close.</i>")
+                  f"<i>Get ready, don't enter yet. Breakouts sometimes fail: wait for the close.\nត្រៀមខ្លួន តែកុំទាន់ចូល។ ចាំទៀនបិទសិន។</i>")
             km = (f"⚡ <b>ត្រៀមខ្លួន · អាច{'ទិញ' if side == 'BUY' else 'លក់'}</b>\nមាសនៅឆ្ងាយ {dist:,.1f} ពី {fmt(level)}។ "
                   f"បើ 4H បិទ{'លើ' if side == 'BUY' else 'ក្រោម'}វានៅម៉ោង {local(next_close.timestamp())} បូតនឹងផ្ញើសញ្ញា។")
             msg = km if LANG == "km" else en + ("\n\n" + km if LANG == "both" else "")
@@ -463,11 +466,11 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     nx = sorted([(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e["title"]) for e in news.get("events", [])
                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > datetime.now(timezone.utc)])[:1]
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
-    lines_en = [f"⏱ <b>GOLD {fmt(price)}</b> ({price - hour_ago:+,.1f} in 1h) · {local(time.time())}",
-                f"Direction: <b>{word} {arrow}</b>",
-                *[f"{'🔴 Sell' if k == 'SELL' else '🟢 Buy'} near <b>{fmt(areas[k]['edge'])}</b> · wrong if "
+    lines_en = [f"⏱ <b>GOLD · មាស {fmt(price)}</b> ({price - hour_ago:+,.1f} in 1h) · {local(time.time())}",
+                f"Direction · ទិសដៅ: <b>{word} {arrow}</b> ({KW[word]})",
+                *[f"{'🔴 Sell លក់' if k == 'SELL' else '🟢 Buy ទិញ'} near <b>{fmt(areas[k]['edge'])}</b> · wrong if "
                   f"{'above' if k == 'SELL' else 'below'} {fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
-                *([f"📰 Next: {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx else [])]
+                *([f"📰 Next news · ព័ត៌មានបន្ទាប់: {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx else [])]
     if LANG in ("km", "both"):
         kw = {"Up": "ឡើង", "Leaning up": "ទំនោរឡើង", "Sideways": "ចំហៀង", "Leaning down": "ទំនោរចុះ", "Down": "ចុះ"}[word]
         km = [f"⏱ <b>មាស {fmt(price)}</b> ({price - hour_ago:+,.1f} ក្នុង 1 ម៉ោង)", f"ទិសដៅ: <b>{kw} {arrow}</b>"]
@@ -526,8 +529,8 @@ def weekly_report(df, log, alog, bt, week_start):
     done = [a for a in models if a.get("status") in ("win", "tp1", "loss", "timed out")]
     RES = {"win": "✅ TP2 reached", "tp1": "✅ TP1, rest at entry", "loss": "❌ stop hit", "timed out": "⏱ closed after time limit",
            "filled": "⏳ still open", "pending": "⏳ waiting"}
-    out = [f"📊 <b>WEEKLY PROOF · week of {week_start.astimezone(local_tz()):%d %b}</b>",
-           f"Gold {fmt(w_open)} → {fmt(price)} ({price - w_open:+,.1f} this week)", "", "<b>Real BUY/SELL signals this week</b>"]
+    out = [f"📊 <b>WEEKLY PROOF · លទ្ធផលប្រចាំសប្តាហ៍ · week of {week_start.astimezone(local_tz()):%d %b}</b>",
+           f"Gold {fmt(w_open)} → {fmt(price)} ({price - w_open:+,.1f} this week)", "", "<b>Real BUY/SELL signals this week · សញ្ញាពិតសប្តាហ៍នេះ</b>"]
     if week:
         for a in week:
             r = f" ({a['R']:+.2f}R)" if a.get("R") is not None else ""
@@ -539,7 +542,7 @@ def weekly_report(df, log, alog, bt, week_start):
     else:
         out.append("• None. No clean 4H breakout this week, so the bot stayed out. No signal is better than a bad one.")
     m = (bt.get("models") or {}).get("trend_tight", {}).get("all") or {}
-    out += ["", "<b>Live record since launch (every signal counted)</b>"]
+    out += ["", "<b>Live record since launch · កំណត់ត្រាពិតទាំងអស់</b>"]
     if done:
         R = [a["R"] for a in done]
         out.append(f"{len(done)} closed · {sum(r > 0 for r in R)} won · {round(100 * sum(r > 0 for r in R) / len(R))}% · "

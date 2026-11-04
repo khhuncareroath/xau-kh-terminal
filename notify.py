@@ -168,20 +168,20 @@ def model_alert(lm, state, now):
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
     if LANG in ("en", "both"):
-        out += [f"{'🟢' if bull else '🔴'} <b>GOLD · {'BUY' if bull else 'SELL'} NOW</b>", "",
-                f"Entry       <b>{fmt(s['entry'])}</b> (market price)",
-                f"Stop loss   <b>{fmt(s['stop'])}</b>",
-                *([f"TP1         <b>{fmt(s['tp1'])}</b>  → close half, move stop to {fmt(s['entry'])}",
-                   f"TP2         <b>{fmt(s['target'])}</b>  (rest of the trade)"] if s.get("tp1") else
+        out += [f"{'🟢' if bull else '🔴'} <b>GOLD · {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>", "",
+                f"Entry · ចូល        <b>{fmt(s['entry'])}</b> (market price)",
+                f"Stop loss · កាត់ខាត  <b>{fmt(s['stop'])}</b>",
+                *([f"TP1 <b>{fmt(s['tp1'])}</b> → close half, move stop to {fmt(s['entry'])}\n      បិទពាក់កណ្ដាល ហើយប្ដូរ stop មកចំណុចចូល",
+                   f"TP2 <b>{fmt(s['target'])}</b> (rest of the trade · ចំណែកនៅសល់)"] if s.get("tp1") else
                   [f"Target      <b>{fmt(s['target'])}</b>  (1:{s['rr']})"]),
                 f"⏰ Enter within 15 min · trade lasts up to {hold_h // 24} days" if hold_h >= 48 else f"⏰ Enter within 15 min · trade lasts up to {hold_h} hours", "",
-                "<b>Why</b>", esc(PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
+                "<b>Why · ហេតុផល</b>", esc(PLAIN.get(s["model"], {}).get("bull" if bull else "bear", s["description"] + ".")),
                 esc(f"Tested on 2 years of spot gold: {b.get('trades')} trades, {b.get('win_rate_pct')}% were profitable, "
                     f"{b.get('avg_R'):+.2f}R per trade after costs.") if b.get("trades") else "",
                 (f"⚠️ {'Buy' if bull else 'Sell'} signals from this model averaged {side['avg_R']:+.2f}R ({side['trades']} trades): "
                  + ("the weaker side, consider a smaller size." if side["avg_R"] < 0.1 else "the stronger side.")) if side.get("trades") and s["model"] != "trend_buy" else None,
                 "", "<i>Risk a small, fixed part of your account (0.5–1%). Losses will happen. Not financial advice. "
-                "The result will be posted as a reply.</i>"]
+                "The result will be posted as a reply.\nប្រើហានិភ័យតិច 0.5–1% នៃគណនី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។</i>"]
     if LANG in ("km", "both"):
         if out:
             out += ["", "— ខ្មែរ —"]
@@ -219,6 +219,8 @@ def model_alert(lm, state, now):
 
 
 LANG = os.environ.get("BOT_LANG", "en")   # en, km, or both
+if LANG == "both":   # English messages already carry Khmer labels inline; no second full block
+    LANG = "en"
 STRONG = 5   # factors needed to call an idea "strong"
 
 

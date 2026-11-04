@@ -93,18 +93,18 @@ def _reply_text(a):
     sg = 1 if a["dir"] == "bull" else -1
     pts = lambda px: f"{(px - a['entry']) * sg:+.1f} points"
     if s == "win":
-        return f"{ICON[s]} <b>Target reached</b> at {fmt(a['target'])} ({pts(a['target'])})"
+        return f"{ICON[s]} <b>Target reached · ដល់គោលដៅ</b> at {fmt(a['target'])} ({pts(a['target'])})"
     if s == "tp1":
-        return (f"{ICON[s]} <b>Win: half closed at TP1</b> {fmt(a['tp1'])} ({pts(a['tp1'])}), "
+        return (f"{ICON[s]} <b>Win · ឈ្នះ: half closed at TP1</b> {fmt(a['tp1'])} ({pts(a['tp1'])}), "
                 f"the rest closed at entry with no loss. +{a['R']}R")
     if s == "loss":
-        return f"{ICON[s]} <b>Stop hit</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
+        return f"{ICON[s]} <b>Stop hit · ប៉ះកាត់ខាត</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
     if s == "expired":
-        return f"{ICON[s]} <b>Expired</b>: price never came back to the zone. No trade."
+        return f"{ICON[s]} <b>Expired · ផុតកំណត់</b>: price never came back to the zone. No trade."
     if s == "missed":
-        return f"{ICON[s]} <b>Missed</b>: price went to the target without coming back to the zone first. No trade."
+        return f"{ICON[s]} <b>Missed · ខកខាន</b>: price went to the target without coming back to the zone first. No trade."
     hrs = round(a.get("max_hold_s", MAX_HOLD_S) / 3600)
-    return f"{ICON[s]} <b>Closed after {hrs} hours</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
+    return f"{ICON[s]} <b>Closed after {hrs} hours · បិទ</b> at {fmt(a['exit'])} ({pts(a['exit'])})"
 
 
 def summary(log):
@@ -148,8 +148,8 @@ def main():
                 risk = abs(a["entry"] - a["stop"]) or 1
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
             if a.get("hit1") and not had_tp1:
-                send(f"🎯 <b>TP1 reached</b> at {fmt(a['tp1'])}: close half now and move your stop to {fmt(a['fill'])}. "
-                     f"The rest runs to {fmt(a['target'])} with no risk.", "TP1", reply_to=a.get("msg_id"))
+                send(f"🎯 <b>TP1 reached · ដល់ TP1</b> at {fmt(a['tp1'])}: close half now and move your stop to {fmt(a['fill'])}. "
+                     f"The rest runs to {fmt(a['target'])} with no risk.\nបិទពាក់កណ្ដាលឥឡូវ ហើយប្ដូរ stop មក {fmt(a['fill'])}។", "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))
