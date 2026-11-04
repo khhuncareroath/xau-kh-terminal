@@ -6,6 +6,8 @@ The picture: 15m candles of the last ~20 hours, the 4H BUY / SELL lines, and the
   WAITING   price inside the lines, day quiet           -> no setup, follow the trend
   🖕 READY  day in the COMBO zone: a 4H close beyond a line would be a COMBO signal
   🖕🖕 READY day in the PREMIUM zone: a 4H close beyond a line would be a PREMIUM swing
+  🤬        smaller tested setups (🟡 Volume Plan / 🔷 Day Range Snap) on the candle where they entered, and the waiting
+            Volume Plan zone at the right edge: trades members can take themselves with a small size
 
 Posted by session.py (radar_post) only at moments that matter:
   1. the day crosses 70% (COMBO zone) or 100% (PREMIUM zone): once each per day
@@ -62,13 +64,13 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyBboxPatch, Rectangle
-    from proof import _finger
+    from proof import _emoji, _finger, replay
     plt.rcParams["font.family"] = "DejaVu Sans"
     st = status(df, lines)
     d = resample(df, "15m").tail(80)
     N = len(d)
-    fig = plt.figure(figsize=(12, 6.8), dpi=150); fig.patch.set_facecolor(BG)
-    ax = fig.add_axes([0.05, 0.09, 0.70, 0.70]); mt = fig.add_axes([0.80, 0.09, 0.15, 0.70])
+    fig = plt.figure(figsize=(12, 7.0), dpi=150); fig.patch.set_facecolor(BG)
+    ax = fig.add_axes([0.05, 0.10, 0.70, 0.69]); mt = fig.add_axes([0.80, 0.10, 0.15, 0.69])
     for a_ in (ax, mt):
         a_.set_facecolor(PANEL); a_.set_xticks([])
         for sp in a_.spines.values(): sp.set_visible(False)
@@ -104,6 +106,36 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
         ax.text(i, y + span * 0.05, "PREMIUM" if f == 2 else "COMBO", color=PREM if f == 2 else GOLD, fontsize=6.5,
                 fontweight="bold", ha="center", va="bottom")
         yhi = max(yhi, y + span * 0.12); ax.set_ylim(ylo, yhi)
+    # 🤬 = smaller tested setups you can trade yourself (small size): where 🟡 Volume Plan / 🔷 Day Range Snap entered
+    t0, t1 = d.index[0], d.index[-1] + pd.Timedelta(minutes=15)
+    for t in replay(df):
+        if t["model"] not in ("vp_shape", "range_extreme") or not (t0 <= df.index[t["j0"]] < t1):
+            continue
+        i = int(d.index.searchsorted(df.index[t["j0"]], side="right") - 1)
+        sg = t["sg"]
+        y = float(d["Low"].iloc[i]) - span * 0.05 if sg > 0 else float(d["High"].iloc[i]) + span * 0.05
+        _emoji(ax, i, y, 0.12, "angry")
+        ax.text(i, y - sg * span * 0.045, f"{'PLAN' if t['model'] == 'vp_shape' else 'EXP'} {'BUY' if sg > 0 else 'SELL'}",
+                color="#FF9F0A", fontsize=6.5, fontweight="bold", ha="center", va="top" if sg > 0 else "bottom")
+        ax.plot([i - 1, i + 3], [t["stop"]] * 2, color=DN, lw=0.9, alpha=0.7)
+        ylo, yhi = min(ylo, y - span * 0.12), max(yhi, y + span * 0.12)
+    # the waiting 🟡 plan zone (same rules as the plan alert): 🤬 at the right edge
+    pz = None
+    try:
+        from session import vp_plan
+        pz = vp_plan(df)
+    except Exception as e:
+        print("radar plan zone failed:", e)
+    if pz and pz.get("side") and abs(pz["edge"] - pz["inval"]) <= pz["edge"] * 0.006 and abs(pz["edge"] - p) < span * 1.2:
+        buy = pz["side"] == "BUY"
+        ylo, yhi = min(ylo, pz["edge"] - span * 0.06, pz["inval"] - span * 0.03), max(yhi, pz["edge"] + span * 0.06)
+        ax.plot([N - 14, N + 8], [pz["edge"]] * 2, color="#FF9F0A", lw=1.2, ls=(0, (2, 2)))
+        _emoji(ax, N + 6.5, pz["edge"], 0.12, "angry")
+        ax.text(N - 14, pz["edge"], f"PLAN {pz['side']} zone {pz['edge']:,.2f} (POC) · wait for the 15m close ",
+                color="#FF9F0A", fontsize=7.5, fontweight="bold", ha="right", va="center",
+                bbox=dict(boxstyle="round,pad=0.25", fc=PANEL, ec="none"))
+    ax.set_ylim(ylo, yhi)
+    st["plan_zone"] = pz if pz and pz.get("side") else None
     ax.axhline(p, color=INK, lw=0.6, alpha=0.4)
     ax.annotate(f"{p:,.2f}", xy=(N - 1, p), xytext=(N + 1, p), color=BG, fontsize=8, fontweight="bold", va="center",
                 bbox=dict(boxstyle="round,pad=0.3", fc=INK, ec="none"))
@@ -142,8 +174,13 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
         fa = fig.add_axes([0.66, 0.822, 0.08, 0.06]); fa.set_xlim(0, 3); fa.set_ylim(0, 1); fa.axis("off"); fa.set_zorder(5)
         for q in range(nf):
             _finger(fa, 2.5 - q * 0.9, 0.5, 0.13)
-    fig.text(0.05, 0.03, "A live read of our tested strategy, not a signal. The signal comes only when a 4H candle CLOSES beyond a line.",
+    fig.text(0.05, 0.045, "A live read of our tested strategy, not a signal. The signal comes only when a 4H candle CLOSES beyond a line.",
              color=MUT, fontsize=7.5)
+    lg = fig.add_axes([0.05, 0.0, 0.70, 0.022]); lg.set_xlim(0, 100); lg.set_ylim(0, 1); lg.axis("off"); lg.set_zorder(5)
+    for x_, nm, txt in ((1, "finger", "COMBO zone (day 70%+)"), (24, "finger", "x2 = PREMIUM zone (day 100%+)"),
+                        (52, "angry", "smaller tested setup: you can take it yourself, small size")):
+        _emoji(lg, x_, 0.55, 0.09, nm)
+        lg.text(x_ + 1.6, 0.55, txt, color=MUT, fontsize=7, va="center")
     fig.savefig(path, facecolor=BG); plt.close(fig)
     return path, st
 
@@ -167,5 +204,8 @@ def caption(st, why, next_close_local):
               f"{st['upper'] if side == 'BUY' else st['lower']:,.2f}: if the 4H candle CLOSES there → ✅ {side} signal"),
              f"{'📈' if tr > 0 else '📉' if tr < 0 else '↔'} 4H trend {'UP' if tr > 0 else 'DOWN' if tr < 0 else 'none'} · {KM_TREND[tr]}",
              f"⏰ Next 4H close <b>{next_close_local}</b>",
+             *([f"🤬 Smaller setup: PLAN {st['plan_zone']['side']} at POC <b>{st['plan_zone']['edge']:,.2f}</b> · "
+                f"wait for a 15m close back {'above' if st['plan_zone']['side'] == 'BUY' else 'below'} it · SL beyond the "
+                f"{'dip and VAL' if st['plan_zone']['side'] == 'BUY' else 'spike and VAH'} {st['plan_zone']['inval']:,.2f} · small size (0.5%)"] if st.get("plan_zone") else []),
              "<i>Follow along, don't enter early · តាមដាន កុំចូលមុនពេល</i>"]
     return "\n".join(lines)

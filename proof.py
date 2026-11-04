@@ -79,21 +79,25 @@ def _live_match(t, df, log):
     return False
 
 
-_FINGER = None
+_EMOJI = {}
 
 
-def _finger(ax, x, y, zoom):
-    """Draws the XAU.KH 🖕 mark (assets/finger.png, Noto Color Emoji, OFL licence) at data point (x, y)."""
-    global _FINGER
+def _emoji(ax, x, y, zoom, name="finger"):
+    """Draws an XAU.KH mark from assets/<name>.png (Noto Color Emoji, OFL licence) at data point (x, y):
+    finger = 🖕 COMBO / 🖕🖕 PREMIUM, angry = 🤬 smaller tested setup you can trade yourself (small size)."""
     import os
     from matplotlib.offsetbox import AnnotationBbox, OffsetImage
     try:
-        if _FINGER is None:
+        if name not in _EMOJI:
             import matplotlib.image as mpimg
-            _FINGER = mpimg.imread(os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "finger.png"))
-        ax.add_artist(AnnotationBbox(OffsetImage(_FINGER, zoom=zoom), (x, y), frameon=False, zorder=8))
+            _EMOJI[name] = mpimg.imread(os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", f"{name}.png"))
+        ax.add_artist(AnnotationBbox(OffsetImage(_EMOJI[name], zoom=zoom), (x, y), frameon=False, zorder=8))
     except Exception as e:
-        print("finger mark failed:", e)
+        print("emoji mark failed:", e)
+
+
+def _finger(ax, x, y, zoom):
+    _emoji(ax, x, y, zoom, "finger")
 
 
 def _ingot(ax, x, y0, h, w, fc, ec, alpha=1.0, z=5):
@@ -173,6 +177,8 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
         ax.add_patch(Polygon([(x0, yb), (x0, yb + fh), (x0 + fw, yb + fh / 2)], closed=True, fc=ring, ec="none", zorder=6))
         ax.text(x0 + 1.0, yb + fh / 2, "B" if sg > 0 else "S", color=BG, fontsize=6.5, fontweight="bold", ha="center",
                 va="center", zorder=7)
+        if t["model"] in ("vp_shape", "range_extreme"):   # 🤬 = smaller tested setup (plan / experimental)
+            _emoji(ax, x0 + 4.6, yb + fh / 2, 0.14, "angry")
         n_f = 2 if t["model"] == "trend_premium" else 1 if t.get("combo") else 0
         if n_f:   # the XAU.KH mark: one finger = COMBO, two = PREMIUM
             for q in range(n_f):
@@ -232,8 +238,7 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
         fig.patches.append(Polygon([(lx, 0.027), (lx, 0.047), (lx + 0.011, 0.037)], closed=True, transform=fig.transFigure, fc=ring))
         fig.text(lx + 0.015, 0.037, f"{name} ({tier.lower()})", color=INK, fontsize=7.5, va="center")
         lx += 0.16
-    fig.text(0.05, 0.012, "flag = entry · line = entry → exit · red dash = SL · 🖕 = COMBO · 🖕🖕 = PREMIUM · same rules as live, 15-min delay + costs"
-             .replace("🖕🖕", "2 fingers").replace("🖕", "1 finger"), color=MUT, fontsize=7, va="center")
+    fig.text(0.05, 0.012, "flag = entry · line = entry → exit · red dash = SL · 1 finger = COMBO · 2 fingers = PREMIUM · angry face = smaller setup (small size) · same rules as live, 15-min delay + costs", color=MUT, fontsize=7, va="center")
     fig.savefig(path, facecolor=BG); plt.close(fig)
     return path, shown
 
