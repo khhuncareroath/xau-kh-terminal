@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>XAU.KH Trade Journal</title>
+<meta name="description" content="A free gold trading journal: log trades in seconds, see your win rate, best session and the habits that cost you money.">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(120,120,128,.24);--label:#F5F5F7;--label2:rgba(235,235,245,.6);
+  --label3:rgba(235,235,245,.3);--sep:rgba(84,84,88,.6);--up:#30D158;--dn:#FF453A;--gold:#E3B04B;--gold2:#F2CB72;--blue:#0A84FF;
+  --r:22px;--r2:14px;--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.45,.64,1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue","Kantumruy Pro",sans-serif;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  --bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--fill:rgba(120,120,128,.12);--label:#1D1D1F;--label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);--up:#28A745;--dn:#E5372B;--gold:#B8862B;--gold2:#D9A441}}
+:root[data-theme=light]{--bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--fill:rgba(120,120,128,.12);--label:#1D1D1F;--label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);--up:#28A745;--dn:#E5372B;--gold:#B8862B;--gold2:#D9A441}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--label);font:400 16px/1.45 var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.brand{font-weight:700;font-size:17px}.brand i{font-style:normal;color:var(--gold)}
+.top a{margin-left:auto;font-size:15px;font-weight:600}
+main{max-width:760px;margin:0 auto;padding:16px 16px 60px}
+h1{font-size:30px;line-height:1.1;margin:14px 0 4px;letter-spacing:-.02em}
+.sub{color:var(--label2);margin:0 0 18px;font-size:15px}
+.card{background:var(--card);border-radius:var(--r);padding:18px;margin-bottom:14px;animation:in .6s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--label2);margin:0 0 12px;font-weight:600}
+.km{font-family:"Kantumruy Pro",var(--font);color:var(--label2);font-size:13.5px}
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--gold) 28%,transparent),transparent 60%),var(--card)}
+.lvl-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--gold) 22%,transparent);
+  color:var(--gold2);font-weight:700;font-size:14px}
+.bal{font-size:44px;font-weight:700;letter-spacing:-.03em;margin:12px 0 2px}
+.chg{font-weight:600}
+.bar{height:12px;border-radius:999px;background:var(--fill);overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1.2s var(--ease)}
+.row{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--label2)}
+/* ladder */
+.ladder{display:grid;gap:8px}
+.step{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r2);background:var(--card2)}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--fill);flex:none}
+.step.done .dot{background:var(--gold);color:#111}
+.step.now{outline:2px solid var(--gold)}
+.step .t{flex:1}.step .t b{display:block;font-size:15px}.step .t span{font-size:12.5px;color:var(--label2)}
+.step .v{font-weight:700}
+/* form */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+label{display:block;font-size:13px;color:var(--label2);margin-bottom:6px}
+input,select{width:100%;height:44px;border-radius:12px;border:0;background:var(--card2);padding:0 12px;font-size:16px}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px}
+.seg button{flex:1;height:38px;border:0;border-radius:9px;background:none;font-weight:600;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.btn{display:block;width:100%;height:50px;border:0;border-radius:14px;background:var(--gold);color:#111;font-weight:700;font-size:16px;cursor:pointer;margin-top:14px;
+  transition:transform .2s var(--spring)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--fill);color:var(--label)}
+/* trades */
+.trade{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:.5px solid var(--sep)}
+.trade:last-child{border:0}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;flex:none}
+.tag.b{background:color-mix(in srgb,var(--up) 20%,transparent);color:var(--up)}
+.tag.s{background:color-mix(in srgb,var(--dn) 20%,transparent);color:var(--dn)}
+.trade .info{flex:1;min-width:0}.trade .info b{font-size:14.5px}.trade .info span{display:block;font-size:12.5px;color:var(--label2)}
+.res{font-weight:700;font-size:14.5px;text-align:right;min-width:76px}
+.tog{appearance:none;width:44px;height:26px;border-radius:999px;background:var(--fill);position:relative;cursor:pointer;flex:none;padding:0}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.25s var(--spring)}
+.tog:checked{background:var(--up)}.tog:checked::after{left:21px}
+.empty{color:var(--label2);font-size:14.5px;padding:8px 0}
+/* sim */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--card2);border-radius:var(--r2);padding:12px;text-align:center}
+.kpi b{display:block;font-size:24px;font-weight:700}.kpi small{color:var(--label2);font-size:12px}
+canvas{width:100%;height:190px;display:block;margin-top:12px}
+.warn{margin-top:12px;padding:12px;border-radius:var(--r2);background:color-mix(in srgb,var(--dn) 14%,transparent);font-size:14px}
+.ok{background:color-mix(in srgb,var(--up) 14%,transparent)}
+.foot{color:var(--label3);font-size:12px;text-align:center;margin-top:18px}
+@media (max-width:420px){.bal{font-size:38px}.kpi b{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- ambient motion background (gold aurora) ---------- */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--bg)}
+.aurora i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.9;will-change:transform}
+.aurora i:nth-child(1){width:60vmax;height:60vmax;left:-20vmax;top:-25vmax;background:radial-gradient(circle,color-mix(in srgb,var(--gold) 70%,transparent),transparent 62%);animation:drift1 26s ease-in-out infinite alternate}
+.aurora i:nth-child(2){width:50vmax;height:50vmax;right:-18vmax;top:20vh;background:radial-gradient(circle,rgba(10,132,255,.28),transparent 65%);animation:drift2 32s ease-in-out infinite alternate}
+.aurora i:nth-child(3){width:45vmax;height:45vmax;left:20vw;bottom:-25vmax;background:radial-gradient(circle,color-mix(in srgb,var(--gold2) 40%,transparent),transparent 65%);animation:drift3 38s ease-in-out infinite alternate}
+.aurora::after{content:"";position:absolute;inset:0;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes drift1{to{transform:translate(18vw,14vh) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-16vw,-10vh) scale(.9)}}
+@keyframes drift3{to{transform:translate(-12vw,-18vh) scale(1.1)}}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]) .aurora i{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.aurora i{animation:none}}
+html,body{background:transparent!important}
+.card{background:color-mix(in srgb,var(--card) 78%,transparent)!important;backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);
+  border:.5px solid color-mix(in srgb,var(--label) 9%,transparent)}
+
+.b.on{background:color-mix(in srgb,var(--up) 25%,var(--card))!important;color:var(--up)}.s.on{background:color-mix(in srgb,var(--dn) 25%,var(--card))!important;color:var(--dn)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:0;border-radius:999px;padding:7px 12px;background:var(--card2);font-size:13.5px;cursor:pointer;transition:transform .2s var(--spring),background .2s}
+.chips button.on{background:color-mix(in srgb,var(--gold) 30%,var(--card2));color:var(--gold2);font-weight:600}
+.chips button:active{transform:scale(.94)}
+textarea{width:100%;border-radius:12px;border:0;background:var(--card2);padding:10px 12px;font:inherit;font-size:15px;color:inherit;resize:vertical}
+.calc{margin-top:12px;font-size:14px;color:var(--label2);min-height:20px}.calc b{color:var(--label)}
+.up{color:var(--up)}.dn{color:var(--dn)}.mut{color:var(--label2)}
+.trade .res small{display:block;font-size:12px;color:var(--label2);font-weight:500}
+.ed{border:0;background:var(--fill);border-radius:10px;height:32px;min-width:32px;padding:0 8px;cursor:pointer;font-size:14px;flex:none}
+.brow{display:grid;grid-template-columns:1.2fr 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:.5px solid var(--sep)}.brow:last-child{border:0}
+.bk{font-size:14.5px;font-weight:600}.bk small{display:block;font-weight:400;font-size:12px;color:var(--label2)}
+.bb{height:8px;border-radius:999px;background:var(--fill);overflow:hidden}.bb i{display:block;height:100%;border-radius:999px}
+.tip{margin:0 0 10px;font-size:15px;line-height:1.5}.tip:last-child{margin:0}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-weight:600}
+.cal-nav button{border:0;background:var(--fill);border-radius:10px;width:36px;height:32px;font-size:18px;cursor:pointer}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.ch{font-size:11px;color:var(--label2);text-align:center}
+.cd{aspect-ratio:1;border-radius:10px;background:var(--card2);display:grid;place-content:center;text-align:center;font-size:12px}
+.cd b{font-weight:600}.cd small{font-size:10px;font-weight:700}
+.cd.pos{background:color-mix(in srgb,var(--up) 28%,var(--card2))}.cd.pos small{color:var(--up)}
+.cd.neg{background:color-mix(in srgb,var(--dn) 28%,var(--card2))}.cd.neg small{color:var(--dn)}
+#eq{height:150px}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="./">← Gold today</a></header>
+<main>
+  <h1>Trade Journal</h1>
+  <p class="sub">Log every trade in 20 seconds. The journal finds your strengths and your costly habits.<br>
+    <span class="km">កត់ត្រារាល់ការជួញដូរ ហើយមើលថាអ្នកឈ្នះ ឬខាតដោយសារអ្វី។</span></p>
+
+  <div class="card hero" id="sum">
+    <div class="kpis num" style="grid-template-columns:repeat(2,1fr)">
+      <div class="kpi"><b id="k-pl">$0</b><small>net profit · ចំណេញសុទ្ធ</small></div>
+      <div class="kpi"><b id="k-wr">–</b><small>win rate · អត្រាឈ្នះ</small></div>
+      <div class="kpi"><b id="k-r">–</b><small>avg R per trade</small></div>
+      <div class="kpi"><b id="k-pf">–</b><small>profit factor</small></div>
+    </div>
+    <canvas id="eq" aria-label="Equity curve"></canvas>
+    <div class="row num" style="margin-top:6px"><span id="k-n">0 trades</span><span id="k-dd"></span></div>
+  </div>
+
+  <div class="seg" id="tabs" style="margin-bottom:14px"><button data-v="add" class="on">＋ Add</button><button data-v="list">Trades</button><button data-v="insights">Insights</button><button data-v="cal">Calendar</button></div>
+
+  <section class="card" id="p-add">
+    <h2>New trade · ការជួញដូរថ្មី</h2>
+    <div id="sigpick"></div>
+    <div class="seg" id="f-dir"><button data-v="bull" class="on b">BUY</button><button data-v="bear" class="s">SELL</button></div>
+    <div class="grid" style="margin-top:10px">
+      <div><label>Entry</label><input id="f-entry" type="number" inputmode="decimal" step="0.01"></div>
+      <div><label>Lot</label><input id="f-lot" type="number" inputmode="decimal" step="0.01" value="0.01"></div>
+      <div><label>Stop loss</label><input id="f-sl" type="number" inputmode="decimal" step="0.01"></div>
+      <div><label>Take profit</label><input id="f-tp" type="number" inputmode="decimal" step="0.01"></div>
+      <div><label>Exit price</label><input id="f-exit" type="number" inputmode="decimal" step="0.01" placeholder="empty = still open"></div>
+      <div><label>Date &amp; time</label><input id="f-time" type="datetime-local"></div>
+    </div>
+    <div class="calc num" id="calc"></div>
+    <label style="margin-top:12px">Setup</label>
+    <div class="chips" id="f-setup" data-one="1"></div>
+    <label style="margin-top:12px">How did you feel? · អារម្មណ៍</label>
+    <div class="chips" id="f-mood" data-one="1"></div>
+    <label style="margin-top:12px">Mistakes (tap all that apply) · កំហុស</label>
+    <div class="chips" id="f-err"></div>
+    <label style="margin-top:12px">Notes</label>
+    <textarea id="f-note" rows="2" placeholder="What did you see? What would you do differently?"></textarea>
+    <button class="btn" id="save">Save trade</button>
+  </section>
+
+  <section class="card" id="p-list" hidden><h2>Trades</h2><div id="list"></div></section>
+
+  <section id="p-insights" hidden>
+    <div class="card"><h2>Your best and worst · ល្អបំផុត និងអាក្រក់បំផុត</h2><div id="tips"></div></div>
+    <div class="card"><h2>By session</h2><div id="by-sess"></div></div>
+    <div class="card"><h2>By setup</h2><div id="by-setup"></div></div>
+    <div class="card"><h2>By feeling</h2><div id="by-mood"></div></div>
+    <div class="card"><h2>What your mistakes cost</h2><div id="by-err"></div></div>
+  </section>
+
+  <section class="card" id="p-cal" hidden><h2 id="cal-title">Calendar</h2>
+    <div class="cal-nav"><button id="cal-prev">‹</button><span id="cal-m"></span><button id="cal-next">›</button></div>
+    <div class="cal" id="cal"></div></section>
+
+  <div class="card" style="display:flex;gap:8px">
+    <button class="btn ghost" id="exp" style="margin:0">Export CSV</button>
+    <label class="btn ghost" style="margin:0;display:grid;place-items:center;cursor:pointer">Import CSV<input id="imp" type="file" accept=".csv" hidden></label>
+  </div>
+  <p class="foot">Saved only on this device. Export a backup now and then. Gold: 1 lot = 100 oz, so a $1 move = $1 per 0.01 lot = 10 pips.</p>
+</main>
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],KEY="xaukh_journal_v1";
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}};
+const save=v=>{try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){alert("Storage full: export a backup")}};
+let T=load(),log=[],cal=new Date();
+const usd=v=>(v<0?"−$":"$")+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const SETUPS=["✅ XAU.KH signal","🟡 XAU.KH plan","Own: breakout","Own: pullback","Own: reversal","Own: news","Other"];
+const MOODS=["😌 Calm","🙂 Confident","😬 Unsure","😤 FOMO","😡 Revenge","🥱 Bored"];
+const ERRS=["No SL","Moved SL away","Entered late","Too big lot","Closed too early","Traded news","Against the plan","Overtraded"];
+function chips(id,opts){$(id).innerHTML=opts.map(o=>`<button type="button">${o}</button>`).join("");
+  $(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;if($(id).dataset.one)$$(id+" button").forEach(x=>x!==b&&x.classList.remove("on"));b.classList.toggle("on");calc()}}
+chips("#f-setup",SETUPS);chips("#f-mood",MOODS);chips("#f-err",ERRS);
+const pick=id=>$$(id+" .on").map(b=>b.textContent);
+$$(".seg").forEach(s=>s.onclick=e=>{const b=e.target.closest("button");if(!b)return;s.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+  if(s.id==="tabs")tab(b.dataset.v);else calc()});
+function tab(v){["add","list","insights","cal"].forEach(k=>$("#p-"+k).hidden=k!==v);render()}
+function sess(ts){const h=+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(new Date(ts));
+  return h>=18||h<2?"Asia":h<7?"London":h<12?"New York":"Late NY"}
+function stats(t){const sg=t.dir==="bull"?1:-1,risk=t.sl?Math.abs(t.entry-t.sl):null;
+  const ex=t.exit??null,pl=ex!=null?(ex-t.entry)*sg*t.lot*100:null;return{pl,R:pl!=null&&risk?(ex-t.entry)*sg/risk:null,risk$:risk?risk*t.lot*100:null,
+  pips:ex!=null?(ex-t.entry)*sg*10:null,rr:risk&&t.tp?Math.abs(t.tp-t.entry)/risk:null}}
+function form(){return{dir:$("#f-dir .on").dataset.v,entry:+$("#f-entry").value,lot:+$("#f-lot").value||0.01,sl:+$("#f-sl").value||null,tp:+$("#f-tp").value||null,
+  exit:$("#f-exit").value===""?null:+$("#f-exit").value,t:$("#f-time").value?new Date($("#f-time").value).getTime():Date.now(),
+  setup:pick("#f-setup")[0]||"Other",mood:pick("#f-mood")[0]||"",err:pick("#f-err"),note:$("#f-note").value.trim()}}
+function calc(){const f=form();if(!f.entry){$("#calc").innerHTML="";return}const s=stats(f),bad=f.sl&&((f.dir==="bull"&&f.sl>=f.entry)||(f.dir==="bear"&&f.sl<=f.entry));
+  $("#calc").innerHTML=bad?`<span class="dn">⚠️ SL is on the wrong side of the entry</span>`:[
+    s.risk$!=null?`Risk <b>${usd(s.risk$)}</b> (${(Math.abs(f.entry-f.sl)*10).toFixed(0)} pips)`:`<span class="dn">No SL: risk unlimited</span>`,
+    s.rr?`R:R <b>1:${s.rr.toFixed(1)}</b>`:"",
+    s.pl!=null?`Result <b class="${s.pl>=0?"up":"dn"}">${usd(s.pl)}</b> · ${s.pips>=0?"+":""}${s.pips.toFixed(0)} pips${s.R!=null?` · ${s.R>=0?"+":""}${s.R.toFixed(2)}R`:""}`:""].filter(Boolean).join(" · ")}
+["#f-entry","#f-lot","#f-sl","#f-tp","#f-exit"].forEach(i=>$(i).oninput=calc);
+function resetForm(){["#f-entry","#f-sl","#f-tp","#f-exit","#f-note"].forEach(i=>$(i).value="");$$(".chips .on").forEach(b=>b.classList.remove("on"));
+  const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());$("#f-time").value=d.toISOString().slice(0,16);$("#f-time").dataset.edit="";calc()}
+$("#save").onclick=()=>{const f=form();if(!f.entry){$("#f-entry").focus();return}const ed=$("#save").dataset.edit;
+  if(ed){const i=T.findIndex(x=>x.id===ed);T[i]={...T[i],...f}}else T.push({id:Date.now().toString(36),...f});
+  save(T);$("#save").dataset.edit="";$("#save").textContent="Save trade";resetForm();flash("Saved ✓");tab("list");$$("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==="list"))};
+function flash(m){const b=$("#save");const o=b.textContent;b.textContent=m;setTimeout(()=>b.textContent=o,1200)}
+// pick an XAU.KH signal to fill the form
+async function sigs(){try{const r=await fetch("alerts_log.json?t="+Date.now(),{cache:"no-store"});log=r.ok?await r.json():[]}catch(e){log=[]}
+  const rec=log.filter(a=>a.kind==="model"||a.kind==="plan").slice(-6).reverse();
+  $("#sigpick").innerHTML=rec.length?`<label>Fill from an XAU.KH signal</label><div class="chips" id="sp">${rec.map((a,i)=>`<button type="button" data-i="${i}">${a.kind==="plan"?"🟡":"✅"} ${a.dir==="bull"?"BUY":"SELL"} ${(+a.entry).toFixed(2)}</button>`).join("")}</div><div style="height:10px"></div>`:"";
+  if(rec.length)$("#sp").onclick=e=>{const b=e.target.closest("button");if(!b)return;const a=rec[+b.dataset.i];
+    $$("#f-dir button").forEach(x=>x.classList.toggle("on",x.dataset.v===a.dir));$("#f-entry").value=a.entry;$("#f-sl").value=a.stop;$("#f-tp").value=a.target;
+    if(a.exit!=null)$("#f-exit").value=a.exit;const d=new Date(a.created*1000);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());$("#f-time").value=d.toISOString().slice(0,16);
+    $$("#f-setup button").forEach(x=>x.classList.toggle("on",x.textContent===(a.kind==="plan"?SETUPS[1]:SETUPS[0])));calc()}}
+function closed(){return T.filter(t=>t.exit!=null).sort((a,b)=>a.t-b.t)}
+function group(arr,key){const m={};for(const t of arr){for(const k of [].concat(key(t)))(m[k]=m[k]||[]).push(t)}return m}
+function rows(m){const out=Object.entries(m).map(([k,v])=>{const p=v.map(t=>stats(t).pl);const w=p.filter(x=>x>0).length;return{k,n:v.length,pl:p.reduce((a,b)=>a+b,0),wr:w/v.length}}).sort((a,b)=>b.pl-a.pl);
+  if(!out.length)return`<div class="empty">Not enough closed trades yet.</div>`;const mx=Math.max(...out.map(o=>Math.abs(o.pl)),1);
+  return out.map(o=>`<div class="brow"><span class="bk">${o.k}<small>${o.n} trade${o.n>1?"s":""} · ${Math.round(o.wr*100)}% win</small></span><span class="bb"><i style="width:${Math.abs(o.pl)/mx*100}%;background:var(--${o.pl>=0?"up":"dn"})"></i></span><b class="num ${o.pl>=0?"up":"dn"}">${usd(o.pl)}</b></div>`).join("")}
+function render(){
+  const C=closed(),P=C.map(t=>stats(t).pl),R=C.map(t=>stats(t).R).filter(x=>x!=null);
+  const net=P.reduce((a,b)=>a+b,0),wins=P.filter(x=>x>0),loss=P.filter(x=>x<0);
+  $("#k-pl").textContent=usd(net);$("#k-pl").className=net>=0?"up":"dn";
+  $("#k-wr").textContent=C.length?Math.round(wins.length/C.length*100)+"%":"–";
+  $("#k-r").textContent=R.length?(R.reduce((a,b)=>a+b,0)/R.length>=0?"+":"")+(R.reduce((a,b)=>a+b,0)/R.length).toFixed(2)+"R":"–";
+  $("#k-pf").textContent=loss.length?(wins.reduce((a,b)=>a+b,0)/-loss.reduce((a,b)=>a+b,0)).toFixed(2):wins.length?"∞":"–";
+  let eq=0,pk=0,dd=0;const pts=[0];for(const p of P){eq+=p;pk=Math.max(pk,eq);dd=Math.min(dd,eq-pk);pts.push(eq)}
+  $("#k-n").textContent=`${C.length} closed · ${T.length-C.length} open`;$("#k-dd").textContent=dd<0?`max drawdown ${usd(dd)}`:"";
+  drawEq(pts);
+  $("#list").innerHTML=T.length?T.slice().sort((a,b)=>b.t-a.t).map(t=>{const s=stats(t),bull=t.dir==="bull";
+    return`<div class="trade" data-id="${t.id}"><span class="tag ${bull?"b":"s"}">${bull?"BUY":"SELL"}</span><div class="info"><b class="num">${t.entry.toFixed(2)} · ${t.lot} lot</b>
+    <span>${new Date(t.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · ${sess(t.t)} · ${t.setup}${t.mood?" · "+t.mood:""}${t.err&&t.err.length?" · ⚠️ "+t.err.join(", "):""}</span>
+    ${t.note?`<span style="font-style:italic">“${t.note.replace(/</g,"&lt;")}”</span>`:""}</div>
+    <div class="res num">${s.pl==null?`<span class="mut">open</span>`:`<span class="${s.pl>=0?"up":"dn"}">${usd(s.pl)}</span><small>${s.R!=null?(s.R>=0?"+":"")+s.R.toFixed(2)+"R":""}</small>`}</div>
+    <button class="ed" aria-label="Edit">✎</button><button class="ed del" aria-label="Delete">🗑</button></div>`}).join(""):`<div class="empty">No trades yet. Tap ＋ Add to log your first one.</div>`;
+  $$("#list .ed").forEach(b=>b.onclick=()=>{const id=b.closest(".trade").dataset.id;const t=T.find(x=>x.id===id);
+    if(b.classList.contains("del")){if(b.dataset.arm){T=T.filter(x=>x.id!==id);save(T);render()}else{b.dataset.arm=1;b.textContent="Sure?";setTimeout(()=>{b.dataset.arm="";b.textContent="🗑"},2500)}return}
+    tab("add");$$("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.v==="add"));
+    $$("#f-dir button").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dir));$("#f-entry").value=t.entry;$("#f-lot").value=t.lot;$("#f-sl").value=t.sl??"";$("#f-tp").value=t.tp??"";
+    $("#f-exit").value=t.exit??"";const d=new Date(t.t);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());$("#f-time").value=d.toISOString().slice(0,16);$("#f-note").value=t.note||"";
+    $$("#f-setup button").forEach(x=>x.classList.toggle("on",x.textContent===t.setup));$$("#f-mood button").forEach(x=>x.classList.toggle("on",x.textContent===t.mood));
+    $$("#f-err button").forEach(x=>x.classList.toggle("on",(t.err||[]).includes(x.textContent)));$("#save").dataset.edit=id;$("#save").textContent="Update trade";calc();scrollTo({top:0,behavior:"smooth"})});
+  $("#by-sess").innerHTML=rows(group(C,t=>sess(t.t)));$("#by-setup").innerHTML=rows(group(C,t=>t.setup));
+  $("#by-mood").innerHTML=rows(group(C.filter(t=>t.mood),t=>t.mood));$("#by-err").innerHTML=rows(group(C.filter(t=>t.err&&t.err.length),t=>t.err));
+  // plain-language tips
+  const tips=[];
+  if(C.length<5)tips.push("Log at least 10 closed trades and this page will show your patterns.");
+  else{const s=Object.entries(group(C,t=>sess(t.t))).map(([k,v])=>[k,v.reduce((a,t)=>a+stats(t).pl,0)]).sort((a,b)=>b[1]-a[1]);
+    if(s.length>1){tips.push(`💪 Your best session is <b>${s[0][0]}</b> (${usd(s[0][1])}).`);if(s.at(-1)[1]<0)tips.push(`🚫 You lose most in <b>${s.at(-1)[0]}</b> (${usd(s.at(-1)[1])}). Consider not trading it.`)}
+    const e=Object.entries(group(C.filter(t=>t.err&&t.err.length),t=>t.err)).map(([k,v])=>[k,v.reduce((a,t)=>a+stats(t).pl,0),v.length]).sort((a,b)=>a[1]-b[1]);
+    if(e.length&&e[0][1]<0)tips.push(`💸 "<b>${e[0][0]}</b>" cost you ${usd(e[0][1])} over ${e[0][2]} trade${e[0][2]>1?"s":""}. Fix this one first.`);
+    const md=Object.entries(group(C.filter(t=>t.mood),t=>t.mood)).map(([k,v])=>[k,v.reduce((a,t)=>a+stats(t).pl,0)]).sort((a,b)=>a[1]-b[1]);
+    if(md.length&&md[0][1]<0)tips.push(`🧠 Trades made feeling <b>${md[0][0]}</b> lost ${usd(md[0][1])}. When you feel that way, step away.`);
+    const big=C.filter(t=>{const s=stats(t);return s.risk$&&s.pl<-1.5*s.risk$});if(big.length)tips.push(`⚠️ ${big.length} trade${big.length>1?"s":""} lost more than 1.5× the planned risk: the SL was moved or missing.`);
+    const sig=group(C,t=>t.setup);const x=(sig[SETUPS[0]]||[]).concat(sig[SETUPS[1]]||[]),o=C.filter(t=>!t.setup.startsWith("✅")&&!t.setup.startsWith("🟡"));
+    if(x.length>=3&&o.length>=3){const a=x.reduce((s,t)=>s+stats(t).pl,0)/x.length,b=o.reduce((s,t)=>s+stats(t).pl,0)/o.length;
+      tips.push(`📊 Average per trade: XAU.KH setups ${usd(a)} vs your own ideas ${usd(b)}.`)}}
+  $("#tips").innerHTML=tips.map(t=>`<p class="tip">${t}</p>`).join("");
+  drawCal();
+}
+function drawEq(pts){const c=$("#eq"),dpr=Math.min(2,devicePixelRatio||1),W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;const x=c.getContext("2d");x.scale(dpr,dpr);
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();if(pts.length<2){x.fillStyle=css("--label3");x.font="13px "+css("--font");x.fillText("Your equity curve appears here",8,H/2);return}
+  const lo=Math.min(...pts),hi=Math.max(...pts),pad=(hi-lo)*.12||1,X=i=>4+i/(pts.length-1)*(W-8),Y=v=>H-4-(v-lo+pad)/(hi-lo+2*pad)*(H-8),col=css(pts.at(-1)>=0?"--up":"--dn");
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,col+"55");g.addColorStop(1,col+"00");
+  x.beginPath();pts.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.lineTo(X(pts.length-1),H);x.lineTo(X(0),H);x.fillStyle=g;x.fill();
+  x.beginPath();pts.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.strokeStyle=col;x.lineWidth=2;x.stroke();
+  x.setLineDash([3,4]);x.strokeStyle=css("--label3");x.lineWidth=1;x.beginPath();x.moveTo(0,Y(0));x.lineTo(W,Y(0));x.stroke()}
+function drawCal(){const y=cal.getFullYear(),m=cal.getMonth();$("#cal-m").textContent=cal.toLocaleString("en-GB",{month:"long",year:"numeric"});
+  const day={};for(const t of closed()){const d=new Date(t.t);if(d.getFullYear()===y&&d.getMonth()===m){const k=d.getDate();day[k]=(day[k]||0)+stats(t).pl}}
+  const first=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();let h=["Mo","Tu","We","Th","Fr","Sa","Su"].map(d=>`<span class="ch">${d}</span>`).join("");
+  for(let i=0;i<first;i++)h+="<span></span>";for(let d=1;d<=n;d++){const v=day[d];h+=`<span class="cd ${v==null?"":v>=0?"pos":"neg"}"><b>${d}</b>${v!=null?`<small>${v>=0?"+":"−"}${Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+"k":Math.abs(v).toFixed(0)}</small>`:""}</span>`}
+  $("#cal").innerHTML=h;const tot=Object.values(day).reduce((a,b)=>a+b,0);$("#cal-title").innerHTML=`Calendar · <span class="${tot>=0?"up":"dn"}">${usd(tot)}</span> this month`}
+$("#cal-prev").onclick=()=>{cal=new Date(cal.getFullYear(),cal.getMonth()-1,1);drawCal()};$("#cal-next").onclick=()=>{cal=new Date(cal.getFullYear(),cal.getMonth()+1,1);drawCal()};
+const COLS=["id","t","dir","entry","lot","sl","tp","exit","setup","mood","err","note"];
+$("#exp").onclick=()=>{const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;const csv=[COLS.join(","),...T.map(t=>COLS.map(k=>q(k==="err"?(t.err||[]).join("|"):k==="t"?new Date(t.t).toISOString():t[k])).join(","))].join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="xaukh-journal.csv";a.click()};
+$("#imp").onchange=async e=>{const txt=await e.target.files[0].text();const lines=txt.trim().split(/\r?\n/).slice(1);const parse=l=>{const o=[];let c="",q=false;for(let i=0;i<l.length;i++){const ch=l[i];
+  if(q){if(ch=='"'&&l[i+1]=='"'){c+='"';i++}else if(ch=='"')q=false;else c+=ch}else if(ch=='"')q=true;else if(ch==","){o.push(c);c=""}else c+=ch}o.push(c);return o};
+  let n=0;for(const l of lines){const v=parse(l),r={};COLS.forEach((k,i)=>r[k]=v[i]);if(!r.entry||T.some(t=>t.id===r.id))continue;
+    T.push({id:r.id||Date.now().toString(36)+n,t:Date.parse(r.t)||Date.now(),dir:r.dir==="bear"?"bear":"bull",entry:+r.entry,lot:+r.lot||0.01,sl:+r.sl||null,tp:+r.tp||null,
+      exit:r.exit===""?null:+r.exit,setup:r.setup||"Other",mood:r.mood||"",err:r.err?r.err.split("|"):[],note:r.note||""});n++}save(T);render();alert(n+" trades imported")};
+resetForm();sigs();render();addEventListener("resize",render);
+})();
+</script>
+</body>
+</html>
