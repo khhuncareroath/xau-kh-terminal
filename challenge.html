@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>XAU.KH Level Challenge</title>
+<meta name="description" content="Grow a gold trading account level by level with XAU.KH's tested signals. Honest compounding with real results and a simulator.">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(120,120,128,.24);--label:#F5F5F7;--label2:rgba(235,235,245,.6);
+  --label3:rgba(235,235,245,.3);--sep:rgba(84,84,88,.6);--up:#30D158;--dn:#FF453A;--gold:#E3B04B;--gold2:#F2CB72;--blue:#0A84FF;
+  --r:22px;--r2:14px;--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.45,.64,1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue","Kantumruy Pro",sans-serif;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  --bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--fill:rgba(120,120,128,.12);--label:#1D1D1F;--label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);--up:#28A745;--dn:#E5372B;--gold:#B8862B;--gold2:#D9A441}}
+:root[data-theme=light]{--bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--fill:rgba(120,120,128,.12);--label:#1D1D1F;--label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);--up:#28A745;--dn:#E5372B;--gold:#B8862B;--gold2:#D9A441}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--label);font:400 16px/1.45 var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.brand{font-weight:700;font-size:17px}.brand i{font-style:normal;color:var(--gold)}
+.top a{margin-left:auto;font-size:15px;font-weight:600}
+main{max-width:760px;margin:0 auto;padding:16px 16px 60px}
+h1{font-size:30px;line-height:1.1;margin:14px 0 4px;letter-spacing:-.02em}
+.sub{color:var(--label2);margin:0 0 18px;font-size:15px}
+.card{background:var(--card);border-radius:var(--r);padding:18px;margin-bottom:14px;animation:in .6s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--label2);margin:0 0 12px;font-weight:600}
+.km{font-family:"Kantumruy Pro",var(--font);color:var(--label2);font-size:13.5px}
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--gold) 28%,transparent),transparent 60%),var(--card)}
+.lvl-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--gold) 22%,transparent);
+  color:var(--gold2);font-weight:700;font-size:14px}
+.bal{font-size:44px;font-weight:700;letter-spacing:-.03em;margin:12px 0 2px}
+.chg{font-weight:600}
+.bar{height:12px;border-radius:999px;background:var(--fill);overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1.2s var(--ease)}
+.row{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--label2)}
+/* ladder */
+.ladder{display:grid;gap:8px}
+.step{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r2);background:var(--card2)}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--fill);flex:none}
+.step.done .dot{background:var(--gold);color:#111}
+.step.now{outline:2px solid var(--gold)}
+.step .t{flex:1}.step .t b{display:block;font-size:15px}.step .t span{font-size:12.5px;color:var(--label2)}
+.step .v{font-weight:700}
+/* form */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+label{display:block;font-size:13px;color:var(--label2);margin-bottom:6px}
+input,select{width:100%;height:44px;border-radius:12px;border:0;background:var(--card2);padding:0 12px;font-size:16px}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px}
+.seg button{flex:1;height:38px;border:0;border-radius:9px;background:none;font-weight:600;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.btn{display:block;width:100%;height:50px;border:0;border-radius:14px;background:var(--gold);color:#111;font-weight:700;font-size:16px;cursor:pointer;margin-top:14px;
+  transition:transform .2s var(--spring)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--fill);color:var(--label)}
+/* trades */
+.trade{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:.5px solid var(--sep)}
+.trade:last-child{border:0}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;flex:none}
+.tag.b{background:color-mix(in srgb,var(--up) 20%,transparent);color:var(--up)}
+.tag.s{background:color-mix(in srgb,var(--dn) 20%,transparent);color:var(--dn)}
+.trade .info{flex:1;min-width:0}.trade .info b{font-size:14.5px}.trade .info span{display:block;font-size:12.5px;color:var(--label2)}
+.res{font-weight:700;font-size:14.5px;text-align:right;min-width:76px}
+.tog{appearance:none;width:44px;height:26px;border-radius:999px;background:var(--fill);position:relative;cursor:pointer;flex:none;padding:0}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.25s var(--spring)}
+.tog:checked{background:var(--up)}.tog:checked::after{left:21px}
+.empty{color:var(--label2);font-size:14.5px;padding:8px 0}
+/* sim */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--card2);border-radius:var(--r2);padding:12px;text-align:center}
+.kpi b{display:block;font-size:24px;font-weight:700}.kpi small{color:var(--label2);font-size:12px}
+canvas{width:100%;height:190px;display:block;margin-top:12px}
+.warn{margin-top:12px;padding:12px;border-radius:var(--r2);background:color-mix(in srgb,var(--dn) 14%,transparent);font-size:14px}
+.ok{background:color-mix(in srgb,var(--up) 14%,transparent)}
+.foot{color:var(--label3);font-size:12px;text-align:center;margin-top:18px}
+@media (max-width:420px){.bal{font-size:38px}.kpi b{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="./">← Gold today</a></header>
+<main>
+  <h1>Level Challenge</h1>
+  <p class="sub">Grow your account level by level, following XAU.KH's tested signals. Real results, real risk.<br>
+    <span class="km">បង្កើនគណនីមួយកម្រិតម្ដងៗ តាមសញ្ញាដែលបានសាកល្បង។ លទ្ធផលពិត ហានិភ័យពិត។</span></p>
+
+  <section class="card" id="setup" hidden>
+    <h2>Start your challenge · ចាប់ផ្តើម</h2>
+    <div class="grid">
+      <div><label>Start balance ($)</label><input id="f-start" type="number" inputmode="decimal" value="100" min="10"></div>
+      <div><label>Goal ($)</label><input id="f-goal" type="number" inputmode="decimal" value="200" min="20"></div>
+    </div>
+    <div style="margin-top:12px"><label>Risk per ✅ signal (🟡 plan trades use half)</label>
+      <div class="seg" id="f-risk"><button data-v="0.5">0.5%</button><button data-v="1" class="on">1%</button><button data-v="2">2%</button><button data-v="5">5%</button></div></div>
+    <div style="margin-top:12px"><label>Which signals do you follow?</label>
+      <div class="seg" id="f-types"><button data-v="both" class="on">✅ + 🟡</button><button data-v="model">✅ only</button></div></div>
+    <button class="btn" id="go">Start challenge</button>
+    <p class="km" style="margin:10px 0 0">ចាប់ផ្តើមពីថ្ងៃនេះ។ រាល់សញ្ញាថ្មីនឹងរាប់ចូលដោយស្វ័យប្រវត្តិ ពេលដល់ TP ឬ SL។</p>
+  </section>
+
+  <section id="game" hidden>
+    <div class="card hero">
+      <span class="lvl-badge" id="lvl">Level 1</span>
+      <div class="bal num" id="bal">$0</div>
+      <div class="chg num" id="chg"></div>
+      <div class="bar"><i id="barfill"></i></div>
+      <div class="row num"><span id="to-next"></span><span id="goal-txt"></span></div>
+    </div>
+
+    <div class="card"><h2>Levels · កម្រិត</h2><div class="ladder" id="ladder"></div></div>
+
+    <div class="card"><h2>Your trades · ការជួញដូររបស់អ្នក</h2>
+      <p class="km" style="margin:-4px 0 8px">Turn off any signal you didn't take. Results fill in automatically.</p>
+      <div id="trades"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Will this plan work? · Simulator</h2>
+    <p class="km" style="margin:-4px 0 10px">1,000 traders follow the same plan with the bot's tested results. What happens?</p>
+    <div class="kpi" style="margin-bottom:8px;text-align:left;display:flex;justify-content:space-between;align-items:center"><small>Typical balance after 1 year</small><b id="s-1y" style="font-size:20px">–</b></div>
+    <div class="kpis num">
+      <div class="kpi"><b id="s-reach">–</b><small>reach the goal</small></div>
+      <div class="kpi"><b id="s-time">–</b><small>typical time</small></div>
+      <div class="kpi"><b id="s-dd">–</b><small>drop 30%+ on the way</small></div>
+    </div>
+    <canvas id="simc" aria-label="Simulated account paths"></canvas>
+    <div class="warn" id="s-note"></div>
+  </section>
+
+  <section id="ctrl" hidden><button class="btn ghost" id="reset">Restart challenge</button></section>
+  <p class="foot">Saved only on this device. Uses the same signals and results posted in the XAU.KH channel.<br>Results based on tests and live signals, not a promise. Not financial advice.</p>
+</main>
+<script>
+(()=>{
+const $=s=>document.querySelector(s), KEY="xaukh_challenge_v1";
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}};
+const save=v=>{try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}};
+const usd=v=>"$"+(v>=1e4?Math.round(v).toLocaleString("en-US"):v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}));
+const NAMES=["Rookie","Starter","Builder","Climber","Trader","Pro","Expert","Master","Elite","Legend","Gold King"];
+// tested outcome distributions (2-year spot backtests, after costs)
+const DIST={model:{p:[[52,-1.02],[75,0.35],[41,1.9]],perWeek:1.6},plan:{p:[[50,-1.03],[50,1.47]],perWeek:2.2}};
+function pick(d){const t=d.p.reduce((a,b)=>a+b[0],0);let r=Math.random()*t;for(const [w,v] of d.p){if((r-=w)<=0)return v}return d.p[0][1]}
+function levels(start,goal){const n=Math.max(2,Math.min(10,Math.round(Math.log(goal/start)/Math.log(1.15))));const f=Math.pow(goal/start,1/n);
+  return Array.from({length:n+1},(_,i)=>start*Math.pow(f,i))}
+let state=load(), log=[];
+function segVal(id){return $(id+" .on").dataset.v}
+document.querySelectorAll(".seg").forEach(s=>s.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  s.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));if(!state)sim(+$("#f-start").value,+$("#f-goal").value,+segVal("#f-risk"),segVal("#f-types"))}));
+["#f-start","#f-goal"].forEach(id=>$(id).addEventListener("input",()=>{if(!state)sim(+$("#f-start").value,+$("#f-goal").value,+segVal("#f-risk"),segVal("#f-types"))}));
+$("#go").onclick=()=>{const start=Math.max(10,+$("#f-start").value||100),goal=Math.max(start*1.2,+$("#f-goal").value||start*10);
+  state={start,goal,risk:+segVal("#f-risk"),types:segVal("#f-types"),since:Date.now()/1000-60,skip:[]};save(state);render()};
+$("#reset").onclick=()=>{if(confirmReset()){state=null;try{localStorage.removeItem(KEY)}catch(e){};render()}};
+function confirmReset(){const b=$("#reset");if(b.dataset.arm){return true}b.dataset.arm=1;b.textContent="Tap again to restart";setTimeout(()=>{b.dataset.arm="";b.textContent="Restart challenge"},3000);return false}
+async function fetchLog(){try{const r=await fetch("alerts_log.json?t="+Date.now(),{cache:"no-store"});log=r.ok?await r.json():[]}catch(e){log=[]}}
+function trades(){if(!state)return[];return log.filter(a=>(a.kind==="model"||(a.kind==="plan"&&state.types==="both"))&&a.created>=state.since).sort((a,b)=>a.created-b.created)}
+function render(){
+  $("#setup").hidden=!!state;$("#game").hidden=!state;$("#ctrl").hidden=!state;
+  if(!state){sim(+$("#f-start").value,+$("#f-goal").value,+segVal("#f-risk"),segVal("#f-types"));return}
+  let bal=state.start;const rows=[];
+  for(const a of trades()){const on=!state.skip.includes(a.id),done=a.R!=null&&["win","tp1","loss","timed out"].includes(a.status);
+    const risk=(a.kind==="plan"?state.risk/2:state.risk)/100;let d=0;if(on&&done){d=bal*risk*a.R;bal+=d}
+    rows.push({a,on,done,d})}
+  const L=levels(state.start,state.goal);let lv=0;while(lv<L.length-1&&bal>=L[lv+1])lv++;
+  $("#lvl").textContent=`Level ${lv+1} · ${NAMES[Math.min(lv,NAMES.length-1)]}`;
+  tween($("#bal"),bal);const ch=bal-state.start;$("#chg").innerHTML=`<span style="color:var(--${ch>=0?"up":"dn"})">${ch>=0?"▲":"▼"} ${usd(Math.abs(ch))} (${(ch/state.start*100).toFixed(1)}%)</span> <span style="color:var(--label2)">since start</span>`;
+  const nxt=L[Math.min(lv+1,L.length-1)],prev=L[lv],pct=lv>=L.length-1?100:Math.max(0,Math.min(100,(bal-prev)/(nxt-prev)*100));
+  requestAnimationFrame(()=>$("#barfill").style.width=pct+"%");
+  $("#to-next").textContent=lv>=L.length-1?"🏆 Goal reached!":`${usd(Math.max(0,nxt-bal))} to level ${lv+2}`;
+  $("#goal-txt").textContent=`Goal ${usd(state.goal)}`;
+  $("#ladder").innerHTML=L.map((v,i)=>`<div class="step ${i<lv?"done":""} ${i===lv?"now":""}"><div class="dot">${i<lv?"✓":i+1}</div>
+    <div class="t"><b>${NAMES[Math.min(i,NAMES.length-1)]}</b><span>${i===0?"start":i===L.length-1?"goal":"level "+(i+1)}</span></div><div class="v num">${usd(v)}</div></div>`).reverse().join("");
+  $("#trades").innerHTML=rows.length?rows.slice().reverse().map(({a,on,done,d})=>{const bull=a.dir==="bull";
+    const when=new Date(a.created*1000).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    const res=!done?`<span style="color:var(--label2)">open</span>`:on?`<span style="color:var(--${d>=0?"up":"dn"})">${d>=0?"+":"−"}${usd(Math.abs(d))}</span>`:`<span style="color:var(--label3)">skipped</span>`;
+    return`<div class="trade"><span class="tag ${bull?"b":"s"}">${bull?"BUY":"SELL"}</span><div class="info"><b class="num">${a.kind==="plan"?"🟡":"✅"} ${(+a.entry).toFixed(2)}</b>
+      <span>${when} · ${a.R!=null?(a.R>=0?"+":"")+a.R+"R":a.status}</span></div><div class="res num">${res}</div>
+      <input type="checkbox" class="tog" data-id="${a.id}" ${on?"checked":""} aria-label="I took this trade"></div>`}).join("")
+    :`<div class="empty">No signals since you started yet. The next ✅ or 🟡 signal appears here automatically. Patience is part of the game. 🙂</div>`;
+  document.querySelectorAll(".tog").forEach(t=>t.onchange=()=>{const id=t.dataset.id;state.skip=t.checked?state.skip.filter(x=>x!==id):[...state.skip,id];save(state);render()});
+  sim(bal,state.goal,state.risk,state.types,state.start);
+}
+const shown={};
+function tween(el,to){const from=shown.b??to;shown.b=to;const t0=performance.now();
+  const step=n=>{const k=Math.min(1,(n-t0)/900),e=1-Math.pow(1-k,4);el.textContent=usd(from+(to-from)*e);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function sim(start,goal,risk,types,orig){
+  start=Math.max(1,start||100);goal=Math.max(start*1.05,goal||start*10);
+  const yr=[];const runs=1000,maxW=104,perW=DIST.model.perWeek+(types==="both"?DIST.plan.perWeek:0);let reach=0,dd=0;const weeks=[],paths=[];
+  for(let r=0;r<runs;r++){let b=start,peak=start,hitDD=false,w=0;const path=[b];
+    for(w=1;w<=maxW;w++){const n=poisson(perW);for(let k=0;k<n;k++){const isPlan=types==="both"&&Math.random()<DIST.plan.perWeek/perW;
+        const R=pick(isPlan?DIST.plan:DIST.model);b+=b*(isPlan?risk/2:risk)/100*R;peak=Math.max(peak,b);if(b<peak*0.7)hitDD=true}
+      if(r<60)path.push(b);if(w===52)yr.push(b);if(b>=goal){if(w<52)yr.push(b);break}}
+    if(b>=goal){reach++;weeks.push(w)}if(hitDD)dd++;if(r<60)paths.push(path)}
+  weeks.sort((a,b)=>a-b);yr.sort((a,b)=>a-b);const y1=yr.length?yr[Math.floor(yr.length/2)]:start;
+  $("#s-1y").innerHTML=`${usd(y1)} <span style="font-size:13px;color:var(--${y1>=start?"up":"dn"})">${y1>=start?"+":""}${((y1/start-1)*100).toFixed(0)}%</span>`;const med=weeks.length?weeks[Math.floor(weeks.length/2)]:null;
+  $("#s-reach").textContent=Math.round(reach/runs*100)+"%";
+  $("#s-time").textContent=med?(med>=8?Math.round(med/4.3)+" mo":med+" wk"):"> 2 yr";
+  $("#s-dd").textContent=Math.round(dd/runs*100)+"%";
+  const n=$("#s-note");n.className="warn"+(risk<=1?" ok":"");
+  n.innerHTML=risk>=5?`<b>5% risk is a gambling plan.</b> Many simulated traders lose a third of the account before they get anywhere. Compounding works because you stay in the game, not because you bet big.<br><span class="km">ហានិភ័យ 5% គឺដូចល្បែង។ ប្រើ 1% ដើម្បីនៅរស់យូរ។</span>`
+    :risk>=2?`2% grows faster but the bad weeks hurt more. Most pros stay at 1% or less.<br><span class="km">2% ឡើងលឿនជាង តែខាតក៏ឈឺជាង។</span>`
+    :`Slow and steady: small risk keeps you in the game through losing streaks, which always come.<br><span class="km">យឺតៗ តែមាំ។ ហានិភ័យតិច ធ្វើឱ្យអ្នករស់រានពេលចាញ់ជាប់ៗ។</span>`;
+  draw(paths,goal,start)}
+function poisson(l){let L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
+function draw(paths,goal,start){const c=$("#simc"),dpr=Math.min(2,devicePixelRatio||1),W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;
+  const x=c.getContext("2d");x.scale(dpr,dpr);x.clearRect(0,0,W,H);const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const len=Math.max(...paths.map(p=>p.length));let hi=goal*1.15,lo=start*0.5;
+  const X=i=>i/(len-1||1)*(W-8)+4,Y=v=>H-4-(Math.log(Math.max(v,lo))-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(H-8);
+  x.strokeStyle=css("--gold");x.globalAlpha=.9;x.setLineDash([5,4]);x.beginPath();x.moveTo(0,Y(goal));x.lineTo(W,Y(goal));x.stroke();x.setLineDash([]);
+  x.fillStyle=css("--gold");x.font="600 11px "+css("--font");x.fillText("GOAL",6,Y(goal)-5);
+  x.strokeStyle=css("--label3");x.beginPath();x.moveTo(0,Y(start));x.lineTo(W,Y(start));x.stroke();
+  for(const p of paths){const up=p[p.length-1]>=start;x.strokeStyle=css(up?"--up":"--dn");x.globalAlpha=.22;x.lineWidth=1.2;x.beginPath();
+    p.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.stroke()}x.globalAlpha=1}
+fetchLog().then(render);setInterval(()=>fetchLog().then(()=>state&&render()),120000);
+addEventListener("resize",()=>render());
+})();
+</script>
+</body>
+</html>
