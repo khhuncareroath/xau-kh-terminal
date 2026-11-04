@@ -289,6 +289,39 @@ def trend_tight(df):
     return trend_breakout(df, scaled=True, stop_pct=0.0065, tp1=0.75, tp2=3.0)
 
 
+def crt_daily(df):
+    """Candle Range Theory / PO3 on daily candles (the mentor's idea): a day sweeps the previous day's low (high) and
+    closes back inside its range -> buy (sell) after the next day opens, stop beyond the sweep, target the far side of
+    the previous day. Tested 12 versions (1H/4H/D, trend filter, 1:2): 1H and 4H lose; daily is +0.09R on 144 trades,
+    t=0.7 -- too weak. Kept here so the daily backtest keeps measuring it; it only alerts if it ever passes judge()."""
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    d = resample(df, "D")
+    H, L, C = d["High"].to_numpy(), d["Low"].to_numpy(), d["Close"].to_numpy()
+    nr = df.attrs.get("n_real")
+    out, busy, n = [], None, len(df)
+    for k in range(1, len(d)):
+        if not (L[k - 1] < C[k] < H[k - 1]):
+            continue
+        sg = 1 if L[k] < L[k - 1] else -1 if H[k] > H[k - 1] else 0
+        if not sg or (L[k] < L[k - 1] and H[k] > H[k - 1]):
+            continue
+        t_close = d.index[k] + pd.Timedelta(hours=23)            # daily candle ends at 17:00 New York
+        if busy is not None and t_close <= busy:
+            continue
+        i = int(df.index.searchsorted(t_close)) - 1
+        j0 = int(df.index.searchsorted(t_close + pd.Timedelta(hours=1))) + LAT   # first bars after the 18:00 reopen
+        if j0 + 1 >= n or (nr is not None and (i >= nr or j0 > nr)):
+            continue
+        stop, tgt = (L[k], H[k - 1]) if sg > 0 else (H[k], L[k - 1])
+        if (tgt - o[j0]) * sg <= 0:
+            continue
+        r, j = _run_trade(o, h, l, c, j0, min(j0 + 3 * 288, n - 1), sg, stop, tgt)
+        if r is not None:
+            out.append((df.index[j0], r, "long" if sg > 0 else "short"))
+            busy = df.index[j]
+    return out
+
+
 def breakout_cisd(df, window_h=12):
     """The member's entry (sweep -> CISD) combined with the proven direction: within 12 hours after a 4H close beyond the
     1-week range, in the London (02-05 NY) or New York (07-11 NY) window, a 5m sweep of a key level against the breakout
@@ -399,7 +432,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"sweep_htf": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
+DESCRIBE = {"crt_daily": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
+            "sweep_htf": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
             "value_80": "Volume profile 80% rule: back inside yesterday's value, target the far edge",
             "acceptance": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation",
             "london_breakout": "London breakout of the Asia range, stop at the range middle, 1.5R target",
@@ -414,11 +448,11 @@ TREND_PREFERENCE = ["trend_tight", "trend_buy", "trend_breakout"]   # same break
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "breakout_cisd": breakout_cisd(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}
