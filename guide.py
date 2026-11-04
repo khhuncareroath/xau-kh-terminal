@@ -1,5 +1,6 @@
-"""Posts the 'how to use this channel' guide once and pins it (the bot needs the 'Pin messages' admin right; if it
-does not have it, the guide is still posted and the owner can pin it by hand). Bump VERSION to post a new guide."""
+"""Posts the 'how to use this channel' guide ONCE and pins it (the bot needs the 'Pin messages' admin right; if it
+does not have it, the guide is still posted and the owner can pin it by hand). Bump VERSION to update the text:
+the pinned message is EDITED in place (silent, no new post). A new post happens only if there is no saved guide."""
 import json
 import os
 import urllib.parse
@@ -7,7 +8,7 @@ import urllib.request
 
 from tg import send
 
-VERSION = "2026-11-04b"
+VERSION = "2026-11-04c"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -20,6 +21,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 🔔 <b>Near level</b>: heads-up only. Wait for the 15m candle to close.
 📰 <b>News in 30 min</b>: no new entries 15 min before and after.
 📊 <b>Friday report</b>: every result, wins and losses.
+🧾 <b>Signal proof</b>: chart of the latest signals, wins AND losses.
 
 💡 <b>Small loss = small lot, not a small SL.</b>
 SL 25 points × 0.02 lot = about $50 risk. Pick the lot so the loss is 0.5–1% of your account.
@@ -37,11 +39,22 @@ def main():
         st = {}
     if st.get("version") == VERSION:
         return
+    tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    if st.get("msg_id") and tok and chat:   # already posted: edit the pinned guide, never post it again
+        try:
+            body = urllib.parse.urlencode({"chat_id": chat, "message_id": st["msg_id"], "text": GUIDE, "parse_mode": "HTML",
+                                           "disable_web_page_preview": "true"}).encode()
+            urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{tok}/editMessageText", data=body), timeout=20)
+            print("guide edited in place")
+        except Exception as e:
+            print("guide edit failed (kept the old text, no new post):", e)
+        st["version"] = VERSION
+        json.dump(st, open(STATE, "w"))
+        return
     mid = send(GUIDE, "Guide")
     if not mid:
         return
     st = {"version": VERSION, "msg_id": mid if isinstance(mid, int) else None}
-    tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     if tok and chat and isinstance(mid, int):
         try:
             body = urllib.parse.urlencode({"chat_id": chat, "message_id": mid, "disable_notification": "true"}).encode()

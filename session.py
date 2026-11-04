@@ -1377,10 +1377,10 @@ def quiet_checkin(ict, lv, news, df, lines, state):
     zone = "" if used is None else ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done")
     wait = (f"{'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else
             f"4H close > {fmt(upper)} = BUY · < {fmt(lower)} = SELL")
-    kind = [0, 1, 3, 2][len(done) % 4]   # 3 = Signal Proof (once a day, the 3rd check-in)
+    kind = len(done) % 3
     d15 = resample(df, "15m")
     mv = float(df["Close"].iloc[-1] - d15["Close"].iloc[-9]) if len(d15) > 9 else 0.0   # last 2 hours
-    head = (["⚡ <b>15M LIVE READ</b>", "🗺 <b>MARKET MAP</b>", "🎯 <b>SETUP WATCH</b>", "🧾 <b>SIGNAL PROOF</b>"][kind] +
+    head = (["⚡ <b>15M LIVE READ</b>", "🗺 <b>MARKET MAP</b>", "🎯 <b>SETUP WATCH</b>"][kind] +
             f" · Gold <b>{fmt(price)}</b> ({mv:+,.1f} in 2h) {arrow}")
     text = "\n".join([head,
                        f"⏳ Waiting for: <b>{wait}</b>",
@@ -1388,13 +1388,7 @@ def quiet_checkin(ict, lv, news, df, lines, state):
                        *([f"⏭ {nx[1]} {local(nx[0].timestamp())}"] if nx else []),
                        f"💡 <i>{m_km}</i>"])
     try:
-        if kind == 3:
-            import proof
-            path, ptxt, shown = proof.make(df, "checkin_proof.png", bt=jl("backtest.json"), log=jl("alerts_log.json", []), local=local)
-            if not shown:
-                raise RuntimeError("no signals in the proof window")
-            text = "\n".join([ptxt.split("\n<i>R = ")[0], f"⏳ Next: <b>{wait}</b>"])
-        elif kind == 0:
+        if kind == 0:
             path, _ = market_map(df, lv, lines, "checkin_15m.png", tf="15m", bars=96, strength=3, title="Live Read")
         elif kind == 1:
             path, _ = market_map(df, lv, lines, "checkin_map.png")
@@ -1408,6 +1402,30 @@ def quiet_checkin(ict, lv, news, df, lines, state):
         state["checkins"] = done + [loc.strftime("%Y-%m-%d %H:%M")]
         open("data/cache/last_post", "w").write(str(time.time()))
         print("check-in sent")
+
+
+PROOF_MIN_NEW = 3        # post the Signal Proof only when at least 3 new signals have closed since the last one
+PROOF_GAP_H = 12
+
+
+def proof_post(df, state):
+    """Signal Proof picture, triggered by results, not by the clock: when PROOF_MIN_NEW new signals (wins or losses)
+    have closed since the last proof post. Checked every 30 minutes, 08:00-23:00 local, at most every 12 hours."""
+    ps = state.setdefault("proof", {})
+    loc = datetime.now(local_tz())
+    if not (8 <= loc.hour < 23) or time.time() - ps.get("checked", 0) < 1800 or time.time() - ps.get("sent", 0) < PROOF_GAP_H * 3600:
+        return
+    ps["checked"] = time.time()
+    import proof
+    path, ptxt, shown = proof.make(df, "proof.png", bt=jl("backtest.json"), log=jl("alerts_log.json", []), local=local)
+    keys = [f"{t['model']}|{df.index[t['j0']]:%Y-%m-%d %H:%M}" for t in shown if t["status"] != "open"]
+    seen = set(ps.get("seen", []))
+    new = [k for k in keys if k not in seen]
+    if len(new) < PROOF_MIN_NEW:
+        return
+    if send_photo(path, ptxt, "Signal proof") or not os.environ.get("TELEGRAM_TOKEN"):
+        ps.update(sent=time.time(), seen=sorted(seen | set(keys))[-60:])
+        print("signal proof sent:", len(new), "new results")
 
 
 def pulse_worth(state, ict, lv, df, lines):
@@ -1542,6 +1560,7 @@ def main():
         macro_shift(macro, news, state)
         plan_watch(df, state)
         quiet_checkin(ict, lv, news, df, lines, state)
+        proof_post(df, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
@@ -1605,8 +1624,12 @@ def main():
         msg = weekly_report(df, jl("alerts_log.json", []), jl("areas_log.json", []), jl("backtest.json"), start)
         try:   # the picture first: every intraday signal of the last 2 weeks on the chart, wins and losses
             import proof
-            ppath, ptxt, _ = proof.make(df, "weekly_proof.png", days=12, bt=jl("backtest.json"), log=jl("alerts_log.json", []), local=local)
-            send_photo(ppath, ptxt, "Weekly proof chart")
+            ppath, ptxt, shown = proof.make(df, "weekly_proof.png", days=12, bt=jl("backtest.json"), log=jl("alerts_log.json", []), local=local)
+            if send_photo(ppath, ptxt, "Weekly proof chart"):
+                ps = state.setdefault("proof", {})
+                ps["seen"] = sorted(set(ps.get("seen", [])) | {f"{t['model']}|{df.index[t['j0']]:%Y-%m-%d %H:%M}"
+                                                               for t in shown if t["status"] != "open"})[-60:]
+                ps["sent"] = time.time()
         except Exception as e:
             print("proof chart failed:", e)
         if send(msg, "Weekly proof") or not os.environ.get("TELEGRAM_TOKEN"):
