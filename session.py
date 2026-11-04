@@ -943,7 +943,7 @@ def no_trade_guide(name, p, lv, df):
     rng = session_range(df, name)
     out = ["", f"🧭 <b>How to handle {name}</b> (no tested setup)"]
     if rng:
-        out.append(f"• {name} usually moves about <b>${rng:,.0f}</b> from low to high.")
+        out.append(f"• {name} usually moves about <b>${rng:,.0f}</b> low to high.")
     keys = []
     if p:
         keys.append(f"POC {fmt(p['poc'])} (busiest price) · value area {fmt(p['val'])}–{fmt(p['vah'])} (where 70% of trading happened)")
@@ -951,7 +951,7 @@ def no_trade_guide(name, p, lv, df):
         keys.append(f"yesterday's low {fmt(lad['Prev day low'])} and high {fmt(lad['Prev day high'])}")
     if keys:
         out.append("• Important prices: " + " · ".join(keys))
-    out.append("• Want to trade anyway? Range trades (buy VAL = bottom of the value area, sell VAH = top) were slightly negative in testing: very small lot (<b>0.25% risk</b>), SL outside the range. Waiting is also fine.")
+    out.append("• Trading anyway? <b>0.25% risk max</b>, SL outside the range. Range trades (buy VAL, sell VAH = value area low/high) were slightly negative in testing.")
     return out
 
 
@@ -1130,7 +1130,7 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     vol = float(atr(df).iloc[-1] / atr(df).rolling(288 * 20, min_periods=288).median().iloc[-1])
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
     head = {"Asia": "🌏", "London": "🇬🇧", "New York": "🇺🇸"}[name]
-    risk = (f"📰 Big news: {esc(ev[0][1])} at {local(ev[0][0].timestamp())}. Prices can jump. Don't open trades 15 min before or after." if ev else
+    risk = (f"📰 {esc(ev[0][1])} at {local(ev[0][0].timestamp())}: no new trades 15 min before/after." if ev else
             "⚠️ Gold is moving faster than usual today: use a smaller lot." if vol >= 1.3 else
             "⚠️ No clear direction right now: don't force a trade." if abs(score) < 20 else None)
     ts = trend_state(df)
@@ -1140,14 +1140,13 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     rng = f"Yesterday: low {fmt(lad['Prev day low'])} · high {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
     out = [f"{head} <b>{name.upper()} SESSION</b> · Gold <b>{fmt(price)}</b>", struct, *([rng] if rng else []),
            *(while_you_slept(df, news) if name == "Asia" else []),
-           *((["", "🏛 <b>What moves gold today</b>"] + [f"• {esc(x)}" for x in economy_lines(macro or {}, {}, start_utc, 0)[:3]])
-             if name == "Asia" and macro else []), "",
+           "",
            plan_line(plan := vp_plan(df)),
-           "", f"⚡ <b>4H breakout signal</b> (tested, 69% win): BUY if a 4H candle closes above {fmt(upper)} · SELL if below {fmt(lower)} (the week's high/low)",
+           "", f"⚡ <b>4H breakout signal</b> (tested, 69% win): BUY if a 4H candle closes above {fmt(upper)} · SELL if below {fmt(lower)} (week high/low)",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
            *([f"📦 Asia box {fmt(bx['lo'])}–{fmt(bx['hi'])} (${bx['r']:,.0f}) · POI 1: {fmt(bx['up1'])} / {fmt(bx['dn1'])} "
-               f"(reached on about 1 in 3 days) · POI 2: {fmt(bx['up2'])} / {fmt(bx['dn2'])} (about 1 in 9)"]
+               f"(hit 1 in 3 days) · POI 2: {fmt(bx['up2'])} / {fmt(bx['dn2'])} (1 in 9)"]
              if name != "Asia" and (bx := asia_box(df)) else []),
            *([risk] if risk else []),
            "", "<i>✅ = tested signal · 🟡 = plan, keep risk small (0.5%)</i>"]
@@ -1226,7 +1225,7 @@ def pulse_worth(state, ict, lv, df, lines):
     if min(upper - price, price - lower) <= price * 0.004:
         return "near a 4H signal line"
     if not last:
-        return "first pulse"
+        return "today's first update"
     return None
 
 
@@ -1350,7 +1349,8 @@ def main():
         text = briefing_text(name, ict, conf, lv, news, df, lines, start, macro)
         path = "session_plan.png"
         analysis_chart(df, lv, conf, lines, path, f"Gold · {name} session plan · {local(time.time())}")
-        if len(text) <= 1024:
+        import html as _h, re as _re
+        if len(_h.unescape(_re.sub(r"<[^>]+>", "", text))) <= 1024:     # Telegram counts visible characters
             mid = send_photo(path, text, f"{name} session")
         else:   # Telegram captions are limited: photo with the headline, then the full briefing as a reply
             mid = send_photo(path, text.split("\n\n")[0], f"{name} session")
