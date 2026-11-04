@@ -6,7 +6,7 @@
    releases (CPI, NFP...) are skipped: postnews.py covers those with real price reactions.
 3. Posts a picture card (BREAKING · gold impact BULLISH/BEARISH/MIXED) with a Khmer caption: what happened, the
    market impact, and a short-term note. Max 6 posts a day, 20 minutes apart (importance 5 can break the gap).
-Needs the ANTHROPIC_API_KEY secret; without it nothing is sent. The AI only explains news; it never gives a trade."""
+Needs GEMINI_API_KEY (free tier, Google AI Studio) or ANTHROPIC_API_KEY; without either nothing is sent. The AI only explains news; it never gives a trade."""
 import hashlib
 import html
 import json
@@ -72,14 +72,27 @@ def fetch():
     return items
 
 
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+
+
 def ask_ai(cands, gold, key):
+    """key = ("anthropic", k) or ("gemini", k). Gemini has a free tier (Google AI Studio key, no card needed)."""
     lst = "\n".join(f"{i}. {c['title']} ({c['source']})" for i, c in enumerate(cands))
-    body = {"model": MODEL, "max_tokens": 900, "system": SYSTEM,
-            "messages": [{"role": "user", "content": f"Gold now: {gold}\nHeadlines (newest first):\n{lst}"}]}
-    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
-                                 headers={"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
-    r = json.load(urllib.request.urlopen(req, timeout=40))
-    txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
+    prompt = f"Gold now: {gold}\nHeadlines (newest first):\n{lst}"
+    kind, k = key
+    if kind == "anthropic":
+        body = {"model": MODEL, "max_tokens": 900, "system": SYSTEM, "messages": [{"role": "user", "content": prompt}]}
+        req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
+                                     headers={"x-api-key": k, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+        r = json.load(urllib.request.urlopen(req, timeout=40))
+        txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
+    else:
+        body = {"systemInstruction": {"parts": [{"text": SYSTEM}]}, "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1500, "responseMimeType": "application/json"}}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={urllib.parse.quote(k)}"
+        req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"content-type": "application/json"})
+        r = json.load(urllib.request.urlopen(req, timeout=40))
+        txt = "".join(p_.get("text", "") for c in r.get("candidates", []) for p_ in c.get("content", {}).get("parts", []))
     m = re.search(r"\[.*\]", txt, re.S)
     return json.loads(m.group(0)) if m else []
 
@@ -113,12 +126,13 @@ def card(item, path):
 
 
 def main():
-    key = os.environ.get("ANTHROPIC_API_KEY")
+    key = (("anthropic", os.environ["ANTHROPIC_API_KEY"]) if os.environ.get("ANTHROPIC_API_KEY") else
+           ("gemini", os.environ["GEMINI_API_KEY"]) if os.environ.get("GEMINI_API_KEY") else None)
     st = jl(STATE, {})
     now = time.time()
     if not key or now - st.get("checked", 0) < CHECK_EVERY:
         if not key:
-            print("breaking news off (add the ANTHROPIC_API_KEY secret)")
+            print("breaking news off (add the GEMINI_API_KEY secret (free) or ANTHROPIC_API_KEY)")
         return
     st["checked"] = now
     day = time.strftime("%Y-%m-%d", time.gmtime())
