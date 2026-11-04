@@ -478,12 +478,12 @@ def plan_line(p):
     if not p:
         return "🟡 No plan yet: not enough data from the last session."
     if not p.get("side"):
-        return (f"🟡 <b>No plan for {p['for']}</b>: in {p['from']}, buyers and sellers were even. Better to wait.")
+        return (f"🟡 <b>No plan for {p['for']}</b>: {p['from']} volume profile was a D-shape (buyers and sellers even). Better to wait.")
     s = p["side"] == "SELL"
     return (f"🟡 <b>Plan for {p['for']}: {'SELL' if s else 'BUY'} near {fmt(p['edge'])}</b>\n"
-            f"Why: in {p['from']}, most trading happened near the {'bottom: sellers were in control' if s else 'top: buyers were in control'}.\n"
-            f"How: wait for price to come back to {fmt(p['edge'])}, then a 15-min candle to close back {'below' if s else 'above'} it. "
-            f"Stop {'above' if s else 'below'} that move. Take profit at 1.5× your risk.")
+            f"Why: {p['from']} volume profile was a {'b-shape (most volume at the bottom: sellers in control)' if s else 'P-shape (most volume at the top: buyers in control)'}.\n"
+            f"How: wait for a pullback to the POC {fmt(p['edge'])} (busiest price), then a 15m candle close back {'below' if s else 'above'} it. "
+            f"SL {'above' if s else 'below'} the pullback · TP 1.5R (1.5× your risk).")
 
 
 def analysis_chart(df, lv, conf, lines, path, title):
@@ -522,14 +522,14 @@ def analysis_chart(df, lv, conf, lines, path, title):
     # ---- left: 4H context
     d4 = resample(df, "4H").tail(42)
     lo4, hi4 = float(d4["Low"].min()), float(d4["High"].max()); p4 = (hi4 - lo4) * 0.06
-    style(axL, lo4 - p4, hi4 + p4, len(d4) + 4, "4-hour · big picture")
+    style(axL, lo4 - p4, hi4 + p4, len(d4) + 4, "4H · swing (big trend)")
     candles(axL, d4)
     for y, txt, col in ((upper, "BUY signal above", UP), (lower, "SELL signal below", DN)):
         if lo4 - p4 < y < hi4 + p4:
             axL.axhline(y, color=col, lw=0.9, ls=(0, (4, 3)), alpha=0.8)
             axL.text(0.5, y, f" {txt} {y:,.0f}", color=col, fontsize=7.5, va="bottom")
     sc = UP if ts > 0 else DN if ts < 0 else MUT
-    fig.text(0.035, 0.865, f" Big trend: {'UP ↑' if ts > 0 else 'DOWN ↓' if ts < 0 else 'none'} ", color=sc, fontsize=10.5,
+    fig.text(0.035, 0.865, f" Swing (4H): {'Bullish ↑' if ts > 0 else 'Bearish ↓' if ts < 0 else 'Range'} ", color=sc, fontsize=10.5,
              fontweight="bold", va="bottom", bbox=dict(boxstyle="round,pad=0.3", fc=PANEL, ec=sc, lw=0.8))
 
     # ---- right: 15m execution
@@ -540,7 +540,7 @@ def analysis_chart(df, lv, conf, lines, path, title):
         ys += [plan["inval"], tgt]
     lo, hi = min(ys), max(ys); pd_ = (hi - lo) * 0.07
     N = len(d); RIGHT = 30
-    style(axR, lo - pd_, hi + pd_, N + RIGHT, "15-minute · entry")
+    style(axR, lo - pd_, hi + pd_, N + RIGHT, "15m · entry")
     candles(axR, d)
     for name, col in (("Prev day high", MUT), ("Prev day low", MUT)):
         y = lad.get(name)
@@ -557,7 +557,7 @@ def analysis_chart(df, lv, conf, lines, path, title):
         axR.add_patch(Rectangle((x0, min(en, stp)), x1 - x0, abs(en - stp), color=DN, alpha=0.25, lw=0))
         axR.add_patch(Rectangle((0, plan["lo"] - 0.6), N, plan["hi"] - plan["lo"] + 1.2, color=GOLD, alpha=0.12, lw=0))
         for y, txt, col, va in ((tgt, f"Target {tgt:,.2f}", UP, "bottom" if bull else "top"),
-                                (en, f"{'Buy' if bull else 'Sell'} zone {en:,.2f}", GOLD, "top" if bull else "bottom"),
+                                (en, f"POC {'buy' if bull else 'sell'} zone {en:,.2f}", GOLD, "top" if bull else "bottom"),
                                 (stp, f"Stop {stp:,.2f}", DN, "top" if bull else "bottom")):
             axR.plot([x0, x1], [y, y], color=col, lw=1)
             axR.text(x0 + 0.6, y, txt, color=col, fontsize=8, va=va, fontweight="bold")
@@ -566,12 +566,12 @@ def analysis_chart(df, lv, conf, lines, path, title):
         py = [price, en, en + (tgt - en) * 0.45, en + (tgt - en) * 0.3, tgt]
         axR.plot(px, py, color=INK, lw=1.2, ls=(0, (3, 2)), alpha=0.9)
         axR.annotate("", xy=(px[-1], py[-1]), xytext=(px[-2], py[-2]), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.2))
-        tag = f"Plan: {'BUY' if bull else 'SELL'} when price comes back to the zone and a 15-min candle closes {'above' if bull else 'below'} it"
+        tag = f"Plan: {'BUY' if bull else 'SELL'} the pullback to the POC (busiest price) after a 15m close {'above' if bull else 'below'} · TP 1.5R"
     else:
-        tag = "No plan this session: buyers and sellers were even. Better to wait."
+        tag = "No plan: D-shape volume profile (buyers and sellers even). Wait for the 4H signal."
     fig.text(0.035, 0.94, title, color=INK, fontsize=14, fontweight="bold")
     fig.text(0.035, 0.905, tag, color=GOLD, fontsize=10)
-    fig.text(0.035, 0.03, "XAU.KH · zone = the busiest price of the last session · a plan, not a promise", color=MUT, fontsize=7.5)
+    fig.text(0.035, 0.03, "XAU.KH · POC = busiest price of the last session · R = your risk · a plan, not a promise", color=MUT, fontsize=7.5)
     fig.savefig(path, facecolor=BG)
     plt.close(fig)
     return path
@@ -755,17 +755,17 @@ def no_trade_guide(name, p, lv, df):
     """For sessions without a tested setup: what to expect, the important prices, and how to keep risk small."""
     lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
     rng = session_range(df, name)
-    out = ["", f"🧭 <b>How to handle {name}</b>"]
+    out = ["", f"🧭 <b>How to handle {name}</b> (no tested setup)"]
     if rng:
         out.append(f"• {name} usually moves about <b>${rng:,.0f}</b> from low to high.")
     keys = []
     if p:
-        keys.append(f"{fmt(p['poc'])} (busiest price) · {fmt(p['val'])}–{fmt(p['vah'])} (main range)")
+        keys.append(f"POC {fmt(p['poc'])} (busiest price) · value area {fmt(p['val'])}–{fmt(p['vah'])} (where 70% of trading happened)")
     if lad.get("Prev day high"):
         keys.append(f"yesterday's low {fmt(lad['Prev day low'])} and high {fmt(lad['Prev day high'])}")
     if keys:
         out.append("• Important prices: " + " · ".join(keys))
-    out.append("• Want to trade anyway? Use a very small lot (<b>0.25% risk</b>) and put the stop outside the range. Waiting is also fine.")
+    out.append("• Want to trade anyway? Range trades (buy VAL, sell VAH) were slightly negative in testing: very small lot (<b>0.25% risk</b>), SL outside the range. Waiting is also fine.")
     return out
 
 
@@ -784,12 +784,12 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
             "⚠️ No clear direction right now: don't force a trade." if abs(score) < 20 else None)
     ts = trend_state(df)
     lad = {x["name"]: x["price"] for x in lv.get("ladder", [])}
-    bw = lambda v: "UP ↑" if v > 0 else "DOWN ↓" if v < 0 else "no trend"
-    struct = f"Trend: big picture {bw(ts)} · right now {bw(b['1H'])}"
+    bw = lambda v: "Bullish ↑" if v > 0 else "Bearish ↓" if v < 0 else "Range"
+    struct = f"Swing (4H, big trend): {bw(ts)} · Internal (1H, right now): {bw(b['1H'])}"
     rng = f"Yesterday: low {fmt(lad['Prev day low'])} · high {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
     out = [f"{head} <b>{name.upper()} SESSION</b> · Gold <b>{fmt(price)}</b>", struct, *([rng] if rng else []), "",
            plan_line(plan := vp_plan(df)),
-           "", f"⚡ <b>Big signal</b> (tested, 69% win): BUY if a 4-hour candle closes above {fmt(upper)} · SELL if below {fmt(lower)}",
+           "", f"⚡ <b>4H breakout signal</b> (tested, 69% win): BUY if a 4H candle closes above {fmt(upper)} · SELL if below {fmt(lower)} (the week's high/low)",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
            *([risk] if risk else []),
@@ -834,8 +834,8 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > datetime.now(timezone.utc)])[:1]
     arrow = "↑" if score >= 20 else "↓" if score <= -20 else "↔"
     p = vp_plan(df)
-    lv_line = (f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} near {fmt(p['edge'])} (wait for a 15-min close {'below' if p['side'] == 'SELL' else 'above'})"
-               if p and p.get("side") else "🟡 No plan this session: better to wait")
+    lv_line = (f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} at the POC {fmt(p['edge'])} (busiest price) after a 15m close {'below' if p['side'] == 'SELL' else 'above'}"
+               if p and p.get("side") else "🟡 No plan this session: D-shape profile (buyers and sellers even)")
     out = [f"⏱ Gold <b>{fmt(price)}</b> ({price - hour_ago:+,.1f} in the last hour) · {word} {arrow}",
            *([lv_line] if lv_line else []),
            *([f"📰 {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600 else [])]

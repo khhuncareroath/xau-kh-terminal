@@ -168,8 +168,8 @@ def model_alert(lm, state, now):
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
-    why_short = {"bull": "Gold broke above this week's highest price (4-hour chart). Big moves often start like this.",
-                 "bear": "Gold broke below this week's lowest price (4-hour chart). Big drops often start like this."}
+    why_short = {"bull": "4H breakout: a 4H candle closed above this week's high. Big moves often start like this.",
+                 "bear": "4H breakdown: a 4H candle closed below this week's low. Big drops often start like this."}
     if LANG != "km":
         out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested", "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
@@ -309,8 +309,8 @@ def plan_alert(lm, state, now):
         return False
     bull = s["dir"] == "bull"
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
-    reason = {"bull": "Last session, buyers were in control. Price came back to the busiest price and a 15-min candle closed above it.",
-              "bear": "Last session, sellers were in control. Price came back to the busiest price and a 15-min candle closed below it."}
+    reason = {"bull": "P-shape volume profile (buyers in control). Price pulled back to the POC (busiest price) and a 15m candle closed above it.",
+              "bear": "b-shape volume profile (sellers in control). Price pulled back to the POC (busiest price) and a 15m candle closed below it."}
     msg = "\n".join([
         f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  🟡 <i>plan trade</i>", "",
         f"Entry  <b>{fmt(s['entry'])}</b>",

@@ -65,9 +65,9 @@ def cot_line(c):
     pos = c.get("range_pct")
     where = (" Their bet is near a 1-year high: if they start selling, gold can drop fast." if pos is not None and pos >= 85 else
              " Their bet is near a 1-year low: they have room to buy back." if pos is not None and pos <= 15 else "")
-    return (f"🏦 Big funds (official CFTC data, {c['date']}): betting on gold going {'UP' if up else 'DOWN'} "
-            f"({abs(c['net']):,} contracts). This week they made that bet {'bigger' if more else 'smaller'} "
-            f"by {abs(ch):,}.{where}")
+    return (f"🏦 COT report (CFTC, {c['date']}): managed money (big funds) is net {'long' if up else 'short'} "
+            f"{abs(c['net']):,} contracts, meaning they bet on gold going {'UP' if up else 'DOWN'}. This week they "
+            f"{'added' if more else 'cut'} {abs(ch):,}.{where}")
 
 
 if __name__ == "__main__":
