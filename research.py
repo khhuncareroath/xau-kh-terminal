@@ -346,8 +346,9 @@ def vp_shape(df, th=0.66, rr=2.0):
     the pullback to the POC; bottom third = b shape -> sell the pullback to the POC. Entry after price touches the POC
     and a 15m candle closes back, stop beyond the value area (or the touch extreme), target 2R, one trade per session.
     D shapes (range trading VAL/VAH) lost money in testing and are skipped.
-    2 years of spot gold: 181 trades, 46% win, +0.15R, t=1.5; all 12 nearby settings positive, shorts positive too.
-    Not proven yet (t < 2), so it runs as a 'plan trade' until judge() says otherwise."""
+    2 years of spot gold (15m closes by the clock, same as live): 183 trades, 43% win, +0.09R, t=1.0; all 12 nearby
+    settings positive (+0.09 to +0.19R, t 1.0-1.9). Not proven (t < 2): runs as a 'plan trade' until judge() says so.
+    (An earlier version counted 15m candles from the data start, which did not match live; replay test now 8/8.)"""
     o, h, l, c, v = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close", "Volume"))
     idx = df.index; n = len(df)
     nr = df.attrs.get("n_real")
@@ -376,7 +377,7 @@ def vp_shape(df, th=0.66, rr=2.0):
             if touched is None and ((l[i] <= poc) if sg > 0 else (h[i] >= poc)):
                 touched = i
                 continue
-            if touched is None or i - touched > 12 or (i + 1) % 3:
+            if touched is None or i - touched > 12 or idx[i].minute % 15 != 10:   # last 5m bar of a 15m candle (by clock)
                 continue
             if (c[i] > poc) if sg > 0 else (c[i] < poc):
                 j0 = i + 1 + LAT

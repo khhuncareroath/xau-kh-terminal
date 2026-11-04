@@ -316,7 +316,7 @@ def plan_alert(lm, state, now):
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
         f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
         reason["bull" if bull else "bear"],
-        "Tested 2 years: positive, not yet proven · closes within 8 h",
+        "Tested 2 years: small edge, not proven · closes within 8 h",
         "", "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>"])
     mid = send(msg, ("BUY" if bull else "SELL") + " plan")
     if not mid:
