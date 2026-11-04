@@ -6,7 +6,8 @@
    releases (CPI, NFP...) are skipped: postnews.py covers those with real price reactions.
 3. Posts a picture card (BREAKING · gold impact BULLISH/BEARISH/MIXED) with a Khmer caption: what happened, the
    market impact, and a short-term note. Max 6 posts a day, 20 minutes apart (importance 5 can break the gap).
-Needs GEMINI_API_KEY (free tier, Google AI Studio) or ANTHROPIC_API_KEY; without either nothing is sent. The AI only explains news; it never gives a trade."""
+With ANTHROPIC_API_KEY or GEMINI_API_KEY the AI explains in Khmer; without a key a free rules mode posts only clear
+news types (Fed cut/hike, war, ceasefire, tariffs, trade deal, central-bank gold, crisis, election) from trusted sources. The AI only explains news; it never gives a trade."""
 import hashlib
 import html
 import json
@@ -125,14 +126,56 @@ def card(item, path):
     return path
 
 
+# ---- free mode: no AI. Only clear news types with a well-known effect on gold, from trusted sources ----
+TRUSTED = re.compile(r"reuters|bloomberg|associated press|\bap\b|cnbc|wall street journal|wsj|financial times|forexlive|"
+                     r"marketwatch|bbc|cnn|nikkei|kitco|fxstreet", re.I)
+RULES = [   # (category, pattern, gold direction, Khmer reason)
+    ("fed_dove", r"\b(fed|fomc|powell|federal reserve)\b.*\b(cuts? rates?|rate cut|cuts? interest|dovish|lowers rates?)\b|\b(rate cut|cuts rates?)\b.*\b(fed|fomc)\b",
+     "bullish", "Fed បន្ថយការប្រាក់ (Rate cut) → ដុល្លារ (USD) ចុះ → មាសច្រើនតែឡើង"),
+    ("fed_hawk", r"\b(fed|fomc|powell|federal reserve)\b.*\b(hikes? rates?|rate hike|raises rates?|hawkish)\b",
+     "bearish", "Fed តឹងរ៉ឹង (Hawkish) → ដុល្លារ (USD) ឡើង → មាសច្រើនតែចុះ"),
+    ("war", r"\b(missile|airstrikes?|strikes? on|attacks?|invasion|invades|war escalat|declares war|bombing|military action)\b",
+     "bullish", "ភាពតានតឹង/សង្គ្រាម → អ្នកវិនិយោគរកទ្រព្យសុវត្ថិភាព (Safe-Haven) → មាសច្រើនតែឡើង"),
+    ("peace", r"\b(ceasefire|cease-fire|truce|peace deal|peace agreement)\b",
+     "bearish", "បទឈប់បាញ់ (Ceasefire) → ការភ័យខ្លាចថយចុះ → មាសអាចចុះ"),
+    ("tariff", r"\b(new tariffs?|tariff hikes?|raises? tariffs?|imposes? tariffs?|trade war)\b",
+     "bullish", "ពន្ធគយថ្មី (Tariffs) → ភាពមិនប្រាកដ → មាសច្រើនតែឡើង"),
+    ("trade_deal", r"\b(trade deal|trade agreement|tariff (cut|pause|relief)|lifts? tariffs?|removes? tariffs?)\b",
+     "bearish", "កិច្ចព្រមព្រៀងពាណិជ្ជកម្ម (Trade deal) → ការភ័យខ្លាចថយចុះ → មាសអាចចុះ"),
+    ("cb_gold", r"\bcentral banks?\b.*\b(buy|bought|buying|add|added|adds|purchases?)\b.*\bgold\b",
+     "bullish", "ធនាគារកណ្ដាលទិញមាស → តម្រូវការមាសកើនឡើង → ល្អសម្រាប់មាស"),
+    ("crisis", r"\b(government shutdown|shutdown begins|debt default|defaults? on|bank (collapse|failure|run)|collapses?)\b",
+     "bullish", "វិបត្តិ (Crisis) → អ្នកវិនិយោគរកទ្រព្យសុវត្ថិភាព (Safe-Haven) → មាសច្រើនតែឡើង"),
+    ("election", r"\b(wins? (the )?(election|presidency|control of)|election results?|declared winner)\b",
+     "mixed", "លទ្ធផលបោះឆ្នោត → ទីផ្សារអាចប្រែប្រួលខ្លាំង (Volatility)"),
+]
+RULES = [(k, re.compile(p_, re.I), g, km) for k, p_, g, km in RULES]
+NEG = re.compile(r"\b(no|not|won't|wont|unlikely|rules? out|against|delay|delays|rush|patient|could|may|might|considers?|weighs?|expected|bets?|odds|\?)", re.I)
+
+
+def rules_pick(cands, st):
+    """Return list of items like the AI output, at most one per category every 6 hours."""
+    out, now = [], time.time()
+    last = st.setdefault("cat_last", {})
+    for i, c in enumerate(cands):
+        if not TRUSTED.search(c.get("source", "")):
+            continue
+        for k, rx, g, km in RULES:
+            if k.startswith("fed") and NEG.search(c["title"]):
+                continue                    # "no rush to cut", "won't hike": direction unclear without AI, skip
+            if rx.search(c["title"]) and now - last.get(k, 0) > 6 * 3600 and k not in {o["_cat"] for o in out}:
+                out.append({"id": i, "importance": 4, "gold": g, "usd": "mixed", "headline_en": c["title"][:110],
+                            "km_reason": km, "en_short": "Expect fast moves around this news", "_cat": k})
+                break
+    return out
+
+
 def main():
     key = (("anthropic", os.environ["ANTHROPIC_API_KEY"]) if os.environ.get("ANTHROPIC_API_KEY") else
            ("gemini", os.environ["GEMINI_API_KEY"]) if os.environ.get("GEMINI_API_KEY") else None)
     st = jl(STATE, {})
     now = time.time()
-    if not key or now - st.get("checked", 0) < CHECK_EVERY:
-        if not key:
-            print("breaking news off (add the GEMINI_API_KEY secret (free) or ANTHROPIC_API_KEY)")
+    if now - st.get("checked", 0) < CHECK_EVERY:
         return
     st["checked"] = now
     day = time.strftime("%Y-%m-%d", time.gmtime())
@@ -154,11 +197,14 @@ def main():
     if not new or st["ai"] >= MAX_AI or st["posts"] >= MAX_POSTS:
         json.dump(st, open(STATE, "w")); print(f"breaking: {len(new)} candidates, nothing to do"); return
     gold = jl("ict.json", {}).get("price")
-    try:
-        picks = ask_ai(new[:15], gold, key)
-        st["ai"] += 1
-    except Exception as e:
-        print("breaking AI failed:", e); json.dump(st, open(STATE, "w")); return
+    if key:
+        try:
+            picks = ask_ai(new[:15], gold, key)
+            st["ai"] += 1
+        except Exception as e:
+            print("breaking AI failed, using rules:", e); picks = rules_pick(new, st)
+    else:
+        picks = rules_pick(new, st)
     for p in sorted(picks, key=lambda x: -int(x.get("importance", 0))):
         if int(p.get("importance", 0)) < 4 or st["posts"] >= MAX_POSTS:
             continue
@@ -171,7 +217,13 @@ def main():
         p["source"] = src
         g = p.get("gold", "mixed")
         tag = "📈 Bullish (ឡើង)" if g == "bullish" else "📉 Bearish (ចុះ)" if g == "bearish" else "↔️ Mixed (មិនច្បាស់)"
-        cap = "\n".join([f"🚨 <b>ព័ត៌មានបន្ទាន់ (BREAKING)</b>", "", esc(p.get("km_what", "")), "",
+        if p.get("km_reason"):        # free rules mode: headline + where gold usually goes
+            cap = "\n".join([f"🚨 <b>ព័ត៌មានបន្ទាន់ (BREAKING)</b>", esc(p["headline_en"]), "",
+                             f"<b>មាស (Gold): {tag}</b>", esc(p["km_reason"]), "",
+                             "⚠️ ព័ត៌មានធំ តម្លៃអាចប្រែប្រួលលឿន · ច្បាប់ទូទៅ មិនមែនការសន្យា"])
+        else:
+            cap = None
+        cap = cap or "\n".join([f"🚨 <b>ព័ត៌មានបន្ទាន់ (BREAKING)</b>", "", esc(p.get("km_what", "")), "",
                          f"<b>ឥទ្ធិពលលើមាស (Market Impact): {tag}</b>", esc(p.get("km_impact", "")), "",
                          f"⏱ <b>រយៈពេលខ្លី (Short-term):</b> {esc(p.get('km_short', ''))}", "",
                          "<i>ព័ត៌មានពន្យល់ មិនមែនសញ្ញាជួញដូរទេ · News explained, not a signal</i>"])
@@ -183,6 +235,8 @@ def main():
         if ok:
             st["posts"] += 1
             st["last_post"] = now
+            if p.get("_cat"):
+                st.setdefault("cat_last", {})[p["_cat"]] = now
             print("breaking sent:", p.get("headline_en"))
     json.dump(st, open(STATE, "w"))
 
