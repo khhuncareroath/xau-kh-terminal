@@ -79,6 +79,23 @@ def _live_match(t, df, log):
     return False
 
 
+_FINGER = None
+
+
+def _finger(ax, x, y, zoom):
+    """Draws the XAU.KH 🖕 mark (assets/finger.png, Noto Color Emoji, OFL licence) at data point (x, y)."""
+    global _FINGER
+    import os
+    from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+    try:
+        if _FINGER is None:
+            import matplotlib.image as mpimg
+            _FINGER = mpimg.imread(os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "finger.png"))
+        ax.add_artist(AnnotationBbox(OffsetImage(_FINGER, zoom=zoom), (x, y), frameon=False, zorder=8))
+    except Exception as e:
+        print("finger mark failed:", e)
+
+
 def _ingot(ax, x, y0, h, w, fc, ec, alpha=1.0, z=5):
     """A gold bar (trapezoid ingot): XAU.KH's result token. h > 0 grows up from y0, h < 0 hangs below."""
     from matplotlib.patches import Polygon
@@ -156,7 +173,11 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
         ax.add_patch(Polygon([(x0, yb), (x0, yb + fh), (x0 + fw, yb + fh / 2)], closed=True, fc=ring, ec="none", zorder=6))
         ax.text(x0 + 1.0, yb + fh / 2, "B" if sg > 0 else "S", color=BG, fontsize=6.5, fontweight="bold", ha="center",
                 va="center", zorder=7)
-        tags = (["★ COMBO"] if t.get("combo") else []) + (["LIVE"] if t.get("live") else [])
+        n_f = 2 if t["model"] == "trend_premium" else 1 if t.get("combo") else 0
+        if n_f:   # the XAU.KH mark: one finger = COMBO, two = PREMIUM
+            for q in range(n_f):
+                _finger(ax, x0 + 4.6 + q * 2.6, yb + fh / 2, 0.15)
+        tags = (["PREMIUM"] if n_f == 2 else ["COMBO"] if n_f == 1 else []) + (["LIVE"] if t.get("live") else [])
         if tags:
             ax.text(x0, yb - rng * 0.012 if sg > 0 else yb + fh + rng * 0.012, " · ".join(tags), color=GOLD, fontsize=6.3,
                     fontweight="bold", ha="left", va="top" if sg > 0 else "bottom", zorder=7)
@@ -185,30 +206,34 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
     closed = [t for t in shown if t["status"] != "open"]
     W = sum(t["R"] > 0 for t in closed); tot = sum(t["R"] for t in closed)
     models = (bt or {}).get("models", {})
-    ti = (models.get("trend_intraday") or {}).get("all") or {}
+    pr = (models.get("trend_premium") or {}).get("all") or {}
     cb = (models.get("trend_combo") or {}).get("all") or {}
     stamp = local(time.time()) if local else ""
     fig.text(0.05, 0.955, "XAU.KH", color=GOLD, fontsize=16, fontweight="bold")
     fig.text(0.128, 0.955, f"SIGNAL PROOF  ·  last {days} days  ·  {stamp}", color=INK, fontsize=14, fontweight="bold")
-    cards = [(f"{W}/{len(closed)}" if closed else "–", "signals won", INK),
-             (f"{tot:+.1f}R" if closed else "–", "total result", UP if tot > 0 else DN if tot < 0 else MUT),
-             (f"{ti.get('win_rate_pct', '–')}%", f"4H Breakout · 2 yrs · {ti.get('trades', '')} trades", GOLD),
-             (f"{cb.get('win_rate_pct', '–')}%", f"★ COMBO · 2 yrs · {cb.get('trades', '')} trades", GOLD)]
+    cards = [(f"{W}/{len(closed)}" if closed else "–", "signals won", INK, 0),
+             (f"{tot:+.1f}R" if closed else "–", "total result", UP if tot > 0 else DN if tot < 0 else MUT, 0),
+             (f"{cb.get('win_rate_pct', '–')}%", f"COMBO intraday · 2 yrs · {cb.get('trades', '')} trades", GOLD, 1),
+             (f"{pr.get('win_rate_pct', '–')}%", f"PREMIUM swing · 2 yrs · {pr.get('trades', '')} trades", "#FFD60A", 2)]
     cw = 0.92 / len(cards)
-    for k_, (big, small, col) in enumerate(cards):
+    for k_, (big, small, col, nf) in enumerate(cards):
         cx = 0.05 + k_ * cw
         fig.patches.append(FancyBboxPatch((cx, 0.815), cw - 0.012, 0.105, boxstyle="round,pad=0,rounding_size=0.012",
                                           transform=fig.transFigure, fc=PANEL, ec=GRID, lw=1))
         fig.text(cx + 0.015, 0.868, big, color=col, fontsize=17, fontweight="bold", va="center")
         fig.text(cx + 0.015, 0.832, small, color=MUT, fontsize=7.5, va="center")
+        if nf:
+            fa = fig.add_axes([cx + cw - 0.075, 0.83, 0.06, 0.075]); fa.set_xlim(0, 3); fa.set_ylim(0, 1); fa.axis("off"); fa.set_zorder(5)
+            for q in range(nf):
+                _finger(fa, 2.4 - q * 1.0, 0.5, 0.16)
     # legend
     lx = 0.05
     for m, (name, tier, ring) in TIERS.items():
         fig.patches.append(Polygon([(lx, 0.027), (lx, 0.047), (lx + 0.011, 0.037)], closed=True, transform=fig.transFigure, fc=ring))
         fig.text(lx + 0.015, 0.037, f"{name} ({tier.lower()})", color=INK, fontsize=7.5, va="center")
-        lx += 0.17
-    fig.text(0.97, 0.037, "flag = entry · line = entry → exit · red dash = SL · same rules as live, 15-min delay + costs",
-             color=MUT, fontsize=7, va="center", ha="right")
+        lx += 0.16
+    fig.text(0.05, 0.012, "flag = entry · line = entry → exit · red dash = SL · 🖕 = COMBO · 🖕🖕 = PREMIUM · same rules as live, 15-min delay + costs"
+             .replace("🖕🖕", "2 fingers").replace("🖕", "1 finger"), color=MUT, fontsize=7, va="center")
     fig.savefig(path, facecolor=BG); plt.close(fig)
     return path, shown
 

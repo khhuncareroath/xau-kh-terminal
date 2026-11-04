@@ -187,17 +187,17 @@ def model_alert(lm, state, now):
     cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
     combo_line = None
     if premium:
-        combo_line = (f"⭐⭐ <b>PREMIUM SWING</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
+        combo_line = (f"🖕🖕 <b>PREMIUM SWING</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
                       f"Rare: about 1 every 1–2 weeks. Hold 1–5 days · ឱកាសល្អ កាន់ 1–5 ថ្ងៃ")
     elif du is not None:
-        combo_line = (f"⭐ <b>STRONG COMBO</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
+        combo_line = (f"🖕 <b>STRONG COMBO</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
                       + (f" Tested: {cb['trades']} trades · {cb['win_rate_pct']}% win." if cb.get("trades") else "")
                       if strong else
                       f"◽ <b>Normal</b>: quiet day so far ({du * 100:.0f}% of a normal day). Quiet-day breakouts were about "
                       f"50/50 in testing → half size (0.5%) or skip · ថ្ងៃស្ងាត់ ប្រើ lot តូច")
     if LANG != "km":
         out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested"
-                + ("  ⭐⭐ PREMIUM" if premium else "  ⭐ COMBO" if strong else ""), "",
+                + ("  🖕🖕 PREMIUM" if premium else "  🖕 COMBO" if strong else ""), "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
                 f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
                 *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
