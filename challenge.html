@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(120,120,128,.24);--label:#F5F5F7;--label2:rgba(235,235,245,.6);
@@ -118,11 +118,27 @@ h1.large,main>h1{transform-origin:left bottom;transition:transform .2s linear,op
 button,.btn,.chips button,.seg button,.tabbar a,.tabbar button{transition:transform .25s cubic-bezier(.34,1.45,.64,1)}
 button:active,.btn:active,.tabbar a:active,.tabbar button:active{transform:scale(.95)}
 @media (prefers-reduced-motion:reduce){.js-rv .card,.js-rv .rv{opacity:1!important;transform:none!important;filter:none!important;transition:none}h1.large,main>h1{transform:none!important}}
+
+/* ---------- premium type ---------- */
+:root{--font:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Kantumruy Pro","Segoe UI",sans-serif!important}
+html,body{font-family:var(--font)!important;font-feature-settings:"cv11","ss01","ss03";letter-spacing:-.011em;text-rendering:optimizeLegibility}
+h1,.large,.price,.bal{letter-spacing:-.035em!important;font-weight:800!important}
+h2,.card h2{font-size:11.5px!important;font-weight:700!important;letter-spacing:.09em!important;text-transform:uppercase;color:var(--label2)!important}
+b,strong{font-weight:650}
+.num,input,.res,.kpi b,.v{font-variant-numeric:tabular-nums}
+.km,.km-sub,:lang(km) body{font-family:"Kantumruy Pro",var(--font)!important;letter-spacing:0}
+/* badges and dots instead of emojis */
+.bdg{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;vertical-align:2px}
+.bdg.t{background:color-mix(in srgb,var(--up) 18%,transparent);color:var(--up)}
+.bdg.p{background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--gold)}
+.bdg.i{background:var(--fill);color:var(--label2)}
+.dt{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:1px;background:var(--label3)}
+.dt.g{background:var(--up)}.dt.r{background:var(--dn)}.dt.y{background:var(--gold)}.dt.b{background:#0A84FF}.dt.o{background:#FF9F0A}.dt.v{background:#BF5AF2}
 </style>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-<header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="journal.html" style="margin-left:auto">📓 Journal</a><a href="./" style="margin-left:14px">← Gold today</a></header>
+<header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="journal.html" style="margin-left:auto">Journal</a><a href="./" style="margin-left:14px">← Gold today</a></header>
 <main>
   <h1>Level Challenge</h1>
   <p class="sub">Grow your account level by level, following XAU.KH's tested signals. Real results, real risk.<br>
