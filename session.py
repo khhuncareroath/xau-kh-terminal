@@ -765,7 +765,7 @@ def no_trade_guide(name, p, lv, df):
         keys.append(f"yesterday's low {fmt(lad['Prev day low'])} and high {fmt(lad['Prev day high'])}")
     if keys:
         out.append("• Important prices: " + " · ".join(keys))
-    out.append("• Want to trade anyway? Range trades (buy VAL, sell VAH) were slightly negative in testing: very small lot (<b>0.25% risk</b>), SL outside the range. Waiting is also fine.")
+    out.append("• Want to trade anyway? Range trades (buy VAL = bottom of the value area, sell VAH = top) were slightly negative in testing: very small lot (<b>0.25% risk</b>), SL outside the range. Waiting is also fine.")
     return out
 
 
