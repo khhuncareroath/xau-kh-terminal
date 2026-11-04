@@ -547,6 +547,19 @@ def analysis_chart(df, lv, conf, lines, path, title):
         if y and lo - pd_ < y < hi + pd_:
             axR.plot([0, N + RIGHT - 2], [y, y], color=col, lw=0.8, ls=(0, (2, 3)))
             axR.text(1, y, f"{'Yesterday high' if 'high' in name else 'Yesterday low'} {y:,.2f}", color=col, fontsize=7.5, va="bottom")
+    bx = asia_box(df)
+    if bx:
+        tz_idx = d.index
+        m = ((tz_idx - pd.Timedelta(hours=18)).date == (datetime.now(NY) - timedelta(hours=18)).date()) & ((tz_idx.hour >= 18) | (tz_idx.hour < 2))
+        xs = np.where(m)[0]
+        if len(xs):
+            axR.add_patch(Rectangle((xs[0] - 0.5, bx["lo"]), xs[-1] - xs[0] + 1, bx["r"], color=GOLD, alpha=0.08, lw=0.8, ec=GOLD))
+            axR.text(xs[0], bx["hi"], " Asia box", color=GOLD, fontsize=7.5, va="bottom")
+        for k, txt in (("up1", "POI 1 (1 in 3 days)"), ("dn1", "POI 1 (1 in 3 days)"), ("up2", "POI 2 (1 in 9)"), ("dn2", "POI 2 (1 in 9)")):
+            y = bx[k]
+            if lo - pd_ < y < hi + pd_:
+                axR.plot([0, N + RIGHT - 2], [y, y], color=MUT, lw=0.7, ls=(0, (6, 4)), alpha=0.7)
+                axR.text(N - 1, y, f"{txt} {y:,.0f} ", color=MUT, fontsize=7, va="bottom", ha="right")
     axR.axhline(price, color=INK, lw=0.6, alpha=0.4)
     axR.text(N + RIGHT + 0.3, price, f"{price:,.2f}", color=BG, fontsize=8, va="center", ha="left", fontweight="bold",
              bbox=dict(boxstyle="round,pad=0.25", fc=INK, ec="none"), clip_on=False, zorder=5)
@@ -826,6 +839,24 @@ def no_trade_guide(name, p, lv, df):
     return out
 
 
+def asia_box(df):
+    """Asia range (18:00-02:00 New York) of the current trading day and its POI projections (ZTD-style):
+    POI 1 / POI 2 = one / two box-heights beyond the box. 2 years of spot gold: POI 1 reached on 36% of days
+    (either side; the swing direction does not predict which), POI 2 on 11%. A map of how far a day stretches."""
+    now = datetime.now(NY)
+    if not (2 <= now.hour < 17):
+        return None
+    day = (now - timedelta(hours=18)).date()
+    idx = df.index
+    m = ((idx - pd.Timedelta(hours=18)).date == day) & ((idx.hour >= 18) | (idx.hour < 2))
+    a = df[m]
+    if len(a) < 60:
+        return None
+    hi, lo = float(a["High"].max()), float(a["Low"].min())
+    r = hi - lo
+    return {"hi": hi, "lo": lo, "r": r, "up1": hi + r, "up2": hi + 2 * r, "dn1": lo - r, "dn2": lo - 2 * r}
+
+
 def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     """Short: direction, one sell level, one buy level, the big signal lines, the one risk that matters most."""
     price = float(df["Close"].iloc[-1])
@@ -849,6 +880,9 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
            "", f"⚡ <b>4H breakout signal</b> (tested, 69% win): BUY if a 4H candle closes above {fmt(upper)} · SELL if below {fmt(lower)} (the week's high/low)",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
              else []),
+           *([f"📦 Asia box {fmt(bx['lo'])}–{fmt(bx['hi'])} (${bx['r']:,.0f}) · POI 1: {fmt(bx['up1'])} / {fmt(bx['dn1'])} "
+               f"(reached on about 1 in 3 days) · POI 2: {fmt(bx['up2'])} / {fmt(bx['dn2'])} (about 1 in 9)"]
+             if name != "Asia" and (bx := asia_box(df)) else []),
            *([risk] if risk else []),
            "", "<i>✅ = tested signal · 🟡 = plan, keep risk small (0.5%)</i>"]
     if LANG == "km":
