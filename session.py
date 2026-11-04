@@ -78,6 +78,12 @@ def economy_lines(macro, news, start_utc, hours, max_events=3):
         out.append(f"US 10-year yield {y['last']:.2f}% ({y.get('chg_bp', 0):+.0f} bp today): "
                    + ("higher yields make gold, which pays no interest, less attractive." if dir_y == "up" else
                       "falling yields usually support gold." if dir_y == "down" else "steady, no big push either way."))
+    vx, spx = macro.get("vix") or {}, macro.get("spx") or {}
+    if vx.get("last") is not None:
+        mood = ("fear is high: safe-haven demand often supports gold" if vx["last"] >= 25 else
+                "fear is rising: watch for safe-haven buying in gold" if vx.get("chg_pct", 0) >= 10 else
+                "markets are calm: less safe-haven demand" if vx["last"] < 16 else "normal risk mood")
+        out.append(f"VIX (fear index) {vx['last']} ({vx.get('chg_pct', 0):+.0f}% today) · S&P 500 {spx.get('chg_pct', 0):+.2f}%: {mood}.")
     if macro.get("score") is not None and macro.get("gold_chg_pct") is not None:
         g = macro["gold_chg_pct"]
         if (macro["score"] > 0 and g < -0.3) or (macro["score"] < 0 and g > 0.3):
@@ -967,6 +973,27 @@ def asia_box(df):
     return {"hi": hi, "lo": lo, "r": r, "up1": hi + r, "up2": hi + 2 * r, "dn1": lo - r, "dn2": lo - 2 * r}
 
 
+def while_you_slept(df, news):
+    """Overnight summary for the 06:00 Asia prep: the move since 07:00 New York (London close / NY open),
+    the overnight high and low, and the big news that was released."""
+    now = datetime.now(NY)
+    start = now.replace(hour=7, minute=0, second=0, microsecond=0)
+    if now < start:
+        start -= timedelta(days=1)
+    x = df[df.index >= start]
+    if len(x) < 12:
+        return []
+    o_, c_ = float(x["Open"].iloc[0]), float(x["Close"].iloc[-1])
+    hi_, lo_ = float(x["High"].max()), float(x["Low"].min())
+    ev = [e["title"] for e in news.get("events", []) if e.get("impact") == "High"
+          and start.astimezone(timezone.utc) <= datetime.fromisoformat(e["time"].replace("Z", "+00:00")) <= now.astimezone(timezone.utc)]
+    out = ["", f"🌙 <b>While you slept</b> (New York session): gold {fmt(o_)} → {fmt(c_)} (<b>{c_ - o_:+,.1f}</b>) · "
+               f"high {fmt(hi_)} · low {fmt(lo_)}"]
+    if ev:
+        out.append("📰 Released: " + esc(", ".join(dict.fromkeys(ev))))
+    return out
+
+
 def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     """Short: direction, one sell level, one buy level, the big signal lines, the one risk that matters most."""
     price = float(df["Close"].iloc[-1])
@@ -985,7 +1012,10 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     bw = lambda v: "Bullish ↑" if v > 0 else "Bearish ↓" if v < 0 else "Range"
     struct = f"Swing (4H, big trend): {bw(ts)} · Internal (1H, right now): {bw(b['1H'])}"
     rng = f"Yesterday: low {fmt(lad['Prev day low'])} · high {fmt(lad['Prev day high'])}" if lad.get("Prev day high") else None
-    out = [f"{head} <b>{name.upper()} SESSION</b> · Gold <b>{fmt(price)}</b>", struct, *([rng] if rng else []), "",
+    out = [f"{head} <b>{name.upper()} SESSION</b> · Gold <b>{fmt(price)}</b>", struct, *([rng] if rng else []),
+           *(while_you_slept(df, news) if name == "Asia" else []),
+           *((["", "🏛 <b>What moves gold today</b>"] + [f"• {esc(x)}" for x in economy_lines(macro or {}, {}, start_utc, 0)[:3]])
+             if name == "Asia" and macro else []), "",
            plan_line(plan := vp_plan(df)),
            "", f"⚡ <b>4H breakout signal</b> (tested, 69% win): BUY if a 4H candle closes above {fmt(upper)} · SELL if below {fmt(lower)} (the week's high/low)",
            *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004

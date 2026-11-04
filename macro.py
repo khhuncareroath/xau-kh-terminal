@@ -26,6 +26,12 @@ def main():
            "us10y": {"last": round(float(ty.iloc[-1]), 3), "chg_bp": round(float(tyc), 1), "chg_5d_bp": round(float(ty5), 1)},
            "gold_chg_5d_pct": round(float(gc5), 2),
            "gold_chg_pct": round(float(gcc), 2), "score": score, "verdict": verdict, "note": note}
+    try:   # risk mood: stock-market fear (VIX) and the S&P 500; fear often brings safe-haven buying in gold
+        vx, sp = series("^VIX"), series("ES=F")
+        out["vix"] = {"last": round(float(vx.iloc[-1]), 1), "chg_pct": round(float((vx.iloc[-1] / vx.iloc[-24] - 1) * 100), 1)}
+        out["spx"] = {"chg_pct": round(float((sp.iloc[-1] / sp.iloc[-24] - 1) * 100), 2)}
+    except Exception as e:
+        print("risk mood unavailable:", e)
     json.dump(out, open("macro.json", "w"), indent=2); print(note)
 
 if __name__ == "__main__":
