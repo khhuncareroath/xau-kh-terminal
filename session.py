@@ -284,6 +284,61 @@ def _trendlines(d1):
     return [(pts, kind) for pts, kind in ((hs, "res"), (ls, "sup")) if len(pts) == 2 and pts[1][0] - pts[0][0] >= 3]
 
 
+def card(df, price, word, score, areas, path, label):
+    """Small image for Telegram: a big direction arrow, the price, the last 24h line with the sell and buy levels."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch, Polygon, Circle
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    BG, CARD, INK, MUT, UP, DN, FLAT = "#000000", "#1C1C1E", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#8E8E93"
+    col = UP if score >= 20 else DN if score <= -20 else FLAT
+    fig = plt.figure(figsize=(8, 4.2), dpi=150)
+    fig.patch.set_facecolor(BG)
+    bg = fig.add_axes([0, 0, 1, 1]); bg.axis("off"); bg.set_xlim(0, 1); bg.set_ylim(0, 1)
+    bg.add_patch(FancyBboxPatch((0.02, 0.04), 0.96, 0.92, boxstyle="round,pad=0,rounding_size=0.04", fc=CARD, ec="none"))
+    # left: arrow badge
+    a = fig.add_axes([0.05, 0.30, 0.25, 0.48]); a.axis("off"); a.set_xlim(-1, 1); a.set_ylim(-1, 1); a.set_aspect("equal")
+    a.add_patch(Circle((0, 0), 0.95, fc=col, alpha=0.18, ec="none"))
+    shape = {1: [(-0.38, -0.05), (0, 0.5), (0.38, -0.05), (0.14, -0.05), (0.14, -0.5), (-0.14, -0.5), (-0.14, -0.05)]}
+    pts = shape[1]
+    if score <= -20:
+        pts = [(x, -y) for x, y in pts]
+    elif -20 < score < 20:
+        pts = [(y, x) for x, y in pts]                                 # sideways: arrow pointing right
+    a.add_patch(Polygon(pts, closed=True, fc=col, ec="none"))
+    bg.text(0.175, 0.20, word, color=col, ha="center", va="center", fontsize=17, fontweight="bold")
+    bg.text(0.175, 0.11, "direction", color=MUT, ha="center", va="center", fontsize=9)
+    # top right: label and price
+    bg.text(0.36, 0.85, label, color=MUT, fontsize=10, va="center")
+    bg.text(0.36, 0.72, f"{price:,.2f}", color=INK, fontsize=24, fontweight="bold", va="center")
+    # right: last 24h with levels
+    d = resample(df, "15m").tail(96)
+    ax = fig.add_axes([0.36, 0.30, 0.42, 0.32]); ax.set_facecolor(CARD); ax.axis("off")
+    y = d["Close"].to_numpy(); x = range(len(y))
+    lv_ = [areas[k]["edge"] for k in areas]
+    lo, hi = min(list(y) + lv_), max(list(y) + lv_)
+    ax.set_ylim(lo - (hi - lo) * 0.08, hi + (hi - lo) * 0.08); ax.set_xlim(0, len(y) + 2)
+    ax.plot(x, y, color=INK, lw=1.6)
+    ax.fill_between(x, y, lo - (hi - lo) * 0.08, color=INK, alpha=0.05)
+    ax.plot([len(y) - 1], [y[-1]], "o", color=INK, ms=5)
+    bg.text(0.36, 0.25, "last 24 hours", color=MUT, fontsize=8, va="center")
+    # levels list on the right
+    yy = 0.62
+    for k in ("SELL", "BUY"):
+        if k not in areas:
+            continue
+        c = DN if k == "SELL" else UP
+        ax.axhline(areas[k]["edge"], color=c, lw=1, ls=(0, (3, 3)))
+        bg.add_patch(FancyBboxPatch((0.80, yy - 0.085), 0.16, 0.17, boxstyle="round,pad=0,rounding_size=0.02", fc=c, alpha=0.15, ec="none"))
+        bg.text(0.88, yy + 0.035, f"{'Sell' if k == 'SELL' else 'Buy'} {areas[k]['edge']:,.0f}", color=c, ha="center", va="center", fontsize=11, fontweight="bold")
+        bg.text(0.88, yy - 0.04, f"stop {areas[k]['inval']:,.0f}", color=MUT, ha="center", va="center", fontsize=8.5)
+        yy -= 0.22
+    fig.savefig(path, facecolor=BG)
+    plt.close(fig)
+    return path
+
+
 def chart(df, conf, lv, lines, path, title, position=None, scenarios=True):
     """1H chart for Telegram. position: dict(dir, entry, stop, tp1, tp2) draws the live trade like TradingView's
     position tool. scenarios: draws the planned BUY and SELL positions at the trend model's trigger lines."""
@@ -456,6 +511,18 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     return "\n".join(out)
 
 
+def pulse_send(ict, conf, lv, news, df, lines, macro, why):
+    text = pulse_text(ict, conf, lv, news, df, lines, macro).replace("\n", f" · 🔔 {why}\n", 1)
+    try:
+        price = float(df["Close"].iloc[-1])
+        sc, wd, _ = direction(ict, lv, price)
+        card(df, price, wd, sc, intraday_areas(lv, conf, price), "pulse_card.png", f"GOLD · UPDATE · {local(time.time())}")
+        return send_photo("pulse_card.png", text, "Gold pulse")
+    except Exception as e:
+        print("pulse card failed:", e)
+        return send(text, "Gold pulse")
+
+
 def pulse_worth(state, ict, lv, df, lines):
     """Send the hourly pulse only when it tells something new: direction changed, a big move, or a line is close."""
     price = float(df["Close"].iloc[-1])
@@ -578,8 +645,10 @@ def main():
     if due:
         name, key, start = due
         text = briefing_text(name, ict, conf, lv, news, df, lines, start, macro)
-        path = "session_chart.png"
-        chart(df, conf, lv, lines, path, f"Gold · {name} session prep · {local(time.time())}")
+        path = "session_card.png"
+        price = float(df["Close"].iloc[-1])
+        sc, wd, _ = direction(ict, lv, price)
+        card(df, price, wd, sc, intraday_areas(lv, conf, price), path, f"GOLD · {name.upper()} SESSION · {local(time.time())}")
         if len(text) <= 1024:
             mid = send_photo(path, text, f"{name} session")
         else:   # Telegram captions are limited: photo with the headline, then the full briefing as a reply
@@ -596,7 +665,7 @@ def main():
         if not why:
             state.setdefault("pulsed", {})[pk] = time.time()
             print("pulse skipped: nothing new")
-        elif send(pulse_text(ict, conf, lv, news, df, lines, macro).replace("\n", f" · 🔔 {why}\n", 1), "Gold pulse") or not os.environ.get("TELEGRAM_TOKEN"):
+        elif pulse_send(ict, conf, lv, news, df, lines, macro, why) or not os.environ.get("TELEGRAM_TOKEN"):
             state.setdefault("pulsed", {})[pk] = time.time()
             state["pulsed"] = {k: v for k, v in state["pulsed"].items() if time.time() - v < 3 * 86400}
             print("pulse sent", pk)
