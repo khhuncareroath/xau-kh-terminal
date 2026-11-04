@@ -1377,10 +1377,10 @@ def quiet_checkin(ict, lv, news, df, lines, state):
     zone = "" if used is None else ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done")
     wait = (f"{'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else
             f"4H close > {fmt(upper)} = BUY · < {fmt(lower)} = SELL")
-    kind = len(done) % 3
+    kind = [0, 1, 3, 2][len(done) % 4]   # 3 = Signal Proof (once a day, the 3rd check-in)
     d15 = resample(df, "15m")
     mv = float(df["Close"].iloc[-1] - d15["Close"].iloc[-9]) if len(d15) > 9 else 0.0   # last 2 hours
-    head = (["⚡ <b>15M LIVE READ</b>", "🗺 <b>MARKET MAP</b>", "🎯 <b>SETUP WATCH</b>"][kind] +
+    head = (["⚡ <b>15M LIVE READ</b>", "🗺 <b>MARKET MAP</b>", "🎯 <b>SETUP WATCH</b>", "🧾 <b>SIGNAL PROOF</b>"][kind] +
             f" · Gold <b>{fmt(price)}</b> ({mv:+,.1f} in 2h) {arrow}")
     text = "\n".join([head,
                        f"⏳ Waiting for: <b>{wait}</b>",
@@ -1388,7 +1388,13 @@ def quiet_checkin(ict, lv, news, df, lines, state):
                        *([f"⏭ {nx[1]} {local(nx[0].timestamp())}"] if nx else []),
                        f"💡 <i>{m_km}</i>"])
     try:
-        if kind == 0:
+        if kind == 3:
+            import proof
+            path, ptxt, shown = proof.make(df, "checkin_proof.png", bt=jl("backtest.json"), log=jl("alerts_log.json", []), local=local)
+            if not shown:
+                raise RuntimeError("no signals in the proof window")
+            text = "\n".join([ptxt.split("\n<i>R = ")[0], f"⏳ Next: <b>{wait}</b>"])
+        elif kind == 0:
             path, _ = market_map(df, lv, lines, "checkin_15m.png", tf="15m", bars=96, strength=3, title="Live Read")
         elif kind == 1:
             path, _ = market_map(df, lv, lines, "checkin_map.png")
@@ -1597,6 +1603,12 @@ def main():
         if start > now_ny:
             start -= timedelta(days=7)
         msg = weekly_report(df, jl("alerts_log.json", []), jl("areas_log.json", []), jl("backtest.json"), start)
+        try:   # the picture first: every intraday signal of the last 2 weeks on the chart, wins and losses
+            import proof
+            ppath, ptxt, _ = proof.make(df, "weekly_proof.png", days=12, bt=jl("backtest.json"), log=jl("alerts_log.json", []), local=local)
+            send_photo(ppath, ptxt, "Weekly proof chart")
+        except Exception as e:
+            print("proof chart failed:", e)
         if send(msg, "Weekly proof") or not os.environ.get("TELEGRAM_TOKEN"):
             state.setdefault("weekly_report", {})[wkey] = time.time()
             print("weekly report sent")

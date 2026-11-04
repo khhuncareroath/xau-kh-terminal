@@ -1541,29 +1541,30 @@
    "verdict": "Positive so far, but only 7 trades in the newest data (10 needed): waiting for more."
   },
   "trend_intraday": {
+   "description": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
    "all": {
-    "trades": 217,
-    "win_rate_pct": 62,
-    "avg_R": 0.15
+    "trades": 218,
+    "win_rate_pct": 63,
+    "avg_R": 0.146
    },
    "older_70pct": {
-    "trades": 157,
+    "trades": 158,
     "win_rate_pct": 62,
-    "avg_R": 0.18
+    "avg_R": 0.163
    },
    "newest_30pct": {
     "trades": 60,
-    "win_rate_pct": 63,
-    "avg_R": 0.07
+    "win_rate_pct": 65,
+    "avg_R": 0.103
    },
    "quarters": {
     "2024-Q4": {
      "trades": 17,
-     "avg_R": -0.121
+     "avg_R": -0.109
     },
     "2025-Q1": {
      "trades": 31,
-     "avg_R": 0.032
+     "avg_R": 0.062
     },
     "2025-Q2": {
      "trades": 24,
@@ -1571,44 +1572,43 @@
     },
     "2025-Q3": {
      "trades": 28,
-     "avg_R": 0.073
+     "avg_R": 0.05
     },
     "2025-Q4": {
-     "trades": 29,
-     "avg_R": 0.285
+     "trades": 30,
+     "avg_R": 0.199
     },
     "2026-Q1": {
      "trades": 32,
-     "avg_R": 0.611
+     "avg_R": 0.589
     },
     "2026-Q2": {
      "trades": 25,
-     "avg_R": 0.159
+     "avg_R": 0.202
     },
     "2026-Q3": {
      "trades": 26,
-     "avg_R": 0.041
+     "avg_R": 0.072
     },
     "2026-Q4": {
      "trades": 5,
-     "avg_R": 0.095
+     "avg_R": 0.111
     }
    },
    "by_direction": {
     "short": {
      "trades": 76,
-     "avg_R": 0.104
+     "avg_R": 0.126
     },
     "long": {
-     "trades": 141,
-     "avg_R": 0.174
+     "trades": 142,
+     "avg_R": 0.157
     }
    },
    "positive_quarters": "7 of 9",
    "t_stat": 2.37,
    "proven": true,
-   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts.",
-   "description": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours"
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
   },
   "range_extreme": {
    "all": {
@@ -1679,6 +1679,146 @@
    "proven": false,
    "verdict": "Positive (+0.33R) but not statistically clear yet (t=1.5, need 2): could still be luck.",
    "description": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open"
+  },
+  "vp_shape": {
+   "description": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
+   "all": {
+    "trades": 228,
+    "win_rate_pct": 50,
+    "avg_R": 0.179
+   },
+   "older_70pct": {
+    "trades": 160,
+    "win_rate_pct": 51,
+    "avg_R": 0.184
+   },
+   "newest_30pct": {
+    "trades": 68,
+    "win_rate_pct": 49,
+    "avg_R": 0.167
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 23,
+     "avg_R": 0.354
+    },
+    "2025-Q1": {
+     "trades": 35,
+     "avg_R": 0.346
+    },
+    "2025-Q2": {
+     "trades": 21,
+     "avg_R": 0.465
+    },
+    "2025-Q3": {
+     "trades": 36,
+     "avg_R": -0.102
+    },
+    "2025-Q4": {
+     "trades": 30,
+     "avg_R": 0.044
+    },
+    "2026-Q1": {
+     "trades": 15,
+     "avg_R": 0.122
+    },
+    "2026-Q2": {
+     "trades": 24,
+     "avg_R": 0.27
+    },
+    "2026-Q3": {
+     "trades": 29,
+     "avg_R": 0.081
+    },
+    "2026-Q4": {
+     "trades": 15,
+     "avg_R": 0.168
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 123,
+     "avg_R": 0.109
+    },
+    "short": {
+     "trades": 105,
+     "avg_R": 0.262
+    }
+   },
+   "positive_quarters": "8 of 9",
+   "t_stat": 2.22,
+   "proven": true,
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "crt_daily": {
+   "description": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
+   "all": {
+    "trades": 121,
+    "win_rate_pct": 45,
+    "avg_R": 0.095
+   },
+   "older_70pct": {
+    "trades": 80,
+    "win_rate_pct": 46,
+    "avg_R": 0.059
+   },
+   "newest_30pct": {
+    "trades": 41,
+    "win_rate_pct": 41,
+    "avg_R": 0.165
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 9,
+     "avg_R": -0.258
+    },
+    "2025-Q1": {
+     "trades": 20,
+     "avg_R": -0.174
+    },
+    "2025-Q2": {
+     "trades": 13,
+     "avg_R": -0.119
+    },
+    "2025-Q3": {
+     "trades": 11,
+     "avg_R": 0.148
+    },
+    "2025-Q4": {
+     "trades": 16,
+     "avg_R": 0.119
+    },
+    "2026-Q1": {
+     "trades": 11,
+     "avg_R": 0.773
+    },
+    "2026-Q2": {
+     "trades": 13,
+     "avg_R": -0.013
+    },
+    "2026-Q3": {
+     "trades": 23,
+     "avg_R": 0.163
+    },
+    "2026-Q4": {
+     "trades": 5,
+     "avg_R": 0.638
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 53,
+     "avg_R": -0.114
+    },
+    "short": {
+     "trades": 68,
+     "avg_R": 0.257
+    }
+   },
+   "positive_quarters": "5 of 9",
+   "t_stat": 0.65,
+   "proven": false,
+   "verdict": "No edge: +0.09R per trade after costs."
   }
  },
  "alert_mode": "watch"

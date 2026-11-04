@@ -8,6 +8,11 @@ Models:
                 the alert arrives (15 min delay), stop beyond the sweep (at least 1 ATR), target 1.5R.
   value_80      "80% rule": open outside yesterday's value area, two 30m closes back inside, trade to the far edge.
   acceptance    two 30m closes beyond yesterday's value edge (after a real break), trade the continuation.
+
+Tested and rejected (2026-11-04): the "direction engine" from the CRAZII research guide: day open (OP) + previous
+day midpoint (MLP) + 15m candle colour flip, with/without the 4H trend, a pullback-to-reference filter, a close-
+location "pressure" filter and 1/1.5/2R targets: 48 versions on 2 years, best +0.16R with t=1.6 (not proven, and
+after 48 tries that is what luck looks like). Only the 4H trend filter helped, which the 4H breakout already uses.
 """
 import numpy as np
 import pandas as pd
@@ -242,7 +247,7 @@ def vwap_fade(df):
     return out
 
 
-def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2=3.0, hold_bars=5 * 288):
+def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2=3.0, hold_bars=5 * 288, clock=False):
     """Higher-timeframe trend following: a 4H candle closes above the highest high (or below the lowest low) of the
     previous 30 4H candles (about 1 week). Enter after the alert delay, stop 2 x the 4H ATR away, target 3R,
     out after 5 days at most. Gold trended strongly in 2024-26, so check the long and short results separately."""
@@ -270,8 +275,11 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2
         if nr is not None and (i >= nr or j0 > nr):
             continue                  # the 4H candle has not really closed yet, or the alert delay has not passed
         stop = o[j0] - sg * 2 * a4[k] if stop_pct is None else o[j0] * (1 - sg * stop_pct)
+        j_end = min(j0 + hold_bars, n - 1)
+        if clock:   # wall-clock hold like track.py (a Friday trade is not carried through the weekend by bar count)
+            j_end = min(j_end, int(df.index.searchsorted(df.index[j0] + pd.Timedelta(minutes=5 * hold_bars))), n - 1)
         if scaled:   # half at 1R (stop moves to entry), rest to 3R
-            r, j, _ = _run_scaled(o, h, l, c, j0, min(j0 + hold_bars, n - 1), sg, stop, tp1, tp2)
+            r, j, _ = _run_scaled(o, h, l, c, j0, j_end, sg, stop, tp1, tp2)
         else:
             r, j = _run_trade(o, h, l, c, j0, min(j0 + hold_bars, n - 1), sg, stop, o[j0] + sg * 3 * 2 * a4[k])
         if r is not None:
@@ -284,7 +292,7 @@ def trend_intraday(df):
     """Intraday version of the 4H breakout (for day traders): same entry, SL 0.55% (~$22), half at 0.75R with the
     stop to entry, rest to 3R, everything closed after 12 hours. 2 years: 217 trades, 62% win, +0.15R, t=2.4.
     Weaker than the 5-day swing version (+0.30R) but every trade ends the same day."""
-    return trend_breakout(df, scaled=True, stop_pct=0.0055, tp1=0.75, tp2=3.0, hold_bars=144)
+    return trend_breakout(df, scaled=True, stop_pct=0.0055, tp1=0.75, tp2=3.0, hold_bars=144, clock=True)
 
 
 def trend_tight(df):
