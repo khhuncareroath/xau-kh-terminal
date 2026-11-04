@@ -162,8 +162,20 @@ def model_alert(lm, state, now):
     if key in state.get("model_keys", []):
         return False
     import research
+    # PREMIUM SWING: the same breakout on a big day is sent as the 5-day swing version (wider SL, holds up to 5 days)
+    models_bt = jl("backtest.json").get("models", {})
+    premium = False
+    if s["model"] in research.TREND_PREFERENCE and (models_bt.get("trend_premium") or {}).get("proven"):
+        tt = next((x for x in lm.get("signals", []) if x.get("model") == "trend_tight" and x.get("dir") == s["dir"]
+                   and x.get("trigger_time") == s.get("trigger_time")), None)
+        du_ = (tt or {}).get("day_used") if tt else None
+        if tt and du_ is not None and du_ >= research.PREMIUM_USED:
+            s, premium = tt, True
+            key = f"model|trend_premium|{s['trigger_time']}"
+            if key in state.get("model_keys", []):
+                return False
     bull = s["dir"] == "bull"
-    b = s.get("backtest") or {}
+    b = (models_bt.get("trend_premium") or {}).get("all") if premium else (s.get("backtest") or {})
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
@@ -174,7 +186,10 @@ def model_alert(lm, state, now):
     strong = du is not None and du >= research.COMBO_USED
     cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
     combo_line = None
-    if du is not None:
+    if premium:
+        combo_line = (f"⭐⭐ <b>PREMIUM SWING</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
+                      f"Rare: about 1 every 1–2 weeks. Hold 1–5 days · ឱកាសល្អ កាន់ 1–5 ថ្ងៃ")
+    elif du is not None:
         combo_line = (f"⭐ <b>STRONG COMBO</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
                       + (f" Tested: {cb['trades']} trades · {cb['win_rate_pct']}% win." if cb.get("trades") else "")
                       if strong else
@@ -182,7 +197,7 @@ def model_alert(lm, state, now):
                       f"50/50 in testing → half size (0.5%) or skip · ថ្ងៃស្ងាត់ ប្រើ lot តូច")
     if LANG != "km":
         out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested"
-                + ("  ⭐ COMBO" if strong else ""), "",
+                + ("  ⭐⭐ PREMIUM" if premium else "  ⭐ COMBO" if strong else ""), "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
                 f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
                 *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",

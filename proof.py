@@ -15,6 +15,7 @@ import research
 from ict import resample
 
 TIERS = {   # model: (short name, tier, ring colour)
+    "trend_premium": ("Premium Swing", "PREMIUM", "#FFD60A"),
     "trend_intraday": ("4H Breakout", "TESTED", "#E3B04B"),
     "vp_shape": ("Volume Plan", "PLAN", "#5AC8FA"),
     "range_extreme": ("Day Range Snap", "EXPERIMENTAL", "#BF5AF2"),
@@ -54,10 +55,14 @@ def replay(df):
     try:
         for m in TIERS:
             cur["m"] = m
+            before = len(trades)
             try:
-                getattr(research, m)(df)
+                res = getattr(research, m)(df)
             except Exception as e:
                 print("proof replay", m, "failed:", e)
+                continue
+            keep = {x[0] for x in res}   # filtered models (premium) record every parent trade: keep only the returned ones
+            trades[before:] = [t for t in trades[before:] if df.index[t["j0"]] in keep]
     finally:
         research._run_trade, research._run_scaled = real_t, real_s
     return sorted(trades, key=lambda t: t["j0"])
