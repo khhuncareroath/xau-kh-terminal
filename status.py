@@ -31,6 +31,8 @@ def age_min(d, now):
 def send(msg):
     tok = os.environ.get("TELEGRAM_TOKEN")
     chat = os.environ.get("TELEGRAM_OWNER_CHAT_ID") or os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not os.environ.get("TELEGRAM_OWNER_CHAT_ID") and chat.startswith("-"):
+        chat = ""          # never post health messages to the public channel/group (negative ids are channels/groups)
     if not tok or not chat or chat.startswith("@"):
         print("owner alert (not sent, set TELEGRAM_OWNER_CHAT_ID):", msg); return False
     try:
@@ -46,6 +48,9 @@ def main():
     open_ = market_open(ny)
     prev = jl("status.json") or {}
     problems, files = [], {}
+    gap = age_min(prev, now) if prev.get("time") else None
+    if open_ and gap is not None and gap > 45:      # the runner itself was down (no checks ran in between)
+        send(f"XAU.KH was offline for about {round(gap)} min and is running again. Alerts in that time were missed.")
     job = os.environ.get("JOB_STATUS", "success")
     if job != "success":
         problems.append(f"workflow step failed ({job})")

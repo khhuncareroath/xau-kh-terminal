@@ -170,7 +170,7 @@ def model_alert(lm, state, now):
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 10:+,.0f} pips"
     why_short = {"bull": "4H candle closed above this week's high.", "bear": "4H candle closed below this week's low."}
     if LANG != "km":
-        out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>", "",
+        out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested", "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
                 f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
                 *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
@@ -311,7 +311,7 @@ def plan_alert(lm, state, now):
     reason = {"bull": "Last session's volume built at the top (P shape: buyers won). Price pulled back to the POC and the 15m closed back above.",
               "bear": "Last session's volume built at the bottom (b shape: sellers won). Price pulled back to the POC and the 15m closed back below."}
     msg = "\n".join([
-        f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  <i>(plan trade)</i>", "",
+        f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  🟡 <i>plan trade</i>", "",
         f"Entry  <b>{fmt(s['entry'])}</b>",
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
         f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
