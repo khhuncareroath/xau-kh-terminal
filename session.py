@@ -3,7 +3,11 @@
 1. Briefing with a chart photo, 30 minutes before each session (New York time):
      Asia 17:30 (Sun-Thu), London 01:30 (Mon-Fri), New York 07:00 (Mon-Fri).
    Direction, key levels, the exact breakout lines of the trend model, what to look for, and the risks.
-2. Heads-up: when price comes within HEADS_UP_PCT of the trend model's breakout line, one early warning
+2. Intraday areas: the nearest SELL area above and BUY area below (day highs/lows, value area, VWAP bands, A/B zones).
+   A 🟠 "getting close" alert at 0.12%, then a reply when the area held (reached its first target) or broke
+   (15m close 0.25% beyond). Study on 2 years of spot data: these levels held 44-62% of the time with no stable
+   edge, so the alerts teach where to look and where the idea is wrong; they are never BUY/SELL signals.
+3. Heads-up: when price comes within HEADS_UP_PCT of the trend model's breakout line, one early warning
    ("if the 4H candle closes beyond X at 16:00, the signal triggers"), once per line per day.
 
 Everything here describes the market and the rules; the trade signal itself still comes from notify.py, and only
@@ -119,6 +123,137 @@ def news_in(news, start, hours):
         if e.get("impact") == "High" and start <= t <= start + timedelta(hours=hours):
             out.append((t, e["title"]))
     return out
+
+
+# ---------- intraday map: the nearest areas where buyers/sellers usually show up today ----------
+INTRA_LEVELS = ("Prev day high", "Prev day low", "Asia high", "Asia low", "London high", "London low",
+                "New York high", "New York low", "Prev VAH", "Prev VAL", "VWAP +2s", "VWAP -2s")
+INTRA_MAX_PCT = 0.009          # look up to 0.9% away (about $35)
+NEAR_PCT = 0.0012              # "getting close" alert at 0.12% (about $5)
+INVAL_PCT = 0.0025             # the idea is wrong 0.25% (about $10) beyond the area
+# 2-year spot study (session.py docstring): sessions' highs/lows held ~44-62% of the time without a trend edge.
+HISTORY_NOTE = "Levels like this held about half the time over 2 years of data, so this is a place to watch, not a trade on its own."
+
+
+def intraday_areas(lv, conf, price):
+    """Nearest SELL area above and BUY area below: named day levels plus A/B zones, merged when within $3."""
+    pts = [(x["price"], x["price"], x["name"]) for x in lv.get("ladder", []) if x["name"] in INTRA_LEVELS]
+    pts += [(z["low"], z["high"], f"{z['rating']} zone") for z in conf.get("zones", []) if z.get("rating") in ("A", "B")]
+    out = {}
+    for side, sel in (("SELL", [p for p in pts if price < p[0] <= price * (1 + INTRA_MAX_PCT)]),
+                      ("BUY", [p for p in pts if price * (1 - INTRA_MAX_PCT) <= p[1] < price])):
+        if not sel:
+            continue
+        near = (lambda p: p[0]) if side == "SELL" else (lambda p: -p[1])
+        sel.sort(key=near)
+        lo, hi = sel[0][0], sel[0][1]
+        grp = [sel[0]]
+        for p in sel[1:]:                                          # merge levels that touch or sit within $3
+            if p[0] <= hi + 3 and p[1] >= lo - 3:
+                grp.append(p); lo, hi = min(lo, p[0]), max(hi, p[1])
+        names = list(dict.fromkeys(n for _, _, n in grp))
+        edge = lo if side == "SELL" else hi                       # where price arrives first
+        inval = hi * (1 + INVAL_PCT) if side == "SELL" else lo * (1 - INVAL_PCT)
+        vw = next((x["price"] for x in lv.get("ladder", []) if x["name"] == "VWAP"), None)
+        tgt = vw if vw and ((side == "SELL" and vw < edge - 5) or (side == "BUY" and vw > edge + 5)) else \
+            edge - 2 * abs(inval - edge) if side == "SELL" else edge + 2 * abs(inval - edge)
+        out[side] = {"side": side, "lo": round(lo, 2), "hi": round(hi, 2), "edge": round(edge, 2), "names": names,
+                     "inval": round(inval, 2), "target": round(tgt, 2), "target_name": "VWAP" if tgt == vw else "2x the risk",
+                     "dist": round(abs(edge - price), 1), "strength": len(names)}
+    return out
+
+
+def area_line(a):
+    rng = fmt(a["lo"]) if a["hi"] - a["lo"] < 0.5 else f"{fmt(a['lo'])}–{fmt(a['hi'])}"
+    s = a["side"] == "SELL"
+    return (f"{'🔴 SELL' if s else '🟢 BUY'} area <b>{rng}</b> ({a['dist']:,.1f} {'above' if s else 'below'}) · {esc(', '.join(a['names']))}\n"
+            f"   Works if price pokes {'above' if s else 'below'} it and a 15m candle closes back {'below' if s else 'above'}. "
+            f"Wrong if price holds {'above' if s else 'below'} <b>{fmt(a['inval'])}</b>. First target {fmt(a['target'])} ({a['target_name']}).")
+
+
+def _trend_word(b, side):
+    agree = sum(1 for k in ("4H", "1H") if b[k] == (1 if side == "BUY" else -1))
+    against = sum(1 for k in ("4H", "1H") if b[k] == (-1 if side == "BUY" else 1))
+    return ("with the 4H and 1H trend (better odds)" if agree == 2 else "against the 4H and 1H trend (weaker, quick target only)"
+            if against == 2 else "the 4H and 1H trends are mixed")
+
+
+def intraday_alerts(df, lv, conf, ict, state, news):
+    """'Getting close' alerts for today's areas, then a follow-up reply: held (reached target) or broke (closed beyond)."""
+    price = float(df["Close"].iloc[-1])
+    hi5, lo5 = float(df["High"].iloc[-1]), float(df["Low"].iloc[-1])
+    d15 = resample(df, "15m")
+    c15 = float(d15["Close"].iloc[-2]) if len(d15) > 2 else price     # last completed 15m close
+    st = state.setdefault("intraday", {})
+    tally = state.setdefault("intraday_tally", {"held": 0, "broke": 0})
+    now = time.time()
+    # 1) follow up on areas already alerted
+    for k, a in list(st.items()):
+        if a.get("status") != "watching":
+            continue
+        s = a["side"] == "SELL"
+        res = None
+        h_, l_ = hi5, lo5
+        since = df[df.index >= pd.Timestamp(a["t"] - 300, unit="s", tz="UTC")]
+        if len(since):
+            if not a.get("touched"):
+                hit = since[since["High"] >= a["edge"]] if s else since[since["Low"] <= a["edge"]]
+                if len(hit):
+                    a["touched"], a["touch_t"] = True, hit.index[0].timestamp()
+            if a.get("touched"):
+                after = since[since.index >= pd.Timestamp(a.get("touch_t", a["t"]), unit="s", tz="UTC")]
+                h_ = float(after["High"].max()) if len(after) else hi5
+                l_ = float(after["Low"].min()) if len(after) else lo5
+        if (s and c15 > a["inval"]) or (not s and c15 < a["inval"]):
+            res = ("broke", f"❌ <b>{a['side']} area broke</b> at {fmt(price)}: a 15m candle closed {'above' if s else 'below'} "
+                            f"{fmt(a['inval'])}. A {'sell' if s else 'buy'} from the area would be stopped out. The move {'up' if s else 'down'} may continue.")
+        elif a.get("touched") and ((s and l_ <= a["target"]) or (not s and h_ >= a["target"])):
+            res = ("held", f"✅ <b>{a['side']} area held</b>: price reached the first target {fmt(a['target'])} from the area.")
+        elif now - a["t"] > 8 * 3600:
+            res = ("expired", None)
+        if res:
+            a["status"] = res[0]
+            if res[0] in tally:
+                tally[res[0]] += 1
+                t = tally["held"] + tally["broke"]
+                msg = res[1] + f"\n<i>Live record of these areas: {tally['held']} held, {tally['broke']} broke ({t} total).</i>"
+                send(msg, f"Area {res[0]}", reply_to=a.get("msg_id"))
+    # 2) new "getting close" alerts
+    if now - state.get("intraday_last", 0) < 20 * 60:
+        return
+    score, word, b = direction(ict, lv, price)
+    day = datetime.now(NY).strftime("%Y-%m-%d")
+    ev = [x for x in news_in(news, datetime.now(timezone.utc), 1)]
+    for side, a in intraday_areas(lv, conf, price).items():
+        key = f"{day}|{side}|{round(a['edge'])}"
+        if key in st or a["dist"] > price * NEAR_PCT:
+            continue
+        s = side == "SELL"
+        risk = abs(a["inval"] - a["edge"])
+        risks = [f"Might stop out if price keeps pushing {'up' if s else 'down'}: a 15m close {'above' if s else 'below'} {fmt(a['inval'])} "
+                 f"means a breakout, not a reversal (about {risk:,.0f} points of risk)."]
+        if ev:
+            risks.append(f"News within the hour ({esc(ev[0][1])}): levels often break on news.")
+        en = [f"🟠 <b>Getting close to a {side} area</b> · gold {fmt(price)}",
+              area_line(a),
+              f"Trend: {_trend_word(b, side)}.",
+              "", "<b>What would confirm it</b>",
+              f"• Price spikes {'above' if s else 'below'} the area, then a 15m candle closes back {'below' if s else 'above'} {fmt(a['edge'])}.",
+              "• Even better: the 5m chart shifts direction (a CISD) and leaves a gap (FVG) to retest.",
+              "", "<b>⚠️ Risk</b>", *[f"• {x}" for x in risks],
+              "", f"<i>{HISTORY_NOTE} Wait for the confirmation, risk 0.5–1% only. Not a signal.</i>"]
+        km = [f"🟠 <b>ជិតដល់តំបន់{'លក់' if s else 'ទិញ'}</b> · មាស {fmt(price)}",
+              f"តំបន់ {fmt(a['lo'])}–{fmt(a['hi'])} · ខុស បើបិទ{'លើ' if s else 'ក្រោម'} {fmt(a['inval'])}",
+              f"រង់ចាំទៀន 15m បិទត្រឡប់{'ក្រោម' if s else 'លើ'} {fmt(a['edge'])} សិន។ មិនមែនសញ្ញាទេ។"]
+        msg = "\n".join(km) if LANG == "km" else "\n".join(en) + ("\n\n" + "\n".join(km) if LANG == "both" else "")
+        mid = send(msg, f"Near {side} area")
+        if mid or not os.environ.get("TELEGRAM_TOKEN"):
+            st[key] = {**a, "t": now, "status": "watching", "msg_id": mid if isinstance(mid, int) else None,
+                       "touched": (s and hi5 >= a["edge"]) or (not s and lo5 <= a["edge"])}
+            state["intraday_last"] = now
+            print("intraday alert", key)
+            break                                    # one at a time
+    state["intraday"] = {k: v for k, v in st.items() if now - v["t"] < 3 * 86400}
 
 
 # ---------- chart image ----------
@@ -264,20 +399,22 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
         risks.append("Friday New York: positions held over the weekend can gap.")
     look = []
     d_up, d_dn = upper - price, price - lower
-    look.append(f"BUY signal if a 4H candle closes above <b>{fmt(upper)}</b> ({d_up:,.1f} away). "
-                f"SELL signal if one closes below <b>{fmt(lower)}</b> ({d_dn:,.1f} away). Next 4H close {local(next_close.timestamp())}.")
+    areas = intraday_areas(lv, conf, price)
+    intra = [area_line(areas[k]) + f"\n   Trend: {_trend_word(b, k)}." for k in ("SELL", "BUY") if k in areas]
     if name == "London" and lad.get("Asia high"):
-        look.append(f"Asia range {fmt(lad['Asia low'])}–{fmt(lad['Asia high'])}: a sweep of one side that snaps back often shows London's real direction.")
-    if res:
-        look.append(f"Resistance {fmt(res[0]['low'])}–{fmt(res[0]['high'])}: sellers may react there.")
-    if sup:
-        look.append(f"Support {fmt(sup[0]['low'])}–{fmt(sup[0]['high'])}: buyers may react there.")
+        intra.append(f"Asia range {fmt(lad['Asia low'])}–{fmt(lad['Asia high'])}: a sweep of one side that snaps back often shows London's real direction.")
+    if not intra:
+        intra.append("No clear intraday area within reach: price is in open space, wait for it to reach a level.")
+    look.append(f"Big signal (tested, 4H): BUY if a 4H candle closes above <b>{fmt(upper)}</b> ({d_up:,.1f} away), "
+                f"SELL if below <b>{fmt(lower)}</b> ({d_dn:,.1f} away). Next 4H close {local(next_close.timestamp())}.")
     head = {"Asia": "🌏", "London": "🇬🇧", "New York": "🇺🇸"}[name]
     lines_en = [f"{head} <b>{name.upper()} SESSION · prep</b>",
                 f"Gold <b>{fmt(price)}</b>" + (f" ({price - pc:+,.1f} today)" if pc else ""),
                 f"Direction: <b>{word}</b> (score {score:+d}) · Daily {'↑' if b['D'] > 0 else '↓' if b['D'] < 0 else '–'} "
                 f"4H {'↑' if b['4H'] > 0 else '↓' if b['4H'] < 0 else '–'} 1H {'↑' if b['1H'] > 0 else '↓' if b['1H'] < 0 else '–'}",
-                "", "<b>👀 What to look for</b>", *[f"• {x}" for x in look],
+                "", "<b>🎯 Today's areas (intraday)</b>", *[f"• {x}" for x in intra],
+                f"<i>{HISTORY_NOTE} The bot sends a 🟠 alert when price gets close.</i>",
+                "", "<b>📈 Bigger picture</b>", *[f"• {x}" for x in look],
                 "", "<b>🏛 What moves gold now</b>", *([f"• {esc(x)}" for x in economy_lines(macro or {}, news, start_utc, 8)] or ["• No macro data yet."]),
                 "", "<b>⚠️ Risks</b>", *([f"• {esc(x)}" for x in risks] or ["• Nothing unusual. Normal risk rules apply."]),
                 "", "<i>A map for the session, not a trade signal. The bot sends BUY/SELL only when a tested setup completes.</i>"]
@@ -322,16 +459,17 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
     score, word, b = direction(ict, lv, price)
     res, sup, ins = zones_near(conf, price)
     upper, lower, next_close, _ = lines
+    areas = intraday_areas(lv, conf, price)
     nx = sorted([(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e["title"]) for e in news.get("events", [])
                  if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > datetime.now(timezone.utc)])[:1]
     arrow = lambda v: "↑" if v > 0 else "↓" if v < 0 else "–"
     lines_en = [f"⏱ <b>GOLD PULSE · {local(time.time())}</b>",
                 f"<b>{fmt(price)}</b> ({price - hour_ago:+,.1f} in the last hour)",
                 f"Big direction: <b>{word}</b> · Daily {arrow(b['D'])} 4H {arrow(b['4H'])} 1H {arrow(b['1H'])}",
-                (f"Inside a zone {fmt(ins['low'])}–{fmt(ins['high'])}: expect back-and-forth" if ins else
-                 " · ".join(x for x in ((f"Resistance {fmt(res[0]['low'])} ({res[0]['low'] - price:,.1f} above)" if res else ""),
-                                         (f"Support {fmt(sup[0]['high'])} ({price - sup[0]['high']:,.1f} below)" if sup else "")) if x)),
-                f"BUY line {fmt(upper)} ({upper - price:,.1f} away) · SELL line {fmt(lower)} ({price - lower:,.1f} away)",
+                *([f"Inside a zone {fmt(ins['low'])}–{fmt(ins['high'])}: expect back-and-forth"] if ins else []),
+                *[f"{'🔴 SELL' if k == 'SELL' else '🟢 BUY'} area {fmt(areas[k]['edge'])} ({areas[k]['dist']:,.1f} away, "
+                  f"wrong past {fmt(areas[k]['inval'])})" for k in ("SELL", "BUY") if k in areas],
+                f"Big 4H signal lines: BUY {fmt(upper)} ({upper - price:,.1f} away) · SELL {fmt(lower)} ({price - lower:,.1f} away)",
                 *([f"📰 Next big news: {esc(nx[0][1])} at {local(nx[0][0].timestamp())}"] if nx else []),
                 *[f"🏛 {esc(x)}" for x in economy_lines(macro, news, datetime.now(timezone.utc), 0)[:1]]]
     if LANG in ("km", "both"):
@@ -372,6 +510,10 @@ def main():
         print("session: data is stale, nothing sent"); return
     lines = breakout_lines(df)
     heads_up(df, lines, state)
+    try:
+        intraday_alerts(df, lv, conf, ict, state, news)
+    except Exception as e:
+        print("intraday alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
         (os.environ["SESSION_FORCE"], "forced|" + os.environ["SESSION_FORCE"], datetime.now(timezone.utc))
     if due:
