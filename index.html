@@ -154,6 +154,8 @@ main{max-width:1120px;margin:0 auto;padding:6px 16px 24px}
 .badge.sell{background:color-mix(in srgb,var(--dn) 18%,transparent);color:var(--dn)}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--sep);border-radius:var(--r2);overflow:hidden;margin-top:14px}
 .kv div{background:var(--card);padding:10px 12px}
+.kv.k3{grid-template-columns:1fr 1fr 1fr;margin-top:10px}
+.area+.area{margin-top:16px;padding-top:16px;border-top:1px solid var(--sep)}
 .kv small{display:block;font-size:12px;color:var(--label2)}
 .kv b{font-size:17px;font-variant-numeric:tabular-nums}
 .count{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -250,6 +252,11 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
       <div class="chips" id="planChips"></div>
     </div>
 
+    <div class="card enter o4" style="--i:3" id="areasCard">
+      <h2 data-t="Today's areas">Today's areas</h2>
+      <div id="areasBody"><p class="mut" style="margin:0">–</p></div>
+    </div>
+
     <div class="card enter tap o5" style="--i:4" id="alertCard">
       <h2 data-t="Bot alert">Bot alert</h2>
       <div id="alertBody"></div>
@@ -284,6 +291,12 @@ dialog::backdrop{background:rgba(0,0,0,.4);backdrop-filter:blur(2px)}
     <div class="card enter o4" style="--i:3">
       <h2 data-t="Where price is">Where price is</h2>
       <div class="ladder" id="ladder"><div class="rail"></div></div>
+    </div>
+
+    <div class="card enter o6" style="--i:5">
+      <h2 data-t="What moves gold now">What moves gold now</h2>
+      <ul class="reasons" id="econ"></ul>
+      <p class="foot-note" data-t="econNote">Built from live dollar and bond-yield data and the news calendar, with the usual effect on gold. Rules of thumb, not promises.</p>
     </div>
     </div>
   </div>
@@ -357,7 +370,7 @@ const KM={"Today":"ថ្ងៃនេះ","Chart":"ក្រាហ្វ","Recor
 "footNote":"តម្លៃ៖ XAUUSD spot (Twelve Data, Dukascopy)។ សកម្មភាព៖ volume COMEX gold futures។ ជាការវិភាគ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។",
 "Up":"ឡើង","Leaning up":"ទំនោរឡើង","Sideways":"ចំហៀង","Leaning down":"ទំនោរចុះ","Down":"ចុះ",
 "Resistance":"ជាន់ទប់","Support":"ជាន់ទ្រ","Watch":"តាមដាន","Buy":"ទិញ","Sell":"លក់","No alert right now":"មិនមានការជូនដំណឹងនៅពេលនេះ",
-"Wins":"ឈ្នះ","Lot size (Exness)":"ទំហំ Lot (Exness)","Account balance (USD)":"សមតុល្យគណនី (USD)","Risk per trade":"ហានិភ័យក្នុងមួយការជួញដូរ","Account type":"ប្រភេទគណនី","Losses":"ចាញ់","No trade":"មិនបានចូល","Proven":"បានបញ្ជាក់","Not yet":"មិនទាន់","Market closed":"ទីផ្សារបិទ","Updated":"បានធ្វើបច្ចុប្បន្នភាព"};
+"Wins":"ឈ្នះ","Lot size (Exness)":"ទំហំ Lot (Exness)","Account balance (USD)":"សមតុល្យគណនី (USD)","Risk per trade":"ហានិភ័យក្នុងមួយការជួញដូរ","Account type":"ប្រភេទគណនី","Losses":"ចាញ់","No trade":"មិនបានចូល","Proven":"បានបញ្ជាក់","Not yet":"មិនទាន់","Market closed":"ទីផ្សារបិទ","Updated":"បានធ្វើបច្ចុប្បន្នភាព","Today's areas":"តំបន់សំខាន់ៗថ្ងៃនេះ","What moves gold now":"អ្វីដែលធ្វើឱ្យមាសប្រែប្រួល","econNote":"ផ្អែកលើទិន្នន័យដុល្លារ ទិន្នផលសញ្ញាប័ណ្ណ និងប្រតិទិនព័ត៌មាន។ ជាច្បាប់ទូទៅ មិនមែនការសន្យាទេ។"};
 const t=s=>lang==="km"&&KM[s]?KM[s]:s;
 function applyLang(){document.documentElement.lang=lang==="km"?"km":"en";$$("[data-t]").forEach(el=>{const k=el.dataset.t;if(!el.dataset.en)el.dataset.en=el.textContent;el.textContent=lang==="km"&&KM[k]?KM[k]:el.dataset.en});$("#lang").textContent=lang==="km"?"EN":"ខ្មែរ";$("#gDown").textContent=t("Down");$("#gUp").textContent=t("Up")}
 
@@ -378,7 +391,7 @@ const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim
 async function get(n){try{const r=await fetch(BASE+n+"?t="+Date.now(),{cache:"no-store"});return r.ok?await r.json():null}catch(e){return null}}
 let lastSig="";
 async function load(){
-  const names=["chart","ict","confluence","levels","news","macro","results","backtest","alerts_log","status","notify_state"];
+  const names=["chart","ict","confluence","levels","news","macro","results","backtest","alerts_log","status","notify_state","intraday"];
   const got=await Promise.all(names.map(n=>get(n+".json")));
   names.forEach((n,i)=>D[n]=got[i]);
   const sig=(D.ict||{}).time+"|"+(D.ict||{}).price;
@@ -480,6 +493,19 @@ function renderLadder(){
   html+=`<div class="nowpx" id="nowpx" style="top:${shown.ladderY??y(price)}px"><span class="tag">${f2(price)}</span><span class="line"></span></div>`;
   el.innerHTML=html;
   requestAnimationFrame(()=>{const n=$("#nowpx");if(n)n.style.top=y(price)+"px";shown.ladderY=y(price)});
+}
+function renderAreas(){
+  const I=D.intraday||{},A=I.areas||{},KMx=lang==="km",rec=I.area_record||{};
+  const row=a=>{const s=a.side==="SELL",rng=a.hi-a.lo<0.5?f2(a.lo):`${f2(a.lo)}–${f2(a.hi)}`;
+    return`<div class="area"><div class="alert-head"><span class="badge ${s?"sell":"buy"}">${KMx?(s?"តំបន់លក់":"តំបន់ទិញ"):(s?"Sell area":"Buy area")}</span>${a.strong?`<span class="chip" style="margin:0">${KMx?"ខ្លាំង":"Strong"}</span>`:""}<span class="mut" style="font-size:13px;margin-left:auto">${a.dist.toFixed(1)} ${KMx?"ពីតម្លៃ":(s?"above":"below")}</span></div>
+      <div class="kv k3"><div><small>${KMx?"តំបន់":"Area"}</small><b>${rng}</b></div><div><small>${KMx?"ខុស បើហួស":"Wrong past"}</small><b>${f2(a.inval)}</b></div><div><small>${KMx?"គោលដៅទី១":"First target"}</small><b>${f2(a.target)}</b></div></div>
+      <p class="foot-note" style="margin-top:6px">${esc(a.names.join(", "))} · ${KMx?(s?"រង់ចាំ 15m បិទត្រឡប់ក្រោម":"រង់ចាំ 15m បិទត្រឡប់លើ"):`Works if a 15m candle closes back ${s?"below":"above"} after a poke. ${esc(a.trend[0].toUpperCase()+a.trend.slice(1))}.`}</p></div>`};
+  const rows=["SELL","BUY"].filter(k=>A[k]).map(k=>row(A[k])).join("");
+  const n=(rec.held||0)+(rec.broke||0);
+  $("#areasBody").innerHTML=(rows||`<p class="mut" style="margin:0">${KMx?"មិនមានតំបន់ជិតៗទេ។":"No area within reach right now."}</p>`)+
+    `<p class="foot-note">${KMx?"កន្លែងសម្រាប់មើល មិនមែនសញ្ញាទេ។":"Places to watch, not signals. Over 2 years these levels held about half the time, so wait for confirmation."}${n?` ${KMx?"កំណត់ត្រាផ្ទាល់":"Live record"}: ${rec.held} ${KMx?"ទប់បាន":"held"}, ${rec.broke} ${KMx?"បែក":"broke"}.`:""}</p>`;
+  $("#econ").innerHTML=(I.economy||[]).map(x=>{const up=/helps gold|support gold|usually rises/.test(x),dn=/pushes gold down|less attractive|usually falls/.test(x)&&!up;
+    return`<li><span class="ico ${up?"up":dn?"dn":"n"}">${up?"↑":dn?"↓":"•"}</span><span>${esc(x)}</span></li>`}).join("")||`<li><span class="ico n">–</span><span>${KMx?"កំពុងផ្ទុក":"Loading"}</span></li>`;
 }
 let curAlert=null;
 function renderAlert(){
@@ -665,7 +691,7 @@ addEventListener("scroll",()=>$("#top").classList.toggle("scrolled",scrollY>90),
 addEventListener("resize",()=>{requestAnimationFrame(drawChart);requestAnimationFrame(renderLadder)});
 
 function render(){
-  for(const f of [renderStatus,renderPrice,renderDirection,renderPlan,renderLadder,renderAlert,renderNews,renderRecord,drawChart]){try{f()}catch(e){console.error(f.name,e)}}
+  for(const f of [renderStatus,renderPrice,renderDirection,renderPlan,renderLadder,renderAreas,renderAlert,renderNews,renderRecord,drawChart]){try{f()}catch(e){console.error(f.name,e)}}
 }
 applyLang();
 show(["today","chart","record"].includes(location.hash.slice(1))?location.hash.slice(1):"today");

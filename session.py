@@ -215,6 +215,10 @@ def intraday_alerts(df, lv, conf, ict, state, news):
             a["status"] = res[0]
             if res[0] in tally:
                 tally[res[0]] += 1
+                alog = jl("areas_log.json", [])
+                alog.append({"side": a["side"], "lo": a["lo"], "hi": a["hi"], "names": a["names"], "inval": a["inval"],
+                             "target": a["target"], "alerted": a["t"], "closed": now, "result": res[0]})
+                json.dump(alog[-300:], open("areas_log.json", "w"), indent=1)
                 t = tally["held"] + tally["broke"]
                 msg = res[1] + f"\n<i>Live record of these areas: {tally['held']} held, {tally['broke']} broke ({t} total).</i>"
                 send(msg, f"Area {res[0]}", reply_to=a.get("msg_id"))
@@ -523,6 +527,70 @@ def due_session(state, now_utc):
     return None
 
 
+def weekly_report(df, log, alog, bt, week_start):
+    """Friday proof report: every real signal of the week with its result, the live record vs the backtest, area results."""
+    ws = week_start.timestamp()
+    price = float(df["Close"].iloc[-1])
+    wk = df[df.index >= week_start]
+    w_open = float(wk["Open"].iloc[0]) if len(wk) else price
+    models = [a for a in log if a.get("kind") == "model"]
+    week = [a for a in models if a.get("created", 0) >= ws]
+    done = [a for a in models if a.get("status") in ("win", "tp1", "loss", "timed out")]
+    RES = {"win": "✅ TP2 reached", "tp1": "✅ TP1, rest at entry", "loss": "❌ stop hit", "timed out": "⏱ closed after time limit",
+           "filled": "⏳ still open", "pending": "⏳ waiting"}
+    out = [f"📊 <b>WEEKLY PROOF · week of {week_start.astimezone(local_tz()):%d %b}</b>",
+           f"Gold {fmt(w_open)} → {fmt(price)} ({price - w_open:+,.1f} this week)", "", "<b>Real BUY/SELL signals this week</b>"]
+    if week:
+        for a in week:
+            r = f" ({a['R']:+.2f}R)" if a.get("R") is not None else ""
+            out.append(f"• {local(a['created'])} {datetime.fromtimestamp(a['created'], local_tz()):%a} "
+                       f"{'BUY' if a['dir'] == 'bull' else 'SELL'} {fmt(a['entry'])}: {RES.get(a['status'], a['status'])}{r}")
+        wR = [a["R"] for a in week if a.get("R") is not None]
+        if wR:
+            out.append(f"Week total: <b>{sum(wR):+.2f}R</b> from {len(wR)} closed trade(s).")
+    else:
+        out.append("• None. No clean 4H breakout this week, so the bot stayed out. No signal is better than a bad one.")
+    m = (bt.get("models") or {}).get("trend_tight", {}).get("all") or {}
+    out += ["", "<b>Live record since launch (every signal counted)</b>"]
+    if done:
+        R = [a["R"] for a in done]
+        out.append(f"{len(done)} closed · {sum(r > 0 for r in R)} won · {round(100 * sum(r > 0 for r in R) / len(R))}% · "
+                   f"{sum(R):+.2f}R total ({sum(R) / len(R):+.2f}R per trade)")
+    else:
+        out.append("No closed signals yet.")
+    if m:
+        out.append(f"Backtest for comparison: {m.get('trades')} trades, {m.get('win_rate_pct')}% won, {m.get('avg_R', 0):+.2f}R per trade.")
+    aw = [x for x in alog if x.get("closed", 0) >= ws]
+    if aw:
+        h = sum(x["result"] == "held" for x in aw)
+        out += ["", f"<b>🟠 Watch areas this week</b>: {h} held, {len(aw) - h} broke."]
+        if alog:
+            H = sum(x["result"] == "held" for x in alog)
+            out.append(f"All time: {H} of {len(alog)} held ({round(100 * H / len(alog))}%).")
+    out += ["", "<i>R = profit measured in risk units: +1R means you made what you risked. "
+                "1 week is a small sample; judge the record over months.</i>"]
+    if LANG in ("km", "both"):
+        km = [f"📊 <b>លទ្ធផលប្រចាំសប្តាហ៍</b>", f"សញ្ញាពិតសប្តាហ៍នេះ: {len(week)}",
+              (f"កំណត់ត្រាផ្ទាល់: {len(done)} ការជួញដូរ, {sum(a['R'] for a in done):+.2f}R" if done else "មិនទាន់មានការជួញដូរបិទ")]
+        out = km if LANG == "km" else out + ["", *km]
+    return "\n".join(out)
+
+
+def site_file(df, lv, conf, ict, news, macro, state):
+    """intraday.json for the website: today's areas, what moves gold, area record."""
+    price = float(df["Close"].iloc[-1])
+    _, word, b = direction(ict, lv, price)
+    areas = intraday_areas(lv, conf, price)
+    for k, a in areas.items():
+        a["trend"] = _trend_word(b, k)
+        a["strong"] = a["strength"] >= 2 or "A zone" in a["names"]
+    alog = jl("areas_log.json", [])
+    json.dump({"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "price": round(price, 2), "direction": word,
+               "areas": areas, "economy": economy_lines(macro, news, datetime.now(timezone.utc), 24, 4),
+               "area_record": {"held": sum(x["result"] == "held" for x in alog), "broke": sum(x["result"] == "broke" for x in alog)},
+               "area_recent": alog[-10:][::-1], "history_note": HISTORY_NOTE}, open("intraday.json", "w"), indent=1)
+
+
 def main():
     state = jl(STATE)
     ict, conf, lv, news, macro = jl("ict.json"), jl("confluence.json"), jl("levels.json"), jl("news.json"), jl("macro.json")
@@ -563,6 +631,21 @@ def main():
             state.setdefault("pulsed", {})[pk] = time.time()
             state["pulsed"] = {k: v for k, v in state["pulsed"].items() if time.time() - v < 3 * 86400}
             print("pulse sent", pk)
+    try:
+        site_file(df, lv, conf, ict, news, macro, state)
+    except Exception as e:
+        print("intraday.json failed:", e)
+    now_ny = datetime.now(NY)
+    wkey = now_ny.strftime("%G-W%V")
+    if (now_ny.weekday() == 4 and now_ny.hour == 16 and now_ny.minute >= 30 and wkey not in state.get("weekly_report", {})) \
+            or os.environ.get("WEEKLY_FORCE"):
+        start = (now_ny - timedelta(days=(now_ny.weekday() + 1) % 7)).replace(hour=18, minute=0, second=0, microsecond=0)
+        if start > now_ny:
+            start -= timedelta(days=7)
+        msg = weekly_report(df, jl("alerts_log.json", []), jl("areas_log.json", []), jl("backtest.json"), start)
+        if send(msg, "Weekly proof") or not os.environ.get("TELEGRAM_TOKEN"):
+            state.setdefault("weekly_report", {})[wkey] = time.time()
+            print("weekly report sent")
     wk = datetime.now(NY).strftime("%G-W%V")
     if due and due[0] == "Asia" and datetime.now(NY).weekday() == 6 and wk not in state.get("weekly", {}):
         ev = [(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e["title"]) for e in news.get("events", []) if e.get("impact") == "High"]
