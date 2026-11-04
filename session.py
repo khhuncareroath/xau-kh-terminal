@@ -1070,6 +1070,56 @@ def macro_card(macro, news, path, cot=None):
     return path, f"🏛 <b>Fundamentals</b>: {msg}."
 
 
+def macro_lean(macro):
+    d, y, vx = (macro.get(k) or {} for k in ("dxy", "us10y", "vix"))
+    t = 0
+    if d.get("chg_pct") is not None:
+        t += -1 if d["chg_pct"] > 0.05 else 1 if d["chg_pct"] < -0.05 else 0
+    if y.get("chg_bp") is not None:
+        t += -1 if y["chg_bp"] > 2 else 1 if y["chg_bp"] < -2 else 0
+    if vx.get("last") is not None:
+        t += 1 if vx["last"] >= 25 or vx.get("chg_pct", 0) >= 10 else -1 if vx["last"] < 16 and vx.get("chg_pct", 0) <= 0 else 0
+    return 1 if t > 0 else -1 if t < 0 else 0
+
+
+def macro_shift(macro, news, state):
+    """New fundamentals card only on a meaningful change since the last card: DXY 0.4%+, US10Y 8bp+, VIX 20%+ or the
+    overall lean flipped. Max 2 a day, never within 20 minutes of high-impact news (the news reaction covers that)."""
+    snap = state.get("macro_snap")
+    d, y, vx = (macro.get(k) or {} for k in ("dxy", "us10y", "vix"))
+    if not snap or d.get("last") is None:
+        return
+    now = datetime.now(timezone.utc)
+    near = any(abs((datetime.fromisoformat(e["time"].replace("Z", "+00:00")) - now).total_seconds()) < 1200
+               for e in news.get("events", []) if e.get("impact") == "High")
+    day = datetime.now(local_tz()).strftime("%Y-%m-%d")
+    sent = [t for t in state.get("macro_alerts", []) if t[:10] == day]
+    if near or len(sent) >= 2:
+        return
+    why = []
+    if snap.get("dxy") and abs(d["last"] / snap["dxy"] - 1) * 100 >= 0.4:
+        why.append(f"DXY (dollar) {'up' if d['last'] > snap['dxy'] else 'down'} {abs(d['last'] / snap['dxy'] - 1) * 100:.1f}%")
+    if snap.get("us10y") and y.get("last") is not None and abs(y["last"] - snap["us10y"]) * 100 >= 8:
+        why.append(f"US10Y (yield) {'up' if y['last'] > snap['us10y'] else 'down'} {abs(y['last'] - snap['us10y']) * 100:.0f} bp")
+    if snap.get("vix") and vx.get("last") is not None and abs(vx["last"] / snap["vix"] - 1) * 100 >= 20:
+        why.append(f"VIX (fear) {'up' if vx['last'] > snap['vix'] else 'down'} {abs(vx['last'] / snap['vix'] - 1) * 100:.0f}%")
+    lean = macro_lean(macro)
+    if lean != snap.get("lean") and lean != 0:
+        why.append(f"overall lean flipped to gold {'UP' if lean > 0 else 'DOWN'}")
+    if not why:
+        return
+    mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
+    if mc and (send_photo(mc[0], f"🔄 <b>Fundamentals changed</b>: {esc(', '.join(why))}.\n{mc[1]}", "Fundamentals") or not os.environ.get("TELEGRAM_TOKEN")):
+        state["macro_alerts"] = sent + [datetime.now(local_tz()).strftime("%Y-%m-%d %H:%M")]
+        state["macro_snap"] = macro_snapshot(macro)
+        print("macro shift sent:", why)
+
+
+def macro_snapshot(macro):
+    g = lambda k, f: (macro.get(k) or {}).get(f)
+    return {"dxy": g("dxy", "last"), "us10y": g("us10y", "last"), "vix": g("vix", "last"), "lean": macro_lean(macro)}
+
+
 def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     """Short: direction, one sell level, one buy level, the big signal lines, the one risk that matters most."""
     price = float(df["Close"].iloc[-1])
@@ -1290,6 +1340,7 @@ def main():
         if os.environ.get("LEVEL_ALERTS") == "on":   # level heads-ups had no edge in testing: off
             near_level_alert(df, lv, conf, ict, state)
         pre_news(news, state)
+        macro_shift(macro, news, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \
@@ -1310,6 +1361,7 @@ def main():
                 mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
                 if mc:
                     send_photo(mc[0], mc[1], "Fundamentals", reply_to=mid if isinstance(mid, int) else None)
+                    state["macro_snap"] = macro_snapshot(macro)
             except Exception as e:
                 print("macro card failed:", e)
         if mid or not os.environ.get("TELEGRAM_TOKEN"):
