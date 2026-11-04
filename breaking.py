@@ -153,6 +153,32 @@ RULES = [(k, re.compile(p_, re.I), g, km) for k, p_, g, km in RULES]
 NEG = re.compile(r"\b(no|not|won't|wont|unlikely|rules? out|against|delay|delays|rush|patient|could|may|might|considers?|weighs?|expected|bets?|odds|\?)", re.I)
 
 
+KM_WHAT = {
+    "fed_dove": "ធនាគារកណ្ដាលអាមេរិក (Fed) បានបន្ថយអត្រាការប្រាក់ (Rate Cut)។",
+    "fed_hawk": "ធនាគារកណ្ដាលអាមេរិក (Fed) បានដំឡើងអត្រាការប្រាក់ ឬបង្ហាញជំហរតឹងរ៉ឹង (Hawkish)។",
+    "war": "មានការវាយប្រហារ ឬភាពតានតឹងយោធាថ្មី (Geopolitical Risk)។",
+    "peace": "ភាគីពាក់ព័ន្ធបានព្រមព្រៀងឈប់បាញ់ (Ceasefire)។",
+    "tariff": "មានការដាក់ពន្ធគយថ្មី (Tariffs) ឬសង្គ្រាមពាណិជ្ជកម្ម (Trade War)។",
+    "trade_deal": "មានកិច្ចព្រមព្រៀងពាណិជ្ជកម្ម ឬការកាត់បន្ថយពន្ធគយ (Trade Deal)។",
+    "cb_gold": "ធនាគារកណ្ដាលបានទិញមាសបន្ថែម (Central Bank Buying)។",
+    "crisis": "មានវិបត្តិហិរញ្ញវត្ថុ ឬនយោបាយ (Crisis) ដូចជា Shutdown ឬធនាគារបរាជ័យ។",
+    "election": "លទ្ធផលបោះឆ្នោតត្រូវបានប្រកាស (Election Result)។",
+}
+KM_SHORT = {
+    "fed_dove": "ពេលប្រកាស តម្លៃអាចលោតឡើងចុះខ្លាំង មុនរកទិសដៅច្បាស់ (Volatility)។",
+    "fed_hawk": "ពេលប្រកាស តម្លៃអាចលោតឡើងចុះខ្លាំង មុនរកទិសដៅច្បាស់ (Volatility)។",
+    "war": "បើភាពតានតឹងធូរស្រាលវិញ មាសអាចធ្លាក់មកវិញលឿន។",
+    "peace": "ប្រសិនបើបទឈប់បាញ់បរាជ័យ មាសអាចឡើងវិញ។",
+    "tariff": "ទីផ្សារអាចប្រតិកម្មខ្លាំងនៅម៉ោងដំបូង (Volatility)។",
+    "trade_deal": "អាចមានការលក់មាសរយៈពេលខ្លី (Risk-on)។",
+    "cb_gold": "ជាកត្តារយៈពេលវែង មិនមែនសញ្ញាចូលភ្លាមៗទេ។",
+    "crisis": "តម្លៃអាចប្រែប្រួលខ្លាំង ប្រើ lot តូច។",
+    "election": "ពេលខ្លះមានការធ្លាក់បន្តិចសិន (Sell the news) មុនរកទិសដៅ។",
+}
+KM_TAG = {"bullish": "📈 វិជ្ជមានសម្រាប់មាស (Bullish)", "bearish": "📉 អវិជ្ជមានសម្រាប់មាស (Bearish)",
+          "mixed": "↔️ មិនទាន់ច្បាស់ (Mixed)"}
+
+
 def rules_pick(cands, st):
     """Return list of items like the AI output, at most one per category every 6 hours."""
     out, now = [], time.time()
@@ -217,10 +243,14 @@ def main():
         p["source"] = src
         g = p.get("gold", "mixed")
         tag = "📈 Bullish (ឡើង)" if g == "bullish" else "📉 Bearish (ចុះ)" if g == "bearish" else "↔️ Mixed (មិនច្បាស់)"
-        if p.get("km_reason"):        # free rules mode: headline + where gold usually goes
-            cap = "\n".join([f"🚨 <b>ព័ត៌មានបន្ទាន់ (BREAKING)</b>", esc(p["headline_en"]), "",
-                             f"<b>មាស (Gold): {tag}</b>", esc(p["km_reason"]), "",
-                             "⚠️ ព័ត៌មានធំ តម្លៃអាចប្រែប្រួលលឿន · ច្បាប់ទូទៅ មិនមែនការសន្យា"])
+        if p.get("km_reason"):        # free rules mode, written like a Khmer news post
+            k = p["_cat"]
+            cap = "\n".join([f"🚨 <b>ព័ត៌មានបន្ទាន់ (BREAKING)</b>", "",
+                             f"📌 <b>ព្រឹត្តិការណ៍ (Event):</b> {KM_WHAT[k]}",
+                             f"<i>{esc(p['headline_en'])}{' · ' + esc(p.get('source', '')) if p.get('source') else ''}</i>", "",
+                             f"<b>ឥទ្ធិពលលើទីផ្សារ (Market Impact): {KM_TAG[p['gold']]}</b>", esc(p["km_reason"]), "",
+                             f"⏱ <b>កត្តាប្រុងប្រយ័ត្ន (Short-term Note):</b> {KM_SHORT[k]}", "",
+                             "<i>ច្បាប់ទូទៅ មិនមែនការសន្យា · មិនមែនសញ្ញាជួញដូរទេ</i>"])
         else:
             cap = None
         cap = cap or "\n".join([f"🚨 <b>ព័ត៌មានបន្ទាន់ (BREAKING)</b>", "", esc(p.get("km_what", "")), "",
