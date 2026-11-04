@@ -1369,21 +1369,20 @@ def quiet_checkin(ict, lv, news, df, lines, state):
                 nxt.append((t.astimezone(NY), esc(e["title"])))
     nx = min(nxt, key=lambda x: x[0]) if nxt else None
     m_en, m_km = MINDSET[(loc.toordinal() * 2 + len(done)) % len(MINDSET)]
-    rng = ("" if used is None else
-           f"📐 Day Range {used * 100:.0f}% used: " + ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done"))
-    lines_ = [f"🧭 <b>MARKET CHECK-IN</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
-              *([rng] if rng else []),
-              "", "<b>The bot is waiting for:</b>",
-              f"• 4H close above <b>{fmt(upper)}</b> → BUY · below <b>{fmt(lower)}</b> → SELL",
-              f"• Plan: {'SELL' if plan_ok and p['side'] == 'SELL' else 'BUY'} at POC <b>{fmt(p['edge'])}</b> after a 15m close" if plan_ok else "• Plan: none this session",
-              *([f"⏭ Next: {nx[1]} at {local(nx[0].timestamp())}"] if nx else []),
-              "", f"💡 <i>{m_en}</i>", f"<i>{m_km}</i>"]
-    text = "\n".join(lines_)
+    zone = "" if used is None else ("room to move" if used < 0.7 else "stretched, don't chase" if used >= 1 else "most of the move done")
+    wait = (f"{'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else
+            f"4H close > {fmt(upper)} = BUY · < {fmt(lower)} = SELL")
+    text = "\n".join([f"🧭 <b>MARKET CHECK-IN</b> · {fmt(price)} {arrow}" + (f" · Day Range {used * 100:.0f}% ({zone})" if used is not None else ""),
+                       f"⏳ Waiting for: <b>{wait}</b>" + (f" · next: {nx[1]} {local(nx[0].timestamp())}" if nx else ""),
+                       f"💡 <i>{m_km}</i>"])
     try:
-        card(df, price, word, score, plan_areas(df), "checkin_card.png", f"MARKET CHECK-IN · {local(time.time())}")
-        ok = send_photo("checkin_card.png", text, "Check-in")
+        if len(done) % 2 == 0:
+            path, _ = market_map(df, lv, lines, "checkin_map.png")
+        else:
+            path = analysis_chart(df, lv, {}, lines, "checkin_plan.png", f"Gold · check-in · {local(time.time())}")
+        ok = send_photo(path, text, "Check-in")
     except Exception as e:
-        print("check-in card failed:", e)
+        print("check-in chart failed:", e)
         ok = send(text, "Check-in")
     if ok or not os.environ.get("TELEGRAM_TOKEN"):
         state["checkins"] = done + [loc.strftime("%Y-%m-%d %H:%M")]
