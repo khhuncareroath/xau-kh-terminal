@@ -741,12 +741,13 @@ MAP_HOUR_LOCAL = 10      # Daily Market Map, weekdays, local time (quiet Asia ho
 
 
 def daily_range_stats(df):
-    """Median daily high-low range of the last 20 trading days, and today's range so far."""
+    """Median daily high-low range of up to 20 previous trading days (at least 10, like research.day_used: the live
+    feed holds only ~15 trading days, and the old 'more than 21 days' rule returned None live), and today's range."""
     day = (df.index - pd.Timedelta(hours=18)).date
     g = df.groupby(day)
     rng = (g["High"].max() - g["Low"].min())
     today = float(rng.iloc[-1])
-    adr = float(rng.iloc[-21:-1].median()) if len(rng) > 21 else None
+    adr = float(rng.iloc[max(0, len(rng) - 21):-1].median()) if len(rng) >= 11 else None
     return adr, today
 
 
