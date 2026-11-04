@@ -458,6 +458,14 @@ def vp_shape(df, th=0.55, rr=1.5, max_used=0.7):
     return out
 
 
+def vp_late(df):
+    """LATE PLAN: the Volume Plan entries that vp_shape SKIPS because the day already moved 70%+ of a normal day.
+    2 years: 83 trades, 39% win, -0.10R (newest 30%: -0.27R) = losing. Sent only as a ⚠️ warning with the honest odds
+    (the owner asked for the levels when the plan is skipped); never an official signal, never in the proof record."""
+    kept = {t[0] for t in vp_shape(df)}
+    return [t for t in vp_shape(df, max_used=None) if t[0] not in kept]
+
+
 def range_extreme(df):
     """XAU.KH Day Range extreme (our version of the CRAZII KTR idea): day open +/- 3 steps of a quarter ADR (14-day
     median range). When price stretches to -3 steps in a 4H uptrend (or +3 in a downtrend) between 01:00 and 12:00
@@ -618,7 +626,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
+DESCRIBE = {"vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
+            "trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
             "trend_combo": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
             "range_extreme": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
             "trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
@@ -639,11 +648,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "range_extreme": range_extreme(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "range_extreme": range_extreme(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

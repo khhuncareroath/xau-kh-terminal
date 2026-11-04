@@ -379,7 +379,7 @@ def plan_watch(df, state):
     if start > now:
         start -= timedelta(days=1)
     x = df[df.index >= start]
-    entered = any(e.get("kind") == "plan" and e.get("created", 0) >= start.timestamp() for e in jl("alerts_log.json", []))
+    entered = any(e.get("kind") in ("plan", "late") and e.get("created", 0) >= start.timestamp() for e in jl("alerts_log.json", []))
     msg = None
     adr, today = daily_range_stats(df)
     used = today / adr if adr else 0
@@ -388,7 +388,8 @@ def plan_watch(df, state):
         if hit and used >= 0.7:
             msg, tag = (f"🟡 <b>PLAN UPDATE · price is at the POC {fmt(p['edge'])}, but the plan is skipped</b>\n"
                         f"📐 Day Range already {used * 100:.0f}% used: little room left for the move. "
-                        f"In testing, plans this late lost money. <b>No trade.</b>"), "touch"
+                        f"In testing, plans this late lost money (39% win). No official trade. If a 15m candle closes "
+                        f"{'below' if s_ else 'above'} it, a ⚠️ LATE PLAN warning with the levels comes: skip it or tiny size."), "touch"
         elif hit:
             msg, tag = (f"🟡 <b>PLAN UPDATE · price is at the POC {fmt(p['edge'])}</b>\n"
                         f"Next: wait for a 15m candle to close {'below' if s_ else 'above'} {fmt(p['edge'])}. "
@@ -409,7 +410,7 @@ def plan_watch(df, state):
             continue
         if time.time() - r["start"] < 3 * 3600:
             continue
-        if any(e.get("kind") == "plan" and e.get("created", 0) >= r["start"] for e in log):
+        if any(e.get("kind") in ("plan", "late") and e.get("created", 0) >= r["start"] for e in log):
             r["sent"].append("end"); continue
         if send(f"🟡 <b>PLAN UPDATE · {r['for']} plan expired</b>: no 15m confirmation, so <b>no trade</b>. "
                 f"No confirmation = no risk. That is the rule working.", "Plan update") or not os.environ.get("TELEGRAM_TOKEN"):
@@ -563,7 +564,7 @@ def plan_line(p, price=None):
     if p.get("skip_used"):
         return (f"🟡 <b>ផែនការ (Plan): រំលង</b> · ថ្ងៃនេះមាសរត់ {p['skip_used'] * 100:.0f}% នៃថ្ងៃធម្មតាហើយ (Day Range)\n"
                 f"• POC {fmt(p['edge'])} · plans this late lost money in testing → <b>no plan trade</b>\n"
-                f"• រង់ចាំសញ្ញា ⚡ 4H (🖕 / 🖕🖕) វិញ")
+                f"• រង់ចាំសញ្ញា ⚡ 4H (🖕 / 🖕🖕) វិញ · ⚠️ LATE PLAN warning only if the 15m confirms")
     if not p.get("side"):
         return f"🟡 <b>ផែនការ (Plan): គ្មាន</b> · អ្នកទិញ និងអ្នកលក់ស្មើគ្នា (D-shape)។ រង់ចាំ។"
     s = p["side"] == "SELL"

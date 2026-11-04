@@ -1959,6 +1959,76 @@
    "t_stat": 3.83,
    "proven": true,
    "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "vp_late": {
+   "description": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
+   "all": {
+    "trades": 83,
+    "win_rate_pct": 39,
+    "avg_R": -0.104
+   },
+   "older_70pct": {
+    "trades": 65,
+    "win_rate_pct": 40,
+    "avg_R": -0.059
+   },
+   "newest_30pct": {
+    "trades": 18,
+    "win_rate_pct": 33,
+    "avg_R": -0.268
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 2,
+     "avg_R": 0.2
+    },
+    "2025-Q1": {
+     "trades": 13,
+     "avg_R": -0.212
+    },
+    "2025-Q2": {
+     "trades": 15,
+     "avg_R": 0.674
+    },
+    "2025-Q3": {
+     "trades": 12,
+     "avg_R": 0.018
+    },
+    "2025-Q4": {
+     "trades": 11,
+     "avg_R": 0.055
+    },
+    "2026-Q1": {
+     "trades": 12,
+     "avg_R": -1.034
+    },
+    "2026-Q2": {
+     "trades": 7,
+     "avg_R": -0.338
+    },
+    "2026-Q3": {
+     "trades": 7,
+     "avg_R": -0.107
+    },
+    "2026-Q4": {
+     "trades": 4,
+     "avg_R": -0.426
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 60,
+     "avg_R": -0.045
+    },
+    "short": {
+     "trades": 23,
+     "avg_R": -0.259
+    }
+   },
+   "positive_quarters": "3 of 7",
+   "t_stat": -0.82,
+   "proven": false,
+   "verdict": "No edge: -0.10R per trade after costs."
   }
  },
  "alert_mode": "watch"

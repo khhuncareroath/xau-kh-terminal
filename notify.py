@@ -323,7 +323,7 @@ def setup_message(mode, st, ict, fs, valid_until, summ, ai):
     return out
 
 
-PLAN_MODELS = ("vp_shape", "range_extreme")          # promising but not yet proven: sent as "plan trade", small risk, results posted
+PLAN_MODELS = ("vp_shape", "range_extreme", "vp_late")          # promising but not yet proven: sent as "plan trade", small risk, results posted
 WATCH_ALERTS = os.environ.get("WATCH_ALERTS", "off") == "on"   # old ICT watch ideas lost money in testing: off
 
 
@@ -341,6 +341,28 @@ def plan_alert(lm, state, now):
     bull = s["dir"] == "bull"
     pips = lambda px: f"{(px - s['entry']) * (1 if bull else -1) * 1:+,.1f} លេខ"
     exp = s["model"] == "range_extreme"
+    if s["model"] == "vp_late":   # ⚠️ warning only: the levels + the honest odds, never an official signal
+        lt = (jl("backtest.json").get("models", {}).get("vp_late") or {}).get("all") or {}
+        msg = "\n".join([
+            f"⚠️ <b>LATE PLAN · {'BUY' if bull else 'SELL'} {fmt(s['entry'])}</b> · not an official signal", "",
+            f"Entry  <b>{fmt(s['entry'])}</b>",
+            f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
+            f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
+            f"The 15m candle confirmed the plan at the POC, but gold already moved a lot today, so the move may be done.",
+            (f"Tested 2 years: {lt['trades']} trades · only {lt['win_rate_pct']}% win · {lt['avg_R']:+.2f}R per trade (losing)"
+             if lt.get("trades") else "Tested 2 years: only 39% win, losing overall"),
+            "", "<i>Skip it, or tiny size: 0.25% max · ហានិភ័យខ្ពស់ ប្រើ lot តូចបំផុត ឬរំលង</i>"])
+        mid = send(msg, ("BUY" if bull else "SELL") + " late plan")
+        if not mid:
+            return False
+        state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
+        json.dump(state, open("notify_state.json", "w"))
+        log_alert({"id": key, "kind": "late", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
+                   "target": s["target"], "rr": s.get("rr"), "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
+                   "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
+                   "max_hold_s": 8 * 3600})
+        print("late plan sent", key)
+        return True
     if exp:
         reason = {"bull": "Day Range extreme: gold stretched 3 steps below the day open in an uptrend and a 15m candle closed back. Target: the day open.",
                   "bear": "Day Range extreme: gold stretched 3 steps above the day open in a downtrend and a 15m candle closed back. Target: the day open."}

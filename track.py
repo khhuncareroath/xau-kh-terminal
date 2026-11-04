@@ -108,8 +108,8 @@ def _reply_text(a):
 
 
 def summary(log):
-    out = _summary(log)
-    for kind in ("setup", "watch", "post-news", "model", "plan"):
+    out = _summary([a for a in log if a.get("kind") != "late"])   # ⚠️ late-plan warnings: shown apart, not in the record
+    for kind in ("setup", "watch", "post-news", "model", "plan", "late"):
         sub = [a for a in log if a.get("kind") == kind]
         if sub:
             out["by_kind"] = out.get("by_kind", {})
