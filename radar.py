@@ -78,7 +78,10 @@ def status(df, lines):
         if not (live and (live.get("dir") == "bull") == (ref["sg"] > 0) and abs(live.get("entry", 0) - ref["entry"]) <= 5):
             live = {"dir": "bull" if ref["sg"] > 0 else "bear", "entry": ref["entry"], "stop": ref["stop"],
                     "tp1": ref.get("tp1"), "target": ref["tgt"], "status": "filled"}
-    return {"busy": busy, "open": op, "live": live, "price": price, "upper": upper, "lower": lower, "used": used, "zone": zone, "trend": tr,
+    swing_busy = any(t["model"] == "trend_tight" for t in op)   # a swing runs: a new breakout can only be the intraday 🖕
+    if swing_busy and zone == 2:
+        zone = 1
+    return {"busy": busy, "swing_busy": swing_busy, "open": op, "live": live, "price": price, "upper": upper, "lower": lower, "used": used, "zone": zone, "trend": tr,
             "to_buy": upper - price, "to_sell": price - lower, "near": near}
 
 
@@ -215,7 +218,8 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
     elif st["zone"] == 2:
         head, col, nf = "PREMIUM ZONE · a 4H close beyond a line = PREMIUM SWING", PREM, 2
     elif st["zone"] == 1:
-        head, col, nf = "COMBO ZONE · a 4H close beyond a line = COMBO signal", GOLD, 1
+        head, col, nf = ("COMBO ZONE · swing already running: a 4H close beyond a line = COMBO intraday" if st.get("swing_busy")
+                         else "COMBO ZONE · a 4H close beyond a line = COMBO signal"), GOLD, 1
     else:
         head, col, nf = "WAITING · day still quiet, no setup yet", MUT, 0
     stamp = local(time.time()) if local else ""
@@ -251,7 +255,9 @@ def caption(st, why, next_close_local):
     zone_line = (f"✅ A 4H {'BUY' if o_['sg'] > 0 else 'SELL'} from this move is still running (entry {o_['entry']:,.2f}): "
                  f"<b>no new 4H signal until it closes</b> · ទុកការជួញដូរមុនឲ្យរត់" if st.get("busy") else
                  "🖕🖕 <b>PREMIUM zone</b>: a 4H close beyond a line now = PREMIUM SWING (77% in test)" if z == 2 else
-                 "🖕 <b>COMBO zone</b>: a 4H close beyond a line now = COMBO signal (68% in test)" if z == 1 else
+                 (f"🖕 <b>COMBO zone</b> (day {st['used'] * 100:.0f}%, but a swing is already running): a 4H close beyond a line "
+                  f"now = COMBO intraday signal (68% in test), not a new swing" if st.get("swing_busy") else
+                  "🖕 <b>COMBO zone</b>: a 4H close beyond a line now = COMBO signal (68% in test)") if z == 1 else
                  "◽ Day still quiet: a breakout now would be a Normal signal (half size)")
     side = ("BUY" if st["to_buy"] < st["to_sell"] else "SELL")
     dist = min(st["to_buy"], st["to_sell"])

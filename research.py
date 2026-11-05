@@ -466,6 +466,53 @@ def vp_late(df):
     return [t for t in vp_shape(df, max_used=None) if t[0] not in kept]
 
 
+def london_trend(df, min_used=0.5, rr=2.0):
+    """RESEARCH ONLY (not alerted): London breakout of the Asia range (18:00-02:00 NY), only in the 4H trend direction
+    and only when the day already moved 50%+ of a normal day. 15m close beyond the range 02:00-07:00 NY, stop at the
+    range middle (cap 0.6%), target 2R, out within 10 h or at the day end. 2026-11-05: 30 trades, 60% win, +0.65R,
+    t=2.7, only 8 trades in the newest 30% -> waiting. Kept here so the daily backtest rechecks it."""
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    idx = df.index; n = len(df)
+    d4 = resample(df, "4H")
+    hi30, lo30 = d4["High"].rolling(30).max().shift(1), d4["Low"].rolling(30).min().shift(1)
+    cur, st = 0, []
+    for k in range(len(d4)):
+        cur = 1 if d4["Close"].iloc[k] > hi30.iloc[k] else -1 if d4["Close"].iloc[k] < lo30.iloc[k] else cur
+        st.append(cur)
+    trend = pd.Series(st, index=d4.index + pd.Timedelta(hours=4)).reindex(idx, method="ffill").fillna(0).to_numpy()
+    td = (idx - pd.Timedelta(hours=18)).date
+    days = sorted(set(td)); pos = {d: np.where(td == d)[0] for d in days}
+    rng = {d: h[pos[d]].max() - l[pos[d]].min() for d in days}
+    tmin = idx.hour * 60 + idx.minute
+    out = []
+    for di in range(20, len(days)):
+        d = days[di]; p = pos[d]; t = tmin[p]
+        asia = p[(t >= 18 * 60) | (t < 120)]
+        if len(asia) < 30:
+            continue
+        top, bot = h[asia].max(), l[asia].min(); mid = (top + bot) / 2
+        A = np.median([rng[x] for x in days[max(0, di - 20):di]])
+        for i in p[(t >= 120) & (t < 420)]:
+            if idx[i].minute % 15 != 10:
+                continue
+            sg = 1 if c[i] > top else -1 if c[i] < bot else 0
+            if not sg:
+                continue
+            if trend[i] != sg or (h[p[0]:i + 1].max() - l[p[0]:i + 1].min()) / A < min_used:
+                break
+            j0 = i + 1 + LAT
+            if j0 + 1 >= n:
+                break
+            risk = (o[j0] - mid) * sg
+            if risk < 2 or risk > o[j0] * 0.006:
+                break
+            r, j = _run_trade(o, h, l, c, j0, min(p[-1], j0 + 120), sg, mid, o[j0] + sg * rr * risk)
+            if r is not None:
+                out.append((idx[j0], r, "long" if sg > 0 else "short"))
+            break
+    return out
+
+
 def range_extreme(df):
     """XAU.KH Day Range extreme (our version of the CRAZII KTR idea): day open +/- 3 steps of a quarter ADR (14-day
     median range). When price stretches to -3 steps in a 4H uptrend (or +3 in a downtrend) between 01:00 and 12:00
@@ -626,7 +673,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
+DESCRIBE = {"london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
+            "vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
             "trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
             "trend_combo": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
             "range_extreme": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
@@ -654,5 +702,5 @@ MAX_HOLD_H = {"vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_in
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "range_extreme": range_extreme(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}
