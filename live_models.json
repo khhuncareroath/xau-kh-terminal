@@ -1,6 +1,45 @@
 {
- "time": "2026-11-05 02:15 UTC",
- "last_bar": "2026-11-04 21:05:00-05:00",
- "price": 4132.64,
- "signals": []
+ "time": "2026-11-05 02:25 UTC",
+ "last_bar": "2026-11-04 21:15:00-05:00",
+ "price": 4131.7,
+ "signals": [
+  {
+   "entry": 4133.33,
+   "dir": "bull",
+   "stop": 4106.47,
+   "target": 4213.93,
+   "tp1": 4153.48,
+   "part": 0.5,
+   "trigger_time": "2026-11-04 21:15:00-05:00",
+   "model": "trend_tight",
+   "rr": 3.0,
+   "proven": true,
+   "backtest": {
+    "trades": 172,
+    "win_rate_pct": 69,
+    "avg_R": 0.293
+   },
+   "description": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R",
+   "day_used": 1.5
+  },
+  {
+   "entry": 4133.33,
+   "dir": "bull",
+   "stop": 4110.6,
+   "target": 4201.53,
+   "tp1": 4150.38,
+   "part": 0.5,
+   "trigger_time": "2026-11-04 21:15:00-05:00",
+   "model": "trend_intraday",
+   "rr": 3.0,
+   "proven": true,
+   "backtest": {
+    "trades": 222,
+    "win_rate_pct": 62,
+    "avg_R": 0.129
+   },
+   "description": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
+   "day_used": 1.5
+  }
+ ]
 }
