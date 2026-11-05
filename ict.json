@@ -1,7 +1,7 @@
 {
-  "time": "2026-11-05 11:05 UTC",
-  "price": 4128.71,
-  "last_bar": "2026-11-05 06:00:00-05:00",
+  "time": "2026-11-05 11:15 UTC",
+  "price": 4130.56,
+  "last_bar": "2026-11-05 06:10:00-05:00",
   "atr_5m": 2.92,
   "rules": "current",
   "timeframes": {
@@ -326,11 +326,11 @@
   },
   "sweeps": [
     {
-      "side": "buy-side",
-      "level": 4143.31,
-      "name": "1H swing high",
-      "extreme": 4147.60021,
-      "time": "2026-11-04 22:55:00-05:00"
+      "side": "sell-side",
+      "level": 4132.59,
+      "name": "1H swing low",
+      "extreme": 4131.77428,
+      "time": "2026-11-05 00:15:00-05:00"
     },
     {
       "side": "sell-side",
@@ -348,36 +348,16 @@
     }
   ],
   "setup": {
-    "stage": 2,
-    "label": "Shift confirmed, waiting for the retest",
+    "stage": 1,
+    "label": "Sweep happened, waiting for a structure shift",
     "dir": "bear",
-    "zone": [
-      4135.59,
-      4143.19
-    ],
-    "entry": 4139.39,
-    "stop": 4148.48,
-    "target": 4125.41,
-    "rr": 1.54,
     "reasons": [
-      "1H swing high at 4143.31 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 4135.59: a bear structure shift right after the sweep.",
-      "Retest zone: order block 4135.59-4143.19.",
-      "1H structure is bull: this goes against it, so treat as lower quality."
-    ],
-    "sweep_time": "2026-11-04 22:55:00-05:00",
-    "shift_time": "2026-11-04 23:20:00-05:00",
-    "sweep_extreme": 4147.6,
-    "sweep_name": "1H swing high",
-    "displacement": false,
-    "risk_atr": 3.11,
-    "note": "Idea to confirm with your own entry model, not a signal."
+      "15m swing high at 4130.7 was swept and price closed back inside (buy-side liquidity taken)."
+    ]
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-05 01:05",
-      "11-05 01:10",
       "11-05 01:15",
       "11-05 01:20",
       "11-05 01:25",
@@ -435,11 +415,11 @@
       "11-05 05:45",
       "11-05 05:50",
       "11-05 05:55",
-      "11-05 06:00"
+      "11-05 06:00",
+      "11-05 06:05",
+      "11-05 06:10"
     ],
     "ts": [
-      1793858700,
-      1793859000,
       1793859300,
       1793859600,
       1793859900,
@@ -497,23 +477,11 @@
       1793875500,
       1793875800,
       1793876100,
-      1793876400
+      1793876400,
+      1793876700,
+      1793877000
     ],
     "candles": [
-      [
-        4113.29,
-        4125.24,
-        4112.62,
-        4124.59,
-        849.0
-      ],
-      [
-        4123.38,
-        4127.39,
-        4121.84,
-        4126.49,
-        551.0
-      ],
       [
         4124.3,
         4129.38,
@@ -911,19 +879,31 @@
         4131.79,
         4128.81,
         4131.53,
-        0.0
+        463.0
       ],
       [
         4131.21,
         4131.21,
         4128.48,
-        4128.71,
-        375.0
+        4129.15,
+        363.0
+      ],
+      [
+        4129.03,
+        4129.03,
+        4127.72,
+        4128.64,
+        0.0
+      ],
+      [
+        4128.39,
+        4130.7,
+        4127.46,
+        4130.56,
+        385.5
       ]
     ],
     "vwap": [
-      4112.19,
-      4112.31,
       4112.43,
       4112.53,
       4112.65,
@@ -980,12 +960,12 @@
       4116.13,
       4116.17,
       4116.24,
-      4116.24,
-      4116.3
+      4116.32,
+      4116.38,
+      4116.38,
+      4116.44
     ],
     "sd": [
-      23.18,
-      23.11,
       23.06,
       23.01,
       22.94,
@@ -1042,10 +1022,17 @@
       20.47,
       20.44,
       20.41,
-      20.41,
-      20.38
+      20.38,
+      20.36,
+      20.36,
+      20.33
     ],
-    "marks": {}
+    "marks": {
+      "sweep": {
+        "price": 4130.7,
+        "i": 23
+      }
+    }
   },
   "disclaimer": "Mechanical analysis ideas, not signals or advice."
 }
