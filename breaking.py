@@ -23,7 +23,7 @@ from tg import esc, local, send, send_photo
 STATE = "breaking_state.json"
 MODEL = os.environ.get("AI_MODEL", "claude-haiku-5-5")
 CHECK_EVERY = 15 * 60
-MAX_POSTS, MIN_GAP, MAX_AI = 6, 20 * 60, 30
+MAX_POSTS, MIN_GAP, MAX_AI = 2, 3 * 3600, 30   # only the big ones: max 2 a day, 3 h apart
 Q = ["gold price", "Federal Reserve OR Powell OR FOMC", "US dollar OR Treasury yields", "tariffs OR trade war",
      "war OR missile OR ceasefire OR sanctions", "central bank gold buying", "US election OR Congress OR government shutdown"]
 FEEDS = [f"https://news.google.com/rss/search?q={urllib.parse.quote(q + ' when:2h')}&hl=en-US&gl=US&ceid=US:en" for q in Q] + \
@@ -150,6 +150,12 @@ RULES = [   # (category, pattern, gold direction, Khmer reason)
      "mixed", "លទ្ធផលបោះឆ្នោត → ទីផ្សារអាចប្រែប្រួលខ្លាំង (Volatility)"),
 ]
 RULES = [(k, re.compile(p_, re.I), g, km) for k, p_, g, km in RULES]
+# war / peace / election / crisis headlines count only when they involve the powers that move gold (a regional
+# conflict elsewhere rarely does), tariffs only between the big economies
+MAJOR = re.compile(r"\b(u\.?s\.?|united states|america|american|washington|trump|white house|pentagon|russia|russian|"
+                   r"putin|ukraine|kyiv|china|chinese|beijing|taiwan|iran|iranian|tehran|israel|israeli|gaza|hezbollah|"
+                   r"north korea|nato|europe|eu)\b", re.I)
+NEEDS_MAJOR = {"war", "peace", "election", "crisis", "tariff", "trade_deal"}
 NEG = re.compile(r"\b(no|not|won't|wont|unlikely|rules? out|against|delay|delays|rush|patient|could|may|might|considers?|weighs?|expected|bets?|odds|\?)", re.I)
 
 
@@ -189,7 +195,9 @@ def rules_pick(cands, st):
         for k, rx, g, km in RULES:
             if k.startswith("fed") and NEG.search(c["title"]):
                 continue                    # "no rush to cut", "won't hike": direction unclear without AI, skip
-            if rx.search(c["title"]) and now - last.get(k, 0) > 6 * 3600 and k not in {o["_cat"] for o in out}:
+            if k in NEEDS_MAJOR and not MAJOR.search(c["title"]):
+                continue
+            if rx.search(c["title"]) and now - last.get(k, 0) > 12 * 3600 and k not in {o["_cat"] for o in out}:
                 out.append({"id": i, "importance": 4, "gold": g, "usd": "mixed", "headline_en": c["title"][:110],
                             "km_reason": km, "en_short": "Expect fast moves around this news", "_cat": k})
                 break

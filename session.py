@@ -1218,7 +1218,7 @@ def macro_shift(macro, news, state):
                for e in news.get("events", []) if e.get("impact") == "High")
     day = datetime.now(local_tz()).strftime("%Y-%m-%d")
     sent = [t for t in state.get("macro_alerts", []) if t[:10] == day]
-    if near or len(sent) >= 2:
+    if near or len(sent) >= 1:   # max 1 a day: only real shifts, the session preps carry the rest
         return
     why = []
     if snap.get("dxy") and abs(d["last"] / snap["dxy"] - 1) * 100 >= 0.4:
@@ -1230,8 +1230,8 @@ def macro_shift(macro, news, state):
     lean = macro_lean(macro)
     if lean != snap.get("lean") and lean != 0:
         why.append(f"overall lean flipped to gold {'UP' if lean > 0 else 'DOWN'}")
-    if not why:
-        return
+    if not why or all(w.startswith("VIX") for w in why) or not (7 <= datetime.now(local_tz()).hour < 23):
+        return   # fear index alone is noise for gold; and never in the middle of the night
     mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
     if mc and (send_photo(mc[0], f"🔄 <b>Fundamentals changed</b>: {esc(', '.join(why))}.\n{mc[1]}", "Fundamentals") or not os.environ.get("TELEGRAM_TOKEN")):
         state["macro_alerts"] = sent + [datetime.now(local_tz()).strftime("%Y-%m-%d %H:%M")]
