@@ -374,9 +374,13 @@ def plan_alert(lm, state, now):
         + ("🤬 🔷 <i>EXPERIMENTAL</i>" if exp else "🤬 🟡 <i>plan trade · small size</i>"), "",
         f"Entry  <b>{fmt(s['entry'])}</b>",
         f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
-        f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})", "",
+        *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
+           f"TP2    <b>{fmt(s['target'])}</b>  ({pips(s['target'])}) · the day open"] if s.get("tp1") else
+          [f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})"]), "",
         reason["bull" if bull else "bear"],
-        ("Tested 2 years: 60 trades, 50% win, +0.33R · not proven yet · closes by noon New York" if exp else
+        ((lambda a: f"Tested 2 years: {a.get('trades')} trades, {a.get('win_rate_pct')}% win, {a.get('avg_R', 0):+.2f}R · "
+                    f"not proven yet · closes by noon New York")((jl("backtest.json").get("models", {}).get("range_extreme") or {}).get("all") or {})
+         if exp else
          "Tested 2 years: 50% win, +0.18R per trade · Day Range < 70% used · closes within 8 h"),
         "", ("<i>Experimental: risk 0.25% max · ហានិភ័យ 0.25% ប៉ុណ្ណោះ</i>" if exp else "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>")])
     mid = send(msg, ("BUY" if bull else "SELL") + " plan")
@@ -387,7 +391,7 @@ def plan_alert(lm, state, now):
     log_alert({"id": key, "kind": "plan", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
                "target": s["target"], "rr": s.get("rr"), "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
-               "max_hold_s": (12 if exp else 8) * 3600})
+               "max_hold_s": (12 if exp else 8) * 3600, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
     print("plan sent", key)
     try:   # the trade on a chart with support / resistance, as a reply
         import session

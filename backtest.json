@@ -1,2101 +1,2101 @@
 {
-  "time": "2026-11-05 22:25 UTC",
-  "data": {
-    "bars": 141812,
-    "from": "2024-11-03 18:00:00-05:00",
-    "to": "2026-11-03 18:55:00-05:00",
-    "symbol": "XAUUSD spot (Dukascopy)"
-  },
-  "settings": {
-    "cost_points": 0.4,
-    "latency_min": 15,
-    "order_valid_min": 120,
-    "min_rr": 1.5,
-    "max_risk_atr_v2": 3.0
-  },
-  "rules": {
-    "current": {
-      "summary": {
-        "alerts": 1510,
-        "filled": 477,
-        "fill_rate_pct": 32,
-        "missed": 980,
-        "expired": 53,
-        "win_rate_pct": 32,
-        "avg_R": -0.188,
-        "total_R": -89.88,
-        "profit_factor": 0.72,
-        "max_drawdown_R": 94.75
-      },
-      "factors": {
-        "direction": {
-          "bear": {
-            "n": 213,
-            "win_rate_pct": 34,
-            "avg_R": -0.155
-          },
-          "bull": {
-            "n": 264,
-            "win_rate_pct": 31,
-            "avg_R": -0.215
-          }
-        },
-        "1H bias": {
-          "against": {
-            "n": 263,
-            "win_rate_pct": 32,
-            "avg_R": -0.2
-          },
-          "agrees": {
-            "n": 210,
-            "win_rate_pct": 32,
-            "avg_R": -0.171
-          },
-          "none": {
-            "n": 4,
-            "win_rate_pct": 25,
-            "avg_R": -0.336
-          }
-        },
-        "session": {
-          "Asia": {
-            "n": 168,
-            "win_rate_pct": 35,
-            "avg_R": -0.134
-          },
-          "London": {
-            "n": 57,
-            "win_rate_pct": 28,
-            "avg_R": -0.279
-          },
-          "New York": {
-            "n": 81,
-            "win_rate_pct": 28,
-            "avg_R": -0.253
-          },
-          "Off-hours": {
-            "n": 171,
-            "win_rate_pct": 33,
-            "avg_R": -0.181
-          }
-        },
-        "displacement": {
-          "no": {
-            "n": 312,
-            "win_rate_pct": 34,
-            "avg_R": -0.154
-          },
-          "yes": {
-            "n": 165,
-            "win_rate_pct": 29,
-            "avg_R": -0.254
-          }
-        },
-        "zone": {
-          "FVG": {
-            "n": 62,
-            "win_rate_pct": 29,
-            "avg_R": -0.256
-          },
-          "OB": {
-            "n": 415,
-            "win_rate_pct": 33,
-            "avg_R": -0.178
-          }
-        },
-        "swept level": {
-          "15m swing": {
-            "n": 320,
-            "win_rate_pct": 34,
-            "avg_R": -0.139
-          },
-          "1H swing": {
-            "n": 51,
-            "win_rate_pct": 24,
-            "avg_R": -0.469
-          },
-          "prior day / session": {
-            "n": 106,
-            "win_rate_pct": 31,
-            "avg_R": -0.204
-          }
-        },
-        "VWAP side": {
-          "against": {
-            "n": 210,
-            "win_rate_pct": 30,
-            "avg_R": -0.251
-          },
-          "agrees": {
-            "n": 267,
-            "win_rate_pct": 34,
-            "avg_R": -0.139
-          }
-        },
-        "stop size": {
-          "normal (1.5-3 ATR)": {
-            "n": 300,
-            "win_rate_pct": 34,
-            "avg_R": -0.143
-          },
-          "tight (<1.5 ATR)": {
-            "n": 87,
-            "win_rate_pct": 34,
-            "avg_R": -0.123
-          },
-          "wide (>3 ATR)": {
-            "n": 90,
-            "win_rate_pct": 24,
-            "avg_R": -0.402
-          }
-        },
-        "R:R": {
-          "1.5-2": {
-            "n": 447,
-            "win_rate_pct": 32,
-            "avg_R": -0.194
-          },
-          "2-3": {
-            "n": 28,
-            "win_rate_pct": 36,
-            "avg_R": 0.0
-          },
-          "3+": {
-            "n": 2,
-            "win_rate_pct": 0,
-            "avg_R": -1.534
-          }
-        }
-      },
-      "best_filter": {
-        "filter": {
-          "stop size": "tight (<1.5 ATR)",
-          "zone": "FVG"
-        },
-        "train_trades": 12,
-        "train_avg_R": 0.436,
-        "test_trades": 2,
-        "test_avg_R": 0.442,
-        "test_win_rate_pct": 50
-      },
-      "verdict": "Losing after costs (-0.19R per trade over 477 trades): do not promote these alerts as an edge. The best filter on older data ({'stop size': 'tight (<1.5 ATR)', 'zone': 'FVG'}) has only 2 trades in the newer data: too few to confirm.",
-      "recent": [
-        {
-          "time": "2026-10-19 07:05:00-04:00",
-          "dir": "bull",
-          "entry": 4169.91,
-          "stop": 4168.47,
-          "target": 4172.15,
-          "rr": 1.55,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-19 11:25:00-04:00",
-          "dir": "bull",
-          "entry": 4145.09,
-          "stop": 4142.04,
-          "target": 4149.69,
-          "rr": 1.51,
-          "result": "loss",
-          "R": -0.517
-        },
-        {
-          "time": "2026-10-19 14:00:00-04:00",
-          "dir": "bull",
-          "entry": 4145.14,
-          "stop": 4141.11,
-          "target": 4151.3,
-          "rr": 1.53,
-          "result": "loss",
-          "R": -1.099
-        },
-        {
-          "time": "2026-10-20 23:25:00-04:00",
-          "dir": "bull",
-          "entry": 4117.14,
-          "stop": 4111.7,
-          "target": 4125.31,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-20 23:55:00-04:00",
-          "dir": "bear",
-          "entry": 4121.45,
-          "stop": 4126.67,
-          "target": 4113.49,
-          "rr": 1.53,
-          "result": "loss",
-          "R": -0.819
-        },
-        {
-          "time": "2026-10-21 03:20:00-04:00",
-          "dir": "bull",
-          "entry": 4114.77,
-          "stop": 4111.36,
-          "target": 4119.9,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-21 05:55:00-04:00",
-          "dir": "bear",
-          "entry": 4121.83,
-          "stop": 4126.62,
-          "target": 4114.61,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-21 12:05:00-04:00",
-          "dir": "bear",
-          "entry": 4132.07,
-          "stop": 4142.17,
-          "target": 4116.81,
-          "rr": 1.51,
-          "result": "win",
-          "R": 1.587
-        },
-        {
-          "time": "2026-10-21 16:40:00-04:00",
-          "dir": "bull",
-          "entry": 4122.88,
-          "stop": 4122.68,
-          "target": 4123.21,
-          "rr": 1.7,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-21 18:45:00-04:00",
-          "dir": "bear",
-          "entry": 4134.47,
-          "stop": 4142.9,
-          "target": 4121.81,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-22 03:45:00-04:00",
-          "dir": "bear",
-          "entry": 4090.74,
-          "stop": 4097.97,
-          "target": 4079.8,
-          "rr": 1.51,
-          "result": "win",
-          "R": 1.457
-        },
-        {
-          "time": "2026-10-23 13:05:00-04:00",
-          "dir": "bear",
-          "entry": 4000.07,
-          "stop": 4007.26,
-          "target": 3989.2,
-          "rr": 1.51,
-          "result": "win",
-          "R": 1.454
-        },
-        {
-          "time": "2026-10-25 18:15:00-04:00",
-          "dir": "bull",
-          "entry": 3994.45,
-          "stop": 3987.77,
-          "target": 4004.62,
-          "rr": 1.52,
-          "result": "loss",
-          "R": -1.06
-        },
-        {
-          "time": "2026-10-26 03:30:00-04:00",
-          "dir": "bull",
-          "entry": 4004.25,
-          "stop": 4002.37,
-          "target": 4007.07,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 10:35:00-04:00",
-          "dir": "bull",
-          "entry": 4008.81,
-          "stop": 4007.7,
-          "target": 4010.49,
-          "rr": 1.52,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 14:30:00-04:00",
-          "dir": "bear",
-          "entry": 4018.14,
-          "stop": 4027.49,
-          "target": 4004.07,
-          "rr": 1.51,
-          "result": "expired",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 21:20:00-04:00",
-          "dir": "bear",
-          "entry": 4014.27,
-          "stop": 4021.1,
-          "target": 4004.0,
-          "rr": 1.5,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 13:55:00-04:00",
-          "dir": "bear",
-          "entry": 4060.95,
-          "stop": 4065.83,
-          "target": 4053.61,
-          "rr": 1.51,
-          "result": "loss",
-          "R": -1.082
-        },
-        {
-          "time": "2026-10-28 12:50:00-04:00",
-          "dir": "bull",
-          "entry": 4040.19,
-          "stop": 4033.88,
-          "target": 4049.76,
-          "rr": 1.51,
-          "result": "loss",
-          "R": -1.063
-        },
-        {
-          "time": "2026-10-29 01:00:00-04:00",
-          "dir": "bull",
-          "entry": 4038.23,
-          "stop": 4034.74,
-          "target": 4043.49,
-          "rr": 1.51,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-29 07:50:00-04:00",
-          "dir": "bear",
-          "entry": 4027.44,
-          "stop": 4038.86,
-          "target": 4010.22,
-          "rr": 1.51,
-          "result": "win",
-          "R": 1.472
-        },
-        {
-          "time": "2026-11-01 19:00:00-05:00",
-          "dir": "bull",
-          "entry": 3898.87,
-          "stop": 3867.21,
-          "target": 3946.43,
-          "rr": 1.5,
-          "result": "timed out",
-          "R": 0.248
-        },
-        {
-          "time": "2026-11-02 08:25:00-05:00",
-          "dir": "bull",
-          "entry": 3898.67,
-          "stop": 3894.79,
-          "target": 3905.16,
-          "rr": 1.67,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-03 07:15:00-05:00",
-          "dir": "bull",
-          "entry": 3900.48,
-          "stop": 3894.31,
-          "target": 3909.9,
-          "rr": 1.52,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-03 10:00:00-05:00",
-          "dir": "bear",
-          "entry": 3958.04,
-          "stop": 3969.45,
-          "target": 3940.8,
-          "rr": 1.51,
-          "result": "missed",
-          "R": 0.0
-        }
-      ],
-      "proven": false
+ "time": "2026-11-05 22:25 UTC",
+ "data": {
+  "bars": 141812,
+  "from": "2024-11-03 18:00:00-05:00",
+  "to": "2026-11-03 18:55:00-05:00",
+  "symbol": "XAUUSD spot (Dukascopy)"
+ },
+ "settings": {
+  "cost_points": 0.4,
+  "latency_min": 15,
+  "order_valid_min": 120,
+  "min_rr": 1.5,
+  "max_risk_atr_v2": 3.0
+ },
+ "rules": {
+  "current": {
+   "summary": {
+    "alerts": 1510,
+    "filled": 477,
+    "fill_rate_pct": 32,
+    "missed": 980,
+    "expired": 53,
+    "win_rate_pct": 32,
+    "avg_R": -0.188,
+    "total_R": -89.88,
+    "profit_factor": 0.72,
+    "max_drawdown_R": 94.75
+   },
+   "factors": {
+    "direction": {
+     "bear": {
+      "n": 213,
+      "win_rate_pct": 34,
+      "avg_R": -0.155
+     },
+     "bull": {
+      "n": 264,
+      "win_rate_pct": 31,
+      "avg_R": -0.215
+     }
     },
-    "v2": {
-      "summary": {
-        "alerts": 1457,
-        "filled": 319,
-        "fill_rate_pct": 22,
-        "missed": 339,
-        "expired": 20,
-        "win_rate_pct": 24,
-        "avg_R": -0.188,
-        "total_R": -60.06,
-        "profit_factor": 0.75,
-        "max_drawdown_R": 71.03
-      },
-      "factors": {
-        "direction": {
-          "bear": {
-            "n": 165,
-            "win_rate_pct": 24,
-            "avg_R": -0.161
-          },
-          "bull": {
-            "n": 154,
-            "win_rate_pct": 23,
-            "avg_R": -0.217
-          }
-        },
-        "1H bias": {
-          "against": {
-            "n": 169,
-            "win_rate_pct": 24,
-            "avg_R": -0.196
-          },
-          "agrees": {
-            "n": 150,
-            "win_rate_pct": 24,
-            "avg_R": -0.18
-          }
-        },
-        "session": {
-          "Asia": {
-            "n": 114,
-            "win_rate_pct": 24,
-            "avg_R": -0.155
-          },
-          "London": {
-            "n": 39,
-            "win_rate_pct": 18,
-            "avg_R": -0.307
-          },
-          "New York": {
-            "n": 57,
-            "win_rate_pct": 25,
-            "avg_R": -0.236
-          },
-          "Off-hours": {
-            "n": 109,
-            "win_rate_pct": 26,
-            "avg_R": -0.156
-          }
-        },
-        "displacement": {
-          "no": {
-            "n": 208,
-            "win_rate_pct": 25,
-            "avg_R": -0.152
-          },
-          "yes": {
-            "n": 111,
-            "win_rate_pct": 21,
-            "avg_R": -0.257
-          }
-        },
-        "zone": {
-          "FVG": {
-            "n": 45,
-            "win_rate_pct": 22,
-            "avg_R": -0.147
-          },
-          "OB": {
-            "n": 274,
-            "win_rate_pct": 24,
-            "avg_R": -0.195
-          }
-        },
-        "swept level": {
-          "15m swing": {
-            "n": 224,
-            "win_rate_pct": 25,
-            "avg_R": -0.15
-          },
-          "1H swing": {
-            "n": 31,
-            "win_rate_pct": 16,
-            "avg_R": -0.37
-          },
-          "prior day / session": {
-            "n": 64,
-            "win_rate_pct": 23,
-            "avg_R": -0.234
-          }
-        },
-        "VWAP side": {
-          "against": {
-            "n": 146,
-            "win_rate_pct": 21,
-            "avg_R": -0.252
-          },
-          "agrees": {
-            "n": 173,
-            "win_rate_pct": 26,
-            "avg_R": -0.134
-          }
-        },
-        "stop size": {
-          "normal (1.5-3 ATR)": {
-            "n": 228,
-            "win_rate_pct": 23,
-            "avg_R": -0.274
-          },
-          "tight (<1.5 ATR)": {
-            "n": 91,
-            "win_rate_pct": 25,
-            "avg_R": 0.027
-          }
-        },
-        "R:R": {
-          "1.5-2": {
-            "n": 137,
-            "win_rate_pct": 26,
-            "avg_R": -0.3
-          },
-          "2-3": {
-            "n": 102,
-            "win_rate_pct": 20,
-            "avg_R": -0.288
-          },
-          "3+": {
-            "n": 80,
-            "win_rate_pct": 25,
-            "avg_R": 0.13
-          }
-        }
-      },
-      "best_filter": {
-        "filter": {
-          "stop size": "tight (<1.5 ATR)",
-          "zone": "FVG"
-        },
-        "train_trades": 13,
-        "train_avg_R": 0.889,
-        "test_trades": 4,
-        "test_avg_R": 0.108,
-        "test_win_rate_pct": 25
-      },
-      "verdict": "Losing after costs (-0.19R per trade over 319 trades): do not promote these alerts as an edge. The best filter on older data ({'stop size': 'tight (<1.5 ATR)', 'zone': 'FVG'}) has only 4 trades in the newer data: too few to confirm.",
-      "recent": [
-        {
-          "time": "2026-10-19 11:25:00-04:00",
-          "dir": "bull",
-          "entry": 4145.09,
-          "stop": 4142.04,
-          "target": 4150.2,
-          "rr": 1.68,
-          "result": "loss",
-          "R": -0.517
-        },
-        {
-          "time": "2026-10-19 14:00:00-04:00",
-          "dir": "bull",
-          "entry": 4145.14,
-          "stop": 4141.11,
-          "target": 4155.07,
-          "rr": 2.47,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-19 15:20:00-04:00",
-          "dir": "bear",
-          "entry": 4143.78,
-          "stop": 4149.95,
-          "target": 4130.1,
-          "rr": 2.22,
-          "result": "win",
-          "R": 2.155
-        },
-        {
-          "time": "2026-10-20 23:25:00-04:00",
-          "dir": "bull",
-          "entry": 4117.14,
-          "stop": 4111.7,
-          "target": 4131.6,
-          "rr": 2.66,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-20 23:55:00-04:00",
-          "dir": "bear",
-          "entry": 4121.45,
-          "stop": 4126.67,
-          "target": 4112.79,
-          "rr": 1.66,
-          "result": "loss",
-          "R": -0.819
-        },
-        {
-          "time": "2026-10-21 03:20:00-04:00",
-          "dir": "bull",
-          "entry": 4114.77,
-          "stop": 4111.36,
-          "target": 4129.31,
-          "rr": 4.26,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-21 05:55:00-04:00",
-          "dir": "bear",
-          "entry": 4121.83,
-          "stop": 4126.62,
-          "target": 4110.6,
-          "rr": 2.34,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-21 12:05:00-04:00",
-          "dir": "bear",
-          "entry": 4132.07,
-          "stop": 4142.17,
-          "target": 4111.51,
-          "rr": 2.04,
-          "result": "win",
-          "R": 2.113
-        },
-        {
-          "time": "2026-10-21 16:40:00-04:00",
-          "dir": "bull",
-          "entry": 4122.88,
-          "stop": 4122.68,
-          "target": 4141.03,
-          "rr": 92.82,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-21 18:45:00-04:00",
-          "dir": "bear",
-          "entry": 4134.47,
-          "stop": 4142.9,
-          "target": 4104.61,
-          "rr": 3.54,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-22 03:45:00-04:00",
-          "dir": "bear",
-          "entry": 4090.74,
-          "stop": 4097.97,
-          "target": 4066.57,
-          "rr": 3.34,
-          "result": "win",
-          "R": 3.284
-        },
-        {
-          "time": "2026-10-23 13:05:00-04:00",
-          "dir": "bear",
-          "entry": 4000.07,
-          "stop": 4007.26,
-          "target": 3975.33,
-          "rr": 3.44,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-25 18:00:00-04:00",
-          "dir": "bull",
-          "entry": 3996.14,
-          "stop": 3992.18,
-          "target": 4006.32,
-          "rr": 2.57,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-25 19:50:00-04:00",
-          "dir": "bear",
-          "entry": 4001.22,
-          "stop": 4003.55,
-          "target": 3988.93,
-          "rr": 5.29,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 03:30:00-04:00",
-          "dir": "bull",
-          "entry": 4004.25,
-          "stop": 4002.37,
-          "target": 4015.12,
-          "rr": 5.78,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 10:35:00-04:00",
-          "dir": "bull",
-          "entry": 4008.81,
-          "stop": 4007.7,
-          "target": 4021.47,
-          "rr": 11.43,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-26 21:20:00-04:00",
-          "dir": "bear",
-          "entry": 4014.27,
-          "stop": 4021.1,
-          "target": 4003.88,
-          "rr": 1.52,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 13:55:00-04:00",
-          "dir": "bear",
-          "entry": 4060.95,
-          "stop": 4065.83,
-          "target": 4032.18,
-          "rr": 5.91,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-27 14:55:00-04:00",
-          "dir": "bull",
-          "entry": 4055.71,
-          "stop": 4054.88,
-          "target": 4058.99,
-          "rr": 3.98,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-28 12:50:00-04:00",
-          "dir": "bull",
-          "entry": 4040.19,
-          "stop": 4033.88,
-          "target": 4051.76,
-          "rr": 1.83,
-          "result": "loss",
-          "R": -1.063
-        },
-        {
-          "time": "2026-10-29 01:00:00-04:00",
-          "dir": "bull",
-          "entry": 4038.23,
-          "stop": 4034.74,
-          "target": 4044.26,
-          "rr": 1.73,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-10-29 07:50:00-04:00",
-          "dir": "bear",
-          "entry": 4027.44,
-          "stop": 4038.86,
-          "target": 4008.22,
-          "rr": 1.68,
-          "result": "win",
-          "R": 1.648
-        },
-        {
-          "time": "2026-11-02 08:25:00-05:00",
-          "dir": "bull",
-          "entry": 3898.67,
-          "stop": 3894.79,
-          "target": 3909.9,
-          "rr": 2.89,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-03 07:15:00-05:00",
-          "dir": "bull",
-          "entry": 3900.48,
-          "stop": 3894.31,
-          "target": 3913.11,
-          "rr": 2.05,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-03 10:00:00-05:00",
-          "dir": "bear",
-          "entry": 3958.04,
-          "stop": 3969.45,
-          "target": 3929.76,
-          "rr": 2.48,
-          "result": "missed",
-          "R": 0.0
-        }
-      ],
-      "proven": false
+    "1H bias": {
+     "against": {
+      "n": 263,
+      "win_rate_pct": 32,
+      "avg_R": -0.2
+     },
+     "agrees": {
+      "n": 210,
+      "win_rate_pct": 32,
+      "avg_R": -0.171
+     },
+     "none": {
+      "n": 4,
+      "win_rate_pct": 25,
+      "avg_R": -0.336
+     }
+    },
+    "session": {
+     "Asia": {
+      "n": 168,
+      "win_rate_pct": 35,
+      "avg_R": -0.134
+     },
+     "London": {
+      "n": 57,
+      "win_rate_pct": 28,
+      "avg_R": -0.279
+     },
+     "New York": {
+      "n": 81,
+      "win_rate_pct": 28,
+      "avg_R": -0.253
+     },
+     "Off-hours": {
+      "n": 171,
+      "win_rate_pct": 33,
+      "avg_R": -0.181
+     }
+    },
+    "displacement": {
+     "no": {
+      "n": 312,
+      "win_rate_pct": 34,
+      "avg_R": -0.154
+     },
+     "yes": {
+      "n": 165,
+      "win_rate_pct": 29,
+      "avg_R": -0.254
+     }
+    },
+    "zone": {
+     "FVG": {
+      "n": 62,
+      "win_rate_pct": 29,
+      "avg_R": -0.256
+     },
+     "OB": {
+      "n": 415,
+      "win_rate_pct": 33,
+      "avg_R": -0.178
+     }
+    },
+    "swept level": {
+     "15m swing": {
+      "n": 320,
+      "win_rate_pct": 34,
+      "avg_R": -0.139
+     },
+     "1H swing": {
+      "n": 51,
+      "win_rate_pct": 24,
+      "avg_R": -0.469
+     },
+     "prior day / session": {
+      "n": 106,
+      "win_rate_pct": 31,
+      "avg_R": -0.204
+     }
+    },
+    "VWAP side": {
+     "against": {
+      "n": 210,
+      "win_rate_pct": 30,
+      "avg_R": -0.251
+     },
+     "agrees": {
+      "n": 267,
+      "win_rate_pct": 34,
+      "avg_R": -0.139
+     }
+    },
+    "stop size": {
+     "normal (1.5-3 ATR)": {
+      "n": 300,
+      "win_rate_pct": 34,
+      "avg_R": -0.143
+     },
+     "tight (<1.5 ATR)": {
+      "n": 87,
+      "win_rate_pct": 34,
+      "avg_R": -0.123
+     },
+     "wide (>3 ATR)": {
+      "n": 90,
+      "win_rate_pct": 24,
+      "avg_R": -0.402
+     }
+    },
+    "R:R": {
+     "1.5-2": {
+      "n": 447,
+      "win_rate_pct": 32,
+      "avg_R": -0.194
+     },
+     "2-3": {
+      "n": 28,
+      "win_rate_pct": 36,
+      "avg_R": 0.0
+     },
+     "3+": {
+      "n": 2,
+      "win_rate_pct": 0,
+      "avg_R": -1.534
+     }
     }
-  },
-  "models": {
-    "sweep_htf": {
-      "description": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
-      "all": {
-        "trades": 264,
-        "win_rate_pct": 43,
-        "avg_R": 0.017
-      },
-      "older_70pct": {
-        "trades": 181,
-        "win_rate_pct": 43,
-        "avg_R": 0.003
-      },
-      "newest_30pct": {
-        "trades": 83,
-        "win_rate_pct": 43,
-        "avg_R": 0.048
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 8,
-          "avg_R": -0.504
-        },
-        "2025-Q1": {
-          "trades": 34,
-          "avg_R": 0.26
-        },
-        "2025-Q2": {
-          "trades": 31,
-          "avg_R": -0.345
-        },
-        "2025-Q3": {
-          "trades": 25,
-          "avg_R": 0.293
-        },
-        "2025-Q4": {
-          "trades": 38,
-          "avg_R": -0.064
-        },
-        "2026-Q1": {
-          "trades": 45,
-          "avg_R": 0.034
-        },
-        "2026-Q2": {
-          "trades": 46,
-          "avg_R": 0.21
-        },
-        "2026-Q3": {
-          "trades": 26,
-          "avg_R": -0.251
-        },
-        "2026-Q4": {
-          "trades": 11,
-          "avg_R": 0.079
-        }
-      },
-      "positive_quarters": "5 of 9",
-      "t_stat": 0.23,
-      "proven": false,
-      "verdict": "No edge: +0.02R per trade after costs."
+   },
+   "best_filter": {
+    "filter": {
+     "stop size": "tight (<1.5 ATR)",
+     "zone": "FVG"
     },
-    "value_80": {
-      "description": "Volume profile 80% rule: back inside yesterday's value, target the far edge",
-      "all": {
-        "trades": 125,
-        "win_rate_pct": 36,
-        "avg_R": 0.104
-      },
-      "older_70pct": {
-        "trades": 81,
-        "win_rate_pct": 36,
-        "avg_R": -0.045
-      },
-      "newest_30pct": {
-        "trades": 44,
-        "win_rate_pct": 36,
-        "avg_R": 0.379
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 11,
-          "avg_R": -0.468
-        },
-        "2025-Q1": {
-          "trades": 13,
-          "avg_R": 0.865
-        },
-        "2025-Q2": {
-          "trades": 17,
-          "avg_R": 0.016
-        },
-        "2025-Q3": {
-          "trades": 17,
-          "avg_R": -0.621
-        },
-        "2025-Q4": {
-          "trades": 12,
-          "avg_R": -0.156
-        },
-        "2026-Q1": {
-          "trades": 11,
-          "avg_R": 0.218
-        },
-        "2026-Q2": {
-          "trades": 18,
-          "avg_R": 1.265
-        },
-        "2026-Q3": {
-          "trades": 17,
-          "avg_R": -0.41
-        },
-        "2026-Q4": {
-          "trades": 9,
-          "avg_R": 0.096
-        }
-      },
-      "positive_quarters": "5 of 9",
-      "t_stat": 0.4,
-      "proven": false,
-      "verdict": "Positive (+0.10R) but not statistically clear yet (t=0.4, need 2): could still be luck."
+    "train_trades": 12,
+    "train_avg_R": 0.436,
+    "test_trades": 2,
+    "test_avg_R": 0.442,
+    "test_win_rate_pct": 50
+   },
+   "verdict": "Losing after costs (-0.19R per trade over 477 trades): do not promote these alerts as an edge. The best filter on older data ({'stop size': 'tight (<1.5 ATR)', 'zone': 'FVG'}) has only 2 trades in the newer data: too few to confirm.",
+   "recent": [
+    {
+     "time": "2026-10-19 07:05:00-04:00",
+     "dir": "bull",
+     "entry": 4169.91,
+     "stop": 4168.47,
+     "target": 4172.15,
+     "rr": 1.55,
+     "result": "missed",
+     "R": 0.0
     },
-    "acceptance": {
-      "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation",
-      "all": {
-        "trades": 304,
-        "win_rate_pct": 40,
-        "avg_R": 0.037
-      },
-      "older_70pct": {
-        "trades": 211,
-        "win_rate_pct": 41,
-        "avg_R": 0.085
-      },
-      "newest_30pct": {
-        "trades": 93,
-        "win_rate_pct": 39,
-        "avg_R": -0.072
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 22,
-          "avg_R": -0.147
-        },
-        "2025-Q1": {
-          "trades": 36,
-          "avg_R": -0.031
-        },
-        "2025-Q2": {
-          "trades": 37,
-          "avg_R": -0.252
-        },
-        "2025-Q3": {
-          "trades": 41,
-          "avg_R": 0.425
-        },
-        "2025-Q4": {
-          "trades": 39,
-          "avg_R": 0.18
-        },
-        "2026-Q1": {
-          "trades": 36,
-          "avg_R": 0.197
-        },
-        "2026-Q2": {
-          "trades": 38,
-          "avg_R": -0.017
-        },
-        "2026-Q3": {
-          "trades": 42,
-          "avg_R": 0.153
-        },
-        "2026-Q4": {
-          "trades": 13,
-          "avg_R": -0.962
-        }
-      },
-      "positive_quarters": "4 of 9",
-      "t_stat": 0.34,
-      "proven": false,
-      "verdict": "No edge: +0.04R per trade after costs."
+    {
+     "time": "2026-10-19 11:25:00-04:00",
+     "dir": "bull",
+     "entry": 4145.09,
+     "stop": 4142.04,
+     "target": 4149.69,
+     "rr": 1.51,
+     "result": "loss",
+     "R": -0.517
     },
-    "london_breakout": {
-      "description": "London breakout of the Asia range, stop at the range middle, 1.5R target",
-      "all": {
-        "trades": 68,
-        "win_rate_pct": 51,
-        "avg_R": 0.027
-      },
-      "older_70pct": {
-        "trades": 44,
-        "win_rate_pct": 52,
-        "avg_R": 0.04
-      },
-      "newest_30pct": {
-        "trades": 24,
-        "win_rate_pct": 50,
-        "avg_R": 0.004
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 7,
-          "avg_R": 0.029
-        },
-        "2025-Q1": {
-          "trades": 12,
-          "avg_R": 0.226
-        },
-        "2025-Q2": {
-          "trades": 5,
-          "avg_R": -0.168
-        },
-        "2025-Q3": {
-          "trades": 14,
-          "avg_R": 0.172
-        },
-        "2025-Q4": {
-          "trades": 5,
-          "avg_R": -0.435
-        },
-        "2026-Q1": {
-          "trades": 1,
-          "avg_R": -0.545
-        },
-        "2026-Q2": {
-          "trades": 7,
-          "avg_R": 0.059
-        },
-        "2026-Q3": {
-          "trades": 15,
-          "avg_R": 0.014
-        },
-        "2026-Q4": {
-          "trades": 2,
-          "avg_R": -0.264
-        }
-      },
-      "positive_quarters": "5 of 7",
-      "t_stat": 0.26,
-      "proven": false,
-      "verdict": "No edge: +0.03R per trade after costs."
+    {
+     "time": "2026-10-19 14:00:00-04:00",
+     "dir": "bull",
+     "entry": 4145.14,
+     "stop": 4141.11,
+     "target": 4151.3,
+     "rr": 1.53,
+     "result": "loss",
+     "R": -1.099
     },
-    "ny_breakout": {
-      "description": "New York breakout of the 08:00-08:30 range, stop at the range middle, 1.5R target",
-      "all": {
-        "trades": 448,
-        "win_rate_pct": 46,
-        "avg_R": 0.023
-      },
-      "older_70pct": {
-        "trades": 325,
-        "win_rate_pct": 49,
-        "avg_R": 0.083
-      },
-      "newest_30pct": {
-        "trades": 123,
-        "win_rate_pct": 38,
-        "avg_R": -0.135
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 36,
-          "avg_R": 0.284
-        },
-        "2025-Q1": {
-          "trades": 57,
-          "avg_R": 0.055
-        },
-        "2025-Q2": {
-          "trades": 57,
-          "avg_R": -0.073
-        },
-        "2025-Q3": {
-          "trades": 59,
-          "avg_R": 0.042
-        },
-        "2025-Q4": {
-          "trades": 57,
-          "avg_R": 0.156
-        },
-        "2026-Q1": {
-          "trades": 60,
-          "avg_R": 0.133
-        },
-        "2026-Q2": {
-          "trades": 53,
-          "avg_R": -0.068
-        },
-        "2026-Q3": {
-          "trades": 49,
-          "avg_R": -0.087
-        },
-        "2026-Q4": {
-          "trades": 20,
-          "avg_R": -0.511
-        }
-      },
-      "positive_quarters": "5 of 9",
-      "t_stat": 0.42,
-      "proven": false,
-      "verdict": "No edge: +0.02R per trade after costs."
+    {
+     "time": "2026-10-20 23:25:00-04:00",
+     "dir": "bull",
+     "entry": 4117.14,
+     "stop": 4111.7,
+     "target": 4125.31,
+     "rr": 1.5,
+     "result": "missed",
+     "R": 0.0
     },
-    "trend_pullback": {
-      "description": "Daily and 4H trend agree, pullback to VWAP in London or New York, 2R target",
-      "all": {
-        "trades": 292,
-        "win_rate_pct": 30,
-        "avg_R": -0.196
-      },
-      "older_70pct": {
-        "trades": 209,
-        "win_rate_pct": 29,
-        "avg_R": -0.245
-      },
-      "newest_30pct": {
-        "trades": 83,
-        "win_rate_pct": 33,
-        "avg_R": -0.073
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 3,
-          "avg_R": -0.172
-        },
-        "2025-Q1": {
-          "trades": 50,
-          "avg_R": -0.27
-        },
-        "2025-Q2": {
-          "trades": 33,
-          "avg_R": -0.455
-        },
-        "2025-Q3": {
-          "trades": 34,
-          "avg_R": -0.413
-        },
-        "2025-Q4": {
-          "trades": 41,
-          "avg_R": 0.207
-        },
-        "2026-Q1": {
-          "trades": 48,
-          "avg_R": -0.346
-        },
-        "2026-Q2": {
-          "trades": 35,
-          "avg_R": -0.279
-        },
-        "2026-Q3": {
-          "trades": 28,
-          "avg_R": 0.317
-        },
-        "2026-Q4": {
-          "trades": 20,
-          "avg_R": -0.258
-        }
-      },
-      "positive_quarters": "2 of 8",
-      "t_stat": -2.48,
-      "proven": false,
-      "verdict": "No edge: -0.20R per trade after costs."
+    {
+     "time": "2026-10-20 23:55:00-04:00",
+     "dir": "bear",
+     "entry": 4121.45,
+     "stop": 4126.67,
+     "target": 4113.49,
+     "rr": 1.53,
+     "result": "loss",
+     "R": -0.819
     },
-    "vwap_fade": {
-      "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
-      "all": {
-        "trades": 613,
-        "win_rate_pct": 31,
-        "avg_R": -0.144
-      },
-      "older_70pct": {
-        "trades": 422,
-        "win_rate_pct": 32,
-        "avg_R": -0.197
-      },
-      "newest_30pct": {
-        "trades": 191,
-        "win_rate_pct": 29,
-        "avg_R": -0.027
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 65,
-          "avg_R": -0.115
-        },
-        "2025-Q1": {
-          "trades": 84,
-          "avg_R": -0.237
-        },
-        "2025-Q2": {
-          "trades": 74,
-          "avg_R": 0.041
-        },
-        "2025-Q3": {
-          "trades": 89,
-          "avg_R": -0.213
-        },
-        "2025-Q4": {
-          "trades": 62,
-          "avg_R": -0.563
-        },
-        "2026-Q1": {
-          "trades": 48,
-          "avg_R": -0.099
-        },
-        "2026-Q2": {
-          "trades": 82,
-          "avg_R": 0.129
-        },
-        "2026-Q3": {
-          "trades": 85,
-          "avg_R": -0.289
-        },
-        "2026-Q4": {
-          "trades": 24,
-          "avg_R": 0.37
-        }
-      },
-      "positive_quarters": "3 of 9",
-      "t_stat": -1.5,
-      "proven": false,
-      "verdict": "No edge: -0.14R per trade after costs."
+    {
+     "time": "2026-10-21 03:20:00-04:00",
+     "dir": "bull",
+     "entry": 4114.77,
+     "stop": 4111.36,
+     "target": 4119.9,
+     "rr": 1.5,
+     "result": "missed",
+     "R": 0.0
     },
-    "trend_breakout": {
-      "description": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target",
-      "all": {
-        "trades": 92,
-        "win_rate_pct": 43,
-        "avg_R": 0.356
-      },
-      "older_70pct": {
-        "trades": 66,
-        "win_rate_pct": 44,
-        "avg_R": 0.489
-      },
-      "newest_30pct": {
-        "trades": 26,
-        "win_rate_pct": 42,
-        "avg_R": 0.018
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 6,
-          "avg_R": 0.411
-        },
-        "2025-Q1": {
-          "trades": 12,
-          "avg_R": 0.512
-        },
-        "2025-Q2": {
-          "trades": 13,
-          "avg_R": -0.516
-        },
-        "2025-Q3": {
-          "trades": 12,
-          "avg_R": 0.494
-        },
-        "2025-Q4": {
-          "trades": 11,
-          "avg_R": 0.999
-        },
-        "2026-Q1": {
-          "trades": 12,
-          "avg_R": 1.123
-        },
-        "2026-Q2": {
-          "trades": 10,
-          "avg_R": 0.122
-        },
-        "2026-Q3": {
-          "trades": 12,
-          "avg_R": 0.055
-        },
-        "2026-Q4": {
-          "trades": 4,
-          "avg_R": -0.355
-        }
-      },
-      "by_direction": {
-        "short": {
-          "trades": 36,
-          "avg_R": -0.097
-        },
-        "long": {
-          "trades": 56,
-          "avg_R": 0.647
-        }
-      },
-      "positive_quarters": "7 of 8",
-      "t_stat": 2.11,
-      "proven": true,
-      "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    {
+     "time": "2026-10-21 05:55:00-04:00",
+     "dir": "bear",
+     "entry": 4121.83,
+     "stop": 4126.62,
+     "target": 4114.61,
+     "rr": 1.5,
+     "result": "missed",
+     "R": 0.0
     },
-    "trend_buy": {
-      "description": "4H trend following, BUY only: half profit at 1R with the stop moved to entry, rest to 3R",
-      "all": {
-        "trades": 60,
-        "win_rate_pct": 60,
-        "avg_R": 0.342
-      },
-      "older_70pct": {
-        "trades": 50,
-        "win_rate_pct": 64,
-        "avg_R": 0.448
-      },
-      "newest_30pct": {
-        "trades": 10,
-        "win_rate_pct": 40,
-        "avg_R": -0.19
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 2,
-          "avg_R": 1.236
-        },
-        "2025-Q1": {
-          "trades": 12,
-          "avg_R": 0.329
-        },
-        "2025-Q2": {
-          "trades": 7,
-          "avg_R": -0.131
-        },
-        "2025-Q3": {
-          "trades": 11,
-          "avg_R": 0.407
-        },
-        "2025-Q4": {
-          "trades": 9,
-          "avg_R": 0.717
-        },
-        "2026-Q1": {
-          "trades": 9,
-          "avg_R": 0.662
-        },
-        "2026-Q2": {
-          "trades": 4,
-          "avg_R": -0.842
-        },
-        "2026-Q3": {
-          "trades": 5,
-          "avg_R": 0.494
-        },
-        "2026-Q4": {
-          "trades": 1,
-          "avg_R": -1.008
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 60,
-          "avg_R": 0.342
-        }
-      },
-      "positive_quarters": "5 of 6",
-      "t_stat": 2.09,
-      "proven": false,
-      "verdict": "Positive overall but not on the newest data: probably luck so far."
+    {
+     "time": "2026-10-21 12:05:00-04:00",
+     "dir": "bear",
+     "entry": 4132.07,
+     "stop": 4142.17,
+     "target": 4116.81,
+     "rr": 1.51,
+     "result": "win",
+     "R": 1.587
     },
-    "trend_tight": {
-      "description": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R",
-      "all": {
-        "trades": 172,
-        "win_rate_pct": 69,
-        "avg_R": 0.293
-      },
-      "older_70pct": {
-        "trades": 121,
-        "win_rate_pct": 68,
-        "avg_R": 0.299
-      },
-      "newest_30pct": {
-        "trades": 51,
-        "win_rate_pct": 71,
-        "avg_R": 0.28
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 11,
-          "avg_R": 0.272
-        },
-        "2025-Q1": {
-          "trades": 17,
-          "avg_R": 0.221
-        },
-        "2025-Q2": {
-          "trades": 24,
-          "avg_R": -0.024
-        },
-        "2025-Q3": {
-          "trades": 18,
-          "avg_R": 0.225
-        },
-        "2025-Q4": {
-          "trades": 24,
-          "avg_R": 0.329
-        },
-        "2026-Q1": {
-          "trades": 29,
-          "avg_R": 0.698
-        },
-        "2026-Q2": {
-          "trades": 21,
-          "avg_R": 0.385
-        },
-        "2026-Q3": {
-          "trades": 22,
-          "avg_R": 0.202
-        },
-        "2026-Q4": {
-          "trades": 6,
-          "avg_R": -0.078
-        }
-      },
-      "by_direction": {
-        "short": {
-          "trades": 67,
-          "avg_R": 0.204
-        },
-        "long": {
-          "trades": 105,
-          "avg_R": 0.35
-        }
-      },
-      "positive_quarters": "7 of 9",
-      "t_stat": 3.59,
-      "proven": true,
-      "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    {
+     "time": "2026-10-21 16:40:00-04:00",
+     "dir": "bull",
+     "entry": 4122.88,
+     "stop": 4122.68,
+     "target": 4123.21,
+     "rr": 1.7,
+     "result": "missed",
+     "R": 0.0
     },
-    "trend_intraday": {
-      "description": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
-      "all": {
-        "trades": 222,
-        "win_rate_pct": 62,
-        "avg_R": 0.129
-      },
-      "older_70pct": {
-        "trades": 162,
-        "win_rate_pct": 60,
-        "avg_R": 0.139
-      },
-      "newest_30pct": {
-        "trades": 60,
-        "win_rate_pct": 65,
-        "avg_R": 0.103
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 17,
-          "avg_R": -0.109
-        },
-        "2025-Q1": {
-          "trades": 31,
-          "avg_R": 0.062
-        },
-        "2025-Q2": {
-          "trades": 26,
-          "avg_R": -0.142
-        },
-        "2025-Q3": {
-          "trades": 29,
-          "avg_R": 0.033
-        },
-        "2025-Q4": {
-          "trades": 30,
-          "avg_R": 0.199
-        },
-        "2026-Q1": {
-          "trades": 32,
-          "avg_R": 0.589
-        },
-        "2026-Q2": {
-          "trades": 25,
-          "avg_R": 0.202
-        },
-        "2026-Q3": {
-          "trades": 26,
-          "avg_R": 0.072
-        },
-        "2026-Q4": {
-          "trades": 6,
-          "avg_R": -0.077
-        }
-      },
-      "by_direction": {
-        "short": {
-          "trades": 78,
-          "avg_R": 0.101
-        },
-        "long": {
-          "trades": 144,
-          "avg_R": 0.144
-        }
-      },
-      "positive_quarters": "6 of 9",
-      "t_stat": 2.1,
-      "proven": true,
-      "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    {
+     "time": "2026-10-21 18:45:00-04:00",
+     "dir": "bear",
+     "entry": 4134.47,
+     "stop": 4142.9,
+     "target": 4121.81,
+     "rr": 1.5,
+     "result": "missed",
+     "R": 0.0
     },
-    "trend_combo": {
-      "description": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
-      "all": {
-        "trades": 148,
-        "win_rate_pct": 68,
-        "avg_R": 0.211
-      },
-      "older_70pct": {
-        "trades": 106,
-        "win_rate_pct": 67,
-        "avg_R": 0.222
-      },
-      "newest_30pct": {
-        "trades": 42,
-        "win_rate_pct": 69,
-        "avg_R": 0.184
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 5,
-          "avg_R": 0.176
-        },
-        "2025-Q1": {
-          "trades": 18,
-          "avg_R": 0.112
-        },
-        "2025-Q2": {
-          "trades": 21,
-          "avg_R": 0.002
-        },
-        "2025-Q3": {
-          "trades": 21,
-          "avg_R": 0.074
-        },
-        "2025-Q4": {
-          "trades": 21,
-          "avg_R": 0.279
-        },
-        "2026-Q1": {
-          "trades": 21,
-          "avg_R": 0.645
-        },
-        "2026-Q2": {
-          "trades": 22,
-          "avg_R": 0.113
-        },
-        "2026-Q3": {
-          "trades": 16,
-          "avg_R": 0.229
-        },
-        "2026-Q4": {
-          "trades": 3,
-          "avg_R": 0.405
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 92,
-          "avg_R": 0.179
-        },
-        "short": {
-          "trades": 56,
-          "avg_R": 0.263
-        }
-      },
-      "positive_quarters": "8 of 8",
-      "t_stat": 2.93,
-      "proven": true,
-      "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    {
+     "time": "2026-10-22 03:45:00-04:00",
+     "dir": "bear",
+     "entry": 4090.74,
+     "stop": 4097.97,
+     "target": 4079.8,
+     "rr": 1.51,
+     "result": "win",
+     "R": 1.457
     },
-    "trend_premium": {
-      "description": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
-      "all": {
-        "trades": 69,
-        "win_rate_pct": 78,
-        "avg_R": 0.495
-      },
-      "older_70pct": {
-        "trades": 46,
-        "win_rate_pct": 76,
-        "avg_R": 0.486
-      },
-      "newest_30pct": {
-        "trades": 23,
-        "win_rate_pct": 83,
-        "avg_R": 0.513
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 2,
-          "avg_R": 0.415
-        },
-        "2025-Q1": {
-          "trades": 6,
-          "avg_R": 0.145
-        },
-        "2025-Q2": {
-          "trades": 7,
-          "avg_R": 0.195
-        },
-        "2025-Q3": {
-          "trades": 9,
-          "avg_R": 0.219
-        },
-        "2025-Q4": {
-          "trades": 7,
-          "avg_R": 0.807
-        },
-        "2026-Q1": {
-          "trades": 16,
-          "avg_R": 0.753
-        },
-        "2026-Q2": {
-          "trades": 10,
-          "avg_R": 0.523
-        },
-        "2026-Q3": {
-          "trades": 9,
-          "avg_R": 0.555
-        },
-        "2026-Q4": {
-          "trades": 3,
-          "avg_R": 0.401
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 39,
-          "avg_R": 0.426
-        },
-        "short": {
-          "trades": 30,
-          "avg_R": 0.585
-        }
-      },
-      "positive_quarters": "7 of 7",
-      "t_stat": 3.99,
-      "proven": true,
-      "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    {
+     "time": "2026-10-23 13:05:00-04:00",
+     "dir": "bear",
+     "entry": 4000.07,
+     "stop": 4007.26,
+     "target": 3989.2,
+     "rr": 1.51,
+     "result": "win",
+     "R": 1.454
     },
-    "breakout_cisd": {
-      "description": "After a 4H breakout: sweep + CISD entry in London/New York, stop beyond the sweep, 3R target",
-      "all": {
-        "trades": 43,
-        "win_rate_pct": 42,
-        "avg_R": 0.646
-      },
-      "older_70pct": {
-        "trades": 36,
-        "win_rate_pct": 42,
-        "avg_R": 0.643
-      },
-      "newest_30pct": {
-        "trades": 7,
-        "win_rate_pct": 43,
-        "avg_R": 0.662
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 8,
-          "avg_R": 1.015
-        },
-        "2025-Q1": {
-          "trades": 6,
-          "avg_R": 0.874
-        },
-        "2025-Q2": {
-          "trades": 3,
-          "avg_R": -1.093
-        },
-        "2025-Q3": {
-          "trades": 5,
-          "avg_R": 1.332
-        },
-        "2025-Q4": {
-          "trades": 8,
-          "avg_R": 0.571
-        },
-        "2026-Q1": {
-          "trades": 6,
-          "avg_R": 0.304
-        },
-        "2026-Q2": {
-          "trades": 2,
-          "avg_R": -1.077
-        },
-        "2026-Q3": {
-          "trades": 3,
-          "avg_R": 1.64
-        },
-        "2026-Q4": {
-          "trades": 2,
-          "avg_R": 0.932
-        }
-      },
-      "by_direction": {
-        "short": {
-          "trades": 9,
-          "avg_R": 0.796
-        },
-        "long": {
-          "trades": 34,
-          "avg_R": 0.606
-        }
-      },
-      "positive_quarters": "5 of 5",
-      "t_stat": 2.13,
-      "proven": false,
-      "verdict": "Positive so far, but only 7 trades in the newest data (10 needed): waiting for more."
+    {
+     "time": "2026-10-25 18:15:00-04:00",
+     "dir": "bull",
+     "entry": 3994.45,
+     "stop": 3987.77,
+     "target": 4004.62,
+     "rr": 1.52,
+     "result": "loss",
+     "R": -1.06
     },
-    "crt_daily": {
-      "description": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
-      "all": {
-        "trades": 128,
-        "win_rate_pct": 43,
-        "avg_R": 0.041
-      },
-      "older_70pct": {
-        "trades": 86,
-        "win_rate_pct": 44,
-        "avg_R": -0.017
-      },
-      "newest_30pct": {
-        "trades": 42,
-        "win_rate_pct": 40,
-        "avg_R": 0.159
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 9,
-          "avg_R": -0.258
-        },
-        "2025-Q1": {
-          "trades": 20,
-          "avg_R": -0.174
-        },
-        "2025-Q2": {
-          "trades": 17,
-          "avg_R": -0.334
-        },
-        "2025-Q3": {
-          "trades": 11,
-          "avg_R": 0.148
-        },
-        "2025-Q4": {
-          "trades": 16,
-          "avg_R": 0.119
-        },
-        "2026-Q1": {
-          "trades": 13,
-          "avg_R": 0.499
-        },
-        "2026-Q2": {
-          "trades": 13,
-          "avg_R": -0.013
-        },
-        "2026-Q3": {
-          "trades": 24,
-          "avg_R": 0.114
-        },
-        "2026-Q4": {
-          "trades": 5,
-          "avg_R": 0.825
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 56,
-          "avg_R": -0.125
-        },
-        "short": {
-          "trades": 72,
-          "avg_R": 0.17
-        }
-      },
-      "positive_quarters": "5 of 9",
-      "t_stat": 0.3,
-      "proven": false,
-      "verdict": "No edge: +0.04R per trade after costs."
+    {
+     "time": "2026-10-26 03:30:00-04:00",
+     "dir": "bull",
+     "entry": 4004.25,
+     "stop": 4002.37,
+     "target": 4007.07,
+     "rr": 1.5,
+     "result": "missed",
+     "R": 0.0
     },
-    "vp_shape": {
-      "description": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
-      "all": {
-        "trades": 237,
-        "win_rate_pct": 49,
-        "avg_R": 0.144
-      },
-      "older_70pct": {
-        "trades": 166,
-        "win_rate_pct": 48,
-        "avg_R": 0.126
-      },
-      "newest_30pct": {
-        "trades": 71,
-        "win_rate_pct": 49,
-        "avg_R": 0.186
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 23,
-          "avg_R": 0.354
-        },
-        "2025-Q1": {
-          "trades": 35,
-          "avg_R": 0.346
-        },
-        "2025-Q2": {
-          "trades": 26,
-          "avg_R": 0.082
-        },
-        "2025-Q3": {
-          "trades": 36,
-          "avg_R": -0.102
-        },
-        "2025-Q4": {
-          "trades": 30,
-          "avg_R": 0.044
-        },
-        "2026-Q1": {
-          "trades": 16,
-          "avg_R": 0.051
-        },
-        "2026-Q2": {
-          "trades": 24,
-          "avg_R": 0.27
-        },
-        "2026-Q3": {
-          "trades": 30,
-          "avg_R": 0.126
-        },
-        "2026-Q4": {
-          "trades": 17,
-          "avg_R": 0.172
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 127,
-          "avg_R": 0.112
-        },
-        "short": {
-          "trades": 110,
-          "avg_R": 0.18
-        }
-      },
-      "positive_quarters": "8 of 9",
-      "t_stat": 1.81,
-      "proven": false,
-      "verdict": "Positive (+0.14R) but not statistically clear yet (t=1.8, need 2): could still be luck."
+    {
+     "time": "2026-10-26 10:35:00-04:00",
+     "dir": "bull",
+     "entry": 4008.81,
+     "stop": 4007.7,
+     "target": 4010.49,
+     "rr": 1.52,
+     "result": "missed",
+     "R": 0.0
     },
-    "vp_late": {
-      "description": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
-      "all": {
-        "trades": 85,
-        "win_rate_pct": 41,
-        "avg_R": -0.051
-      },
-      "older_70pct": {
-        "trades": 67,
-        "win_rate_pct": 42,
-        "avg_R": -0.031
-      },
-      "newest_30pct": {
-        "trades": 18,
-        "win_rate_pct": 39,
-        "avg_R": -0.128
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 2,
-          "avg_R": 0.2
-        },
-        "2025-Q1": {
-          "trades": 13,
-          "avg_R": -0.212
-        },
-        "2025-Q2": {
-          "trades": 16,
-          "avg_R": 0.723
-        },
-        "2025-Q3": {
-          "trades": 12,
-          "avg_R": 0.018
-        },
-        "2025-Q4": {
-          "trades": 11,
-          "avg_R": 0.055
-        },
-        "2026-Q1": {
-          "trades": 13,
-          "avg_R": -0.931
-        },
-        "2026-Q2": {
-          "trades": 7,
-          "avg_R": -0.338
-        },
-        "2026-Q3": {
-          "trades": 7,
-          "avg_R": -0.107
-        },
-        "2026-Q4": {
-          "trades": 4,
-          "avg_R": 0.202
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 62,
-          "avg_R": 0.026
-        },
-        "short": {
-          "trades": 23,
-          "avg_R": -0.259
-        }
-      },
-      "positive_quarters": "3 of 7",
-      "t_stat": -0.41,
-      "proven": false,
-      "verdict": "No edge: -0.05R per trade after costs."
+    {
+     "time": "2026-10-26 14:30:00-04:00",
+     "dir": "bear",
+     "entry": 4018.14,
+     "stop": 4027.49,
+     "target": 4004.07,
+     "rr": 1.51,
+     "result": "expired",
+     "R": 0.0
     },
-    "london_trend": {
-      "description": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
-      "all": {
-        "trades": 31,
-        "win_rate_pct": 55,
-        "avg_R": 0.499
-      },
-      "older_70pct": {
-        "trades": 24,
-        "win_rate_pct": 50,
-        "avg_R": 0.356
-      },
-      "newest_30pct": {
-        "trades": 7,
-        "win_rate_pct": 71,
-        "avg_R": 0.991
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 1,
-          "avg_R": 1.959
-        },
-        "2025-Q1": {
-          "trades": 10,
-          "avg_R": 0.348
-        },
-        "2025-Q2": {
-          "trades": 4,
-          "avg_R": 0.437
-        },
-        "2025-Q3": {
-          "trades": 5,
-          "avg_R": -0.114
-        },
-        "2025-Q4": {
-          "trades": 4,
-          "avg_R": 0.479
-        },
-        "2026-Q2": {
-          "trades": 4,
-          "avg_R": 0.999
-        },
-        "2026-Q3": {
-          "trades": 1,
-          "avg_R": 1.982
-        },
-        "2026-Q4": {
-          "trades": 2,
-          "avg_R": 0.479
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 24,
-          "avg_R": 0.232
-        },
-        "short": {
-          "trades": 7,
-          "avg_R": 1.416
-        }
-      },
-      "positive_quarters": "1 of 2",
-      "t_stat": 2.06,
-      "proven": false,
-      "verdict": "Positive so far, but only 7 trades in the newest data (10 needed): waiting for more."
+    {
+     "time": "2026-10-26 21:20:00-04:00",
+     "dir": "bear",
+     "entry": 4014.27,
+     "stop": 4021.1,
+     "target": 4004.0,
+     "rr": 1.5,
+     "result": "missed",
+     "R": 0.0
     },
-    "range_extreme": {
-      "description": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
-      "all": {
-        "trades": 57,
-        "win_rate_pct": 47,
-        "avg_R": 0.298
-      },
-      "older_70pct": {
-        "trades": 39,
-        "win_rate_pct": 46,
-        "avg_R": 0.325
-      },
-      "newest_30pct": {
-        "trades": 18,
-        "win_rate_pct": 50,
-        "avg_R": 0.24
-      },
-      "quarters": {
-        "2024-Q4": {
-          "trades": 3,
-          "avg_R": -0.021
-        },
-        "2025-Q1": {
-          "trades": 8,
-          "avg_R": 0.493
-        },
-        "2025-Q2": {
-          "trades": 9,
-          "avg_R": 0.287
-        },
-        "2025-Q3": {
-          "trades": 8,
-          "avg_R": 1.184
-        },
-        "2025-Q4": {
-          "trades": 4,
-          "avg_R": -0.384
-        },
-        "2026-Q1": {
-          "trades": 7,
-          "avg_R": -0.249
-        },
-        "2026-Q2": {
-          "trades": 5,
-          "avg_R": 0.697
-        },
-        "2026-Q3": {
-          "trades": 12,
-          "avg_R": 0.155
-        },
-        "2026-Q4": {
-          "trades": 1,
-          "avg_R": -1.026
-        }
-      },
-      "by_direction": {
-        "short": {
-          "trades": 20,
-          "avg_R": -0.317
-        },
-        "long": {
-          "trades": 37,
-          "avg_R": 0.63
-        }
-      },
-      "positive_quarters": "5 of 6",
-      "t_stat": 1.3,
-      "proven": false,
-      "verdict": "Positive (+0.30R) but not statistically clear yet (t=1.3, need 2): could still be luck."
+    {
+     "time": "2026-10-27 13:55:00-04:00",
+     "dir": "bear",
+     "entry": 4060.95,
+     "stop": 4065.83,
+     "target": 4053.61,
+     "rr": 1.51,
+     "result": "loss",
+     "R": -1.082
+    },
+    {
+     "time": "2026-10-28 12:50:00-04:00",
+     "dir": "bull",
+     "entry": 4040.19,
+     "stop": 4033.88,
+     "target": 4049.76,
+     "rr": 1.51,
+     "result": "loss",
+     "R": -1.063
+    },
+    {
+     "time": "2026-10-29 01:00:00-04:00",
+     "dir": "bull",
+     "entry": 4038.23,
+     "stop": 4034.74,
+     "target": 4043.49,
+     "rr": 1.51,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-29 07:50:00-04:00",
+     "dir": "bear",
+     "entry": 4027.44,
+     "stop": 4038.86,
+     "target": 4010.22,
+     "rr": 1.51,
+     "result": "win",
+     "R": 1.472
+    },
+    {
+     "time": "2026-11-01 19:00:00-05:00",
+     "dir": "bull",
+     "entry": 3898.87,
+     "stop": 3867.21,
+     "target": 3946.43,
+     "rr": 1.5,
+     "result": "timed out",
+     "R": 0.248
+    },
+    {
+     "time": "2026-11-02 08:25:00-05:00",
+     "dir": "bull",
+     "entry": 3898.67,
+     "stop": 3894.79,
+     "target": 3905.16,
+     "rr": 1.67,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-11-03 07:15:00-05:00",
+     "dir": "bull",
+     "entry": 3900.48,
+     "stop": 3894.31,
+     "target": 3909.9,
+     "rr": 1.52,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-11-03 10:00:00-05:00",
+     "dir": "bear",
+     "entry": 3958.04,
+     "stop": 3969.45,
+     "target": 3940.8,
+     "rr": 1.51,
+     "result": "missed",
+     "R": 0.0
     }
+   ],
+   "proven": false
   },
-  "alert_mode": "watch"
+  "v2": {
+   "summary": {
+    "alerts": 1457,
+    "filled": 319,
+    "fill_rate_pct": 22,
+    "missed": 339,
+    "expired": 20,
+    "win_rate_pct": 24,
+    "avg_R": -0.188,
+    "total_R": -60.06,
+    "profit_factor": 0.75,
+    "max_drawdown_R": 71.03
+   },
+   "factors": {
+    "direction": {
+     "bear": {
+      "n": 165,
+      "win_rate_pct": 24,
+      "avg_R": -0.161
+     },
+     "bull": {
+      "n": 154,
+      "win_rate_pct": 23,
+      "avg_R": -0.217
+     }
+    },
+    "1H bias": {
+     "against": {
+      "n": 169,
+      "win_rate_pct": 24,
+      "avg_R": -0.196
+     },
+     "agrees": {
+      "n": 150,
+      "win_rate_pct": 24,
+      "avg_R": -0.18
+     }
+    },
+    "session": {
+     "Asia": {
+      "n": 114,
+      "win_rate_pct": 24,
+      "avg_R": -0.155
+     },
+     "London": {
+      "n": 39,
+      "win_rate_pct": 18,
+      "avg_R": -0.307
+     },
+     "New York": {
+      "n": 57,
+      "win_rate_pct": 25,
+      "avg_R": -0.236
+     },
+     "Off-hours": {
+      "n": 109,
+      "win_rate_pct": 26,
+      "avg_R": -0.156
+     }
+    },
+    "displacement": {
+     "no": {
+      "n": 208,
+      "win_rate_pct": 25,
+      "avg_R": -0.152
+     },
+     "yes": {
+      "n": 111,
+      "win_rate_pct": 21,
+      "avg_R": -0.257
+     }
+    },
+    "zone": {
+     "FVG": {
+      "n": 45,
+      "win_rate_pct": 22,
+      "avg_R": -0.147
+     },
+     "OB": {
+      "n": 274,
+      "win_rate_pct": 24,
+      "avg_R": -0.195
+     }
+    },
+    "swept level": {
+     "15m swing": {
+      "n": 224,
+      "win_rate_pct": 25,
+      "avg_R": -0.15
+     },
+     "1H swing": {
+      "n": 31,
+      "win_rate_pct": 16,
+      "avg_R": -0.37
+     },
+     "prior day / session": {
+      "n": 64,
+      "win_rate_pct": 23,
+      "avg_R": -0.234
+     }
+    },
+    "VWAP side": {
+     "against": {
+      "n": 146,
+      "win_rate_pct": 21,
+      "avg_R": -0.252
+     },
+     "agrees": {
+      "n": 173,
+      "win_rate_pct": 26,
+      "avg_R": -0.134
+     }
+    },
+    "stop size": {
+     "normal (1.5-3 ATR)": {
+      "n": 228,
+      "win_rate_pct": 23,
+      "avg_R": -0.274
+     },
+     "tight (<1.5 ATR)": {
+      "n": 91,
+      "win_rate_pct": 25,
+      "avg_R": 0.027
+     }
+    },
+    "R:R": {
+     "1.5-2": {
+      "n": 137,
+      "win_rate_pct": 26,
+      "avg_R": -0.3
+     },
+     "2-3": {
+      "n": 102,
+      "win_rate_pct": 20,
+      "avg_R": -0.288
+     },
+     "3+": {
+      "n": 80,
+      "win_rate_pct": 25,
+      "avg_R": 0.13
+     }
+    }
+   },
+   "best_filter": {
+    "filter": {
+     "stop size": "tight (<1.5 ATR)",
+     "zone": "FVG"
+    },
+    "train_trades": 13,
+    "train_avg_R": 0.889,
+    "test_trades": 4,
+    "test_avg_R": 0.108,
+    "test_win_rate_pct": 25
+   },
+   "verdict": "Losing after costs (-0.19R per trade over 319 trades): do not promote these alerts as an edge. The best filter on older data ({'stop size': 'tight (<1.5 ATR)', 'zone': 'FVG'}) has only 4 trades in the newer data: too few to confirm.",
+   "recent": [
+    {
+     "time": "2026-10-19 11:25:00-04:00",
+     "dir": "bull",
+     "entry": 4145.09,
+     "stop": 4142.04,
+     "target": 4150.2,
+     "rr": 1.68,
+     "result": "loss",
+     "R": -0.517
+    },
+    {
+     "time": "2026-10-19 14:00:00-04:00",
+     "dir": "bull",
+     "entry": 4145.14,
+     "stop": 4141.11,
+     "target": 4155.07,
+     "rr": 2.47,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-19 15:20:00-04:00",
+     "dir": "bear",
+     "entry": 4143.78,
+     "stop": 4149.95,
+     "target": 4130.1,
+     "rr": 2.22,
+     "result": "win",
+     "R": 2.155
+    },
+    {
+     "time": "2026-10-20 23:25:00-04:00",
+     "dir": "bull",
+     "entry": 4117.14,
+     "stop": 4111.7,
+     "target": 4131.6,
+     "rr": 2.66,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-20 23:55:00-04:00",
+     "dir": "bear",
+     "entry": 4121.45,
+     "stop": 4126.67,
+     "target": 4112.79,
+     "rr": 1.66,
+     "result": "loss",
+     "R": -0.819
+    },
+    {
+     "time": "2026-10-21 03:20:00-04:00",
+     "dir": "bull",
+     "entry": 4114.77,
+     "stop": 4111.36,
+     "target": 4129.31,
+     "rr": 4.26,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-21 05:55:00-04:00",
+     "dir": "bear",
+     "entry": 4121.83,
+     "stop": 4126.62,
+     "target": 4110.6,
+     "rr": 2.34,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-21 12:05:00-04:00",
+     "dir": "bear",
+     "entry": 4132.07,
+     "stop": 4142.17,
+     "target": 4111.51,
+     "rr": 2.04,
+     "result": "win",
+     "R": 2.113
+    },
+    {
+     "time": "2026-10-21 16:40:00-04:00",
+     "dir": "bull",
+     "entry": 4122.88,
+     "stop": 4122.68,
+     "target": 4141.03,
+     "rr": 92.82,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-21 18:45:00-04:00",
+     "dir": "bear",
+     "entry": 4134.47,
+     "stop": 4142.9,
+     "target": 4104.61,
+     "rr": 3.54,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-22 03:45:00-04:00",
+     "dir": "bear",
+     "entry": 4090.74,
+     "stop": 4097.97,
+     "target": 4066.57,
+     "rr": 3.34,
+     "result": "win",
+     "R": 3.284
+    },
+    {
+     "time": "2026-10-23 13:05:00-04:00",
+     "dir": "bear",
+     "entry": 4000.07,
+     "stop": 4007.26,
+     "target": 3975.33,
+     "rr": 3.44,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-25 18:00:00-04:00",
+     "dir": "bull",
+     "entry": 3996.14,
+     "stop": 3992.18,
+     "target": 4006.32,
+     "rr": 2.57,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-25 19:50:00-04:00",
+     "dir": "bear",
+     "entry": 4001.22,
+     "stop": 4003.55,
+     "target": 3988.93,
+     "rr": 5.29,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-26 03:30:00-04:00",
+     "dir": "bull",
+     "entry": 4004.25,
+     "stop": 4002.37,
+     "target": 4015.12,
+     "rr": 5.78,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-26 10:35:00-04:00",
+     "dir": "bull",
+     "entry": 4008.81,
+     "stop": 4007.7,
+     "target": 4021.47,
+     "rr": 11.43,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-26 21:20:00-04:00",
+     "dir": "bear",
+     "entry": 4014.27,
+     "stop": 4021.1,
+     "target": 4003.88,
+     "rr": 1.52,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-27 13:55:00-04:00",
+     "dir": "bear",
+     "entry": 4060.95,
+     "stop": 4065.83,
+     "target": 4032.18,
+     "rr": 5.91,
+     "result": "skipped: price already ran",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-27 14:55:00-04:00",
+     "dir": "bull",
+     "entry": 4055.71,
+     "stop": 4054.88,
+     "target": 4058.99,
+     "rr": 3.98,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-28 12:50:00-04:00",
+     "dir": "bull",
+     "entry": 4040.19,
+     "stop": 4033.88,
+     "target": 4051.76,
+     "rr": 1.83,
+     "result": "loss",
+     "R": -1.063
+    },
+    {
+     "time": "2026-10-29 01:00:00-04:00",
+     "dir": "bull",
+     "entry": 4038.23,
+     "stop": 4034.74,
+     "target": 4044.26,
+     "rr": 1.73,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-10-29 07:50:00-04:00",
+     "dir": "bear",
+     "entry": 4027.44,
+     "stop": 4038.86,
+     "target": 4008.22,
+     "rr": 1.68,
+     "result": "win",
+     "R": 1.648
+    },
+    {
+     "time": "2026-11-02 08:25:00-05:00",
+     "dir": "bull",
+     "entry": 3898.67,
+     "stop": 3894.79,
+     "target": 3909.9,
+     "rr": 2.89,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-11-03 07:15:00-05:00",
+     "dir": "bull",
+     "entry": 3900.48,
+     "stop": 3894.31,
+     "target": 3913.11,
+     "rr": 2.05,
+     "result": "missed",
+     "R": 0.0
+    },
+    {
+     "time": "2026-11-03 10:00:00-05:00",
+     "dir": "bear",
+     "entry": 3958.04,
+     "stop": 3969.45,
+     "target": 3929.76,
+     "rr": 2.48,
+     "result": "missed",
+     "R": 0.0
+    }
+   ],
+   "proven": false
+  }
+ },
+ "models": {
+  "sweep_htf": {
+   "description": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",
+   "all": {
+    "trades": 264,
+    "win_rate_pct": 43,
+    "avg_R": 0.017
+   },
+   "older_70pct": {
+    "trades": 181,
+    "win_rate_pct": 43,
+    "avg_R": 0.003
+   },
+   "newest_30pct": {
+    "trades": 83,
+    "win_rate_pct": 43,
+    "avg_R": 0.048
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 8,
+     "avg_R": -0.504
+    },
+    "2025-Q1": {
+     "trades": 34,
+     "avg_R": 0.26
+    },
+    "2025-Q2": {
+     "trades": 31,
+     "avg_R": -0.345
+    },
+    "2025-Q3": {
+     "trades": 25,
+     "avg_R": 0.293
+    },
+    "2025-Q4": {
+     "trades": 38,
+     "avg_R": -0.064
+    },
+    "2026-Q1": {
+     "trades": 45,
+     "avg_R": 0.034
+    },
+    "2026-Q2": {
+     "trades": 46,
+     "avg_R": 0.21
+    },
+    "2026-Q3": {
+     "trades": 26,
+     "avg_R": -0.251
+    },
+    "2026-Q4": {
+     "trades": 11,
+     "avg_R": 0.079
+    }
+   },
+   "positive_quarters": "5 of 9",
+   "t_stat": 0.23,
+   "proven": false,
+   "verdict": "No edge: +0.02R per trade after costs."
+  },
+  "value_80": {
+   "description": "Volume profile 80% rule: back inside yesterday's value, target the far edge",
+   "all": {
+    "trades": 125,
+    "win_rate_pct": 36,
+    "avg_R": 0.104
+   },
+   "older_70pct": {
+    "trades": 81,
+    "win_rate_pct": 36,
+    "avg_R": -0.045
+   },
+   "newest_30pct": {
+    "trades": 44,
+    "win_rate_pct": 36,
+    "avg_R": 0.379
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 11,
+     "avg_R": -0.468
+    },
+    "2025-Q1": {
+     "trades": 13,
+     "avg_R": 0.865
+    },
+    "2025-Q2": {
+     "trades": 17,
+     "avg_R": 0.016
+    },
+    "2025-Q3": {
+     "trades": 17,
+     "avg_R": -0.621
+    },
+    "2025-Q4": {
+     "trades": 12,
+     "avg_R": -0.156
+    },
+    "2026-Q1": {
+     "trades": 11,
+     "avg_R": 0.218
+    },
+    "2026-Q2": {
+     "trades": 18,
+     "avg_R": 1.265
+    },
+    "2026-Q3": {
+     "trades": 17,
+     "avg_R": -0.41
+    },
+    "2026-Q4": {
+     "trades": 9,
+     "avg_R": 0.096
+    }
+   },
+   "positive_quarters": "5 of 9",
+   "t_stat": 0.4,
+   "proven": false,
+   "verdict": "Positive (+0.10R) but not statistically clear yet (t=0.4, need 2): could still be luck."
+  },
+  "acceptance": {
+   "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation",
+   "all": {
+    "trades": 304,
+    "win_rate_pct": 40,
+    "avg_R": 0.037
+   },
+   "older_70pct": {
+    "trades": 211,
+    "win_rate_pct": 41,
+    "avg_R": 0.085
+   },
+   "newest_30pct": {
+    "trades": 93,
+    "win_rate_pct": 39,
+    "avg_R": -0.072
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 22,
+     "avg_R": -0.147
+    },
+    "2025-Q1": {
+     "trades": 36,
+     "avg_R": -0.031
+    },
+    "2025-Q2": {
+     "trades": 37,
+     "avg_R": -0.252
+    },
+    "2025-Q3": {
+     "trades": 41,
+     "avg_R": 0.425
+    },
+    "2025-Q4": {
+     "trades": 39,
+     "avg_R": 0.18
+    },
+    "2026-Q1": {
+     "trades": 36,
+     "avg_R": 0.197
+    },
+    "2026-Q2": {
+     "trades": 38,
+     "avg_R": -0.017
+    },
+    "2026-Q3": {
+     "trades": 42,
+     "avg_R": 0.153
+    },
+    "2026-Q4": {
+     "trades": 13,
+     "avg_R": -0.962
+    }
+   },
+   "positive_quarters": "4 of 9",
+   "t_stat": 0.34,
+   "proven": false,
+   "verdict": "No edge: +0.04R per trade after costs."
+  },
+  "london_breakout": {
+   "description": "London breakout of the Asia range, stop at the range middle, 1.5R target",
+   "all": {
+    "trades": 68,
+    "win_rate_pct": 51,
+    "avg_R": 0.027
+   },
+   "older_70pct": {
+    "trades": 44,
+    "win_rate_pct": 52,
+    "avg_R": 0.04
+   },
+   "newest_30pct": {
+    "trades": 24,
+    "win_rate_pct": 50,
+    "avg_R": 0.004
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 7,
+     "avg_R": 0.029
+    },
+    "2025-Q1": {
+     "trades": 12,
+     "avg_R": 0.226
+    },
+    "2025-Q2": {
+     "trades": 5,
+     "avg_R": -0.168
+    },
+    "2025-Q3": {
+     "trades": 14,
+     "avg_R": 0.172
+    },
+    "2025-Q4": {
+     "trades": 5,
+     "avg_R": -0.435
+    },
+    "2026-Q1": {
+     "trades": 1,
+     "avg_R": -0.545
+    },
+    "2026-Q2": {
+     "trades": 7,
+     "avg_R": 0.059
+    },
+    "2026-Q3": {
+     "trades": 15,
+     "avg_R": 0.014
+    },
+    "2026-Q4": {
+     "trades": 2,
+     "avg_R": -0.264
+    }
+   },
+   "positive_quarters": "5 of 7",
+   "t_stat": 0.26,
+   "proven": false,
+   "verdict": "No edge: +0.03R per trade after costs."
+  },
+  "ny_breakout": {
+   "description": "New York breakout of the 08:00-08:30 range, stop at the range middle, 1.5R target",
+   "all": {
+    "trades": 448,
+    "win_rate_pct": 46,
+    "avg_R": 0.023
+   },
+   "older_70pct": {
+    "trades": 325,
+    "win_rate_pct": 49,
+    "avg_R": 0.083
+   },
+   "newest_30pct": {
+    "trades": 123,
+    "win_rate_pct": 38,
+    "avg_R": -0.135
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 36,
+     "avg_R": 0.284
+    },
+    "2025-Q1": {
+     "trades": 57,
+     "avg_R": 0.055
+    },
+    "2025-Q2": {
+     "trades": 57,
+     "avg_R": -0.073
+    },
+    "2025-Q3": {
+     "trades": 59,
+     "avg_R": 0.042
+    },
+    "2025-Q4": {
+     "trades": 57,
+     "avg_R": 0.156
+    },
+    "2026-Q1": {
+     "trades": 60,
+     "avg_R": 0.133
+    },
+    "2026-Q2": {
+     "trades": 53,
+     "avg_R": -0.068
+    },
+    "2026-Q3": {
+     "trades": 49,
+     "avg_R": -0.087
+    },
+    "2026-Q4": {
+     "trades": 20,
+     "avg_R": -0.511
+    }
+   },
+   "positive_quarters": "5 of 9",
+   "t_stat": 0.42,
+   "proven": false,
+   "verdict": "No edge: +0.02R per trade after costs."
+  },
+  "trend_pullback": {
+   "description": "Daily and 4H trend agree, pullback to VWAP in London or New York, 2R target",
+   "all": {
+    "trades": 292,
+    "win_rate_pct": 30,
+    "avg_R": -0.196
+   },
+   "older_70pct": {
+    "trades": 209,
+    "win_rate_pct": 29,
+    "avg_R": -0.245
+   },
+   "newest_30pct": {
+    "trades": 83,
+    "win_rate_pct": 33,
+    "avg_R": -0.073
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 3,
+     "avg_R": -0.172
+    },
+    "2025-Q1": {
+     "trades": 50,
+     "avg_R": -0.27
+    },
+    "2025-Q2": {
+     "trades": 33,
+     "avg_R": -0.455
+    },
+    "2025-Q3": {
+     "trades": 34,
+     "avg_R": -0.413
+    },
+    "2025-Q4": {
+     "trades": 41,
+     "avg_R": 0.207
+    },
+    "2026-Q1": {
+     "trades": 48,
+     "avg_R": -0.346
+    },
+    "2026-Q2": {
+     "trades": 35,
+     "avg_R": -0.279
+    },
+    "2026-Q3": {
+     "trades": 28,
+     "avg_R": 0.317
+    },
+    "2026-Q4": {
+     "trades": 20,
+     "avg_R": -0.258
+    }
+   },
+   "positive_quarters": "2 of 8",
+   "t_stat": -2.48,
+   "proven": false,
+   "verdict": "No edge: -0.20R per trade after costs."
+  },
+  "vwap_fade": {
+   "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
+   "all": {
+    "trades": 613,
+    "win_rate_pct": 31,
+    "avg_R": -0.144
+   },
+   "older_70pct": {
+    "trades": 422,
+    "win_rate_pct": 32,
+    "avg_R": -0.197
+   },
+   "newest_30pct": {
+    "trades": 191,
+    "win_rate_pct": 29,
+    "avg_R": -0.027
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 65,
+     "avg_R": -0.115
+    },
+    "2025-Q1": {
+     "trades": 84,
+     "avg_R": -0.237
+    },
+    "2025-Q2": {
+     "trades": 74,
+     "avg_R": 0.041
+    },
+    "2025-Q3": {
+     "trades": 89,
+     "avg_R": -0.213
+    },
+    "2025-Q4": {
+     "trades": 62,
+     "avg_R": -0.563
+    },
+    "2026-Q1": {
+     "trades": 48,
+     "avg_R": -0.099
+    },
+    "2026-Q2": {
+     "trades": 82,
+     "avg_R": 0.129
+    },
+    "2026-Q3": {
+     "trades": 85,
+     "avg_R": -0.289
+    },
+    "2026-Q4": {
+     "trades": 24,
+     "avg_R": 0.37
+    }
+   },
+   "positive_quarters": "3 of 9",
+   "t_stat": -1.5,
+   "proven": false,
+   "verdict": "No edge: -0.14R per trade after costs."
+  },
+  "trend_breakout": {
+   "description": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target",
+   "all": {
+    "trades": 92,
+    "win_rate_pct": 43,
+    "avg_R": 0.356
+   },
+   "older_70pct": {
+    "trades": 66,
+    "win_rate_pct": 44,
+    "avg_R": 0.489
+   },
+   "newest_30pct": {
+    "trades": 26,
+    "win_rate_pct": 42,
+    "avg_R": 0.018
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 6,
+     "avg_R": 0.411
+    },
+    "2025-Q1": {
+     "trades": 12,
+     "avg_R": 0.512
+    },
+    "2025-Q2": {
+     "trades": 13,
+     "avg_R": -0.516
+    },
+    "2025-Q3": {
+     "trades": 12,
+     "avg_R": 0.494
+    },
+    "2025-Q4": {
+     "trades": 11,
+     "avg_R": 0.999
+    },
+    "2026-Q1": {
+     "trades": 12,
+     "avg_R": 1.123
+    },
+    "2026-Q2": {
+     "trades": 10,
+     "avg_R": 0.122
+    },
+    "2026-Q3": {
+     "trades": 12,
+     "avg_R": 0.055
+    },
+    "2026-Q4": {
+     "trades": 4,
+     "avg_R": -0.355
+    }
+   },
+   "by_direction": {
+    "short": {
+     "trades": 36,
+     "avg_R": -0.097
+    },
+    "long": {
+     "trades": 56,
+     "avg_R": 0.647
+    }
+   },
+   "positive_quarters": "7 of 8",
+   "t_stat": 2.11,
+   "proven": true,
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "trend_buy": {
+   "description": "4H trend following, BUY only: half profit at 1R with the stop moved to entry, rest to 3R",
+   "all": {
+    "trades": 60,
+    "win_rate_pct": 60,
+    "avg_R": 0.342
+   },
+   "older_70pct": {
+    "trades": 50,
+    "win_rate_pct": 64,
+    "avg_R": 0.448
+   },
+   "newest_30pct": {
+    "trades": 10,
+    "win_rate_pct": 40,
+    "avg_R": -0.19
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 2,
+     "avg_R": 1.236
+    },
+    "2025-Q1": {
+     "trades": 12,
+     "avg_R": 0.329
+    },
+    "2025-Q2": {
+     "trades": 7,
+     "avg_R": -0.131
+    },
+    "2025-Q3": {
+     "trades": 11,
+     "avg_R": 0.407
+    },
+    "2025-Q4": {
+     "trades": 9,
+     "avg_R": 0.717
+    },
+    "2026-Q1": {
+     "trades": 9,
+     "avg_R": 0.662
+    },
+    "2026-Q2": {
+     "trades": 4,
+     "avg_R": -0.842
+    },
+    "2026-Q3": {
+     "trades": 5,
+     "avg_R": 0.494
+    },
+    "2026-Q4": {
+     "trades": 1,
+     "avg_R": -1.008
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 60,
+     "avg_R": 0.342
+    }
+   },
+   "positive_quarters": "5 of 6",
+   "t_stat": 2.09,
+   "proven": false,
+   "verdict": "Positive overall but not on the newest data: probably luck so far."
+  },
+  "trend_tight": {
+   "description": "4H trend following with a tight 0.65% stop: half profit at 0.75R with the stop moved to entry, rest to 3R",
+   "all": {
+    "trades": 172,
+    "win_rate_pct": 69,
+    "avg_R": 0.293
+   },
+   "older_70pct": {
+    "trades": 121,
+    "win_rate_pct": 68,
+    "avg_R": 0.299
+   },
+   "newest_30pct": {
+    "trades": 51,
+    "win_rate_pct": 71,
+    "avg_R": 0.28
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 11,
+     "avg_R": 0.272
+    },
+    "2025-Q1": {
+     "trades": 17,
+     "avg_R": 0.221
+    },
+    "2025-Q2": {
+     "trades": 24,
+     "avg_R": -0.024
+    },
+    "2025-Q3": {
+     "trades": 18,
+     "avg_R": 0.225
+    },
+    "2025-Q4": {
+     "trades": 24,
+     "avg_R": 0.329
+    },
+    "2026-Q1": {
+     "trades": 29,
+     "avg_R": 0.698
+    },
+    "2026-Q2": {
+     "trades": 21,
+     "avg_R": 0.385
+    },
+    "2026-Q3": {
+     "trades": 22,
+     "avg_R": 0.202
+    },
+    "2026-Q4": {
+     "trades": 6,
+     "avg_R": -0.078
+    }
+   },
+   "by_direction": {
+    "short": {
+     "trades": 67,
+     "avg_R": 0.204
+    },
+    "long": {
+     "trades": 105,
+     "avg_R": 0.35
+    }
+   },
+   "positive_quarters": "7 of 9",
+   "t_stat": 3.59,
+   "proven": true,
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "trend_intraday": {
+   "description": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
+   "all": {
+    "trades": 222,
+    "win_rate_pct": 62,
+    "avg_R": 0.129
+   },
+   "older_70pct": {
+    "trades": 162,
+    "win_rate_pct": 60,
+    "avg_R": 0.139
+   },
+   "newest_30pct": {
+    "trades": 60,
+    "win_rate_pct": 65,
+    "avg_R": 0.103
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 17,
+     "avg_R": -0.109
+    },
+    "2025-Q1": {
+     "trades": 31,
+     "avg_R": 0.062
+    },
+    "2025-Q2": {
+     "trades": 26,
+     "avg_R": -0.142
+    },
+    "2025-Q3": {
+     "trades": 29,
+     "avg_R": 0.033
+    },
+    "2025-Q4": {
+     "trades": 30,
+     "avg_R": 0.199
+    },
+    "2026-Q1": {
+     "trades": 32,
+     "avg_R": 0.589
+    },
+    "2026-Q2": {
+     "trades": 25,
+     "avg_R": 0.202
+    },
+    "2026-Q3": {
+     "trades": 26,
+     "avg_R": 0.072
+    },
+    "2026-Q4": {
+     "trades": 6,
+     "avg_R": -0.077
+    }
+   },
+   "by_direction": {
+    "short": {
+     "trades": 78,
+     "avg_R": 0.101
+    },
+    "long": {
+     "trades": 144,
+     "avg_R": 0.144
+    }
+   },
+   "positive_quarters": "6 of 9",
+   "t_stat": 2.1,
+   "proven": true,
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "trend_combo": {
+   "description": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
+   "all": {
+    "trades": 148,
+    "win_rate_pct": 68,
+    "avg_R": 0.211
+   },
+   "older_70pct": {
+    "trades": 106,
+    "win_rate_pct": 67,
+    "avg_R": 0.222
+   },
+   "newest_30pct": {
+    "trades": 42,
+    "win_rate_pct": 69,
+    "avg_R": 0.184
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 5,
+     "avg_R": 0.176
+    },
+    "2025-Q1": {
+     "trades": 18,
+     "avg_R": 0.112
+    },
+    "2025-Q2": {
+     "trades": 21,
+     "avg_R": 0.002
+    },
+    "2025-Q3": {
+     "trades": 21,
+     "avg_R": 0.074
+    },
+    "2025-Q4": {
+     "trades": 21,
+     "avg_R": 0.279
+    },
+    "2026-Q1": {
+     "trades": 21,
+     "avg_R": 0.645
+    },
+    "2026-Q2": {
+     "trades": 22,
+     "avg_R": 0.113
+    },
+    "2026-Q3": {
+     "trades": 16,
+     "avg_R": 0.229
+    },
+    "2026-Q4": {
+     "trades": 3,
+     "avg_R": 0.405
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 92,
+     "avg_R": 0.179
+    },
+    "short": {
+     "trades": 56,
+     "avg_R": 0.263
+    }
+   },
+   "positive_quarters": "8 of 8",
+   "t_stat": 2.93,
+   "proven": true,
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "trend_premium": {
+   "description": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
+   "all": {
+    "trades": 69,
+    "win_rate_pct": 78,
+    "avg_R": 0.495
+   },
+   "older_70pct": {
+    "trades": 46,
+    "win_rate_pct": 76,
+    "avg_R": 0.486
+   },
+   "newest_30pct": {
+    "trades": 23,
+    "win_rate_pct": 83,
+    "avg_R": 0.513
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 2,
+     "avg_R": 0.415
+    },
+    "2025-Q1": {
+     "trades": 6,
+     "avg_R": 0.145
+    },
+    "2025-Q2": {
+     "trades": 7,
+     "avg_R": 0.195
+    },
+    "2025-Q3": {
+     "trades": 9,
+     "avg_R": 0.219
+    },
+    "2025-Q4": {
+     "trades": 7,
+     "avg_R": 0.807
+    },
+    "2026-Q1": {
+     "trades": 16,
+     "avg_R": 0.753
+    },
+    "2026-Q2": {
+     "trades": 10,
+     "avg_R": 0.523
+    },
+    "2026-Q3": {
+     "trades": 9,
+     "avg_R": 0.555
+    },
+    "2026-Q4": {
+     "trades": 3,
+     "avg_R": 0.401
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 39,
+     "avg_R": 0.426
+    },
+    "short": {
+     "trades": 30,
+     "avg_R": 0.585
+    }
+   },
+   "positive_quarters": "7 of 7",
+   "t_stat": 3.99,
+   "proven": true,
+   "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+  },
+  "breakout_cisd": {
+   "description": "After a 4H breakout: sweep + CISD entry in London/New York, stop beyond the sweep, 3R target",
+   "all": {
+    "trades": 43,
+    "win_rate_pct": 42,
+    "avg_R": 0.646
+   },
+   "older_70pct": {
+    "trades": 36,
+    "win_rate_pct": 42,
+    "avg_R": 0.643
+   },
+   "newest_30pct": {
+    "trades": 7,
+    "win_rate_pct": 43,
+    "avg_R": 0.662
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 8,
+     "avg_R": 1.015
+    },
+    "2025-Q1": {
+     "trades": 6,
+     "avg_R": 0.874
+    },
+    "2025-Q2": {
+     "trades": 3,
+     "avg_R": -1.093
+    },
+    "2025-Q3": {
+     "trades": 5,
+     "avg_R": 1.332
+    },
+    "2025-Q4": {
+     "trades": 8,
+     "avg_R": 0.571
+    },
+    "2026-Q1": {
+     "trades": 6,
+     "avg_R": 0.304
+    },
+    "2026-Q2": {
+     "trades": 2,
+     "avg_R": -1.077
+    },
+    "2026-Q3": {
+     "trades": 3,
+     "avg_R": 1.64
+    },
+    "2026-Q4": {
+     "trades": 2,
+     "avg_R": 0.932
+    }
+   },
+   "by_direction": {
+    "short": {
+     "trades": 9,
+     "avg_R": 0.796
+    },
+    "long": {
+     "trades": 34,
+     "avg_R": 0.606
+    }
+   },
+   "positive_quarters": "5 of 5",
+   "t_stat": 2.13,
+   "proven": false,
+   "verdict": "Positive so far, but only 7 trades in the newest data (10 needed): waiting for more."
+  },
+  "crt_daily": {
+   "description": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
+   "all": {
+    "trades": 128,
+    "win_rate_pct": 43,
+    "avg_R": 0.041
+   },
+   "older_70pct": {
+    "trades": 86,
+    "win_rate_pct": 44,
+    "avg_R": -0.017
+   },
+   "newest_30pct": {
+    "trades": 42,
+    "win_rate_pct": 40,
+    "avg_R": 0.159
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 9,
+     "avg_R": -0.258
+    },
+    "2025-Q1": {
+     "trades": 20,
+     "avg_R": -0.174
+    },
+    "2025-Q2": {
+     "trades": 17,
+     "avg_R": -0.334
+    },
+    "2025-Q3": {
+     "trades": 11,
+     "avg_R": 0.148
+    },
+    "2025-Q4": {
+     "trades": 16,
+     "avg_R": 0.119
+    },
+    "2026-Q1": {
+     "trades": 13,
+     "avg_R": 0.499
+    },
+    "2026-Q2": {
+     "trades": 13,
+     "avg_R": -0.013
+    },
+    "2026-Q3": {
+     "trades": 24,
+     "avg_R": 0.114
+    },
+    "2026-Q4": {
+     "trades": 5,
+     "avg_R": 0.825
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 56,
+     "avg_R": -0.125
+    },
+    "short": {
+     "trades": 72,
+     "avg_R": 0.17
+    }
+   },
+   "positive_quarters": "5 of 9",
+   "t_stat": 0.3,
+   "proven": false,
+   "verdict": "No edge: +0.04R per trade after costs."
+  },
+  "vp_shape": {
+   "description": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
+   "all": {
+    "trades": 237,
+    "win_rate_pct": 49,
+    "avg_R": 0.144
+   },
+   "older_70pct": {
+    "trades": 166,
+    "win_rate_pct": 48,
+    "avg_R": 0.126
+   },
+   "newest_30pct": {
+    "trades": 71,
+    "win_rate_pct": 49,
+    "avg_R": 0.186
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 23,
+     "avg_R": 0.354
+    },
+    "2025-Q1": {
+     "trades": 35,
+     "avg_R": 0.346
+    },
+    "2025-Q2": {
+     "trades": 26,
+     "avg_R": 0.082
+    },
+    "2025-Q3": {
+     "trades": 36,
+     "avg_R": -0.102
+    },
+    "2025-Q4": {
+     "trades": 30,
+     "avg_R": 0.044
+    },
+    "2026-Q1": {
+     "trades": 16,
+     "avg_R": 0.051
+    },
+    "2026-Q2": {
+     "trades": 24,
+     "avg_R": 0.27
+    },
+    "2026-Q3": {
+     "trades": 30,
+     "avg_R": 0.126
+    },
+    "2026-Q4": {
+     "trades": 17,
+     "avg_R": 0.172
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 127,
+     "avg_R": 0.112
+    },
+    "short": {
+     "trades": 110,
+     "avg_R": 0.18
+    }
+   },
+   "positive_quarters": "8 of 9",
+   "t_stat": 1.81,
+   "proven": false,
+   "verdict": "Positive (+0.14R) but not statistically clear yet (t=1.8, need 2): could still be luck."
+  },
+  "vp_late": {
+   "description": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
+   "all": {
+    "trades": 85,
+    "win_rate_pct": 41,
+    "avg_R": -0.051
+   },
+   "older_70pct": {
+    "trades": 67,
+    "win_rate_pct": 42,
+    "avg_R": -0.031
+   },
+   "newest_30pct": {
+    "trades": 18,
+    "win_rate_pct": 39,
+    "avg_R": -0.128
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 2,
+     "avg_R": 0.2
+    },
+    "2025-Q1": {
+     "trades": 13,
+     "avg_R": -0.212
+    },
+    "2025-Q2": {
+     "trades": 16,
+     "avg_R": 0.723
+    },
+    "2025-Q3": {
+     "trades": 12,
+     "avg_R": 0.018
+    },
+    "2025-Q4": {
+     "trades": 11,
+     "avg_R": 0.055
+    },
+    "2026-Q1": {
+     "trades": 13,
+     "avg_R": -0.931
+    },
+    "2026-Q2": {
+     "trades": 7,
+     "avg_R": -0.338
+    },
+    "2026-Q3": {
+     "trades": 7,
+     "avg_R": -0.107
+    },
+    "2026-Q4": {
+     "trades": 4,
+     "avg_R": 0.202
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 62,
+     "avg_R": 0.026
+    },
+    "short": {
+     "trades": 23,
+     "avg_R": -0.259
+    }
+   },
+   "positive_quarters": "3 of 7",
+   "t_stat": -0.41,
+   "proven": false,
+   "verdict": "No edge: -0.05R per trade after costs."
+  },
+  "london_trend": {
+   "description": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
+   "all": {
+    "trades": 31,
+    "win_rate_pct": 55,
+    "avg_R": 0.499
+   },
+   "older_70pct": {
+    "trades": 24,
+    "win_rate_pct": 50,
+    "avg_R": 0.356
+   },
+   "newest_30pct": {
+    "trades": 7,
+    "win_rate_pct": 71,
+    "avg_R": 0.991
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 1,
+     "avg_R": 1.959
+    },
+    "2025-Q1": {
+     "trades": 10,
+     "avg_R": 0.348
+    },
+    "2025-Q2": {
+     "trades": 4,
+     "avg_R": 0.437
+    },
+    "2025-Q3": {
+     "trades": 5,
+     "avg_R": -0.114
+    },
+    "2025-Q4": {
+     "trades": 4,
+     "avg_R": 0.479
+    },
+    "2026-Q2": {
+     "trades": 4,
+     "avg_R": 0.999
+    },
+    "2026-Q3": {
+     "trades": 1,
+     "avg_R": 1.982
+    },
+    "2026-Q4": {
+     "trades": 2,
+     "avg_R": 0.479
+    }
+   },
+   "by_direction": {
+    "long": {
+     "trades": 24,
+     "avg_R": 0.232
+    },
+    "short": {
+     "trades": 7,
+     "avg_R": 1.416
+    }
+   },
+   "positive_quarters": "1 of 2",
+   "t_stat": 2.06,
+   "proven": false,
+   "verdict": "Positive so far, but only 7 trades in the newest data (10 needed): waiting for more."
+  },
+  "range_extreme": {
+   "description": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
+   "all": {
+    "trades": 60,
+    "win_rate_pct": 67,
+    "avg_R": 0.288
+   },
+   "older_70pct": {
+    "trades": 41,
+    "win_rate_pct": 68,
+    "avg_R": 0.261
+   },
+   "newest_30pct": {
+    "trades": 19,
+    "win_rate_pct": 63,
+    "avg_R": 0.344
+   },
+   "quarters": {
+    "2024-Q4": {
+     "trades": 3,
+     "avg_R": -0.205
+    },
+    "2025-Q1": {
+     "trades": 8,
+     "avg_R": 0.375
+    },
+    "2025-Q2": {
+     "trades": 12,
+     "avg_R": 0.109
+    },
+    "2025-Q3": {
+     "trades": 7,
+     "avg_R": 0.916
+    },
+    "2025-Q4": {
+     "trades": 4,
+     "avg_R": -0.452
+    },
+    "2026-Q1": {
+     "trades": 7,
+     "avg_R": 0.346
+    },
+    "2026-Q2": {
+     "trades": 5,
+     "avg_R": 0.64
+    },
+    "2026-Q3": {
+     "trades": 12,
+     "avg_R": 0.19
+    },
+    "2026-Q4": {
+     "trades": 2,
+     "avg_R": 0.534
+    }
+   },
+   "by_direction": {
+    "short": {
+     "trades": 22,
+     "avg_R": 0.051
+    },
+    "long": {
+     "trades": 38,
+     "avg_R": 0.425
+    }
+   },
+   "positive_quarters": "6 of 6",
+   "t_stat": 1.95,
+   "proven": false,
+   "verdict": "Positive (+0.29R) but not statistically clear yet (t=2.0, need 2): could still be luck."
+  }
+ },
+ "alert_mode": "watch"
 }

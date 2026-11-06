@@ -556,7 +556,12 @@ def range_extreme(df):
                     stop = ext - 0.25 * D if sg > 0 else ext + 0.25 * D
                     if (OP - o[j0]) * sg <= 0 or abs(o[j0] - stop) < 1:
                         continue
-                    r, j = _run_trade(o, h, l, c, j0, min(p[-1], n - 1), sg, stop, OP)
+                    risk = (o[j0] - stop) * sg
+                    fin = (OP - o[j0]) * sg / risk if risk > 0 else 0
+                    if fin > 1.0:   # TP1 at 1R (close half, SL to entry), TP2 at the day open: 67% win vs 50%
+                        r, j, _ = _run_scaled(o, h, l, c, j0, min(p[-1], n - 1), sg, stop, 1.0, fin)
+                    else:
+                        r, j = _run_trade(o, h, l, c, j0, min(p[-1], n - 1), sg, stop, OP)
                     if r is not None:
                         out.append((idx[j0], r, "long" if sg > 0 else "short"))
                     done = True; break
