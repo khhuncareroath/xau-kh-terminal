@@ -157,6 +157,24 @@ table.lad td.w{color:var(--up);font-weight:700}table.lad td.l{color:var(--dn)}
 .bars-l{display:flex;gap:6px;margin-top:4px}.bars-l span{flex:1;text-align:center;font-size:11px;color:var(--label2)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media (max-width:420px){.big{font-size:34px}table.lad{font-size:13px}.grid3{grid-template-columns:1fr 1fr}}
+
+.q{display:flex;gap:12px;align-items:flex-start;margin:16px 0 8px}
+.q b{display:block;font-size:16px}.q .km{display:block}
+.qn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#111;font-weight:800;display:grid;place-items:center;font-size:14px}
+.styles{display:grid;gap:8px}
+.styles button{border:0;border-radius:16px;background:var(--card2);padding:14px;text-align:left;cursor:pointer}
+.styles button b{display:block;font-size:16px;margin-bottom:2px}.styles button span{display:block;font-size:13px;color:var(--label2)}
+.styles button.on{outline:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--card2))}
+.sl-row{display:flex;gap:8px;align-items:center}
+.sl-row input{flex:1;text-align:center;font-size:22px;font-weight:700;height:52px}
+.sl-row .unit{font-size:14px;color:var(--label2)}
+.pm{width:52px;height:52px;border:0;border-radius:14px;background:var(--card2);font-size:24px;font-weight:700;cursor:pointer}
+.lotbox{display:flex;gap:16px;align-items:center;padding:16px;border-radius:18px;background:color-mix(in srgb,var(--gold) 14%,var(--card2))}
+.lot{font-size:46px;font-weight:800;letter-spacing:-.03em;color:var(--gold2)}
+.lotinfo{display:flex;flex-direction:column;gap:3px;font-size:14px}.lotinfo small{color:var(--label2)}
+.lotinfo .w{color:var(--up)}.lotinfo .l{color:var(--dn)}
+details.more{margin-top:12px}details.more summary,details.set summary{cursor:pointer;color:var(--label2);font-size:14px;font-weight:600}
+details.set summary{font-size:15px;color:var(--label)}
 </style>
 </head>
 <body>
@@ -228,80 +246,97 @@ table.lad td.w{color:var(--up);font-weight:700}table.lad td.l{color:var(--dn)}
   </section>
   </div>
   <div id="v-mgr">
-  <section class="card">
-    <h2>Account · គណនី</h2>
-    <div class="grid" style="grid-template-columns:1fr auto auto">
-      <select id="m-acc" aria-label="Account"></select>
-      <button class="btn ghost" id="m-add" style="margin:0;height:44px;width:auto;padding:0 14px">+ New</button>
-      <button class="btn ghost" id="m-del" style="margin:0;height:44px;width:auto;padding:0 14px" aria-label="Delete account">Delete</button>
+  <!-- first time: 3 questions -->
+  <section class="card" id="w-card" hidden>
+    <h2>Start in 3 steps · ចាប់ផ្ដើម ៣ ជំហាន</h2>
+    <div class="q"><span class="qn">1</span><div><b>How much money is in your account?</b><span class="km">គណនីរបស់អ្នកមានប៉ុន្មាន?</span></div></div>
+    <input id="w-start" type="number" inputmode="decimal" placeholder="e.g. 1000" min="10">
+    <div class="q"><span class="qn">2</span><div><b>What is your goal?</b><span class="km">គោលដៅរបស់អ្នកប៉ុន្មាន?</span></div></div>
+    <input id="w-goal" type="number" inputmode="decimal" placeholder="e.g. 2000" min="10">
+    <div class="q"><span class="qn">3</span><div><b>Pick your style</b><span class="km">ជ្រើសរបៀប</span></div></div>
+    <div class="styles" id="w-style">
+      <button data-s="safe"><b>🛡 Safe</b><span>1% each trade. Slow and steady.</span><span class="km">១% រាល់ការជួញដូរ</span></button>
+      <button data-s="smart" class="on"><b>🧠 Smart</b><span>2%, and half after a loss. Protects you in a bad week.</span><span class="km">២% ចាញ់ហើយ បន្ថយពាក់កណ្ដាល</span></button>
+      <button data-s="fast"><b>🚀 Scale Up</b><span>5% first, then only your profit (the ladder).</span><span class="km">ប្រើតែប្រាក់ចំណេញ</span></button>
     </div>
-    <div class="grid3" style="margin-top:10px">
-      <div><label>Name</label><input id="m-name" type="text" placeholder="e.g. 5ers 400k"></div>
-      <div><label>Start balance ($)</label><input id="m-start" type="number" inputmode="decimal" min="10"></div>
-      <div><label>Goal ($)</label><input id="m-goal" type="number" inputmode="decimal" min="10"></div>
-      <div><label>Base risk (%)</label><input id="m-risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
-      <div><label>Reward : risk</label><input id="m-rr" type="number" inputmode="decimal" min="0.5" max="10" step="0.5"></div>
-      <div><label>Max risk (%)</label><input id="m-max" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
-      <div><label>Min risk (%)</label><input id="m-min" type="number" inputmode="decimal" min="0.05" max="50" step="0.05"></div>
-    </div>
-    <label style="margin-top:12px">Risk mode · របៀបហានិភ័យ</label>
-    <div class="seg" id="m-mode"><button data-v="fixed">Fixed %</button><button data-v="smart">Smart</button><button data-v="ladder">Scale Up ladder</button></div>
-    <div id="m-smart" style="margin-top:10px">
-      <div class="grid">
-        <div><label>After a loss</label><select id="m-onloss"><option value="0.5">risk × 0.5 (halve)</option><option value="0.75">risk × 0.75</option><option value="1">same risk</option></select></div>
-        <div><label>After a win</label><select id="m-onwin"><option value="base">back to base</option><option value="1.25">risk × 1.25 (up to max)</option><option value="1.5">risk × 1.5 (up to max)</option></select></div>
-      </div>
-    </div>
-    <p class="km" id="m-modetxt" style="margin:10px 0 0"></p>
+    <button class="btn" id="w-go">Start · ចាប់ផ្ដើម</button>
   </section>
 
+  <div id="m-app">
   <section class="card hero">
-    <h2>My balance · សមតុល្យ</h2>
-    <div class="grid" style="grid-template-columns:1fr 1fr;align-items:end">
-      <div><div class="big num" id="m-bal">–</div><div class="row num"><span id="m-goa"></span></div></div>
-      <div><label>SL distance (លេខ, $)</label><input id="m-sl" type="number" inputmode="decimal" min="0.5" step="0.5" value="10"></div>
-    </div>
+    <div class="row" style="align-items:center"><span class="lvl-badge" id="m-badge">My account</span><span id="m-style" style="font-size:13px;font-weight:600"></span></div>
+    <div class="big num" id="m-bal">–</div>
+    <div class="row num"><span id="m-goa"></span><span id="m-gtxt"></span></div>
     <div class="bar"><i id="m-gbar"></i></div>
-    <div class="row num"><span id="m-gleft"></span><span id="m-gtxt"></span></div>
+    <div class="row num"><span id="m-gleft"></span></div>
     <div id="m-steps" class="row" style="justify-content:flex-start;gap:6px;margin-top:8px"></div>
-    <div class="kpis" style="margin-top:12px">
-      <div class="kpi"><b id="m-nr">–</b><small id="m-nrp">risk</small></div>
-      <div class="kpi"><b id="m-lot">–</b><small>lot size</small></div>
-      <div class="kpi"><b id="m-tp">–</b><small id="m-tpl">if TP</small></div>
+  </section>
+
+  <section class="card">
+    <h2>Your next trade · ការជួញដូរបន្ទាប់</h2>
+    <div class="q"><span class="qn">1</span><div><b>How far is your SL?</b><span class="km">SL ឆ្ងាយប៉ុន្មានលេខ? (from the signal: Entry − SL)</span></div></div>
+    <div class="sl-row"><button class="pm" data-d="-1" aria-label="Less">−</button><input id="m-sl" type="number" inputmode="decimal" min="0.5" step="0.5" value="10"><span class="unit">លេខ</span><button class="pm" data-d="1" aria-label="More">+</button></div>
+    <div class="q"><span class="qn">2</span><div><b>Open this lot size</b><span class="km">បើក lot នេះ</span></div></div>
+    <div class="lotbox"><div class="lot num" id="m-lot">–</div>
+      <div class="lotinfo num"><span>If SL: <b class="l" id="m-nr">–</b></span><span>If TP (1:<i id="m-rrv">2</i>): <b class="w" id="m-tp">–</b></span><small id="m-nrp"></small></div></div>
+    <div class="q"><span class="qn">3</span><div><b>When the trade closes, tap the result</b><span class="km">ពេលបិទការជួញដូរ ចុចលទ្ធផល</span></div></div>
+    <div class="grid">
+      <button class="btn" id="m-win" style="margin:0;background:var(--up)">✓ Win · ឈ្នះ</button>
+      <button class="btn" id="m-loss" style="margin:0;background:var(--dn);color:#fff">✕ Loss · ចាញ់</button>
     </div>
-    <div class="grid3" style="margin-top:12px">
-      <div><label>Side</label><div class="seg" id="m-side"><button data-v="Long" class="on">Long</button><button data-v="Short">Short</button></div></div>
-      <div style="grid-column:span 2"><label>Setup</label><select id="m-strat"><option>4H breakout</option><option>🖕 COMBO</option><option>🖕🖕 PREMIUM</option><option>🟡 Volume Plan</option><option>🔷 Day Range Snap</option><option>⚠️ Late Plan</option><option>My own</option></select></div>
-    </div>
-    <div class="grid" style="margin-top:12px">
-      <button class="btn" id="m-win" style="margin:0;background:var(--up)">Win · ឈ្នះ</button>
-      <button class="btn" id="m-loss" style="margin:0;background:var(--dn);color:#fff">Loss · ចាញ់</button>
-    </div>
+    <details class="more"><summary>Add details (optional)</summary>
+      <div class="grid" style="margin-top:10px">
+        <div><label>Side</label><div class="seg" id="m-side"><button data-v="Long" class="on">Long</button><button data-v="Short">Short</button></div></div>
+        <div><label>Setup</label><select id="m-strat"><option>4H breakout</option><option>🖕 COMBO</option><option>🖕🖕 PREMIUM</option><option>🟡 Volume Plan</option><option>🔷 Day Range Snap</option><option>⚠️ Late Plan</option><option>My own</option></select></div>
+      </div></details>
     <div class="warn" id="m-warn" hidden></div>
   </section>
 
   <section class="card">
-    <h2>Stats · ស្ថិតិ</h2>
+    <h2>My trades · ការជួញដូររបស់ខ្ញុំ</h2>
     <div class="kpis">
       <div class="kpi"><b id="s-wr">–</b><small>win rate</small></div>
       <div class="kpi"><b id="s-n">–</b><small>trades</small></div>
-      <div class="kpi"><b id="s-dd">–</b><small>max drop</small></div>
+      <div class="kpi"><b id="s-dd">–</b><small>biggest drop</small></div>
     </div>
-    <div class="scroll" style="margin-top:12px"><table class="lad num" id="s-side"></table></div>
     <canvas id="m-chart" aria-label="Balance over time"></canvas>
-  </section>
-
-  <section class="card">
-    <h2>Trade log · កំណត់ត្រា</h2>
-    <div class="scroll"><table class="lad num" id="m-log"></table></div>
+    <div class="scroll" style="margin-top:10px"><table class="lad num" id="m-log"></table></div>
+    <div class="scroll" style="margin-top:10px"><table class="lad num" id="s-side"></table></div>
     <div class="grid" style="margin-top:12px">
-      <button class="btn ghost" id="m-undo" style="margin:0">Undo last</button>
+      <button class="btn ghost" id="m-undo" style="margin:0">↶ Undo last</button>
       <button class="btn ghost" id="m-csv" style="margin:0">Export CSV</button>
     </div>
-    <p class="km" style="margin:10px 0 0">Saved only on this device. ទិន្នន័យរក្សាទុកតែលើឧបករណ៍នេះ។</p>
+    <p class="km" style="margin:10px 0 0">Saved only on this phone. ទិន្នន័យរក្សាទុកតែលើទូរស័ព្ទនេះ។</p>
   </section>
-  </div>
 
+  <details class="card set"><summary>⚙ Settings · ការកំណត់</summary>
+    <div class="grid" style="grid-template-columns:1fr auto auto;margin-top:12px">
+      <select id="m-acc" aria-label="Account"></select>
+      <button class="btn ghost" id="m-add" style="margin:0;height:44px;width:auto;padding:0 14px">+ New</button>
+      <button class="btn ghost" id="m-del" style="margin:0;height:44px;width:auto;padding:0 14px">Delete</button>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label>Name</label><input id="m-name" type="text"></div>
+      <div><label>Start ($)</label><input id="m-start" type="number" inputmode="decimal" min="10"></div>
+      <div><label>Goal ($)</label><input id="m-goal" type="number" inputmode="decimal" min="10"></div>
+      <div><label>Risk per trade (%)</label><input id="m-risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
+      <div><label>Reward : risk</label><input id="m-rr" type="number" inputmode="decimal" min="0.5" max="10" step="0.5"></div>
+    </div>
+    <label style="margin-top:12px">Style</label>
+    <div class="seg" id="m-mode"><button data-v="fixed">🛡 Fixed %</button><button data-v="smart">🧠 Smart</button><button data-v="ladder">🚀 Ladder</button></div>
+    <div id="m-smart" style="margin-top:10px">
+      <div class="grid">
+        <div><label>After a loss</label><select id="m-onloss"><option value="0.5">risk × 0.5</option><option value="0.75">risk × 0.75</option><option value="1">same risk</option></select></div>
+        <div><label>After a win</label><select id="m-onwin"><option value="base">back to normal</option><option value="1.25">risk × 1.25</option><option value="1.5">risk × 1.5</option></select></div>
+        <div><label>Max risk (%)</label><input id="m-max" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
+        <div><label>Min risk (%)</label><input id="m-min" type="number" inputmode="decimal" min="0.05" max="50" step="0.05"></div>
+      </div>
+    </div>
+    <p class="km" id="m-modetxt" style="margin:10px 0 0"></p>
+    <button class="btn ghost" id="m-restart">Start over with the 3 questions</button>
+  </details>
+  </div>
+  </div>
   <p class="foot">XAU.KH · a money-management plan, not a promise. Past results do not guarantee future results. Not financial advice.</p>
 </main>
 <script>
@@ -375,87 +410,95 @@ $("wr").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)
 ["acc","risk","rr","sl"].forEach(i=>$(i).addEventListener("input",render));
 load(0);
 
-/* ---------- My Risk Manager (owner's Risk Management sheet, per user, saved on this device) ---------- */
+/* ---------- My account (the mentor's Risk Management sheet, simple: 3 questions, then SL -> lot -> Win/Loss) ---------- */
 const KEY="xaukh_risk_v1";
 let DB;try{DB=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){DB=null}
-if(!DB||!DB.accs||!DB.accs.length)DB={cur:0,accs:[{name:"My account",start:1000,goal:2000,risk:1,rr:2,max:2,min:0.25,mode:"fixed",onloss:"0.5",onwin:"base",trades:[]}]};
-DB.accs.forEach(a=>{if(!a.goal)a.goal=a.start*2});
+if(!DB||!DB.accs||!DB.accs.length)DB={cur:0,accs:[]};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
 const A=()=>DB.accs[DB.cur];
-function state(a){   // replay the log: balance, current risk %, ladder step
-  let bal=a.start,cur=a.risk,step=1,prevWin=0,peak=a.start,dd=0;const MX=Math.max(a.max,a.risk),MN=Math.min(a.min,a.risk);
+const STY={safe:{mode:"fixed",risk:1,rr:2,max:1,min:1},smart:{mode:"smart",risk:2,rr:2,max:2,min:0.5,onloss:"0.5",onwin:"base"},fast:{mode:"ladder",risk:5,rr:2,max:5,min:5}};
+const NAME={fixed:"🛡 Safe · fixed %",smart:"🧠 Smart",ladder:"🚀 Scale Up ladder"};
+function newAcc(start,goal,st){return Object.assign({name:"My account",start,goal,onloss:"0.5",onwin:"base",trades:[]},STY[st])}
+function state(a){
+  let bal=a.start,cur=a.risk,step=1,prevWin=0,peak=a.start,dd=0;const MX=Math.max(a.max||a.risk,a.risk),MN=Math.min(a.min||a.risk,a.risk);
   for(const t of a.trades){bal+=t.pnl;peak=Math.max(peak,bal);dd=Math.max(dd,1-bal/peak);
     if(a.mode==="smart"){if(t.res==="Loss")cur=Math.max(MN,cur*(+a.onloss));else cur=a.onwin==="base"?a.risk:Math.min(MX,cur*(+a.onwin))}
     if(a.mode==="ladder"){if(t.res==="Loss"){step=1;prevWin=0}else{prevWin=t.pnl;step=step===5?1:step+1}}}
-  let riskUsd;
-  if(a.mode==="ladder")riskUsd=step===1?bal*a.risk/100:(step%2===0?prevWin/2:prevWin);
-  else riskUsd=bal*(a.mode==="smart"?cur:a.risk)/100;
-  return {bal,cur:a.mode==="ladder"?riskUsd/bal*100:(a.mode==="smart"?cur:a.risk),riskUsd,step,dd};
+  const riskUsd=a.mode==="ladder"?(step===1?bal*a.risk/100:(step%2===0?prevWin/2:prevWin)):bal*(a.mode==="smart"?cur:a.risk)/100;
+  return {bal,riskUsd,step,dd,cur};
 }
-function lotFor(r,sl){return Math.max(0.01,Math.round(r/(sl*100)*100)/100)}
+const lotFor=(r,sl)=>Math.max(0.01,Math.round(r/(sl*100)*100)/100);
 function mrender(){
+  const first=!DB.accs.length;$("w-card").hidden=!first;$("m-app").hidden=first;if(first)return;
   const a=A();
   $("m-acc").innerHTML=DB.accs.map((x,i)=>`<option value="${i}" ${i===DB.cur?"selected":""}>${x.name.replace(/</g,"&lt;")}</option>`).join("");
   for(const [id,k] of [["m-name","name"],["m-start","start"],["m-goal","goal"],["m-risk","risk"],["m-rr","rr"],["m-max","max"],["m-min","min"]])if(document.activeElement!==$(id))$(id).value=a[k];
   $("m-onloss").value=a.onloss;$("m-onwin").value=a.onwin;
   document.querySelectorAll("#m-mode button").forEach(b=>b.classList.toggle("on",b.dataset.v===a.mode));
   $("m-smart").hidden=a.mode!=="smart";
-  $("m-modetxt").innerHTML={fixed:"Fixed %: every trade risks the same % of the <b>current</b> balance, so the $ risk drops after losses and grows after wins (your Risk Management sheet).",
-    smart:"Smart: after a loss the risk % goes down (protects you in a bad streak), after a win it goes back up, never above the max or below the min.",
-    ladder:"Scale Up ladder: trade 1 risks the base %, then only the profit you already won (½, all, ½, all). Any loss restarts at trade 1."}[a.mode]+
-    (a.mode==="ladder"?"":"<br>Risk never goes UP after a loss: chasing losses with bigger lots is how accounts blow up.");
-  const S=state(a),sl=+$("m-sl").value||10,lot=lotFor(S.riskUsd,sl),loss=lot*sl*100;
-  $("m-bal").textContent=usd(S.bal);$("m-goa").textContent=`${pct((S.bal/a.start-1)*100)} since start`;
-  const g=a.goal||a.start*2,prog=Math.max(0,Math.min(1,(S.bal-a.start)/((g-a.start)||1)));
-  $("m-gbar").style.width=(prog*100).toFixed(1)+"%";
-  $("m-gleft").textContent=S.bal>=g?"Goal reached! Withdraw some profit · សម្រេចគោលដៅ!":`${usd(g-S.bal)} to goal`;
-  $("m-gtxt").textContent=`Goal ${usd(g)} · ${Math.round(prog*100)}%`;
+  $("m-modetxt").innerHTML={fixed:"🛡 Every trade risks the same % of your balance now. After a loss the $ risk gets smaller by itself.",
+    smart:"🧠 After a loss the risk % drops, after a win it goes back to normal. Never above the max.",
+    ladder:"🚀 Trade 1 risks the %, then only the profit you won (½, all, ½, all). A loss restarts at trade 1."}[a.mode];
+  const S=state(a),sl=+$("m-sl").value||10,lot=lotFor(S.riskUsd,sl),loss=lot*sl*100,g=a.goal||a.start*2;
+  $("m-badge").textContent=a.name;$("m-style").textContent=NAME[a.mode];
+  $("m-bal").textContent=usd(S.bal);$("m-goa").textContent=`${pct((S.bal/a.start-1)*100)} since start (${usd(a.start)})`;
+  const prog=Math.max(0,Math.min(1,(S.bal-a.start)/((g-a.start)||1)));
+  $("m-gbar").style.width=(prog*100).toFixed(1)+"%";$("m-gtxt").textContent=`Goal ${usd(g)}`;
+  $("m-gleft").textContent=S.bal>=g?"🎉 Goal reached! Take some profit out · សម្រេចគោលដៅ!":`${usd(g-S.bal)} to go · ${Math.round(prog*100)}%`;
   $("m-steps").innerHTML=a.mode==="ladder"?[1,2,3,4,5].map(k=>`<span class="stp" style="${k<S.step?"background:var(--gold);color:#111":k===S.step?"outline:2px solid var(--gold)":""}">${k}</span>`).join("")+
-    `<span style="font-size:12.5px;color:var(--label2);align-self:center">ladder trade ${S.step} of 5</span>`:"";
-  $("m-nr").textContent=usd(loss);$("m-nrp").textContent=`risk · ${(loss/S.bal*100).toFixed(2)}%`;
-  $("m-lot").textContent=lot.toFixed(2);$("m-tp").textContent="+"+usd(loss*a.rr);$("m-tpl").textContent=`if TP (1:${a.rr})`;
-  const w=[],rp=loss/S.bal*100,MX=Math.max(a.max,a.risk);
-  if(lot===0.01&&rp>MX+0.01&&a.mode!=="ladder")w.push(`Even the smallest lot (0.01) risks ${rp.toFixed(1)}% with this SL, above your max. Use a tighter SL or skip.`);
-  if(a.risk>=5&&a.mode!=="ladder")w.push(`Base risk ${a.risk}% is aggressive: 5 losses in a row = −${Math.round((1-Math.pow(1-a.risk/100,5))*100)}%.`);
-  if(S.dd>=0.2)w.push(`You are ${Math.round(S.dd*100)}% below your peak. Consider a break or a smaller base risk.`);
-  const last3=a.trades.slice(-3);if(last3.length===3&&last3.every(t=>t.res==="Loss"))w.push("3 losses in a row: stop for today. ចាញ់ ៣ ដងជាប់ ឈប់សិនថ្ងៃនេះ។");
+    `<span style="font-size:12.5px;color:var(--label2);align-self:center">ladder: trade ${S.step} of 5</span>`:"";
+  $("m-lot").textContent=lot.toFixed(2);$("m-nr").textContent="−"+usd(loss);$("m-tp").textContent="+"+usd(loss*a.rr);$("m-rrv").textContent=a.rr;
+  $("m-nrp").textContent=`= ${(loss/S.bal*100).toFixed(2)}% of your balance`;
+  const w=[],rp=loss/S.bal*100;
+  if(lot===0.01&&rp>Math.max(a.max||0,a.risk)*1.5)w.push(`Even 0.01 lot risks ${rp.toFixed(1)}% with this SL. Skip this trade or find a closer SL.`);
+  if(S.dd>=0.2)w.push(`You are ${Math.round(S.dd*100)}% below your best. Take a break or lower your risk.`);
+  const l3=a.trades.slice(-3);if(l3.length===3&&l3.every(t=>t.res==="Loss"))w.push("3 losses in a row: stop for today. ចាញ់ ៣ ដងជាប់ ឈប់សិនថ្ងៃនេះ។");
   $("m-warn").hidden=!w.length;$("m-warn").innerHTML=w.join("<br>");
-  // stats
   const T=a.trades,W=T.filter(t=>t.res==="Win").length;
   $("s-wr").textContent=T.length?Math.round(W/T.length*100)+"%":"–";$("s-n").textContent=T.length;$("s-dd").textContent=T.length?"−"+Math.round(S.dd*100)+"%":"–";
+  // the Excel-style log: No · Lot · Risk · SL · TP · Result · Balance · %
+  $("m-log").innerHTML=T.length?`<tr><th>No</th><th>Lot</th><th>Risk</th><th>SL</th><th>Result</th><th>Balance</th><th>%</th></tr>`+
+    T.map((t,i)=>({t,i})).reverse().slice(0,60).map(({t,i})=>`<tr><td>${i+1}</td><td>${t.lot.toFixed(2)}</td><td>${usd(t.risk||Math.abs(t.res==="Loss"?t.pnl:t.pnl/(a.rr||2)))}</td><td>${t.sl}</td><td class="${t.res==="Win"?"w":"l"}">${t.res==="Win"?"Win +":"Loss −"}${usd(Math.abs(t.pnl))}</td><td>${usd(t.bal)}</td><td>${pct((t.bal/a.start-1)*100)}</td></tr>`).join("")
+    :`<tr><td class="empty">Your trades show here, like an Excel sheet. Do steps 1 → 3 above after each trade.</td></tr>`;
   const side=s_=>{const x=T.filter(t=>t.side===s_),w_=x.filter(t=>t.res==="Win").length;return `<tr><td>${s_}</td><td>${x.length}</td><td class="w">${w_}</td><td class="l">${x.length-w_}</td><td>${x.length?Math.round(w_/x.length*100)+"%":"–"}</td></tr>`};
-  $("s-side").innerHTML=`<tr><th>Side</th><th>Trades</th><th>Win</th><th>Loss</th><th>Win rate</th></tr>`+side("Long")+side("Short");
-  $("m-log").innerHTML=T.length?`<tr><th>Date</th><th>Setup</th><th>Side</th><th>Lot</th><th>Result</th><th>Balance</th></tr>`+
-    T.slice().reverse().slice(0,60).map(t=>`<tr><td>${t.d}</td><td style="text-align:left">${t.strat}</td><td>${t.side}</td><td>${t.lot.toFixed(2)}</td><td class="${t.res==="Win"?"w":"l"}">${t.pnl>=0?"+":""}${usd(t.pnl)}</td><td>${usd(t.bal)}</td></tr>`).join("")
-    :`<tr><td class="empty">No trades yet. Tap Win or Loss after each trade.</td></tr>`;
+  $("s-side").innerHTML=T.some(t=>t.side==="Short")?`<tr><th>Side</th><th>Trades</th><th>Win</th><th>Loss</th><th>Win rate</th></tr>`+side("Long")+side("Short"):"";
   drawEq(a);
 }
-function drawEq(a){const c=$("m-chart"),r=c.getBoundingClientRect(),dp=devicePixelRatio||1;c.width=r.width*dp;c.height=r.height*dp;const x=c.getContext("2d");x.scale(dp,dp);
-  const pts=[a.start,...a.trades.map(t=>t.bal)];if(pts.length<2){x.fillStyle=getComputedStyle(document.body).getPropertyValue("--label2");x.font="13px Inter";x.fillText("Your balance line appears after the first trade",8,24);return}
-  const mn=Math.min(...pts),mx=Math.max(...pts),W=r.width,H=r.height,sx=i=>i/(pts.length-1)*(W-10)+5,sy=v=>H-8-(v-mn)/((mx-mn)||1)*(H-24);
+function drawEq(a){const c=$("m-chart"),r=c.getBoundingClientRect();if(!r.width)return;const dp=devicePixelRatio||1;c.width=r.width*dp;c.height=r.height*dp;const x=c.getContext("2d");x.scale(dp,dp);
+  const pts=[a.start,...a.trades.map(t=>t.bal)],W=r.width,H=r.height;
+  if(pts.length<2){x.fillStyle="rgba(150,150,160,.8)";x.font="13px Inter";x.fillText("Your balance line appears after the first trade",8,24);return}
+  const g=a.goal||a.start*2,mn=Math.min(...pts),mx=Math.max(...pts,Math.min(g,Math.max(...pts)*1.1)),sx=i=>i/(pts.length-1)*(W-10)+5,sy=v=>H-8-(v-mn)/((mx-mn)||1)*(H-24);
   const gold=getComputedStyle(document.documentElement).getPropertyValue("--gold").trim();
-  x.strokeStyle=gold;x.lineWidth=2;x.beginPath();pts.forEach((v,i)=>i?x.lineTo(sx(i),sy(v)):x.moveTo(sx(i),sy(v)));x.stroke();
+  x.strokeStyle=gold;x.lineWidth=2.2;x.beginPath();pts.forEach((v,i)=>i?x.lineTo(sx(i),sy(v)):x.moveTo(sx(i),sy(v)));x.stroke();
   x.setLineDash([4,4]);x.strokeStyle="rgba(150,150,160,.5)";x.lineWidth=1;x.beginPath();x.moveTo(0,sy(a.start));x.lineTo(W,sy(a.start));x.stroke()}
-function addTrade(res){const a=A(),S=state(a),sl=+$("m-sl").value||10,lot=lotFor(S.riskUsd,sl),loss=lot*sl*100;
-  const pnl=res==="Win"?loss*a.rr:-loss,d=new Date();
-  a.trades.push({d:`${d.getDate()}/${d.getMonth()+1}`,strat:$("m-strat").value,side:document.querySelector("#m-side .on").dataset.v,lot,sl,res,pnl:Math.round(pnl*100)/100,bal:Math.round((S.bal+pnl)*100)/100});
-  save();mrender()}
+function addTrade(res){const a=A(),S=state(a),sl=+$("m-sl").value||10,lot=lotFor(S.riskUsd,sl),loss=lot*sl*100,pnl=res==="Win"?loss*a.rr:-loss,d=new Date();
+  a.trades.push({d:`${d.getDate()}/${d.getMonth()+1}`,strat:$("m-strat").value,side:document.querySelector("#m-side .on").dataset.v,lot,sl,risk:Math.round(loss*100)/100,res,
+    pnl:Math.round(pnl*100)/100,bal:Math.round((S.bal+pnl)*100)/100});save();mrender()}
+let wst="smart";
+$("w-style").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(!b)return;wst=b.dataset.s;document.querySelectorAll("#w-style button").forEach(x=>x.classList.toggle("on",x===b))});
+$("w-go").onclick=()=>{const st=+$("w-start").value,g=+$("w-goal").value;if(!(st>0)){$("w-start").focus();return}
+  DB.accs.push(newAcc(st,g>st?g:st*2,wst));DB.cur=DB.accs.length-1;save();mrender();scrollTo({top:0,behavior:"smooth"})};
 $("m-win").onclick=()=>addTrade("Win");$("m-loss").onclick=()=>addTrade("Loss");
 $("m-undo").onclick=()=>{A().trades.pop();save();mrender()};
+document.querySelectorAll(".pm").forEach(b=>b.onclick=()=>{$("m-sl").value=Math.max(0.5,(+$("m-sl").value||10)+(+b.dataset.d));mrender()});
 $("m-acc").onchange=e=>{DB.cur=+e.target.value;save();mrender()};
-$("m-add").onclick=()=>{DB.accs.push({name:"Account "+(DB.accs.length+1),start:1000,goal:2000,risk:1,rr:2,max:2,min:0.25,mode:"fixed",onloss:"0.5",onwin:"base",trades:[]});DB.cur=DB.accs.length-1;save();mrender()};
-$("m-del").onclick=()=>{if(DB.accs.length<2){A().trades=[];}else{DB.accs.splice(DB.cur,1);DB.cur=0}save();mrender()};
+$("m-add").onclick=$("m-restart").onclick=()=>{DB.cur=DB.accs.length;DB.accs.length&&($("m-app").hidden=true,$("w-card").hidden=false);if(!DB.accs.length)mrender();scrollTo({top:0,behavior:"smooth"})};
+$("m-del").onclick=()=>{if(!confirmDel())return;DB.accs.splice(DB.cur,1);DB.cur=0;save();mrender()};
+function confirmDel(){const b=$("m-del");if(b.dataset.sure){delete b.dataset.sure;b.textContent="Delete";return true}b.dataset.sure=1;b.textContent="Sure?";setTimeout(()=>{delete b.dataset.sure;b.textContent="Delete"},3000);return false}
 for(const [id,k,num] of [["m-name","name",0],["m-start","start",1],["m-goal","goal",1],["m-risk","risk",1],["m-rr","rr",1],["m-max","max",1],["m-min","min",1]])
   $(id).addEventListener("input",e=>{const v=num?+e.target.value:e.target.value;if(num&&!(v>0))return;A()[k]=v;
     if(k==="start")A().trades.reduce((b,t)=>(t.bal=Math.round((b+t.pnl)*100)/100,t.bal),v);save();mrender()});
 $("m-onloss").onchange=e=>{A().onloss=e.target.value;save();mrender()};$("m-onwin").onchange=e=>{A().onwin=e.target.value;save();mrender()};
 $("m-sl").addEventListener("input",mrender);
-$("m-mode").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;A().mode=b.dataset.v;save();mrender()});
+$("m-mode").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;const a=A();a.mode=b.dataset.v;
+  if(a.mode==="ladder"&&a.risk<3)a.risk=5;save();mrender()});
 $("m-side").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;document.querySelectorAll("#m-side button").forEach(x=>x.classList.toggle("on",x===b))});
-$("m-csv").onclick=()=>{const a=A(),rows=[["Date","Setup","Side","Lot","SL","Result","PnL","Balance"],...a.trades.map(t=>[t.d,t.strat,t.side,t.lot,t.sl,t.res,t.pnl,t.bal])];
+$("m-csv").onclick=()=>{const a=A(),rows=[["No","Date","Setup","Side","Lot","SL","Risk","Result","PnL","Balance"],...a.trades.map((t,i)=>[i+1,t.d,t.strat,t.side,t.lot,t.sl,t.risk||"",t.res,t.pnl,t.bal])];
   const u=URL.createObjectURL(new Blob([rows.map(r=>r.join(",")).join("\n")],{type:"text/csv"}));const l=document.createElement("a");l.href=u;l.download=a.name.replace(/\W+/g,"_")+".csv";l.click()};
 $("vsw").addEventListener("click",e=>{const b=e.target.closest("[data-w]");if(!b)return;document.querySelectorAll("#vsw button").forEach(x=>x.classList.toggle("on",x===b));
   $("v-plan").hidden=b.dataset.w!=="plan";$("v-mgr").hidden=b.dataset.w!=="mgr";if(b.dataset.w==="mgr")mrender();try{localStorage.setItem("xaukh_su_view",b.dataset.w)}catch(e){}});
+// old saved accounts (from the first version) keep working
+DB.accs.forEach(a=>{if(!a.goal)a.goal=a.start*2;if(!a.max)a.max=a.risk;if(!a.min)a.min=a.risk});
 mrender();
 try{if(localStorage.getItem("xaukh_su_view")==="plan")document.querySelector('#vsw [data-w="plan"]').click()}catch(e){}
 </script>
