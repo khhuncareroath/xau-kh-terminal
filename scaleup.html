@@ -230,6 +230,36 @@ table.lad tr:hover td{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 #m-chart{height:150px}
 .kpi{background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 10%,var(--card2)),var(--card2))!important}
 
+
+/* ===== polish v2: faster and richer, same layout ===== */
+/* speed: no moving blurred blobs, no glass blur on every card, quicker reveals (these made phones lag) */
+.aurora i{filter:none!important;animation:none!important;will-change:auto!important;opacity:.55!important}
+.aurora::after{display:none!important}
+.card:not(.vault){backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:var(--card)!important;border:1px solid var(--sep)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 40px -30px rgba(0,0,0,.9)}
+.js-rv .card,.js-rv .rv{filter:none!important;transform:translateY(10px)!important;transition:opacity .4s ease,transform .45s cubic-bezier(.22,1,.36,1)!important}
+.js-rv .card.in,.js-rv .rv.in{transform:none!important}
+/* colour: deeper blacks, one warm gold, no default-blue links */
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#070709;--card:#111113;--card2:#1A1A1E;--fill:rgba(255,255,255,.07);--sep:rgba(255,255,255,.075);
+  --label2:rgba(235,235,245,.62);--label3:rgba(235,235,245,.32);--gold:#E2B04F;--gold2:#F5D48A}}
+:root[data-theme=dark]{--bg:#070709;--card:#111113;--card2:#1A1A1E;--fill:rgba(255,255,255,.07);--sep:rgba(255,255,255,.075);--gold:#E2B04F;--gold2:#F5D48A}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#F4F2EE;--card:#FFFFFF;--card2:#F2F0EB;--sep:rgba(60,50,30,.10);--gold:#B07E22;--gold2:#C8952F}
+  :root:not([data-theme=dark]) .card:not(.vault){box-shadow:0 1px 2px rgba(40,30,10,.05),0 14px 34px -22px rgba(40,30,10,.25)}}
+html,body{background:var(--bg)}
+.top{background:color-mix(in srgb,var(--bg) 86%,transparent)!important;border-bottom:1px solid var(--sep)!important}
+.top a,header a{color:var(--gold2)!important;font-weight:600}
+a{color:var(--gold2)}
+::selection{background:color-mix(in srgb,var(--gold) 40%,transparent)}
+/* controls */
+.btn:not(.ghost){background:linear-gradient(180deg,var(--gold2),var(--gold))!important;color:#1A1205!important;box-shadow:0 12px 26px -16px var(--gold),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn.ghost{background:var(--card2)!important;border:1px solid var(--sep)!important}
+.seg{background:var(--card2)!important;border:1px solid var(--sep)}
+.seg button.on{background:var(--card)!important;color:var(--gold2)!important;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 4px 14px -6px rgba(0,0,0,.6)!important}
+input,select,textarea{border:1px solid var(--sep)!important;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:color-mix(in srgb,var(--gold) 60%,transparent)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 18%,transparent)}
+.kpi{border:1px solid var(--sep)}
+h1{background:linear-gradient(180deg,var(--label) 30%,color-mix(in srgb,var(--label) 70%,var(--gold)));-webkit-background-clip:text;background-clip:text;color:transparent}
+*{scrollbar-width:none}::-webkit-scrollbar{display:none}
 </style>
 </head>
 <body>
