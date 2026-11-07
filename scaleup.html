@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>XAU.KH Scale Up</title>
 <meta name="description" content="The XAU.KH Scale Up ladder: 5 trades where you only risk profit after the first win. Lot sizes, balances and honest odds.">
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg"><link rel="apple-touch-icon" href="assets/icon-180.png">
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -218,9 +219,9 @@ details.set summary{font-size:15px;color:var(--label)}
 .styles button{position:relative;padding:16px 16px 16px 66px!important;transition:transform .25s cubic-bezier(.34,1.45,.64,1)}
 .styles button b{font-size:17px!important}
 .styles button::before{content:"";position:absolute;left:14px;top:16px;width:40px;height:40px;border-radius:12px;background:var(--fill)}
-.styles button[data-s=safe]::before{background:linear-gradient(145deg,#64D2FF,#0A84FF)}
-.styles button[data-s=smart]::before{background:linear-gradient(145deg,#FFE29A,#C98B1E)}
-.styles button[data-s=fast]::before{background:linear-gradient(145deg,#34C759,#30B0C7)}
+.styles button[data-s="1"]::before{background:linear-gradient(145deg,#64D2FF,#0A84FF)}
+.styles button[data-s="2"]::before{background:linear-gradient(145deg,#FFE29A,#C98B1E)}
+.styles button[data-s="5"]::before{background:linear-gradient(145deg,#34C759,#30B0C7)}
 .styles button b span.ic{position:absolute;left:14px;top:16px;width:40px;height:40px;display:grid;place-items:center;font-size:20px}
 .styles button.on{box-shadow:0 14px 30px -18px rgba(227,176,75,.9)}
 .sl-row input{background:var(--card2)!important;border:1px solid color-mix(in srgb,var(--gold) 25%,transparent)!important}
@@ -244,6 +245,11 @@ table.lad tr:hover td{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .st-bar span{margin-top:8px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.18);color:#1A1205;font-weight:800;font-size:12.5px;display:grid;place-items:center}
 @keyframes rise{from{transform:scaleY(.2);opacity:0}to{transform:none;opacity:1}}
 @media (max-width:380px){.st-top b{font-size:11.5px}}
+
+/* logo */
+.brand{display:inline-flex!important;align-items:center;gap:9px;font-weight:700!important;letter-spacing:-.02em}
+.brand .logo{width:26px;height:26px;border-radius:7px;box-shadow:0 2px 6px rgba(0,80,200,.25)}
+.smartnote{margin-top:12px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--blue) 9%,transparent);font-size:14px;line-height:1.45}
 
 /* ===== XAU.KH iOS theme (style A): Apple Settings look, premium motion ===== */
 :root,:root[data-theme=light]{--bg:#F2F2F7;--card:#FFFFFF;--card2:#F2F2F7;--fill:rgba(118,118,128,.12);--fill2:rgba(118,118,128,.2);--sep:rgba(60,60,67,.18);
@@ -292,9 +298,26 @@ table.lad tr{transition:background-color .2s}table.lad tr:active td{background:v
 @keyframes burst{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
 @media (prefers-reduced-motion:reduce){.seg::before,.burst{transition:none;animation:none}}
 *{scrollbar-width:none}::-webkit-scrollbar{display:none}
-/* calm motion: content is there at once (no fading-in cards, no fading title) */
+/* premium motion: once on open, then only when something changes */
 .js-rv .card,.js-rv .rv{opacity:1!important;transform:none!important;transition:transform .35s cubic-bezier(.34,1.56,.64,1)!important}
 h1.large,main>h1{transform:none!important;opacity:1!important}
+@keyframes enter{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+main>*{animation:enter .7s cubic-bezier(.22,1,.36,1) both}
+main>*:nth-child(2){animation-delay:.05s}main>*:nth-child(3){animation-delay:.1s}main>*:nth-child(4){animation-delay:.15s}
+main>*:nth-child(5){animation-delay:.2s}main>*:nth-child(6){animation-delay:.25s}main>*:nth-child(n+7){animation-delay:.3s}
+[id^="v-"]:not([hidden])>*{animation:enter .55s cubic-bezier(.22,1,.36,1) both}
+[id^="v-"]:not([hidden])>*:nth-child(2){animation-delay:.05s}[id^="v-"]:not([hidden])>*:nth-child(3){animation-delay:.1s}[id^="v-"]:not([hidden])>*:nth-child(n+4){animation-delay:.15s}
+@keyframes logoIn{0%{transform:scale(.6) rotate(-12deg);opacity:0}60%{transform:scale(1.08) rotate(2deg);opacity:1}100%{transform:none}}
+.brand .logo{animation:logoIn .8s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pick{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+.styles button.on,.parts button.on{animation:pick .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+.shake{animation:shake .45s ease!important}
+@keyframes glowWin{0%{box-shadow:0 0 0 0 rgba(52,199,89,.55)}100%{box-shadow:0 0 0 18px rgba(52,199,89,0)}}
+.flash{animation:glowWin .9s ease-out!important}
+.tabbar a,.tabbar button{transition:transform .35s cubic-bezier(.34,1.56,.64,1),color .2s}
+.tabbar .on svg,.tabbar [aria-current] svg{animation:pick .45s cubic-bezier(.34,1.56,.64,1)}
+@media (prefers-reduced-motion:reduce){main>*,[id^="v-"]>*,.brand .logo,.styles button.on,.shake,.flash{animation:none!important}}
 /* Scale Up pieces in the iOS style */
 .vault{background:var(--card)!important;color:var(--label)!important;box-shadow:none!important;border-radius:16px!important}
 .vault::before,.sheen{display:none!important}
@@ -318,7 +341,7 @@ h1.large,main>h1{transform:none!important;opacity:1!important}
 .sl-row input{border:0!important}
 .styles button{background:var(--card2)!important}
 .styles button.on{outline:2px solid var(--blue)!important;background:color-mix(in srgb,var(--blue) 8%,var(--card2))!important;box-shadow:none!important}
-.styles button[data-s=smart]::before{background:linear-gradient(145deg,#5E5CE6,#007AFF)!important}
+.styles button[data-s="2"]::before{background:linear-gradient(145deg,#5E5CE6,#007AFF)!important}
 .story .ico{background:var(--fill)!important}
 .st-bar{background:linear-gradient(180deg,#5AC8FA,#007AFF)!important;box-shadow:none!important}.st-bar span{color:#fff!important;background:rgba(255,255,255,.25)!important}
 .parts button.on{outline:2px solid var(--blue)!important;background:color-mix(in srgb,var(--blue) 8%,var(--card2))!important}
@@ -330,7 +353,7 @@ h1.large,main>h1{transform:none!important;opacity:1!important}
 </head>
 <body>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-<header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="journal.html" style="margin-left:auto">Journal</a><a href="./" style="margin-left:14px">← Gold today</a></header>
+<header class="top"><span class="brand"><img class="logo" src="assets/logo.svg" alt="" width="26" height="26"><span>XAU<i>.</i>KH</span></span><a href="journal.html" style="margin-left:auto">Journal</a><a href="./" style="margin-left:14px">← Gold today</a></header>
 <main>
   <h1>Scale Up</h1>
   <p class="sub">Your money, your goal. Tap Win or Loss after each trade, we do the math.<br>
@@ -342,7 +365,7 @@ h1.large,main>h1{transform:none!important;opacity:1!important}
     <h2>What is Scale Up? · តើ Scale Up ជាអ្វី?</h2>
     <div class="say"><span class="ico">🪜</span><p><b>Climb 5 steps.</b> One winning trade = one step up.<br><span class="km">ឡើងជណ្ដើរ ៥ កាំ។ ឈ្នះម្ដង = ឡើងមួយកាំ។</span></p></div>
     <div class="say"><span class="ico">🛡</span><p><b>Only step 1 uses your own money.</b> After that you only use the profit you won.<br><span class="km">តែកាំទី១ ទេដែលប្រើលុយខ្លួនឯង។ បន្ទាប់មកប្រើតែប្រាក់ចំណេញ។</span></p></div>
-    <div class="say"><span class="ico">↺</span><p><b>Lose? Start again at step 1.</b> Your money is still above where you started (after step 1 wins).<br><span class="km">ចាញ់? ចាប់ផ្ដើមកាំទី១ វិញ។</span></p></div>
+    <div class="say"><span class="ico">↺</span><p><b>Lose? Back to step 1 with half the risk.</b> Win again and the risk goes back to normal. It protects you in a bad week.<br><span class="km">ចាញ់? ចាប់ផ្ដើមកាំទី១ វិញ។</span></p></div>
     <div class="say"><span class="ico">🏁</span><p><b>Reach step 5 = your money doubles</b> (Part 1). Take profit out, then start the next part.<br><span class="km">ដល់កាំទី៥ = លុយកើនទ្វេដង។ ដកប្រាក់ចំណេញ ហើយចាប់ផ្ដើមដំណាក់កាលបន្ទាប់។</span></p></div>
   </section>
 
@@ -410,12 +433,13 @@ h1.large,main>h1{transform:none!important;opacity:1!important}
     <input id="w-start" type="number" inputmode="decimal" placeholder="e.g. 1000" min="10">
     <div class="q"><span class="qn">2</span><div><b>What is your goal?</b><span class="km">គោលដៅរបស់អ្នកប៉ុន្មាន?</span></div></div>
     <input id="w-goal" type="number" inputmode="decimal" placeholder="e.g. 2000" min="10">
-    <div class="q"><span class="qn">3</span><div><b>Pick your style</b><span class="km">ជ្រើសរបៀប</span></div></div>
+    <div class="q"><span class="qn">3</span><div><b>How much do you risk on step 1?</b><span class="km">ហានិភ័យកាំទី១ ប៉ុន្មាន?</span></div></div>
     <div class="styles" id="w-style">
-      <button data-s="safe"><b><span class="ic">🛡</span>Safe</b><span>1% each trade. Slow and steady.</span><span class="km">១% រាល់ការជួញដូរ</span></button>
-      <button data-s="smart" class="on"><b><span class="ic">🧠</span>Smart</b><span>2%, and half after a loss. Protects you in a bad week.</span><span class="km">២% ចាញ់ហើយ បន្ថយពាក់កណ្ដាល</span></button>
-      <button data-s="fast"><b><span class="ic">🚀</span>Scale Up</b><span>5% first, then only your profit (the ladder).</span><span class="km">ប្រើតែប្រាក់ចំណេញ</span></button>
+      <button data-s="1"><b><span class="ic">🛡</span>1% · Careful</b><span>Small steps. Best for new traders.</span><span class="km">ប្រុងប្រយ័ត្ន</span></button>
+      <button data-s="2" class="on"><b><span class="ic">⚖️</span>2% · Normal</b><span>Recommended for most people.</span><span class="km">ធម្មតា (ណែនាំ)</span></button>
+      <button data-s="5"><b><span class="ic">🚀</span>5% · Bold</b><span>Your sheet's Part 1. Faster, but bigger swings.</span><span class="km">ក្លាហាន</span></button>
     </div>
+    <div class="smartnote"><b>Smart rules, automatic:</b> win → the next steps use your profit (the ladder) · loss → step 1 risk drops to half, back to normal after a win.<br><span class="km">ឈ្នះ → ប្រើប្រាក់ចំណេញ · ចាញ់ → ហានិភ័យធ្លាក់ពាក់កណ្ដាល</span></div>
     <button class="btn" id="w-go">Start · ចាប់ផ្ដើម</button>
   </section>
 
@@ -484,18 +508,8 @@ h1.large,main>h1{transform:none!important;opacity:1!important}
       <div><label>Name</label><input id="m-name" type="text"></div>
       <div><label>Start ($)</label><input id="m-start" type="number" inputmode="decimal" min="10"></div>
       <div><label>Goal ($)</label><input id="m-goal" type="number" inputmode="decimal" min="10"></div>
-      <div><label>Risk per trade (%)</label><input id="m-risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
+      <div><label>Step 1 risk (%)</label><input id="m-risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
       <div><label>Reward : risk</label><input id="m-rr" type="number" inputmode="decimal" min="0.5" max="10" step="0.5"></div>
-    </div>
-    <label style="margin-top:12px">Style</label>
-    <div class="seg" id="m-mode"><button data-v="fixed">🛡 Fixed %</button><button data-v="smart">🧠 Smart</button><button data-v="ladder">🚀 Ladder</button></div>
-    <div id="m-smart" style="margin-top:10px">
-      <div class="grid">
-        <div><label>After a loss</label><select id="m-onloss"><option value="0.5">risk × 0.5</option><option value="0.75">risk × 0.75</option><option value="1">same risk</option></select></div>
-        <div><label>After a win</label><select id="m-onwin"><option value="base">back to normal</option><option value="1.25">risk × 1.25</option><option value="1.5">risk × 1.5</option></select></div>
-        <div><label>Max risk (%)</label><input id="m-max" type="number" inputmode="decimal" min="0.1" max="50" step="0.25"></div>
-        <div><label>Min risk (%)</label><input id="m-min" type="number" inputmode="decimal" min="0.05" max="50" step="0.05"></div>
-      </div>
     </div>
     <p class="km" id="m-modetxt" style="margin:10px 0 0"></p>
     <button class="btn ghost" id="m-restart">Start over with the 3 questions</button>
@@ -582,42 +596,37 @@ let DB;try{DB=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){DB=null}
 if(!DB||!DB.accs||!DB.accs.length)DB={cur:0,accs:[]};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
 const A=()=>DB.accs[DB.cur];
-const STY={safe:{mode:"fixed",risk:1,rr:2,max:1,min:1},smart:{mode:"smart",risk:2,rr:2,max:2,min:0.5,onloss:"0.5",onwin:"base"},fast:{mode:"ladder",risk:5,rr:2,max:5,min:5}};
-const NAME={fixed:"🛡 Safe · fixed %",smart:"🧠 Smart",ladder:"🚀 Scale Up ladder"};
-function newAcc(start,goal,st){return Object.assign({name:"My account",start,goal,onloss:"0.5",onwin:"base",trades:[]},STY[st])}
-function state(a){
-  let bal=a.start,cur=a.risk,step=1,prevWin=0,peak=a.start,dd=0;const MX=Math.max(a.max||a.risk,a.risk),MN=Math.min(a.min||a.risk,a.risk);
+function newAcc(start,goal,risk){return {name:"My account",start,goal,risk:+risk,rr:2,mode:"scale",trades:[]}}
+function state(a){   // Smart Scale Up: the ladder after wins, half risk on step 1 after a loss (quarter after 2+), normal after a win
+  let bal=a.start,step=1,prevWin=0,peak=a.start,dd=0,ls=0;
   for(const t of a.trades){bal+=t.pnl;peak=Math.max(peak,bal);dd=Math.max(dd,1-bal/peak);
-    if(a.mode==="smart"){if(t.res==="Loss")cur=Math.max(MN,cur*(+a.onloss));else cur=a.onwin==="base"?a.risk:Math.min(MX,cur*(+a.onwin))}
-    if(a.mode==="ladder"){if(t.res==="Loss"){step=1;prevWin=0}else{prevWin=t.pnl;step=step===5?1:step+1}}}
-  const riskUsd=a.mode==="ladder"?(step===1?bal*a.risk/100:(step%2===0?prevWin/2:prevWin)):bal*(a.mode==="smart"?cur:a.risk)/100;
-  return {bal,riskUsd,step,dd,cur};
+    if(t.res==="Loss"){ls++;step=1;prevWin=0}else{if(step===1)ls=0;prevWin=t.pnl;step=step===5?1:step+1}}
+  const cur=a.risk*(ls>=2?0.25:ls===1?0.5:1);
+  const riskUsd=step===1?bal*cur/100:(step%2===0?prevWin/2:prevWin);
+  return {bal,riskUsd,step,dd,cur,ls};
 }
 const lotFor=(r,sl)=>Math.max(0.01,Math.round(r/(sl*100)*100)/100);
 function mrender(){
   const first=!DB.accs.length;$("w-card").hidden=!first;$("m-app").hidden=first;if(first)return;
   const a=A();
   $("m-acc").innerHTML=DB.accs.map((x,i)=>`<option value="${i}" ${i===DB.cur?"selected":""}>${x.name.replace(/</g,"&lt;")}</option>`).join("");
-  for(const [id,k] of [["m-name","name"],["m-start","start"],["m-goal","goal"],["m-risk","risk"],["m-rr","rr"],["m-max","max"],["m-min","min"]])if(document.activeElement!==$(id))$(id).value=a[k];
-  $("m-onloss").value=a.onloss;$("m-onwin").value=a.onwin;
-  document.querySelectorAll("#m-mode button").forEach(b=>b.classList.toggle("on",b.dataset.v===a.mode));
-  $("m-smart").hidden=a.mode!=="smart";
-  $("m-modetxt").innerHTML={fixed:"🛡 Every trade risks the same % of your balance now. After a loss the $ risk gets smaller by itself.",
-    smart:"🧠 After a loss the risk % drops, after a win it goes back to normal. Never above the max.",
-    ladder:"🚀 Trade 1 risks the %, then only the profit you won (½, all, ½, all). A loss restarts at trade 1."}[a.mode];
+  for(const [id,k] of [["m-name","name"],["m-start","start"],["m-goal","goal"],["m-risk","risk"],["m-rr","rr"]])if(document.activeElement!==$(id))$(id).value=a[k];
+  $("m-modetxt").innerHTML="Step 1 risks this % of your balance. Steps 2–5 use only your profit (½, all, ½, all). After a loss, step 1 risk drops to half (a quarter after 2 losses) and goes back to normal after a win.";
   const S=state(a),sl=+$("m-sl").value||10,lot=lotFor(S.riskUsd,sl),loss=lot*sl*100,g=a.goal||a.start*2;
-  $("m-badge").textContent=a.name;$("m-style").textContent=NAME[a.mode];
+  $("m-badge").textContent=a.name;
+  $("m-style").textContent=S.step>1?`Step ${S.step} · using profit`:S.ls?`Step 1 · ${S.cur}% (lowered)`:`Step 1 · ${S.cur}%`;
   (window.countTo?countTo($("m-bal"),S.bal):($("m-bal").textContent=usd(S.bal)));$("m-goa").textContent=`${pct((S.bal/a.start-1)*100)} since start (${usd(a.start)})`;
   const prog=Math.max(0,Math.min(1,(S.bal-a.start)/((g-a.start)||1)));
   $("m-ring").style.strokeDashoffset=(314.16*(1-prog)).toFixed(1);$("m-gpct").textContent=Math.round(prog*100)+"%";$("m-gtxt").textContent=`Goal ${usd(g)}`;
   $("m-goa").className="vault-goa num "+(S.bal>=a.start?"up":"dn");
   $("m-gleft").textContent=S.bal>=g?"🎉 Goal reached! Take some profit out · សម្រេចគោលដៅ!":`${usd(g-S.bal)} to go · ${Math.round(prog*100)}%`;
-  $("m-steps").innerHTML=a.mode==="ladder"?[1,2,3,4,5].map(k=>`<span class="stp ${k<S.step?"done":k===S.step?"now":""}">${k}</span>`).join("")+
+  $("m-steps").innerHTML=true?[1,2,3,4,5].map(k=>`<span class="stp ${k<S.step?"done":k===S.step?"now":""}">${k}</span>`).join("")+
     `<small>ladder · trade ${S.step} of 5</small>`:"";
   if($("m-lot").textContent!==lot.toFixed(2)){$("m-lot").textContent=lot.toFixed(2);$("m-lot").classList.add("pop");setTimeout(()=>$("m-lot").classList.remove("pop"),250)}$("m-nr").textContent="−"+usd(loss);$("m-tp").textContent="+"+usd(loss*a.rr);$("m-rrv").textContent=a.rr;
   $("m-nrp").textContent=`= ${(loss/S.bal*100).toFixed(2)}% of your balance`;
   const w=[],rp=loss/S.bal*100;
-  if(lot===0.01&&rp>Math.max(a.max||0,a.risk)*1.5)w.push(`Even 0.01 lot risks ${rp.toFixed(1)}% with this SL. Skip this trade or find a closer SL.`);
+  if(S.ls)w.push(S.ls>=2?"2 losses in a row: step 1 risk is now a quarter. Slow down. ចាញ់ ២ ដងជាប់ ហានិភ័យនៅមួយភាគបួន។":"After a loss, step 1 risk is half until your next win. ចាញ់ហើយ ហានិភ័យនៅពាក់កណ្ដាល។");
+  if(lot===0.01&&rp>a.risk*1.5)w.push(`Even 0.01 lot risks ${rp.toFixed(1)}% with this SL. Skip this trade or find a closer SL.`);
   if(S.dd>=0.2)w.push(`You are ${Math.round(S.dd*100)}% below your best. Take a break or lower your risk.`);
   const l3=a.trades.slice(-3);if(l3.length===3&&l3.every(t=>t.res==="Loss"))w.push("3 losses in a row: stop for today. ចាញ់ ៣ ដងជាប់ ឈប់សិនថ្ងៃនេះ។");
   $("m-warn").hidden=!w.length;$("m-warn").innerHTML=w.join("<br>");
@@ -644,9 +653,9 @@ function drawEq(a){const c=$("m-chart"),r=c.getBoundingClientRect();if(!r.width)
 function addTrade(res){const a=A(),S=state(a),sl=+$("m-sl").value||10,lot=lotFor(S.riskUsd,sl),loss=lot*sl*100,pnl=res==="Win"?loss*a.rr:-loss,d=new Date();
   a.trades.push({d:`${d.getDate()}/${d.getMonth()+1}`,strat:$("m-strat").value,side:document.querySelector("#m-side .on").dataset.v,lot,sl,risk:Math.round(loss*100)/100,res,
     pnl:Math.round(pnl*100)/100,bal:Math.round((S.bal+pnl)*100)/100});save();mrender();
-  const v=document.querySelector(".vault");v.classList.remove("flash");void v.offsetWidth;if(res==="Win"){v.classList.add("flash");window.burst&&burst($("m-win"),["#34C759","#007AFF","#5AC8FA","#30D158","#0A84FF"])}
+  const v=document.querySelector(".vault");v.classList.remove("flash","shake");void v.offsetWidth;if(res==="Loss")v.classList.add("shake");if(res==="Win"){v.classList.add("flash");window.burst&&burst($("m-win"),["#34C759","#007AFF","#5AC8FA","#30D158","#0A84FF"])}
   try{navigator.vibrate&&navigator.vibrate(res==="Win"?[20,40,20]:40)}catch(e){}}
-let wst="smart";
+let wst="2";
 $("w-style").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(!b)return;wst=b.dataset.s;document.querySelectorAll("#w-style button").forEach(x=>x.classList.toggle("on",x===b))});
 $("w-go").onclick=()=>{const st=+$("w-start").value,g=+$("w-goal").value;if(!(st>0)){$("w-start").focus();return}
   DB.accs.push(newAcc(st,g>st?g:st*2,wst));DB.cur=DB.accs.length-1;save();mrender();scrollTo({top:0,behavior:"smooth"})};
@@ -654,23 +663,22 @@ $("m-win").onclick=()=>addTrade("Win");$("m-loss").onclick=()=>addTrade("Loss");
 $("m-undo").onclick=()=>{A().trades.pop();save();mrender()};
 document.querySelectorAll(".pm").forEach(b=>b.onclick=()=>{$("m-sl").value=Math.max(0.5,(+$("m-sl").value||10)+(+b.dataset.d));mrender()});
 $("m-acc").onchange=e=>{DB.cur=+e.target.value;save();mrender()};
-$("m-add").onclick=$("m-restart").onclick=()=>{DB.cur=DB.accs.length;DB.accs.length&&($("m-app").hidden=true,$("w-card").hidden=false);if(!DB.accs.length)mrender();scrollTo({top:0,behavior:"smooth"})};
+$("m-add").onclick=$("m-restart").onclick=()=>{DB.cur=DB.accs.length;$("m-app").hidden=true;$("w-card").hidden=false;scrollTo({top:0,behavior:"smooth"})};
 $("m-del").onclick=()=>{if(!confirmDel())return;DB.accs.splice(DB.cur,1);DB.cur=0;save();mrender()};
 function confirmDel(){const b=$("m-del");if(b.dataset.sure){delete b.dataset.sure;b.textContent="Delete";return true}b.dataset.sure=1;b.textContent="Sure?";setTimeout(()=>{delete b.dataset.sure;b.textContent="Delete"},3000);return false}
-for(const [id,k,num] of [["m-name","name",0],["m-start","start",1],["m-goal","goal",1],["m-risk","risk",1],["m-rr","rr",1],["m-max","max",1],["m-min","min",1]])
+for(const [id,k,num] of [["m-name","name",0],["m-start","start",1],["m-goal","goal",1],["m-risk","risk",1],["m-rr","rr",1]])
   $(id).addEventListener("input",e=>{const v=num?+e.target.value:e.target.value;if(num&&!(v>0))return;A()[k]=v;
     if(k==="start")A().trades.reduce((b,t)=>(t.bal=Math.round((b+t.pnl)*100)/100,t.bal),v);save();mrender()});
-$("m-onloss").onchange=e=>{A().onloss=e.target.value;save();mrender()};$("m-onwin").onchange=e=>{A().onwin=e.target.value;save();mrender()};
+
 $("m-sl").addEventListener("input",mrender);
-$("m-mode").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;const a=A();a.mode=b.dataset.v;
-  if(a.mode==="ladder"&&a.risk<3)a.risk=5;save();mrender()});
+
 $("m-side").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;document.querySelectorAll("#m-side button").forEach(x=>x.classList.toggle("on",x===b))});
 $("m-csv").onclick=()=>{const a=A(),rows=[["No","Date","Setup","Side","Lot","SL","Risk","Result","PnL","Balance"],...a.trades.map((t,i)=>[i+1,t.d,t.strat,t.side,t.lot,t.sl,t.risk||"",t.res,t.pnl,t.bal])];
   const u=URL.createObjectURL(new Blob([rows.map(r=>r.join(",")).join("\n")],{type:"text/csv"}));const l=document.createElement("a");l.href=u;l.download=a.name.replace(/\W+/g,"_")+".csv";l.click()};
 $("vsw").addEventListener("click",e=>{const b=e.target.closest("[data-w]");if(!b)return;document.querySelectorAll("#vsw button").forEach(x=>x.classList.toggle("on",x===b));
   $("v-plan").hidden=b.dataset.w!=="plan";$("v-mgr").hidden=b.dataset.w!=="mgr";if(b.dataset.w==="mgr")mrender();try{localStorage.setItem("xaukh_su_view",b.dataset.w)}catch(e){}});
 // old saved accounts (from the first version) keep working
-DB.accs.forEach(a=>{if(!a.goal)a.goal=a.start*2;if(!a.max)a.max=a.risk;if(!a.min)a.min=a.risk});
+DB.accs.forEach(a=>{if(!a.goal)a.goal=a.start*2;a.mode="scale";if(!a.rr)a.rr=2});
 mrender();
 
 </script>
