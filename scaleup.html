@@ -231,6 +231,20 @@ table.lad tr:hover td{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .kpi{background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 10%,var(--card2)),var(--card2))!important}
 
 
+.story .say{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--sep)}
+.story .say:first-of-type{border-top:0}
+.story .ico{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:color-mix(in srgb,var(--gold) 16%,var(--card2))}
+.story p{margin:0;font-size:15px;line-height:1.45}.story .km{font-size:13px}
+[hidden]{display:none!important}
+.stairs{display:flex;align-items:flex-end;gap:6px;height:210px;margin-top:6px}
+.st{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+.st-top{text-align:center;margin-bottom:6px}.st-top b{display:block;font-size:13px}.st-top small{font-size:10.5px;color:var(--label2)}
+.st-bar{height:var(--h);border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,var(--gold2),var(--gold));display:flex;align-items:flex-start;justify-content:center;
+  box-shadow:0 10px 24px -14px var(--gold);animation:rise .7s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--d);transform-origin:bottom}
+.st-bar span{margin-top:8px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.18);color:#1A1205;font-weight:800;font-size:12.5px;display:grid;place-items:center}
+@keyframes rise{from{transform:scaleY(.2);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:380px){.st-top b{font-size:11.5px}}
+
 /* ===== polish v2: faster and richer, same layout ===== */
 /* speed: no moving blurred blobs, no glass blur on every card, quicker reveals (these made phones lag) */
 .aurora i{filter:none!important;animation:none!important;will-change:auto!important;opacity:.55!important}
@@ -267,44 +281,50 @@ h1{background:linear-gradient(180deg,var(--label) 30%,color-mix(in srgb,var(--la
 <header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="journal.html" style="margin-left:auto">Journal</a><a href="./" style="margin-left:14px">← Gold today</a></header>
 <main>
   <h1>Scale Up</h1>
-  <p class="sub">Your money, your goal, your rules. Tap Win or Loss after each trade: the balance, the risk and the lot size for the next trade update by themselves.<br>
+  <p class="sub">Your money, your goal. Tap Win or Loss after each trade, we do the math.<br>
     <span class="km">លុយរបស់អ្នក គោលដៅរបស់អ្នក។ ចុច ឈ្នះ ឬ ចាញ់ ក្រោយការជួញដូរនីមួយៗ៖ សមតុល្យ ហានិភ័យ និង lot បន្ទាប់ នឹងគណនាដោយខ្លួនឯង។</span></p>
 
-  <div class="seg" id="vsw" style="margin-bottom:14px"><button data-w="mgr" class="on">My account</button><button data-w="plan">Ladder guide</button></div>
+  <div class="seg" id="vsw" style="margin-bottom:14px"><button data-w="mgr" class="on">My account</button><button data-w="plan">How it works</button></div>
   <div id="v-plan" hidden>
-  <section class="card">
-    <h2>Pick a part · ជ្រើសដំណាក់កាល</h2>
+  <section class="card story">
+    <h2>What is Scale Up? · តើ Scale Up ជាអ្វី?</h2>
+    <div class="say"><span class="ico">🪜</span><p><b>Climb 5 steps.</b> One winning trade = one step up.<br><span class="km">ឡើងជណ្ដើរ ៥ កាំ។ ឈ្នះម្ដង = ឡើងមួយកាំ។</span></p></div>
+    <div class="say"><span class="ico">🛡</span><p><b>Only step 1 uses your own money.</b> After that you only use the profit you won.<br><span class="km">តែកាំទី១ ទេដែលប្រើលុយខ្លួនឯង។ បន្ទាប់មកប្រើតែប្រាក់ចំណេញ។</span></p></div>
+    <div class="say"><span class="ico">↺</span><p><b>Lose? Start again at step 1.</b> Your money is still above where you started (after step 1 wins).<br><span class="km">ចាញ់? ចាប់ផ្ដើមកាំទី១ វិញ។</span></p></div>
+    <div class="say"><span class="ico">🏁</span><p><b>Reach step 5 = your money doubles</b> (Part 1). Take profit out, then start the next part.<br><span class="km">ដល់កាំទី៥ = លុយកើនទ្វេដង។ ដកប្រាក់ចំណេញ ហើយចាប់ផ្ដើមដំណាក់កាលបន្ទាប់។</span></p></div>
+  </section>
+
+  <section class="card hero">
+    <h2>Your 5 steps · ៥ កាំរបស់អ្នក</h2>
     <div class="parts" id="parts">
       <button data-p="0" class="on"><b>Part 1</b><span>$1,000 · 5%</span></button>
       <button data-p="1"><b>Part 2</b><span>$1,000 · 10%</span></button>
       <button data-p="2"><b>Part 3</b><span>$1,000 · 20%</span></button>
       <button data-p="3"><b>Part 4</b><span>$2,000 · 20%</span></button>
     </div>
-    <div class="grid3">
-      <div><label>Account ($)</label><input id="acc" type="number" inputmode="decimal" min="10"></div>
-      <div><label>Trade 1 risk (%)</label><input id="risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.5"></div>
-      <div><label>Reward : risk</label><input id="rr" type="number" inputmode="decimal" min="1" max="5" step="0.5"></div>
-      <div><label>SL distance (លេខ, $)</label><input id="sl" type="number" inputmode="decimal" min="1" step="0.5"></div>
-    </div>
-    <p class="km" style="margin:10px 0 0">SL in លេខ: $1 move = 1 លេខ = 10 pips. 1 lot = 100 oz, so 0.10 lot loses $10 per លេខ.</p>
-  </section>
-
-  <section class="card hero">
-    <h2>If all 5 trades win · បើឈ្នះទាំង ៥</h2>
-    <div class="big num" id="end">–</div>
-    <div class="row num"><span id="gain"></span><span id="mult"></span></div>
-    <div class="bars" id="bars"></div><div class="bars-l" id="barsl"></div>
-  </section>
-
-  <section class="card">
-    <h2>The ladder · ជណ្ដើរ</h2>
-    <div class="scroll"><table class="lad num" id="lad"></table></div>
-    <div class="floor" id="floor"></div>
+    <div class="stairs" id="stairs"></div>
+    <div class="row num" style="margin-top:12px"><span>Finish all 5: <b id="end">–</b></span><span id="gain"></span><span id="mult" hidden></span></div>
+    <details class="more"><summary>Change the numbers</summary>
+      <div class="grid3" style="margin-top:10px">
+        <div><label>Account ($)</label><input id="acc" type="number" inputmode="decimal" min="10"></div>
+        <div><label>Step 1 risk (%)</label><input id="risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.5"></div>
+        <div><label>Reward : risk</label><input id="rr" type="number" inputmode="decimal" min="1" max="5" step="0.5"></div>
+        <div><label>SL (លេខ, $)</label><input id="sl" type="number" inputmode="decimal" min="1" step="0.5"></div>
+      </div>
+      <p class="km" style="margin:10px 0 0">$1 move = 1 លេខ = 10 pips. 0.10 lot loses $10 per លេខ.</p>
+    </details>
+    <div class="bars" id="bars" hidden></div><div class="bars-l" id="barsl" hidden></div>
   </section>
 
   <section class="card">
-    <h2>How the risk moves · របៀបគិតហានិភ័យ</h2>
-    <div class="road" id="rules"></div>
+    <div class="floor" id="floor" style="margin-top:0"></div>
+    <details class="more"><summary>See the lot size for every step</summary>
+      <div class="scroll" style="margin-top:8px"><table class="lad num" id="lad"></table></div></details>
+  </section>
+
+  <section class="card">
+    <details class="more" style="margin:0"><summary>Exactly how much each step risks</summary>
+    <div class="road" id="rules" style="margin-top:10px"></div></details>
   </section>
 
   <section class="card">
@@ -459,6 +479,7 @@ function render(){
   $("end").textContent=usd(end);$("gain").textContent=`${usd(end-acc)} profit · ${pct((end/acc-1)*100)}`;$("mult").textContent=`×${(end/acc).toFixed(1)}`;
   const mx=end;$("bars").innerHTML=[acc,...L.map(x=>x.ifWin)].map((v,i)=>`<div class="${i?"g":""}" style="height:${Math.max(4,v/mx*100)}%"><span>${v>=1000?"$"+(v/1000).toFixed(1)+"k":"$"+v.toFixed(0)}</span></div>`).join("");
   $("barsl").innerHTML=["Start","T1","T2","T3","T4","T5"].map(x=>`<span>${x}</span>`).join("");
+  $("stairs").innerHTML=L.map((x,i)=>`<div class="st" style="--h:${(28+i*16)}%;--d:${i*80}ms"><div class="st-top"><b>${usd(x.ifWin)}</b><small>risk ${usd(x.risk)}</small></div><div class="st-bar"><span>${i+1}</span></div></div>`).join("");
   $("lad").innerHTML=`<tr><th>Trade</th><th>Lot</th><th>Risk</th><th>TP</th><th>If win</th><th>If lose</th></tr>`+
     L.map(x=>`<tr><td><span class="stp">${x.k}</span></td><td>${x.lot.toFixed(2)}</td><td>${usd(x.risk)}</td><td class="w">+${usd(x.win)}</td><td>${usd(x.ifWin)}</td><td class="l">${usd(x.ifLoss)}</td></tr>`).join("");
   const worstAfter1=Math.min(...L.slice(1).map(x=>x.ifLoss));
@@ -599,7 +620,7 @@ $("vsw").addEventListener("click",e=>{const b=e.target.closest("[data-w]");if(!b
 // old saved accounts (from the first version) keep working
 DB.accs.forEach(a=>{if(!a.goal)a.goal=a.start*2;if(!a.max)a.max=a.risk;if(!a.min)a.min=a.risk});
 mrender();
-try{if(localStorage.getItem("xaukh_su_view")==="plan")document.querySelector('#vsw [data-w="plan"]').click()}catch(e){}
+
 </script>
 <script>
 /* Apple-style reveal: cards fade/rise/unblur as they enter the screen, staggered; big title shrinks on scroll */
