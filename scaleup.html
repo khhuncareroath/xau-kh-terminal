@@ -251,6 +251,28 @@ table.lad tr:hover td{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .brand .logo{width:26px;height:26px;border-radius:7px;box-shadow:0 2px 6px rgba(0,80,200,.25)}
 .smartnote{margin-top:12px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--blue) 9%,transparent);font-size:14px;line-height:1.45}
 
+/* iOS list rows with tile icons (no emoji) */
+.tile{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(160deg,var(--c1),var(--c2));box-shadow:inset 0 .5px 0 rgba(255,255,255,.35)}
+.tile svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ilist{border-radius:12px;overflow:hidden;background:var(--fill)}
+.ilist button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent!important;padding:12px 14px;text-align:left;cursor:pointer;color:var(--label);transition:background-color .2s}
+.ilist button+button{border-top:.5px solid var(--sep)}
+.ilist button:active{background:var(--fill)!important}
+.ilist .tx{flex:1;min-width:0}.ilist .tx b{display:block;font-size:16px;font-weight:600}.ilist .tx small{display:block;font-size:13px;color:var(--label2);margin-top:1px}
+.ilist .chk{width:22px;height:22px;flex:none;border-radius:50%;border:1.5px solid var(--label3);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.ilist button.on .chk{border-color:var(--blue);background:var(--blue) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;transform:scale(1.05)}
+.story .say{align-items:flex-start}.story .say .tile{margin-top:2px}
+/* call to action */
+.btn.cta{height:56px!important;border-radius:16px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  background:linear-gradient(180deg,#2D8CFF,#0A6CFF)!important;box-shadow:0 10px 24px -10px rgba(10,108,255,.6),inset 0 1px 0 rgba(255,255,255,.25)!important}
+.btn.cta span{font-size:17px;font-weight:600;line-height:1.1}.btn.cta small{font-size:11.5px;opacity:.8;font-weight:500}
+/* stairs v2: calm chart */
+.stairs{height:230px!important;gap:10px!important;align-items:stretch!important;padding-top:6px}
+.st{display:flex;flex-direction:column;justify-content:flex-end}
+.st-top{margin-bottom:6px!important}.st-top b{font-size:13px!important;font-weight:600!important;color:var(--label)}
+.st-bar{height:var(--h)!important;border-radius:8px 8px 3px 3px!important;background:var(--blue)!important;opacity:var(--o);box-shadow:none!important}
+.st-n{text-align:center;margin-top:8px;font-size:12px;font-weight:600;color:var(--label)}.st-n small{display:block;font-weight:400;color:var(--label2);font-size:11px}
+
 /* ===== XAU.KH iOS theme (style A): Apple Settings look, premium motion ===== */
 :root,:root[data-theme=light]{--bg:#F2F2F7;--card:#FFFFFF;--card2:#F2F2F7;--fill:rgba(118,118,128,.12);--fill2:rgba(118,118,128,.2);--sep:rgba(60,60,67,.18);
   --label:#000;--label2:rgba(60,60,67,.6);--label3:rgba(60,60,67,.3);--up:#34C759;--dn:#FF3B30;--gold:#007AFF;--gold2:#007AFF;--blue:#007AFF;--brand:#007AFF;
@@ -310,7 +332,7 @@ main>*:nth-child(5){animation-delay:.2s}main>*:nth-child(6){animation-delay:.25s
 @keyframes logoIn{0%{transform:scale(.6) rotate(-12deg);opacity:0}60%{transform:scale(1.08) rotate(2deg);opacity:1}100%{transform:none}}
 .brand .logo{animation:logoIn .8s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes pick{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
-.styles button.on,.parts button.on{animation:pick .45s cubic-bezier(.34,1.56,.64,1)}
+.ilist button.on .chk,.parts button.on{animation:pick .45s cubic-bezier(.34,1.56,.64,1)}
 @keyframes shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 .shake{animation:shake .45s ease!important}
 @keyframes glowWin{0%{box-shadow:0 0 0 0 rgba(52,199,89,.55)}100%{box-shadow:0 0 0 18px rgba(52,199,89,0)}}
@@ -363,19 +385,19 @@ main>*:nth-child(5){animation-delay:.2s}main>*:nth-child(6){animation-delay:.25s
   <div id="v-plan" hidden>
   <section class="card story">
     <h2>What is Scale Up? · តើ Scale Up ជាអ្វី?</h2>
-    <div class="say"><span class="ico">🪜</span><p><b>Climb 5 steps.</b> One winning trade = one step up.<br><span class="km">ឡើងជណ្ដើរ ៥ កាំ។ ឈ្នះម្ដង = ឡើងមួយកាំ។</span></p></div>
-    <div class="say"><span class="ico">🛡</span><p><b>Only step 1 uses your own money.</b> After that you only use the profit you won.<br><span class="km">តែកាំទី១ ទេដែលប្រើលុយខ្លួនឯង។ បន្ទាប់មកប្រើតែប្រាក់ចំណេញ។</span></p></div>
-    <div class="say"><span class="ico">↺</span><p><b>Lose? Back to step 1 with half the risk.</b> Win again and the risk goes back to normal. It protects you in a bad week.<br><span class="km">ចាញ់? ចាប់ផ្ដើមកាំទី១ វិញ។</span></p></div>
-    <div class="say"><span class="ico">🏁</span><p><b>Reach step 5 = your money doubles</b> (Part 1). Take profit out, then start the next part.<br><span class="km">ដល់កាំទី៥ = លុយកើនទ្វេដង។ ដកប្រាក់ចំណេញ ហើយចាប់ផ្ដើមដំណាក់កាលបន្ទាប់។</span></p></div>
+    <div class="say"><span class="tile" style="--c1:#0A84FF;--c2:#5E5CE6"><svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4"/></svg></span><p><b>Climb 5 steps.</b> One winning trade = one step up.<br><span class="km">ឡើងជណ្ដើរ ៥ កាំ។ ឈ្នះម្ដង = ឡើងមួយកាំ។</span></p></div>
+    <div class="say"><span class="tile" style="--c1:#34C759;--c2:#30B0C7"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><p><b>Only step 1 uses your own money.</b> After that you only use the profit you won.<br><span class="km">តែកាំទី១ ទេដែលប្រើលុយខ្លួនឯង។ បន្ទាប់មកប្រើតែប្រាក់ចំណេញ។</span></p></div>
+    <div class="say"><span class="tile" style="--c1:#FF9F0A;--c2:#FF375F"><svg viewBox="0 0 24 24"><path d="M4 9h11a5 5 0 0 1 0 10H9"/><path d="M8 5L4 9l4 4"/></svg></span><p><b>Lose? Back to step 1 with half the risk.</b> Win again and the risk goes back to normal.<br><span class="km">ចាញ់? ត្រឡប់កាំទី១ ហានិភ័យពាក់កណ្ដាល។</span></p></div>
+    <div class="say"><span class="tile" style="--c1:#5E5CE6;--c2:#BF5AF2"><svg viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg></span><p><b>Reach step 5 = your money doubles</b> (Part 1). Take profit out, start the next part.<br><span class="km">ដល់កាំទី៥ = លុយកើនទ្វេដង។</span></p></div>
   </section>
 
   <section class="card hero">
     <h2>Your 5 steps · ៥ កាំរបស់អ្នក</h2>
     <div class="parts" id="parts">
-      <button data-p="0" class="on"><b>Part 1</b><span>$1,000 · 5%</span></button>
-      <button data-p="1"><b>Part 2</b><span>$1,000 · 10%</span></button>
-      <button data-p="2"><b>Part 3</b><span>$1,000 · 20%</span></button>
-      <button data-p="3"><b>Part 4</b><span>$2,000 · 20%</span></button>
+      <button data-p="0" class="on"><b>Part 1</b><span>$1k · 5%</span></button>
+      <button data-p="1"><b>Part 2</b><span>$1k · 10%</span></button>
+      <button data-p="2"><b>Part 3</b><span>$1k · 20%</span></button>
+      <button data-p="3"><b>Part 4</b><span>$2k · 20%</span></button>
     </div>
     <div class="stairs" id="stairs"></div>
     <div class="row num" style="margin-top:12px"><span>Finish all 5: <b id="end">–</b></span><span id="gain"></span><span id="mult" hidden></span></div>
@@ -434,13 +456,13 @@ main>*:nth-child(5){animation-delay:.2s}main>*:nth-child(6){animation-delay:.25s
     <div class="q"><span class="qn">2</span><div><b>What is your goal?</b><span class="km">គោលដៅរបស់អ្នកប៉ុន្មាន?</span></div></div>
     <input id="w-goal" type="number" inputmode="decimal" placeholder="e.g. 2000" min="10">
     <div class="q"><span class="qn">3</span><div><b>How much do you risk on step 1?</b><span class="km">ហានិភ័យកាំទី១ ប៉ុន្មាន?</span></div></div>
-    <div class="styles" id="w-style">
-      <button data-s="1"><b><span class="ic">🛡</span>1% · Careful</b><span>Small steps. Best for new traders.</span><span class="km">ប្រុងប្រយ័ត្ន</span></button>
-      <button data-s="2" class="on"><b><span class="ic">⚖️</span>2% · Normal</b><span>Recommended for most people.</span><span class="km">ធម្មតា (ណែនាំ)</span></button>
-      <button data-s="5"><b><span class="ic">🚀</span>5% · Bold</b><span>Your sheet's Part 1. Faster, but bigger swings.</span><span class="km">ក្លាហាន</span></button>
+    <div class="ilist" id="w-style">
+      <button data-s="1"><span class="tile" style="--c1:#34C759;--c2:#30B0C7"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/></svg></span><span class="tx"><b>1% · Careful</b><small>Small steps. Best for new traders · ប្រុងប្រយ័ត្ន</small></span><span class="chk"></span></button>
+      <button data-s="2" class="on"><span class="tile" style="--c1:#0A84FF;--c2:#5E5CE6"><svg viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/></svg></span><span class="tx"><b>2% · Normal</b><small>Recommended for most people · ធម្មតា</small></span><span class="chk"></span></button>
+      <button data-s="5"><span class="tile" style="--c1:#FF9F0A;--c2:#FF375F"><svg viewBox="0 0 24 24"><path d="M13 3L5 13h6l-1 8 8-10h-6z"/></svg></span><span class="tx"><b>5% · Bold</b><small>Faster, bigger swings · ក្លាហាន</small></span><span class="chk"></span></button>
     </div>
     <div class="smartnote"><b>Smart rules, automatic:</b> win → the next steps use your profit (the ladder) · loss → step 1 risk drops to half, back to normal after a win.<br><span class="km">ឈ្នះ → ប្រើប្រាក់ចំណេញ · ចាញ់ → ហានិភ័យធ្លាក់ពាក់កណ្ដាល</span></div>
-    <button class="btn" id="w-go">Start · ចាប់ផ្ដើម</button>
+    <button class="btn cta" id="w-go"><span>Get started</span><small>ចាប់ផ្ដើម</small></button>
   </section>
 
   <div id="m-app">
@@ -545,7 +567,8 @@ function render(){
   $("end").textContent=usd(end);$("gain").textContent=`${usd(end-acc)} profit · ${pct((end/acc-1)*100)}`;$("mult").textContent=`×${(end/acc).toFixed(1)}`;
   const mx=end;$("bars").innerHTML=[acc,...L.map(x=>x.ifWin)].map((v,i)=>`<div class="${i?"g":""}" style="height:${Math.max(4,v/mx*100)}%"><span>${v>=1000?"$"+(v/1000).toFixed(1)+"k":"$"+v.toFixed(0)}</span></div>`).join("");
   $("barsl").innerHTML=["Start","T1","T2","T3","T4","T5"].map(x=>`<span>${x}</span>`).join("");
-  $("stairs").innerHTML=L.map((x,i)=>`<div class="st" style="--h:${(28+i*16)}%;--d:${i*80}ms"><div class="st-top"><b>${usd(x.ifWin)}</b><small>risk ${usd(x.risk)}</small></div><div class="st-bar"><span>${i+1}</span></div></div>`).join("");
+  const mxw=L[4].ifWin,mnw=acc;
+  $("stairs").innerHTML=L.map((x,i)=>`<div class="st" style="--h:${(18+(x.ifWin-mnw)/((mxw-mnw)||1)*62).toFixed(1)}%;--d:${i*70}ms;--o:${.45+i*.13}"><div class="st-top"><b>${x.ifWin>=10000?"$"+(x.ifWin/1000).toFixed(1)+"k":usd(x.ifWin)}</b></div><div class="st-bar"></div><div class="st-n">Step ${i+1}<small>risk ${usd(x.risk)}</small></div></div>`).join("");
   $("lad").innerHTML=`<tr><th>Trade</th><th>Lot</th><th>Risk</th><th>TP</th><th>If win</th><th>If lose</th></tr>`+
     L.map(x=>`<tr><td><span class="stp">${x.k}</span></td><td>${x.lot.toFixed(2)}</td><td>${usd(x.risk)}</td><td class="w">+${usd(x.win)}</td><td>${usd(x.ifWin)}</td><td class="l">${usd(x.ifLoss)}</td></tr>`).join("");
   const worstAfter1=Math.min(...L.slice(1).map(x=>x.ifLoss));
