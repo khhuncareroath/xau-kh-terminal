@@ -282,12 +282,12 @@ b,strong{font-weight:650}
 
 /* ===== XAU.KH iOS theme (style A): Apple Settings look, premium motion ===== */
 :root,:root[data-theme=light]{--bg:#F2F2F7;--card:#FFFFFF;--card2:#F2F2F7;--fill:rgba(118,118,128,.12);--fill2:rgba(118,118,128,.2);--sep:rgba(60,60,67,.18);
-  --label:#000;--label2:rgba(60,60,67,.6);--label3:rgba(60,60,67,.3);--up:#34C759;--dn:#FF3B30;--gold:#007AFF;--gold2:#007AFF;--blue:#007AFF;--brand:#C9A13B;
+  --label:#000;--label2:rgba(60,60,67,.6);--label3:rgba(60,60,67,.3);--up:#34C759;--dn:#FF3B30;--gold:#007AFF;--gold2:#007AFF;--blue:#007AFF;--brand:#007AFF;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Kantumruy Pro",system-ui,sans-serif!important}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(118,118,128,.24);--fill2:rgba(118,118,128,.32);--sep:rgba(84,84,88,.65);
-  --label:#fff;--label2:rgba(235,235,245,.6);--label3:rgba(235,235,245,.3);--up:#30D158;--dn:#FF453A;--gold:#0A84FF;--gold2:#0A84FF;--blue:#0A84FF;--brand:#E3B04B}}
+  --label:#fff;--label2:rgba(235,235,245,.6);--label3:rgba(235,235,245,.3);--up:#30D158;--dn:#FF453A;--gold:#0A84FF;--gold2:#0A84FF;--blue:#0A84FF;--brand:#0A84FF}}
 :root[data-theme=dark]{--bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(118,118,128,.24);--sep:rgba(84,84,88,.65);--label:#fff;--label2:rgba(235,235,245,.6);
-  --up:#30D158;--dn:#FF453A;--gold:#0A84FF;--gold2:#0A84FF;--blue:#0A84FF;--brand:#E3B04B}
+  --up:#30D158;--dn:#FF453A;--gold:#0A84FF;--gold2:#0A84FF;--blue:#0A84FF;--brand:#0A84FF}
 html,body{background:var(--bg)!important;font-family:var(--font)!important;letter-spacing:-.01em}
 .aurora{display:none!important}
 /* typography: large titles, grouped headers */
@@ -327,6 +327,9 @@ table.lad tr{transition:background-color .2s}table.lad tr:active td{background:v
 @keyframes burst{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
 @media (prefers-reduced-motion:reduce){.seg::before,.burst{transition:none;animation:none}}
 *{scrollbar-width:none}::-webkit-scrollbar{display:none}
+/* calm motion: content is there at once (no fading-in cards, no fading title) */
+.js-rv .card,.js-rv .rv{opacity:1!important;transform:none!important;transition:transform .35s cubic-bezier(.34,1.56,.64,1)!important}
+h1.large,main>h1{transform:none!important;opacity:1!important}
 /* Scale Up pieces in the iOS style */
 .vault{background:var(--card)!important;color:var(--label)!important;box-shadow:none!important;border-radius:16px!important}
 .vault::before,.sheen{display:none!important}
