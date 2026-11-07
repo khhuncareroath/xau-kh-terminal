@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>XAU.KH Scale Up</title>
+<meta name="description" content="The XAU.KH Scale Up ladder: 5 trades where you only risk profit after the first win. Lot sizes, balances and honest odds.">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(120,120,128,.24);--label:#F5F5F7;--label2:rgba(235,235,245,.6);
+  --label3:rgba(235,235,245,.3);--sep:rgba(84,84,88,.6);--up:#30D158;--dn:#FF453A;--gold:#E3B04B;--gold2:#F2CB72;--blue:#0A84FF;
+  --r:22px;--r2:14px;--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.45,.64,1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue","Kantumruy Pro",sans-serif;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  --bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--fill:rgba(120,120,128,.12);--label:#1D1D1F;--label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);--up:#28A745;--dn:#E5372B;--gold:#B8862B;--gold2:#D9A441}}
+:root[data-theme=light]{--bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--fill:rgba(120,120,128,.12);--label:#1D1D1F;--label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);--up:#28A745;--dn:#E5372B;--gold:#B8862B;--gold2:#D9A441}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--label);font:400 16px/1.45 var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.brand{font-weight:700;font-size:17px}.brand i{font-style:normal;color:var(--gold)}
+.top a{margin-left:auto;font-size:15px;font-weight:600}
+main{max-width:760px;margin:0 auto;padding:16px 16px 60px}
+h1{font-size:30px;line-height:1.1;margin:14px 0 4px;letter-spacing:-.02em}
+.sub{color:var(--label2);margin:0 0 18px;font-size:15px}
+.card{background:var(--card);border-radius:var(--r);padding:18px;margin-bottom:14px;animation:in .6s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--label2);margin:0 0 12px;font-weight:600}
+.km{font-family:"Kantumruy Pro",var(--font);color:var(--label2);font-size:13.5px}
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--gold) 28%,transparent),transparent 60%),var(--card)}
+.lvl-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--gold) 22%,transparent);
+  color:var(--gold2);font-weight:700;font-size:14px}
+.bal{font-size:44px;font-weight:700;letter-spacing:-.03em;margin:12px 0 2px}
+.chg{font-weight:600}
+.bar{height:12px;border-radius:999px;background:var(--fill);overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1.2s var(--ease)}
+.row{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--label2)}
+/* ladder */
+.ladder{display:grid;gap:8px}
+.step{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r2);background:var(--card2)}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--fill);flex:none}
+.step.done .dot{background:var(--gold);color:#111}
+.step.now{outline:2px solid var(--gold)}
+.step .t{flex:1}.step .t b{display:block;font-size:15px}.step .t span{font-size:12.5px;color:var(--label2)}
+.step .v{font-weight:700}
+/* form */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+label{display:block;font-size:13px;color:var(--label2);margin-bottom:6px}
+input,select{width:100%;height:44px;border-radius:12px;border:0;background:var(--card2);padding:0 12px;font-size:16px}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px}
+.seg button{flex:1;height:38px;border:0;border-radius:9px;background:none;font-weight:600;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.btn{display:block;width:100%;height:50px;border:0;border-radius:14px;background:var(--gold);color:#111;font-weight:700;font-size:16px;cursor:pointer;margin-top:14px;
+  transition:transform .2s var(--spring)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--fill);color:var(--label)}
+/* trades */
+.trade{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:.5px solid var(--sep)}
+.trade:last-child{border:0}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;flex:none}
+.tag.b{background:color-mix(in srgb,var(--up) 20%,transparent);color:var(--up)}
+.tag.s{background:color-mix(in srgb,var(--dn) 20%,transparent);color:var(--dn)}
+.trade .info{flex:1;min-width:0}.trade .info b{font-size:14.5px}.trade .info span{display:block;font-size:12.5px;color:var(--label2)}
+.res{font-weight:700;font-size:14.5px;text-align:right;min-width:76px}
+.tog{appearance:none;width:44px;height:26px;border-radius:999px;background:var(--fill);position:relative;cursor:pointer;flex:none;padding:0}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.25s var(--spring)}
+.tog:checked{background:var(--up)}.tog:checked::after{left:21px}
+.empty{color:var(--label2);font-size:14.5px;padding:8px 0}
+/* sim */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--card2);border-radius:var(--r2);padding:12px;text-align:center}
+.kpi b{display:block;font-size:24px;font-weight:700}.kpi small{color:var(--label2);font-size:12px}
+canvas{width:100%;height:190px;display:block;margin-top:12px}
+.warn{margin-top:12px;padding:12px;border-radius:var(--r2);background:color-mix(in srgb,var(--dn) 14%,transparent);font-size:14px}
+.ok{background:color-mix(in srgb,var(--up) 14%,transparent)}
+.foot{color:var(--label3);font-size:12px;text-align:center;margin-top:18px}
+@media (max-width:420px){.bal{font-size:38px}.kpi b{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- ambient motion background (gold aurora) ---------- */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--bg)}
+.aurora i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.9;will-change:transform}
+.aurora i:nth-child(1){width:60vmax;height:60vmax;left:-20vmax;top:-25vmax;background:radial-gradient(circle,color-mix(in srgb,var(--gold) 70%,transparent),transparent 62%);animation:drift1 26s ease-in-out infinite alternate}
+.aurora i:nth-child(2){width:50vmax;height:50vmax;right:-18vmax;top:20vh;background:radial-gradient(circle,rgba(10,132,255,.28),transparent 65%);animation:drift2 32s ease-in-out infinite alternate}
+.aurora i:nth-child(3){width:45vmax;height:45vmax;left:20vw;bottom:-25vmax;background:radial-gradient(circle,color-mix(in srgb,var(--gold2) 40%,transparent),transparent 65%);animation:drift3 38s ease-in-out infinite alternate}
+.aurora::after{content:"";position:absolute;inset:0;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes drift1{to{transform:translate(18vw,14vh) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-16vw,-10vh) scale(.9)}}
+@keyframes drift3{to{transform:translate(-12vw,-18vh) scale(1.1)}}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]) .aurora i{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.aurora i{animation:none}}
+html,body{background:transparent!important}
+.card{background:color-mix(in srgb,var(--card) 78%,transparent)!important;backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);
+  border:.5px solid color-mix(in srgb,var(--label) 9%,transparent)}
+
+/* ---------- Apple-style motion ---------- */
+.js-rv .card,.js-rv .rv{opacity:0;transform:translateY(28px) scale(.975);filter:blur(6px);
+  transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1),filter .9s cubic-bezier(.22,1,.36,1);transition-delay:var(--d,0ms);animation:none!important}
+.js-rv .card.in,.js-rv .rv.in{opacity:1;transform:none;filter:none}
+.view{transition:opacity .45s cubic-bezier(.22,1,.36,1)}
+.view.fadein{animation:viewIn .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+h1.large,main>h1{transform-origin:left bottom;transition:transform .2s linear,opacity .2s linear;will-change:transform}
+.card{transition:transform .35s cubic-bezier(.34,1.45,.64,1),box-shadow .35s}
+@media (hover:hover){.card:hover{transform:translateY(-2px)}}
+button,.btn,.chips button,.seg button,.tabbar a,.tabbar button{transition:transform .25s cubic-bezier(.34,1.45,.64,1)}
+button:active,.btn:active,.tabbar a:active,.tabbar button:active{transform:scale(.95)}
+@media (prefers-reduced-motion:reduce){.js-rv .card,.js-rv .rv{opacity:1!important;transform:none!important;filter:none!important;transition:none}h1.large,main>h1{transform:none!important}}
+
+/* ---------- premium type ---------- */
+:root{--font:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Kantumruy Pro","Segoe UI",sans-serif!important}
+html,body{font-family:var(--font)!important;font-feature-settings:"cv11","ss01","ss03";letter-spacing:-.011em;text-rendering:optimizeLegibility}
+h1,.large,.price,.bal{letter-spacing:-.035em!important;font-weight:800!important}
+h2,.card h2{font-size:11.5px!important;font-weight:700!important;letter-spacing:.09em!important;text-transform:uppercase;color:var(--label2)!important}
+b,strong{font-weight:650}
+.num,input,.res,.kpi b,.v{font-variant-numeric:tabular-nums}
+.km,.km-sub,:lang(km) body{font-family:"Kantumruy Pro",var(--font)!important;letter-spacing:0}
+/* badges and dots instead of emojis */
+.bdg{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;vertical-align:2px}
+.bdg.t{background:color-mix(in srgb,var(--up) 18%,transparent);color:var(--up)}
+.bdg.p{background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--gold)}
+.bdg.i{background:var(--fill);color:var(--label2)}
+.dt{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:1px;background:var(--label3)}
+.dt.g{background:var(--up)}.dt.r{background:var(--dn)}.dt.y{background:var(--gold)}.dt.b{background:#0A84FF}.dt.o{background:#FF9F0A}.dt.v{background:#BF5AF2}
+/* ---------- scale up ---------- */
+.parts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.parts button{border:0;border-radius:14px;background:var(--card2);padding:10px 6px;cursor:pointer;text-align:center}
+.parts button b{display:block;font-size:15px}.parts button span{font-size:11.5px;color:var(--label2)}
+.parts button.on{outline:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--card2))}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+table.lad{width:100%;border-collapse:collapse;font-size:14px}
+table.lad th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--label2);font-weight:700;text-align:right;padding:6px 4px}
+table.lad th:first-child,table.lad td:first-child{text-align:left}
+table.lad td{padding:11px 4px;text-align:right;border-top:.5px solid var(--sep)}
+table.lad td.w{color:var(--up);font-weight:700}table.lad td.l{color:var(--dn)}
+.stp{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--fill);font-weight:700;font-size:12.5px}
+.big{font-size:40px;font-weight:800;letter-spacing:-.035em;margin:6px 0 0}
+.floor{margin-top:12px;padding:12px;border-radius:var(--r2);background:color-mix(in srgb,var(--up) 13%,transparent);font-size:14px}
+.road{display:grid;gap:8px}
+.road .step .v{text-align:right}.road .step .v small{display:block;font-size:11.5px;color:var(--label2);font-weight:500}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:10px}
+.bars div{flex:1;border-radius:8px 8px 3px 3px;background:var(--fill);position:relative;min-height:4px}
+.bars div.g{background:linear-gradient(180deg,var(--gold2),var(--gold))}
+.bars div span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11px;font-weight:700}
+.bars-l{display:flex;gap:6px;margin-top:4px}.bars-l span{flex:1;text-align:center;font-size:11px;color:var(--label2)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:420px){.big{font-size:34px}table.lad{font-size:13px}.grid3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="top"><span class="brand">XAU<i>.</i>KH</span><a href="challenge.html" style="margin-left:auto">Challenge</a><a href="./" style="margin-left:14px">← Gold today</a></header>
+<main>
+  <h1>Scale Up</h1>
+  <p class="sub">5 trades, one ladder. Trade 1 risks a small part of your account. After that you only risk money you already won.<br>
+    <span class="km">៥ ការជួញដូរ មួយជណ្ដើរ។ ការជួញដូរទី១ ប្រើហានិភ័យតិច។ បន្ទាប់មក ប្រើតែប្រាក់ចំណេញប៉ុណ្ណោះ។</span></p>
+
+  <section class="card">
+    <h2>Pick a part · ជ្រើសដំណាក់កាល</h2>
+    <div class="parts" id="parts">
+      <button data-p="0" class="on"><b>Part 1</b><span>$1,000 · 5%</span></button>
+      <button data-p="1"><b>Part 2</b><span>$1,000 · 10%</span></button>
+      <button data-p="2"><b>Part 3</b><span>$1,000 · 20%</span></button>
+      <button data-p="3"><b>Part 4</b><span>$2,000 · 20%</span></button>
+    </div>
+    <div class="grid3">
+      <div><label>Account ($)</label><input id="acc" type="number" inputmode="decimal" min="10"></div>
+      <div><label>Trade 1 risk (%)</label><input id="risk" type="number" inputmode="decimal" min="0.1" max="50" step="0.5"></div>
+      <div><label>Reward : risk</label><input id="rr" type="number" inputmode="decimal" min="1" max="5" step="0.5"></div>
+      <div><label>SL distance (លេខ, $)</label><input id="sl" type="number" inputmode="decimal" min="1" step="0.5"></div>
+    </div>
+    <p class="km" style="margin:10px 0 0">SL in លេខ: $1 move = 1 លេខ = 10 pips. 1 lot = 100 oz, so 0.10 lot loses $10 per លេខ.</p>
+  </section>
+
+  <section class="card hero">
+    <h2>If all 5 trades win · បើឈ្នះទាំង ៥</h2>
+    <div class="big num" id="end">–</div>
+    <div class="row num"><span id="gain"></span><span id="mult"></span></div>
+    <div class="bars" id="bars"></div><div class="bars-l" id="barsl"></div>
+  </section>
+
+  <section class="card">
+    <h2>The ladder · ជណ្ដើរ</h2>
+    <div class="scroll"><table class="lad num" id="lad"></table></div>
+    <div class="floor" id="floor"></div>
+  </section>
+
+  <section class="card">
+    <h2>How the risk moves · របៀបគិតហានិភ័យ</h2>
+    <div class="road" id="rules"></div>
+  </section>
+
+  <section class="card">
+    <h2>The road: 4 parts + withdrawals · ផែនការដកប្រាក់</h2>
+    <div class="road" id="road"></div>
+    <p class="km" style="margin:12px 0 0">Withdraw after each finished part, then start the next part fresh. ដកប្រាក់ចំណេញក្រោយបញ្ចប់ដំណាក់កាលនីមួយៗ។</p>
+  </section>
+
+  <section class="card">
+    <h2>Honest odds · ឱកាសពិត</h2>
+    <label>Your win rate at this reward:risk</label>
+    <div class="seg" id="wr"><button data-v="40" class="on">40%</button><button data-v="50">50%</button><button data-v="60">60%</button><button data-v="70">70%</button></div>
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><b id="o-all">–</b><small>finish all 5 in one go</small></div>
+      <div class="kpi"><b id="o-try">–</b><small>tries to finish once (typical)</small></div>
+      <div class="kpi"><b id="o-l1">–</b><small>lose trade 1 (−risk)</small></div>
+    </div>
+    <div class="kpis" style="margin-top:8px">
+      <div class="kpi"><b id="o-med">–</b><small>typical balance after 100 trades</small></div>
+      <div class="kpi"><b id="o-up">–</b><small>end above start</small></div>
+      <div class="kpi"><b id="o-dd">–</b><small>drop 30%+ on the way</small></div>
+    </div>
+    <div class="warn" id="o-note"></div>
+  </section>
+
+  <p class="foot">XAU.KH · a money-management plan, not a promise. Past results do not guarantee future results. Not financial advice.</p>
+</main>
+<script>
+const PARTS=[{acc:1000,risk:5,rr:2,sl:5,wd:1000},{acc:1000,risk:10,rr:2,sl:5,wd:2000},{acc:1000,risk:20,rr:2,sl:5,wd:3000},{acc:2000,risk:20,rr:2,sl:4,wd:9000}];
+const $=id=>document.getElementById(id);
+const usd=v=>(v<0?"−$":"$")+Math.abs(v).toLocaleString("en-US",{maximumFractionDigits:v>=1000||v<=-1000?0:2});
+const pct=v=>(v>=0?"+":"")+v.toFixed(0)+"%";
+let part=0,wr=40;
+function lad(acc,risk,rr,sl){
+  // trade 1 risks risk% of the account; even trades risk half of the last win; odd trades (3, 5) risk all of the last win
+  const out=[];let bal=acc,prevWin=0;
+  for(let k=1;k<=5;k++){
+    let r=k===1?acc*risk/100:(k%2===0?prevWin/2:prevWin);
+    let lot=Math.round(r/(sl*100)*100)/100;           // like the sheet: lot rounded to 0.01
+    if(lot<0.01)lot=0.01;
+    const loss=lot*sl*100,win=lot*sl*rr*100;
+    out.push({k,lot,risk:loss,win,ifWin:bal+win,ifLoss:bal-loss,start:bal});
+    bal+=win;prevWin=win;
+  }
+  return out;
+}
+function load(p){const P=PARTS[p];$("acc").value=P.acc;$("risk").value=P.risk;$("rr").value=P.rr;$("sl").value=P.sl;render()}
+function render(){
+  const acc=+$("acc").value||0,risk=+$("risk").value||0,rr=+$("rr").value||2,sl=+$("sl").value||5;
+  if(acc<=0||risk<=0)return;
+  const L=lad(acc,risk,rr,sl),end=L[4].ifWin;
+  $("end").textContent=usd(end);$("gain").textContent=`${usd(end-acc)} profit · ${pct((end/acc-1)*100)}`;$("mult").textContent=`×${(end/acc).toFixed(1)}`;
+  const mx=end;$("bars").innerHTML=[acc,...L.map(x=>x.ifWin)].map((v,i)=>`<div class="${i?"g":""}" style="height:${Math.max(4,v/mx*100)}%"><span>${v>=1000?"$"+(v/1000).toFixed(1)+"k":"$"+v.toFixed(0)}</span></div>`).join("");
+  $("barsl").innerHTML=["Start","T1","T2","T3","T4","T5"].map(x=>`<span>${x}</span>`).join("");
+  $("lad").innerHTML=`<tr><th>Trade</th><th>Lot</th><th>Risk</th><th>TP</th><th>If win</th><th>If lose</th></tr>`+
+    L.map(x=>`<tr><td><span class="stp">${x.k}</span></td><td>${x.lot.toFixed(2)}</td><td>${usd(x.risk)}</td><td class="w">+${usd(x.win)}</td><td>${usd(x.ifWin)}</td><td class="l">${usd(x.ifLoss)}</td></tr>`).join("");
+  const worstAfter1=Math.min(...L.slice(1).map(x=>x.ifLoss));
+  $("floor").innerHTML=worstAfter1>=acc?`<b>After trade 1 wins, you can't go below ${usd(acc)}.</b> Every later trade only risks profit you already made. The real risk is trade 1: ${usd(L[0].risk)}.<br><span class="km">ក្រោយឈ្នះលើកទី១ គណនីមិនធ្លាក់ក្រោម ${usd(acc)} ទេ។</span>`
+    :`<b>Careful:</b> with these numbers a later loss can take you below ${usd(acc)} (worst ${usd(worstAfter1)}), because lot rounding makes the risk bigger than the profit. Use a bigger account or a smaller SL.`;
+  $("rules").innerHTML=[["1","Trade 1",`risk ${risk}% of the account = ${usd(L[0].risk)}`],["2","Trade 2","risk half of trade 1's profit (keep the other half)"],
+    ["3","Trade 3","risk all of trade 2's profit"],["4","Trade 4","risk half of trade 3's profit"],["5","Trade 5","risk all of trade 4's profit"],
+    ["✕","Any loss","stop the ladder and start again at trade 1 from the new balance"]]
+    .map(([d,t,s])=>`<div class="step"><div class="dot">${d}</div><div class="t"><b>${t}</b><span>${s}</span></div></div>`).join("");
+  let wd=0;$("road").innerHTML=PARTS.map((P,i)=>{const E=lad(P.acc,P.risk,P.rr,P.sl)[4].ifWin;wd+=P.wd;
+    return `<div class="step ${i===part?"now":""}"><div class="dot">${i+1}</div><div class="t"><b>Part ${i+1}: ${usd(P.acc)} at ${P.risk}%</b><span>5 wins → ${usd(E)}</span></div><div class="v">${usd(P.wd)}<small>withdraw</small></div></div>`}).join("")+
+    `<div class="step done"><div class="dot">Σ</div><div class="t"><b>All 4 parts finished</b><span>only if every ladder completes</span></div><div class="v">${usd(wd)}<small>total withdrawn</small></div></div>`;
+  odds(acc,risk,rr,sl);
+}
+function odds(acc,risk,rr,sl){
+  const p=wr/100,all=Math.pow(p,5);
+  $("o-all").textContent=(all*100).toFixed(all<0.1?1:0)+"%";
+  $("o-try").textContent=Math.max(1,Math.round(1/all))+"×";$("o-l1").textContent=((1-p)*100).toFixed(0)+"%";
+  // simulate 100 trades with the ladder (restart at trade 1 after any loss or after 5 wins)
+  const runs=2000,N=100,res=[];let dd=0,up=0;
+  for(let r=0;r<runs;r++){let b=acc,peak=acc,step=1,prev=0,hit=false;
+    for(let t=0;t<N;t++){let rk=step===1?b*risk/100:(step%2===0?prev/2:prev);
+      let lot=Math.max(0.01,Math.round(rk/(sl*100)*100)/100);const R=lot*sl*100;
+      if(R>b)break;
+      if(Math.random()<p){const w=R*rr;b+=w;prev=w;step=step===5?1:step+1}else{b-=R;step=1;prev=0}
+      peak=Math.max(peak,b);if(b<peak*0.7)hit=true}
+    res.push(b);if(hit)dd++;if(b>acc)up++}
+  res.sort((a,b)=>a-b);const med=res[Math.floor(runs/2)];
+  $("o-med").textContent=usd(med);$("o-up").textContent=(up/runs*100).toFixed(0)+"%";$("o-dd").textContent=(dd/runs*100).toFixed(0)+"%";
+  const big=risk>=10;
+  $("o-note").className="warn"+(med>acc&&!big?" ok":"");
+  $("o-note").innerHTML=`At ${wr}% win, all 5 in a row happens about <b>${(all*100).toFixed(all<0.1?1:0)}%</b> of the time, so most ladders end early. `+
+    `That's fine: after the first win a ladder can't lose your money. The cost is the trade-1 losses, ${usd(acc*risk/100)} each time.`+
+    (big?` <b>${risk}% on trade 1 is aggressive:</b> 3 trade-1 losses in a row = ${pct(-(1-Math.pow(1-risk/100,3))*100)}. Use the bigger parts only with money you can afford to lose.`:"")+
+    `<br><span class="km">ឈ្នះ ៥ ជាប់គ្នាកម្រណាស់ (${(all*100).toFixed(0)}%)។ ការខាតពិតគឺតែការជួញដូរទី១ប៉ុណ្ណោះ។</span>`+
+    `<br><small>XAU.KH signals have their own TP plans (TP1 + TP2), so their win rate is not the same as a fixed 1:${rr}. Pick the win rate you really get at 1:${rr}.</small>`;
+}
+$("parts").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(!b)return;part=+b.dataset.p;
+  document.querySelectorAll("#parts button").forEach(x=>x.classList.toggle("on",x===b));load(part)});
+$("wr").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;wr=+b.dataset.v;
+  document.querySelectorAll("#wr button").forEach(x=>x.classList.toggle("on",x===b));render()});
+["acc","risk","rr","sl"].forEach(i=>$(i).addEventListener("input",render));
+load(0);
+</script>
+<script>
+/* Apple-style reveal: cards fade/rise/unblur as they enter the screen, staggered; big title shrinks on scroll */
+(()=>{try{
+  const rm=matchMedia("(prefers-reduced-motion: reduce)").matches;if(rm||!("IntersectionObserver" in window))return;
+  document.documentElement.classList.add("js-rv");
+  const io=new IntersectionObserver(es=>{let k=0;for(const e of es)if(e.isIntersecting){e.target.style.setProperty("--d",(k++*70)+"ms");e.target.classList.add("in");io.unobserve(e.target)}},{threshold:.08,rootMargin:"0px 0px -6% 0px"});
+  const watch=()=>document.querySelectorAll(".card:not(.in),.rv:not(.in)").forEach(c=>{const r=c.getBoundingClientRect();if(r.width===0)return;io.observe(c)});
+  watch();new MutationObserver(()=>watch()).observe(document.body,{attributes:true,subtree:true,attributeFilter:["class","hidden"]});
+  setTimeout(()=>document.querySelectorAll(".card,.rv").forEach(c=>c.classList.add("in")),4000);   // never leave anything hidden
+  const tick=()=>{const y=scrollY;document.querySelectorAll("h1.large,main>h1").forEach(h=>{if(!h.offsetParent)return;const k=Math.min(1,y/160);
+    h.style.transform=`scale(${1-k*.12}) translateY(${-k*6}px)`;h.style.opacity=1-k*.5})};addEventListener("scroll",()=>requestAnimationFrame(tick),{passive:true});
+  document.addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;setTimeout(()=>{document.querySelectorAll(".view.on").forEach(v=>{v.classList.remove("fadein");void v.offsetWidth;v.classList.add("fadein")});
+    document.querySelectorAll(".view.on .card").forEach(c=>c.classList.remove("in"));watch()},0)});
+}catch(e){document.documentElement.classList.remove("js-rv")}})();
+</script>
+</body>
+</html>
