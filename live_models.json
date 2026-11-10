@@ -1,6 +1,39 @@
 {
- "time": "2026-11-10 09:55 UTC",
- "last_bar": "2026-11-10 04:45:00-05:00",
- "price": 4084.57,
- "signals": []
+ "time": "2026-11-10 10:05 UTC",
+ "last_bar": "2026-11-10 04:55:00-05:00",
+ "price": 4087.89,
+ "signals": [
+  {
+   "entry": 4087.89,
+   "dir": "bear",
+   "stop": 4105.83,
+   "target": 4070.36,
+   "trigger_time": "2026-11-10 05:15:00-05:00",
+   "model": "acceptance",
+   "rr": 0.98,
+   "proven": false,
+   "backtest": {
+    "trades": 306,
+    "win_rate_pct": 40,
+    "avg_R": 0.031
+   },
+   "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation"
+  },
+  {
+   "entry": 4087.89,
+   "dir": "bull",
+   "stop": 4078.54,
+   "target": 4114.38,
+   "trigger_time": "2026-11-10 05:15:00-05:00",
+   "model": "vwap_fade",
+   "rr": 2.83,
+   "proven": false,
+   "backtest": {
+    "trades": 615,
+    "win_rate_pct": 31,
+    "avg_R": -0.147
+   },
+   "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP"
+  }
+ ]
 }
