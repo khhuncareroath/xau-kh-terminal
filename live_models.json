@@ -1,6 +1,39 @@
 {
- "time": "2026-11-10 13:35 UTC",
- "last_bar": "2026-11-10 08:25:00-05:00",
- "price": 4071.61,
- "signals": []
+ "time": "2026-11-10 13:45 UTC",
+ "last_bar": "2026-11-10 08:35:00-05:00",
+ "price": 4050.69,
+ "signals": [
+  {
+   "entry": 4050.69,
+   "dir": "bear",
+   "stop": 4073.9,
+   "target": 4015.89,
+   "trigger_time": "2026-11-10 08:50:00-05:00",
+   "model": "ny_breakout",
+   "rr": 1.5,
+   "proven": false,
+   "backtest": {
+    "trades": 449,
+    "win_rate_pct": 46,
+    "avg_R": 0.026
+   },
+   "description": "New York breakout of the 08:00-08:30 range, stop at the range middle, 1.5R target"
+  },
+  {
+   "entry": 4050.69,
+   "dir": "bull",
+   "stop": 4036.35,
+   "target": 4097.6,
+   "trigger_time": "2026-11-10 08:55:00-05:00",
+   "model": "vwap_fade",
+   "rr": 3.27,
+   "proven": false,
+   "backtest": {
+    "trades": 615,
+    "win_rate_pct": 31,
+    "avg_R": -0.147
+   },
+   "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP"
+  }
+ ]
 }
