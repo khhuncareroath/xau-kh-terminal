@@ -1,16 +1,16 @@
 {
- "time": "2026-11-10 10:15 UTC",
- "last_bar": "2026-11-10 05:05:00-05:00",
- "price": 4083.8,
+ "time": "2026-11-10 10:25 UTC",
+ "last_bar": "2026-11-10 05:15:00-05:00",
+ "price": 4082.14,
  "signals": [
   {
-   "entry": 4083.8,
+   "entry": 4083.76,
    "dir": "bear",
-   "stop": 4106.45,
+   "stop": 4106.85,
    "target": 4070.36,
    "trigger_time": "2026-11-10 05:15:00-05:00",
    "model": "acceptance",
-   "rr": 0.59,
+   "rr": 0.58,
    "proven": false,
    "backtest": {
     "trades": 306,
@@ -20,13 +20,13 @@
    "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation"
   },
   {
-   "entry": 4083.8,
+   "entry": 4083.76,
    "dir": "bull",
    "stop": 4078.54,
    "target": 4113.97,
    "trigger_time": "2026-11-10 05:15:00-05:00",
    "model": "vwap_fade",
-   "rr": 5.74,
+   "rr": 5.78,
    "proven": false,
    "backtest": {
     "trades": 615,
@@ -34,6 +34,24 @@
     "avg_R": -0.147
    },
    "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP"
+  },
+  {
+   "entry": 4083.76,
+   "dir": "bull",
+   "stop": 4077.46,
+   "target": 4140.6,
+   "tp1": 4090.07,
+   "part": 0.5,
+   "trigger_time": "2026-11-10 05:15:00-05:00",
+   "model": "range_extreme",
+   "rr": 9.02,
+   "proven": false,
+   "backtest": {
+    "trades": 57,
+    "win_rate_pct": 60,
+    "avg_R": 0.198
+   },
+   "description": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open"
   }
  ]
 }
