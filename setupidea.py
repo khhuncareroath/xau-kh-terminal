@@ -31,6 +31,7 @@ SL_MIN, SL_MAX = 5.0, 15.0        # $ stop range: below 4 the spread decides, ab
 ZONE_MAX = 20.0                   # $: wider zones are areas, not levels
 VALID_H = 8                       # an idea lives one session
 MAX_PER_DAY = 2
+BPLUS_SIGNALS = os.environ.get("BPLUS_SIGNALS", "off") == "on"   # 12 Nov 2026: B+ +0.01R over 134 replayed -> A+ only
 ZONE_SIGNALS = os.environ.get("ZONE_SIGNALS", "off") == "on"   # 11 Nov 2026 replay: zone reactions -0.15R (138) -> notes only
 NOTES_PER_DAY = 1                 # "setup seen, not sent" notes in Setup Analysis: at most 1 a day (owner: too many messages)
 MIN_CONF = int(os.environ.get("SETUP_MIN_CONF", 4))   # confirmations needed (of 7) before a setup becomes a signal
@@ -519,6 +520,12 @@ def _gate(idea, side, sg, d5, d15, entry, kind, reaction=False, clear=True):
     tier = None if any(not ok and "news" in en for ok, en, _ in ck) else grade(idea, sg, score, brk)
     idea.setdefault("checks", {})[side] = {"score": score, "of": len(ck), "list": [[bool(a), b, c] for a, b, c in ck],
                                            "tier": tier, "htf_break": brk}
+    if tier == "B+" and not BPLUS_SIGNALS:   # quality: only A+ is sent; B+ was break-even in the 2-year replay
+        from tg import fmt
+        _note(f"🔎 <b>{side} B+ setup seen, not sent</b> · {kind} at {fmt(entry)} · {score}/{len(ck)} confirmations\n"
+              f"<i>Only A+ setups become signals (B+ broke even in testing) · ផ្ញើតែ A+ ប៉ុណ្ណោះ</i>", "Setup not sent")
+        print("setup: B+ not sent (A+ only)", side, score)
+        return False
     if tier:
         return True
     from tg import fmt, send

@@ -11,6 +11,7 @@ import math
 EXPECT = [
     # key, name (EN · KM), match(alert), expected avg R, expected % in profit, since (unix)
     ("m15a", "📈 Signal A+", lambda a: a.get("model") == "setup_idea" and a.get("tier") == "A+", 0.10, 55, 0),
+    # B+ is no longer sent (12 Nov 2026); its row only appears if BPLUS_SIGNALS is turned back on
     ("m15b", "📈 Signal B+", lambda a: a.get("model") == "setup_idea" and a.get("tier") == "B+", 0.01, 50, 0),
     ("scalp", "⚡ Scalp", lambda a: a.get("kind") == "scalp", 0.35, 51, 0),
     ("fun", "🎰 Fun Scalp", lambda a: a.get("kind") == "fun", 0.17, 59, 1794409500),   # clean-trend version, from 11 Nov 2026 22:05 Cambodia
@@ -28,7 +29,10 @@ def jl(n, d):
 
 def rows(log):
     out = []
+    import os
     for key, name, match, exp_r, exp_w, since in EXPECT:
+        if key == "m15b" and os.environ.get("BPLUS_SIGNALS", "off") != "on":
+            continue
         rs = [a["R"] for a in log if a.get("status") in TRADED and a.get("R") is not None
               and a.get("created", 0) >= since and match(a)]
         n = len(rs)

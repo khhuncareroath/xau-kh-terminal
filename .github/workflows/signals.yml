@@ -23,6 +23,7 @@ env:
   SITE_URL: ${{ vars.SITE_URL }}
   SCALP: ${{ vars.SCALP || 'on' }}                      # ⚡ scalp after a tested 4H breakout; 'off' stops it
   FUN_SCALP: ${{ vars.FUN_SCALP || 'on' }}              # 🎰 fun scalps in their own topic; 'off' stops them
+  BPLUS_SIGNALS: ${{ vars.BPLUS_SIGNALS || 'off' }}      # 📈 B+ M15 signals (break-even in the replay); off = A+ only
   SPLUS: ${{ vars.SPLUS || 'off' }}                     # 'on' brings back the S+ ICT setup
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}         # optional, free tier: breaking news in Khmer

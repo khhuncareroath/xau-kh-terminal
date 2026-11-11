@@ -268,3 +268,10 @@ Saved 2-year replay of the live M15 signal (breakouts only, 383 signals, 16/mo):
 B+ 134 +0.01R. The scalp's clean-4H-trend filter does NOT help here: clean +0.04R (136) vs choppy +0.09R (247); A+ clean
 +0.03R vs A+ choppy +0.15R. Other cut-offs (0.20-0.40) mixed, nothing clearly better on both halves. No change.
 Honest picture: A+ is the part that earns; B+ is break-even (already marked small size 0.25-0.5% on the card).
+
+## 📈 M15 quality pass (studies/m15_exits.py + breakdowns) · 12 Nov 2026
+Exits on the same 2-year entries: live zone TP1/TP2 (half + BE) A+ +0.10R; 1R/2R +0.09R; 1R/3R +0.07R; 2R only +0.10R;
+3R only +0.07R; no BE +0.10R. Exits are not the problem; the live ones are as good as any. Session / risk-size / direction
+splits: nothing consistent in both halves (the 00-06 KH hours are already blocked live).
+Decision (owner: "just want the quality better"): send A+ only. B+ (134, +0.01R) becomes a short note in Setup Analysis.
+~10 signals a month instead of ~16. BPLUS_SIGNALS=on brings B+ back.
