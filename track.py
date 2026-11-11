@@ -55,17 +55,20 @@ def step(a, bars):
             part, hit1 = a.get("part", 0.5), a.get("hit1", False)
             r1, r2 = abs(a["tp1"] - a["fill"]) / risk, abs(a["target"] - a["fill"]) / risk
             st = a["fill"] if hit1 else a["stop"]
-            banked = part * r1 if hit1 else 0.0
-            left = 1 - part if hit1 else 1.0
+            mid = a.get("tp_mid")   # 🎰 three targets: ⅓ at TP1, ⅓ at TP2, ⅓ at TP3 (studies/fun_targets.py plan E)
+            rm = abs(mid - a["fill"]) / risk if mid else 0.0
+            banked = (part * r1 if hit1 else 0.0) + (part * rm if a.get("hit_mid") else 0.0)
+            left = 1.0 - (part if hit1 else 0.0) - (part if a.get("hit_mid") else 0.0)
             if (l <= st) if sg > 0 else (h >= st):
                 px = st if hit1 else (min(st, o) if sg > 0 else max(st, o))
                 a.update(status="tp1" if hit1 else "loss", closed=t, exit=px, R=round(banked + left * (px - a["fill"]) * sg / risk, 2))
                 return
             if not hit1 and ((h >= a["tp1"]) if sg > 0 else (l <= a["tp1"])):
                 a.update(hit1=True, tp1_at=t)
-                hit1, banked, left = True, part * r1, 1 - part
-            if hit1 and a.get("tp_mid") and not a.get("hit_mid") and ((h >= a["tp_mid"]) if sg > 0 else (l <= a["tp_mid"])):
-                a.update(hit_mid=True)          # 🎰 three-target trades: TP2 is a progress reply, the rest runs to TP3
+                hit1, banked, left = True, banked + part * r1, left - part
+            if hit1 and mid and not a.get("hit_mid") and ((h >= mid) if sg > 0 else (l <= mid)):
+                a.update(hit_mid=True)
+                banked, left = banked + part * rm, left - part
             if hit1 and ((h >= a["target"]) if sg > 0 else (l <= a["target"])):
                 a.update(status="win", closed=t, exit=a["target"], R=round(banked + left * r2, 2))
                 return
@@ -147,14 +150,20 @@ def main():
         for a in live:
             before, had_tp1, had_mid = a["status"], a.get("hit1", False), a.get("hit_mid", False)
             step(a, bars)
-            if a.get("hit_mid") and not had_mid:
-                send(f"✅ <b>Hit TP2</b> · ដល់ TP2", "fun scalp TP2" if a.get("kind") == "fun" else "TP2", reply_to=a.get("msg_id"))
             if a["status"] in TRADED and "R_gross" not in a and a.get("R") is not None:   # same cost as the backtest
                 risk = abs(a["entry"] - a["stop"]) or 1
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
+            sgn = 1 if a['dir'] == 'bull' else -1
             if a.get("hit1") and not had_tp1:
-                send(f"✅ <b>Hit TP1</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 10:+,.0f} pips · close half, "
-                     f"move SL to entry (BE) {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "fun scalp TP1" if a.get("kind") == "fun" else "TP1", reply_to=a.get("msg_id"))
+                if a.get("tp_mid"):   # 🎰 three targets: a third at each
+                    send(f"✅ <b>Hit TP1</b> {(a['tp1'] - a['fill']) * sgn * 10:+,.0f} pips · close ⅓, SL to entry {fmt(a['fill'])}\n"
+                         f"បិទ ⅓ ប្ដូរ SL មកចំណុចចូល", "fun scalp TP1" if a.get("kind") == "fun" else "TP1", reply_to=a.get("msg_id"))
+                else:
+                    send(f"✅ <b>Hit TP1</b> {(a['tp1'] - a['fill']) * sgn * 10:+,.0f} pips · close half, "
+                         f"move SL to entry (BE) {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "fun scalp TP1" if a.get("kind") == "fun" else "TP1", reply_to=a.get("msg_id"))
+            if a.get("hit_mid") and not had_mid:
+                send(f"✅ <b>Hit TP2</b> {(a['tp_mid'] - a['fill']) * sgn * 10:+,.0f} pips · close ⅓ more · បិទ ⅓ ទៀត",
+                     "fun scalp TP2" if a.get("kind") == "fun" else "TP2", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 a.setdefault("closed_at", time.time())
                 send(reply_text(a), "fun scalp result" if a.get("kind") == "fun" else "Result", reply_to=a.get("msg_id"))

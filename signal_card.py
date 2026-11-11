@@ -80,6 +80,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     o, h, l, c = (d[k].to_numpy(float) for k in ("Open", "High", "Low", "Close"))
     n = len(d)
     e, sl, tp1, tp2 = sig["entry"], sig["stop"], sig.get("tp1"), sig["target"]
+    tpm = sig.get("tp_mid")   # 🎰 three targets: TP1 / TP2 (tp_mid) / TP3 (target)
 
     fig = plt.figure(figsize=(7.2, 9.0), dpi=150, facecolor=BG)
     # ---- header
@@ -125,7 +126,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     x0, x1 = n - 1, n + ext
     ax.add_patch(Rectangle((x0, min(e, tp2)), x1 - x0, abs(tp2 - e), fc=UP, alpha=0.10, ec="none"))
     ax.add_patch(Rectangle((x0, min(e, sl)), x1 - x0, abs(e - sl), fc=DN, alpha=0.10, ec="none"))
-    lines = [(tp2, "TP2" if tp1 else "TP", UP), (tp1, "TP1", UP), (e, "Entry", INK), (sl, "SL", DN)]
+    lines = ([(tp2, "TP3", UP), (tpm, "TP2", UP)] if tpm else [(tp2, "TP2" if tp1 else "TP", UP)]) + [(tp1, "TP1", UP), (e, "Entry", INK), (sl, "SL", DN)]
     for y, lab, col in lines:
         if y is None:
             continue
@@ -175,19 +176,24 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     fig.text(0.925, 0.298, status, color="#0A84FF" if live else (UP if "TP" in status.upper() else DN), fontsize=11,
              fontweight="bold", va="center", ha="right")
     rows = [("Entry", f"{e:,.2f}", ""), ("Stop loss", f"{sl:,.2f}", f"(−{abs(pips(e, sl)):,.0f})")]
-    if tp1:
-        rows.append(("TP1 · close half, SL to entry", f"{tp1:,.2f}", f"(+{abs(pips(e, tp1)):,.0f})"))
-    rows.append(("TP2" if tp1 else "Target", f"{tp2:,.2f}", f"(+{abs(pips(e, tp2)):,.0f})"))
-    y = 0.247
+    if tp1 and tpm:
+        rows += [("TP1 · close ⅓, SL to entry", f"{tp1:,.2f}", f"(+{abs(pips(e, tp1)):,.0f})"),
+                 ("TP2 · close ⅓", f"{tpm:,.2f}", f"(+{abs(pips(e, tpm)):,.0f})"),
+                 ("TP3", f"{tp2:,.2f}", f"(+{abs(pips(e, tp2)):,.0f})")]
+    else:
+        if tp1:
+            rows.append(("TP1 · close half, SL to entry", f"{tp1:,.2f}", f"(+{abs(pips(e, tp1)):,.0f})"))
+        rows.append(("TP2" if tp1 else "Target", f"{tp2:,.2f}", f"(+{abs(pips(e, tp2)):,.0f})"))
+    y, step = (0.252, 0.036) if len(rows) > 4 else (0.247, 0.044)
     for k, (a, b, p) in enumerate(rows):
         fig.text(0.075, y, a, color="#AEAEB2", fontsize=10.5, va="center")
         fig.text(0.925, y, f"{b}  {p}".rstrip(), color="white", fontsize=11.5, fontweight="bold", va="center", ha="right")
         if k < len(rows) - 1:
-            fig.add_artist(plt.Line2D([0.075, 0.925], [y - 0.022, y - 0.022], color="#38383A", lw=0.8))
-        y -= 0.044
+            fig.add_artist(plt.Line2D([0.075, 0.925], [y - step / 2, y - step / 2], color="#38383A", lw=0.8))
+        y -= step
     foot = ("Setup idea from analysis · not a tested signal" if tier == "setup" else
             "M15 setup graded by the 4H · live record in Proof" if tier in ("setup_a", "setup_b") else
-            "Gamble for fun · cent account · ~break-even in testing" if tier == "fun" else
+            "Gamble for fun · cent account · ~break-even in 2-yr test" if tier == "fun" else
             f"Tested 2 years: {win_rate}% win · {trades} trades" if win_rate else "Tested rules only") + f"  ·  {hold_note}"
     fig.text(0.075, 0.068, foot, color="#AEAEB2", fontsize=9, va="center")
     fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan", "splus", "setup", "setup_b", "fun") else "Risk 0.5–1% per trade")

@@ -236,3 +236,11 @@ Same 5m entry, direction = 4H structure, no breakout needed. 2 years: 2 a day ~4
 (t 0.7); 3 a day 0R; 4 a day -0.01R. Coin-flip territory -> LIVE as a labelled gamble in its own topic, 2 a day,
 counted apart from the signal record (FUN_SCALP=off stops it, FUN_PER_DAY changes the cap). 1-minute history is not
 available for testing, so the entry stays on 5m.
+
+## 🎰 Fun Scalp TP1/TP2/TP3 (studies/fun_targets.py) · 11 Nov 2026
+Same live entries, 969 trades in 2 years (~40/month), $0.40 cost. Ways to take profit:
+one target 2R +0.03R (40% wins) · ½ TP1 → rest TP3 +0.02R · ½ TP1 → rest TP2 −0.01R · ⅓ at each, SL to entry after TP1
++0.02R (53% end in profit; TP1 reached 51%, TP2 25%, TP3 14%) · ⅓ each with the SL trailing to TP1 +0.01R · 1R only −0.02R
+· 3R only +0.04R (35% wins). None proven (t ≤ 0.7, 3–5 of 9 quarters positive); worst run 11–14 losses, max drop 37–54R.
+Decision: still a labelled gamble. LIVE uses ⅓ at TP1 / TP2 / TP3 with the SL to entry after TP1 (same result as the
+best others, more wins felt, and each TP is a real action for members).

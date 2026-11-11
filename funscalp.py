@@ -114,7 +114,7 @@ def main():
     mid = None
     try:
         import signal_card
-        signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": float(sw), "tp1": tp1, "target": tp3},
+        signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": float(sw), "tp1": tp1, "tp_mid": tp2, "target": tp3},
                          "fun_card.png", tier="fun", status="LIVE", stamp=local(now), tf_label="fun scalp · 5m",
                          bars=80, hold_note="closes within 3 h")
         mid = send_photo("fun_card.png", caption, title)
@@ -126,7 +126,7 @@ def main():
         return
     json.dump({"day": day, "count": n_today + 1, "t": now}, open(STATE, "w"))
     log_alert({"id": f"fun|{df.index[i]}", "kind": "fun", "model": "fun_scalp", "dir": "bull" if bull else "bear",
-               "entry": entry, "stop": float(sw), "target": tp3, "tp1": tp1, "tp_mid": tp2, "part": 0.5, "rr": 3.0, "created": now,
+               "entry": entry, "stop": float(sw), "target": tp3, "tp1": tp1, "tp_mid": tp2, "part": 1 / 3, "rr": 3.0, "created": now,
                "valid_until": now + 300, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
                "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": research.SCALP_HOLD * 300, "tier": "fun"})
     print("fun scalp sent", side, entry, sw, tp1, tp2, tp3)
