@@ -241,6 +241,8 @@ def model_alert(lm, state, now):
     caption = "\n".join(l for l in [
         f"{'🟢' if bull else '🔴'} <b>XAU/USD — {'BUY' if bull else 'SELL'}</b> | "
         + ("🖕🖕 PREMIUM SWING" if premium else "🖕 COMBO" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
+        f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}មាសឥឡូវ</b> · ចូល {fmt(s['entry'])} · SL {fmt(s['stop'])} · "
+        + (f"TP1 {fmt(s['tp1'])} (បិទពាក់កណ្ដាល) · TP2 {fmt(s['target'])}" if s.get("tp1") else f"TP {fmt(s['target'])}"),
         f"📍 Entry: <b>{fmt(s['entry'])}</b>",
         f"🛑 SL: <b>{fmt(s['stop'])}</b> ({pp(s['stop'])} pips)",
         *([f"🎯 TP1: <b>{fmt(s['tp1'])}</b> (+{pp(s['tp1'])}) → close half, SL to entry",

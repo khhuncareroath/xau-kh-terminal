@@ -99,6 +99,7 @@ def main():
     side = "BUY" if bull else "SELL"
     caption = "\n".join(x for x in [
         f"🤬 <b>XAU/USD — {side} | COMBO SCALP</b> (small SL)",
+        f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}ឥឡូវ</b> · ចូល {fmt(entry)} · SL {fmt(sw)} · TP {fmt(tgt)} · lot តូច",
         f"📍 Entry: <b>{fmt(entry)}</b> (now)",
         f"🛑 SL: <b>{fmt(sw)}</b> ({risk * 10:,.0f} pips)",
         f"🎯 TP: <b>{fmt(tgt)}</b> (+{risk * research.SCALP_RR * 10:,.0f} pips) = 2R",
