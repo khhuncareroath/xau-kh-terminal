@@ -1,7 +1,7 @@
 {
-  "time": "2026-11-11 23:25 UTC",
-  "alerts": 10,
-  "open": 0,
+  "time": "2026-11-11 23:35 UTC",
+  "alerts": 11,
+  "open": 1,
   "traded": 9,
   "wins": 3,
   "losses": 6,
@@ -11,6 +11,21 @@
   "avg_R": -0.09,
   "note": "Every alert ever sent is counted. R is after a $0.40 spread/commission per trade, like the backtest. Small samples mislead.",
   "recent": [
+    {
+      "kind": "m15",
+      "dir": "bear",
+      "entry": 3981.97693,
+      "stop": 3995.21,
+      "target": 3955.51,
+      "rr": 2.0,
+      "zone": "TARGET SELL 3982.95",
+      "status": "filled",
+      "R": null,
+      "created": 1794439833.0199776,
+      "closed": null,
+      "event": null,
+      "factors": null
+    },
     {
       "kind": "setup",
       "dir": "bear",
@@ -175,6 +190,17 @@
     }
   ],
   "by_kind": {
+    "m15": {
+      "alerts": 1,
+      "open": 1,
+      "traded": 0,
+      "wins": 0,
+      "losses": 0,
+      "no_trade": 0,
+      "win_rate_pct": null,
+      "total_R": 0,
+      "avg_R": null
+    },
     "setup": {
       "alerts": 2,
       "open": 0,

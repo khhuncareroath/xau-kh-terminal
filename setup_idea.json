@@ -32,7 +32,9 @@
    "tp2": 3969.4
   },
   "done": {
-   "SELL_SZ": "note only"
+   "SELL_SZ": "note only",
+   "SELL": "sent",
+   "BUY": "cancelled"
   },
   "atr15": 3.388507142857082,
   "demand": [
@@ -74,10 +76,56 @@
   },
   "with_trend": "SELL",
   "msg_id": 52,
-  "session": "Asia"
+  "session": "Asia",
+  "checks": {
+   "SELL": {
+    "score": 6,
+    "of": 7,
+    "list": [
+     [
+      true,
+      "4H swing trend down",
+      "\u1793\u17b7\u1793\u17d2\u1793\u17b6\u1780\u17b6\u179a 4H \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
+     ],
+     [
+      true,
+      "1H structure down",
+      "Structure 1H \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
+     ],
+     [
+      true,
+      "15m structure turned down (BOS / CHOCH)",
+      "15m BOS/CHOCH \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
+     ],
+     [
+      true,
+      "5m confirmation down",
+      "5m \u1794\u1789\u17d2\u1787\u17b6\u1780\u17cb"
+     ],
+     [
+      true,
+      "strong 15m candle (displacement)",
+      "\u1791\u17c0\u1793 15m \u1781\u17d2\u179b\u17b6\u17c6\u1784"
+     ],
+     [
+      false,
+      "liquidity swept above first ($$)",
+      "\u1794\u17c4\u179f liquidity \u1798\u17bb\u1793"
+     ],
+     [
+      true,
+      "clear path: no demand before TP1",
+      "\u1782\u17d2\u1798\u17b6\u1793 Demand \u179a\u17b6\u17c6\u1784\u1798\u17bb\u1793 TP1"
+     ]
+    ],
+    "tier": "A+",
+    "htf_break": null
+   }
+  }
  },
- "last_key": "SELL_SZ|2026-11-11 18:00:00-05:00",
+ "last_key": "SELL|2026-11-11 18:15:00-05:00",
  "count": {
-  "2026-11-10": 1
+  "2026-11-10": 1,
+  "2026-11-11": 1
  }
 }
