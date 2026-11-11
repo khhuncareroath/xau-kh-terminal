@@ -91,11 +91,11 @@ def reply_text(a):
 def _reply_text(a):
     s = a["status"]
     sg = 1 if a["dir"] == "bull" else -1
-    pips = lambda px: f"{(px - a['entry']) * sg * 1:+,.1f} លេខ"
+    pips = lambda px: f"{(px - a['entry']) * sg * 10:+,.0f} pips"
     if s == "win":
-        return f"🏆 <b>TP{'2' if a.get('tp1') else ''} hit</b> {pips(a['target'])} · ដល់ TP"
+        return f"🏆 <b>Hit TP{'2' if a.get('tp1') else ''}</b> {pips(a['target'])} · full target · ដល់ TP"
     if s == "tp1":
-        return f"✅ <b>Closed in profit</b>: TP1 {pips(a['tp1'])}, rest at entry · ឈ្នះ"
+        return f"✅ <b>TP1 banked</b> {pips(a['tp1'])}, rest closed at entry (BE) · ឈ្នះ"
     if s == "loss":
         return f"❌ <b>SL hit</b> {pips(a['exit'])} · ប៉ះ SL"
     if s == "expired":
@@ -148,8 +148,8 @@ def main():
                 risk = abs(a["entry"] - a["stop"]) or 1
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
             if a.get("hit1") and not had_tp1:
-                send(f"🎯 <b>TP1 hit</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 1:+,.1f} លេខ · close half, "
-                     f"move SL to {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "TP1", reply_to=a.get("msg_id"))
+                send(f"✅ <b>Hit TP1</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 10:+,.0f} pips · close half, "
+                     f"move SL to entry (BE) {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))

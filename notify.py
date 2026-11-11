@@ -222,7 +222,45 @@ def model_alert(lm, state, now):
                 *([f"TP1 <b>{fmt(s['tp1'])}</b> → បិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", f"TP2 <b>{fmt(s['target'])}</b>"] if s.get("tp1")
                   else [f"TP <b>{fmt(s['target'])}</b>"]),
                 "<i>ប្រើហានិភ័យ 0.5–1% នៃគណនីប៉ុណ្ណោះ។</i>"]
-    mid = send("\n".join(l for l in out if l is not None), ("BUY" if bull else "SELL") + " now")
+    # 1) 📈 Signals: one clean card + short caption (the explanation goes to 🔍 Setup Analysis)
+    tier = "premium" if premium else "combo" if strong else "normal" if du is not None else "combo"
+    pp = lambda px: f"{abs(px - s['entry']) * 10:,.0f}"
+    st_ = cb if (strong and not premium and cb.get("trades")) else (b or {}) if (premium or du is None or strong) else {}
+    wr = st_.get("win_rate_pct")   # quiet-day (normal) breakouts were ~50/50: no win rate is promised
+    caption = "\n".join(l for l in [
+        f"{'🟢' if bull else '🔴'} <b>XAU/USD — {'BUY' if bull else 'SELL'}</b> | "
+        + ("🖕🖕 PREMIUM SWING" if premium else "🖕 COMBO" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
+        f"📍 Entry: <b>{fmt(s['entry'])}</b>",
+        f"🛑 SL: <b>{fmt(s['stop'])}</b> ({pp(s['stop'])} pips)",
+        *([f"🎯 TP1: <b>{fmt(s['tp1'])}</b> (+{pp(s['tp1'])}) → close half, SL to entry",
+           f"🎯 TP2: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"] if s.get("tp1") else
+          [f"🎯 TP: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"]),
+        (f"📊 Win rate: {wr}% (tested 2 years, {st_.get('trades')} trades)" if wr else
+         "📊 Quiet day: about 50/50 in testing → half size or skip" if du is not None else None),
+        f"⏱ 4H breakout · " + (f"hold up to {hold_h // 24} days" if hold_h >= 48 else f"closes within {hold_h} h"),
+        "⏰ Enter within 15 min · risk 0.5–1% · ចូលក្នុង 15 នាទី",
+    ] if l)
+    mid = None
+    try:
+        import signal_card
+        from engine import load
+        from levels import to_ny
+        d5 = to_ny(load("5m", "20d")).iloc[:-1]
+        from ict import resample as _rs
+        import pandas as _pd
+        d4_ = _rs(d5, "4H")
+        done_ = d4_[d4_.index + _pd.Timedelta(hours=4) <= d5.index[-1] + _pd.Timedelta(minutes=5)].iloc[:-1].tail(30)
+        up_, lo_ = float(done_["High"].max()), float(done_["Low"].min())   # the line the breakout candle closed through
+        signal_card.make(d5, {"dir": s["dir"], "entry": s["entry"], "stop": s["stop"], "tp1": s.get("tp1"),
+                              "target": s["target"], "level": up_ if bull else lo_},
+                         "signal_card.png", tier=tier, status="LIVE", win_rate=wr, trades=st_.get("trades"),
+                         stamp=local(now), hold_note=f"hold up to {hold_h // 24} days" if hold_h >= 48 else f"closes within {hold_h} h")
+        from tg import send_photo
+        mid = send_photo("signal_card.png", caption, ("BUY" if bull else "SELL") + " now")
+    except Exception as e:
+        print("signal card failed, sending text:", e)
+    if not mid:
+        mid = send(caption, ("BUY" if bull else "SELL") + " now")
     if not mid:
         return False
     state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
@@ -232,20 +270,24 @@ def model_alert(lm, state, now):
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
                "max_hold_s": hold_h * 3600, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
     print("sent", key)
-    try:   # the trade drawn on the chart, sent as a reply (the text alert above never waits for it)
+    # 2) 🔍 Setup Analysis: why this trade, with the structure chart (separate from the signal feed)
+    try:
+        from tg import msg_link, send_photo
+        link = msg_link(mid, ("BUY" if bull else "SELL") + " now")
+        why = [l for l in (out[out.index("", 2) + 1:] if out.count("") >= 2 else out) if l]   # the explanation lines
+        text = "\n".join([f"🔍 <b>SETUP ANALYSIS · {'BUY' if bull else 'SELL'} {fmt(s['entry'])}</b>  ({local(now)})", ""]
+                          + why + ([f"\n👉 <a href=\"{link}\">Open the signal</a>"] if link else []))
         import session
         from engine import load
         from levels import to_ny
-        from tg import send_photo
         d = to_ny(load("5m", "20d")).iloc[:-1]
         session.chart(d, jl("confluence.json"), jl("levels.json"), session.breakout_lines(d), "signal_chart.png",
-                      f"Gold · {'BUY' if bull else 'SELL'} signal · {local(now)}",
+                      f"Gold · {'BUY' if bull else 'SELL'} setup · {local(now)}",
                       position={"dir": s["dir"], "entry": s["entry"], "stop": s["stop"], "tp1": s.get("tp1"), "tp2": s["target"]})
-        send_photo("signal_chart.png", f"{'🟢 BUY' if bull else '🔴 SELL'} plan on the chart: entry, stop loss, "
-                   "TP1 (close half, move stop to entry) and TP2. Slanted lines are the 1H trendlines.",
-                   "Signal chart", reply_to=mid if isinstance(mid, int) else None)
+        if not send_photo("signal_chart.png", text[:1024], "Setup analysis"):
+            send(text, "Setup analysis")
     except Exception as e:
-        print("signal chart failed:", e)
+        print("setup analysis failed:", e)
     return True
 
 

@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11a"
+VERSION = "2026-11-11b"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -34,7 +34,8 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 
 SECTIONS_TEXT = """
 🗂 <b>Sections · ផ្នែក</b>
-📈 Signals: entries, TP/SL results, Radar · ចូល / លទ្ធផល
+📈 Signals: entry cards + Hit TP / SL replies only · សញ្ញាចូល
+🔎 Setup Analysis: why each trade, Radar, heads-up · ហេតុផល
 📊 Analysis: each session, market map · វិភាគ
 📰 News Events: only big news + after-news · ព័ត៌មានធំ
 🏆 Proof: every result, wins AND losses · លទ្ធផលពិត

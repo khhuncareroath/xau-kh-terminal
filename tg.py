@@ -46,6 +46,7 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
     "rules":    ("Rules · ច្បាប់", 16766590, ["❗", "❗️", "‼", "📝"]),
     "announce": ("Announcement · ដំណឹង", 16478047, ["📣", "📢", "🔥"]),
     "signals":  ("Signals · សញ្ញា", 9367192, ["📈", "🎯", "💰"]),
+    "setups":   ("Setup Analysis · វិភាគ Setup", 7322096, ["🔎", "🔍", "💡"]),
     "analysis": ("Analysis · វិភាគ", 7322096, ["📊", "📉", "🔎"]),
     "news":     ("News Events · ព័ត៌មាន", 16478047, ["📰", "🗞", "⚡"]),
     "proof":    ("Proof · លទ្ធផល", 16766590, ["🏆", "✅", "💎"]),
@@ -81,8 +82,9 @@ def section_for(title):
         return "proof"
     if any(k in t for k in ("session", "pulse", "check-in", "market map", "fundamentals", "week ahead")):
         return "analysis"
-    if any(k in t for k in ("buy", "sell", "plan", "idea", "retest", "result", "tp1", "level failed", "area", "near",
-                            "heads up", "radar", "zone", "watch")):
+    if any(k in t for k in ("setup", "radar", "zone", "heads up", "near", "area", "level failed", "watch", "signal chart")):
+        return "setups"     # the thinking behind trades: separate from the clean signal feed
+    if any(k in t for k in ("buy", "sell", "plan", "idea", "retest", "result", "tp1")):
         return "signals"
     return "analysis"
 
@@ -153,6 +155,15 @@ def setup_sections():
     if group_id() and os.environ.get("TELEGRAM_TOKEN"):
         for key in SECTIONS:
             thread_id(key)
+
+
+def msg_link(mid, title):
+    """t.me link to a message in the private group (members of the group can open it)."""
+    g = group_id()
+    if not (g and isinstance(mid, int) and g.startswith("-100")):
+        return None
+    th = _topics()["topics"].get(section_for(title))
+    return f"https://t.me/c/{g[4:]}/{th}/{mid}" if th else f"https://t.me/c/{g[4:]}/{mid}"
 
 
 def target(title):
