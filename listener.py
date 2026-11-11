@@ -154,14 +154,14 @@ def proof_answer():
     s = jl("results.json")
     if not s.get("traded"):
         return "No closed trades yet."
-    names = {"m15": "📐 M15 setups (A+ / B+)", "model": "⭐ 4H breakout (old)", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
+    names = {"m15": "📐 M15 setups (A+ / B+)", "fun": "🎰 fun scalps (gamble)", "model": "⭐ 4H breakout (old)", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
              "post-news": "📰 after-news (stopped)", "setup": "old ICT ideas (stopped)", "watch": "old watch ideas (stopped)"}
     rows = []
     for k, v in (s.get("by_kind") or {}).items():
         if v.get("traded"):
             rows.append(f"{names.get(k, k)}: {v['wins']}W / {v['losses']}L · {v.get('total_R', 0):+.1f}R")
     return ("🏆 <b>Live record since 3 Nov</b> (every result, wins and losses)\n"
-            f"All: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R\n" + "\n".join(rows)
+            f"All signals: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R (🎰 fun scalps counted apart)\n" + "\n".join(rows)
             + "\n\n📐 M15 setups are new: their live record above is the real test.\n"
               "<i>A few weeks is a small sample: judge by months.</i>")
 

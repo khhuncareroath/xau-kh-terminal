@@ -51,6 +51,7 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
     "news":     ("News Events · ព័ត៌មាន", 16478047, ["📰", "🗞", "⚡"]),
     "proof":    ("Proof · លទ្ធផល", 16766590, ["🏆", "✅", "💎"]),
     "learn":    ("Education · មេរៀន", 13338331, ["📚", "🎓", "💡"]),
+    "fun":      ("Fun Scalp · លេងសើច", 16478047, ["🎰", "🎲", "🎯"]),
 }
 TOPICS_FILE = "topics.json"
 
@@ -76,6 +77,8 @@ def section_for(title):
         return "announce"
     if t in ("guide", "lesson"):
         return "learn"
+    if "fun scalp" in t:
+        return "fun"        # 🎰 gamble-for-fun scalps and their results: their own topic, never in Signals
     if t in ("breaking", "after the news", "news soon"):
         return "news"
     if "proof" in t:

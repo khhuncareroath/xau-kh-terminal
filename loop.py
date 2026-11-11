@@ -71,6 +71,7 @@ def cycle(n):
     run("newsbet.py")   # 🎲 news bet FINAL CALL ~5 min before a release (does nothing otherwise)
     run("splus.py")   # 🎯 S+ limit orders: soon after the 15m MSS candle closes
     run("scalp.py")   # first: the COMBO scalp needs the just-closed candle within ~1 minute
+    run("funscalp.py")   # 🎰 fun scalps (cent accounts, own topic): also needs the just-closed candle
     core_ok = all([run(s) for s in CORE])
     if core_ok:
         for s in OPTIONAL:

@@ -230,3 +230,9 @@ One check at a time on the wide scalp, kept only if better on BOTH halves. Clean
 same rule as A+/B+): choppy-market scalps lost (-0.08R). LIVE wide scalp = any 4H breakout, 24 h, 2 a day, clean trend:
 230 trades (~10 a month), 51% win at 2R, +0.35R, newest 51 trades 63% win +0.74R, t 3.8, 7/9 quarters, PROVEN.
 (1H agreeing and "skip the 2nd scalp after a loss" also helped a little; not added, to keep the rule simple.)
+
+## 🎰 Fun Scalp (owner: aggressive scalps for cent accounts, own topic) · 11 Nov 2026
+Same 5m entry, direction = 4H structure, no breakout needed. 2 years: 2 a day ~40/month, 40% win at 2R, +0.03R
+(t 0.7); 3 a day 0R; 4 a day -0.01R. Coin-flip territory -> LIVE as a labelled gamble in its own topic, 2 a day,
+counted apart from the signal record (FUN_SCALP=off stops it, FUN_PER_DAY changes the cap). 1-minute history is not
+available for testing, so the entry stays on 5m.

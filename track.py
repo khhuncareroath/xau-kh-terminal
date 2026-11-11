@@ -108,8 +108,8 @@ def _reply_text(a):
 
 
 def summary(log):
-    out = _summary([a for a in log if a.get("kind") != "late"])   # ⚠️ late-plan warnings: shown apart, not in the record
-    for kind in ("m15", "setup", "watch", "post-news", "model", "plan", "late", "scalp", "splus"):
+    out = _summary([a for a in log if a.get("kind") not in ("late", "fun")])   # late warnings and 🎰 fun gambles: shown apart
+    for kind in ("m15", "fun", "setup", "watch", "post-news", "model", "plan", "late", "scalp", "splus"):
         sub = [a for a in log if a.get("kind") == kind]
         if sub:
             out["by_kind"] = out.get("by_kind", {})
@@ -150,17 +150,17 @@ def main():
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)
             if a.get("hit1") and not had_tp1:
                 send(f"✅ <b>Hit TP1</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 10:+,.0f} pips · close half, "
-                     f"move SL to entry (BE) {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "TP1", reply_to=a.get("msg_id"))
+                     f"move SL to entry (BE) {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "fun scalp TP1" if a.get("kind") == "fun" else "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
                 a.setdefault("closed_at", time.time())
-                send(reply_text(a), "Result", reply_to=a.get("msg_id"))
+                send(reply_text(a), "fun scalp result" if a.get("kind") == "fun" else "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))
                 if a["status"] in TRADED:
                     closed.append(a)
     json.dump(log, open("alerts_log.json", "w"), indent=1)
     s = summary(log)
     json.dump(s, open("results.json", "w"), indent=2)
-    for a in closed:   # 📚 every closed trade becomes a short lesson in Education
+    for a in [x for x in closed if x.get("kind") != "fun"]:   # 📚 every closed trade (not the fun gambles) becomes a lesson
         try:
             import recap
             recap.post(a, s)

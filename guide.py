@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11v"
+VERSION = "2026-11-11w"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -24,6 +24,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 🎯 <b>TP1 hit</b>: close half, move SL to entry. Max 2 signals a day, all closed by 24:00 (no trades while you sleep).
 ⚡ <b>SCALP</b>: a quick 5m entry on a small dip after a 4H breakout, TP 2R, closes within 3 h. Only in a clean 4H trend. Tested 2 years: ~2–3 a week, 51% win (wins are 2× losses). 💎 = strong breakout.
 
+🎰 <b>Fun Scalp</b> (own topic): fast 5m scalps, up to 2 a day, any hour. A <b>gamble for fun</b> on a <b>cent account</b> only: about break-even in testing. Not part of 📈 Signals.
 🔎 <b>Setup Analysis</b>: why each signal, ✅/❌ checklist.
 🏆 <b>Proof</b> / 📊 Friday report: every result, wins AND losses.
 📰 News in 30 min: no new entries 15 min before and after.
@@ -43,7 +44,8 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 SECTIONS_TEXT = """
 🗂 <b>Sections · ផ្នែក</b>
 📈 Signals: entry cards + Hit TP / SL replies only · សញ្ញាចូល
-🔎 Setup Analysis: why each trade, Radar, heads-up · ហេតុផល
+🔎 Setup Analysis: why each trade · ហេតុផល
+🎰 Fun Scalp: gamble-for-fun scalps, cent account · លេងសើច
 📊 Analysis: each session, market map · វិភាគ
 📰 News Events: only big news + after-news · ព័ត៌មានធំ
 🏆 Proof: every result, wins AND losses · លទ្ធផលពិត
