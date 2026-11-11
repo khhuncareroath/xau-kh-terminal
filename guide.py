@@ -81,12 +81,12 @@ def main():
         st = json.load(open(STATE))
     except Exception:
         st = {}
-    if st.get("version") == VERSION:
-        return
     tok = os.environ.get("TELEGRAM_TOKEN")
     chat = group_id() or os.environ.get("TELEGRAM_CHAT_ID")
     if st.get("msg_id") and st.get("chat", os.environ.get("TELEGRAM_CHAT_ID")) != chat:
         st = {}   # moved to the sectioned group: post the guide there once
+    if st.get("version") == VERSION:
+        return
     if st.get("msg_id") and tok and chat:   # already posted: edit the pinned guide, never post it again
         try:
             body = urllib.parse.urlencode({"chat_id": chat, "message_id": st["msg_id"], "text": GUIDE, "parse_mode": "HTML",
