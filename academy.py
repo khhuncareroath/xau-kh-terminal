@@ -2,7 +2,7 @@
 
 Each lesson: the text (Khmer-first, English terms), for chart chapters today's real analysis picture ("find it on
 today's chart"), then a Telegram quiz poll (tap an answer, see right away if it is right).
-Posted once a day at HOUR local time on weekdays. State: academy_state.json (next lesson).  Run every cycle.
+Posted twice a day (HOURS), only chapters with a written PDF. State: academy_state.json (next lesson).  Run every cycle.
 """
 import json
 import os
@@ -14,7 +14,7 @@ from academy_content import LESSONS
 from tg import _api, send, send_document, send_photo, target
 
 TZ = ZoneInfo(os.environ.get("DISPLAY_TZ", "Asia/Phnom_Penh"))
-HOUR = int(os.environ.get("ACADEMY_HOUR", 12))
+HOURS = [int(h) for h in os.environ.get("ACADEMY_HOURS", "12,19").split(",")]   # two lessons a day
 STATE = "academy_state.json"
 TOTAL = 45
 CHART_HINT = {"structure": "📍 <b>On today's real chart</b>: find the <b>HH / HL / LH / LL</b> labels and the <b>CHOCH / BOS</b> line.\n"
@@ -112,18 +112,20 @@ def post(k):
 
 
 def main():
+    """Every day: one chapter at each of HOURS (12:00 and 19:00). Only chapters whose PDF is written are posted,
+    so the course moves at the writing pace (2 new chapters a day) and never runs ahead."""
     now = datetime.now(TZ)
     st = jl(STATE, {"next": 0})
     today = now.strftime("%Y-%m-%d")
-    force = os.environ.get("ACADEMY_FORCE")
-    launch = "day" not in st          # very first lesson: post right away, then daily at HOUR
-    if not force and not launch and (now.weekday() >= 5 or now.hour != HOUR or st.get("day") == today):
+    done_today = st.get("count", 0) if st.get("day") == today else 0
+    due = sum(1 for h in HOURS if now.hour >= h)          # how many lessons should be out by now
+    if not os.environ.get("ACADEMY_FORCE") and done_today >= due:
         print("academy: not now"); return
     k = st.get("next", 0)
-    if k >= len(LESSONS):
-        print("academy: waiting for the next chapters"); return
+    if k >= len(LESSONS) or not pdf_path(LESSONS[k]["ch"]):
+        print("academy: waiting for the PDF of chapter", k + 1); return
     if post(k):
-        json.dump({"next": k + 1, "day": today, "t": time.time()}, open(STATE, "w"))
+        json.dump({"next": k + 1, "day": today, "count": done_today + 1, "t": time.time()}, open(STATE, "w"))
         print("academy: posted chapter", LESSONS[k]["ch"])
 
 
