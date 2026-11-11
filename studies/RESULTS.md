@@ -152,3 +152,22 @@ sweep, TP 2R, max 2 trades a day, 8 h. 192 versions.
 Why: with TP 2R you need 34%+ wins just to break even, and a $4-6 stop makes the $0.40 cost ~0.08R per trade. More
 levels and 5m entries add trades but they are the weaker ones. Decision: no new signal; A+ / B+ stays the only one.
 Script: studies/ltf_ict.py.
+
+## Strategy Edge Auditor: WHY the mentor LTF setups fail (11 Nov 2026, night)
+
+442 mentor setups (all levels, 15m sweep + MSS, limit at OB, HTF bias, max 2/day), audited trade by trade. Every stop
+model is compared at the SAME $ risk (results in R), TP = 2 x that stop.
+
+| Question | Answer |
+|---|---|
+| Direction: $10 your way before $10 against? | **54%**: close to a coin flip. This is the root problem |
+| Stop under OB | 63% stopped; about 4 in 10 stop-outs later reached +2R (stop hunt), 6 in 10 never did (wrong way) |
+| Costs | median 0.06R per trade ($0.40 on a $6.2 stop): small, NOT the main problem on 15m |
+| A under OB ($6) / B under sweep ($12) / C ATR x1.5 ($9) / D beyond HTF zone ($19) | +0.01 / +0.01 / +0.02 / +0.03R, all t < 0.6: **a wider stop does not create an edge** |
+| Clean trend / moving day / with the 4H structure | worse (-0.12 / -0.05 / -0.00R): these entries fight momentum |
+| New York 08-12 NY time | 107 trades, 47% win, +0.29R, t 2.0, older +0.32 / newest +0.21: CANDIDATE only (found by slicing ~20 ways) |
+| NY + Daily/4H level only | 43 trades, +0.44R (older +0.48 / newest +0.35): candidate, too few trades |
+
+Conclusion: the setups fail because the direction is ~50/50, not because of the stop, the entry or the costs. Fixing
+the stop only changes how the break-even is reached. The one lead (New York session, ~1 a week) needs live paper
+tracking before it can be a signal. Script: studies/edge_auditor.py.
