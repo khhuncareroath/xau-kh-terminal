@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BG, CARD, INK, MUT, GRID = "#F2F2F7", "#FFFFFF", "#1C1C1E", "#8E8E93", "#E5E5EA"
 UP, DN, BLUE, PURP, DARK = "#34C759", "#FF3B30", "#007AFF", "#AF52DE", "#1C1C1E"
 TIERS = {"premium": ("PREMIUM SWING", PURP), "combo": ("COMBO", BLUE), "normal": ("NORMAL · half size", MUT),
-         "plan": ("PLAN · small size", "#FF9500")}
+         "plan": ("PLAN · small size", "#FF9500"), "scalp": ("COMBO SCALP · small SL", "#FF9500")}
 
 
 def _fonts():
@@ -118,7 +118,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     x0, x1 = n - 1, n + ext
     ax.add_patch(Rectangle((x0, min(e, tp2)), x1 - x0, abs(tp2 - e), fc=UP, alpha=0.10, ec="none"))
     ax.add_patch(Rectangle((x0, min(e, sl)), x1 - x0, abs(e - sl), fc=DN, alpha=0.10, ec="none"))
-    lines = [(tp2, "TP2", UP), (tp1, "TP1", UP), (e, "Entry", INK), (sl, "SL", DN)]
+    lines = [(tp2, "TP2" if tp1 else "TP", UP), (tp1, "TP1", UP), (e, "Entry", INK), (sl, "SL", DN)]
     for y, lab, col in lines:
         if y is None:
             continue
@@ -180,7 +180,8 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
         y -= 0.044
     foot = (f"Tested 2 years: {win_rate}% win · {trades} trades" if win_rate else "Tested rules only") + f"  ·  {hold_note}"
     fig.text(0.075, 0.068, foot, color="#AEAEB2", fontsize=9, va="center")
-    fig.text(0.075, 0.045, "Risk 0.5–1% per trade · pips: 1 pip = $0.10 · not financial advice", color="#636366",
+    fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan") else "Risk 0.5–1% per trade")
+             + " · pips: 1 pip = $0.10 · not financial advice", color="#636366",
              fontsize=7.5, va="center")
     fig.savefig(path, facecolor=BG)
     plt.close(fig)

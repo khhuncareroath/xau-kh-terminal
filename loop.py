@@ -68,6 +68,7 @@ def cycle(n):
     print(f"cycle {n} at {datetime.now(ZoneInfo('Asia/Phnom_Penh')):%a %H:%M} Phnom Penh", flush=True)
     if n > 1:   # pick up backtest.json and other changes made by the daily backtest job
         git("pull", "--rebase", "-X", "theirs", "origin", BRANCH)
+    run("scalp.py")   # first: the COMBO scalp needs the just-closed candle within ~1 minute
     core_ok = all([run(s) for s in CORE])
     if core_ok:
         for s in OPTIONAL:

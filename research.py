@@ -654,6 +654,76 @@ def trend_buy(df):
     return trend_breakout(df, buy_only=True, scaled=True)
 
 
+def fvg_15m_state(df):
+    """Latest 15m fair value gap known at each 5m bar (valid 2 hours, a newer gap replaces an older one).
+    Returns arrays (dir +1/-1/0, low, high). Causal: a gap is known only after its third 15m candle closed."""
+    n = len(df)
+    d15 = df.resample("15min").agg({"Open": "first", "High": "max", "Low": "min", "Close": "last"}).dropna()
+    H, L = d15["High"].to_numpy(), d15["Low"].to_numpy()
+    fd, flo, fhi = np.zeros(n), np.full(n, np.nan), np.full(n, np.nan)
+    for k in range(2, len(d15)):
+        i = int(df.index.searchsorted(d15.index[k] + pd.Timedelta(minutes=15)))
+        if i >= n:
+            break
+        if L[k] > H[k - 2]:
+            fd[i:i + 24], flo[i:i + 24], fhi[i:i + 24] = 1, H[k - 2], L[k]
+        elif H[k] < L[k - 2]:
+            fd[i:i + 24], flo[i:i + 24], fhi[i:i + 24] = -1, H[k], L[k - 2]
+    return fd, flo, fhi
+
+
+def scalp_trigger(o, h, l, c, e20, a, fd, flo, fhi, i, sg):
+    """COMBO SCALP entry check on closed 5m bar i in direction sg. Returns the stop or None."""
+    touched = fd[i] == sg and ((l[i - 3:i + 1].min() <= fhi[i]) if sg > 0 else (h[i - 3:i + 1].max() >= flo[i]))
+    conf = (c[i] > h[i - 1] and c[i] > e20[i]) if sg > 0 else (c[i] < l[i - 1] and c[i] < e20[i])
+    if not (touched and conf):
+        return None
+    return l[i - 5:i + 1].min() - 0.1 * a[i] if sg > 0 else h[i - 5:i + 1].max() + 0.1 * a[i]
+
+
+SCALP_RISK = (3.0, 12.0)   # $ stop range
+SCALP_RR = 2.0
+SCALP_HOLD = 36            # 3 hours
+
+
+def combo_scalp(df, lat=1):
+    """COMBO SCALP (11 Nov 2026): after a STRONG COMBO 4H breakout, for the next 12 hours, the FIRST 5m candle per day
+    that dips into a fresh 15m fair value gap in the breakout direction and closes back beyond the previous candle and
+    the 5m EMA20. SL under the last 6 candles (- 0.1 ATR), $3-12 (median ~$6.6), TP 2R, out after 3 hours.
+    2 years: 120 trades, 50% win, +0.33R ($0.40 cost), +0.28R ($0.70), newest 30% +0.39R, luck test p=0.04.
+    Needs a FAST alert (within ~1 min of the candle close): with a 10-15 min delay the edge mostly disappears.
+    Many variants were tried the same day, so it runs as a small-size 🤬 setup until live results confirm it."""
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    n = len(df)
+    a = atr(df).to_numpy()
+    e20 = pd.Series(c).ewm(span=20).mean().to_numpy()
+    fd, flo, fhi = fvg_15m_state(df)
+    act = np.zeros(n)
+    for t, _, d in trend_combo(df):
+        i = int(df.index.searchsorted(t))
+        act[i + 3:min(i + 144, n)] = 1 if d == "long" else -1
+    day = np.array((df.index - pd.Timedelta(hours=18)).date)
+    out, busy, used_day = [], -1, set()
+    for i in range(300, n - 2):
+        sg = int(act[i])
+        if sg == 0 or i <= busy or day[i] in used_day:
+            continue
+        sw = scalp_trigger(o, h, l, c, e20, a, fd, flo, fhi, i, sg)
+        if sw is None:
+            continue
+        j0 = i + lat
+        risk = (o[j0] - sw) * sg
+        if not SCALP_RISK[0] <= risk <= SCALP_RISK[1]:
+            continue
+        r, j = _run_trade(o, h, l, c, j0, min(j0 + SCALP_HOLD, n - 1), sg, sw, o[j0] + sg * SCALP_RR * risk)
+        if r is None:
+            continue
+        busy = j
+        used_day.add(day[i])
+        out.append((df.index[j0], r, "long" if sg > 0 else "short"))
+    return out
+
+
 def judge(trades, split_t):
     r = np.array([x[1] for x in trades], dtype=float)
     te = np.array([x[1] for x in trades if x[0] >= split_t])
@@ -696,7 +766,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
+DESCRIBE = {"combo_scalp": "🤬 COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
+            "london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
             "vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
             "trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
             "trend_combo": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
@@ -719,11 +790,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"combo_scalp": 3, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

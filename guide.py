@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11c"
+VERSION = "2026-11-11d"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -17,7 +17,8 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 🖕 <b>COMBO</b>: breakout on a moving day (68% win in test) · full size
 🖕🖕 <b>PREMIUM SWING</b>: breakout on a big day (77% win) · hold 1–5 days
 ⏭ Quiet-day breakouts are <b>not sent</b> (only 50/50 in testing)
-🤬 <b>Smaller setup</b> (🟡 plan): small size 0.25–0.5%
+🤬 <b>COMBO SCALP</b>: after a 🖕 breakout, a fast 5m entry with a small SL (~$7), TP 2R. Enter at once or skip. Size 0.25–0.5%
+🤬 <b>Plan</b> 🟡: other smaller setups, small size 0.25–0.5%
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
 📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
