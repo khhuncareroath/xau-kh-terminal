@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11m"
+VERSION = "2026-11-11n"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -21,8 +21,12 @@ It is sent only when ALL of these are true:
  4️⃣ Day Meter 70%+ (the day is moving)
 💎 <b>A+</b>: all 4 + Day Meter 100%+ (79% win in 2-year test) · full size
 ⭐ <b>B+</b>: all 4, Day Meter 70–100% (75% win in test) · full size
-⏭ Anything else is <b>not sent</b>: about 2–3 signals a month. Fewer, but stronger.
+⏭ Other breakouts are <b>not sent</b>: about 2–3 A+/B+ a month. Fewer, but stronger.
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
+
+📐 <b>SETUP IDEA</b> (📊 Analysis, every session): Swing / Internal bias, Swing High / Low, 🟢 TARGET BUY and 🔴 TARGET SELL lines.
+When a 15m candle <b>closes</b> beyond a line, the bot sends 📐 <b>SETUP</b> in 📈 Signals (entry, SL, TP1, TP2). Max 2 a day.
+Setup ideas are analysis, not tested like A+/B+: <b>small size 0.25–0.5%</b>. Every result is shown, wins AND losses.
 
 📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
 📏 Day Meter: 70% = B+ zone · 100% = A+ zone
@@ -37,7 +41,8 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
 💰 Every signal shows the $ result per 0.01 lot: SL $22 = −$22 at 0.01 lot.
 
-🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ · សញ្ញាតិច តែខ្លាំង (២–៣ ដង/ខែ)
+🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ (២–៣ ដង/ខែ) · 📐 Setup = គំនិតពីការវិភាគ ប្រើ lot តូច
+រង់ចាំទៀន 15m បិទលើ/ក្រោមខ្សែ TARGET ទើបចូល។
 ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
@@ -56,7 +61,7 @@ if group_id():   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
-RULES_VERSION = "2026-11-11m"
+RULES_VERSION = "2026-11-11n"
 RULES = """❗ <b>RULES · ច្បាប់ក្រុម</b>
 
 1. Be respectful. No insults, no politics. · គោរពគ្នា

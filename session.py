@@ -1751,6 +1751,11 @@ def main():
         pre_news(news, state)
         macro_shift(macro, news, state)
         plan_watch(df, state)
+        try:   # 📐 a 15m candle confirmed the session's setup idea -> send the setup (setupidea.py)
+            import setupidea
+            setupidea.watch(df)
+        except Exception as e:
+            print("setup watch failed:", e)
         quiet_checkin(ict, lv, news, df, lines, state)
         proof_post(df, state)
         radar_post(df, lines, state)
@@ -1760,16 +1765,30 @@ def main():
         (os.environ["SESSION_FORCE"], "forced|" + os.environ["SESSION_FORCE"], datetime.now(timezone.utc))
     if due:
         name, key, start = due
-        text = briefing_text(name, ict, conf, lv, news, df, lines, start, macro)
-        path = "session_plan.png"
-        analysis_chart(df, lv, conf, lines, path, f"Gold · {name} session plan · {local(time.time())}")
-        import html as _h, re as _re
-        if len(_h.unescape(_re.sub(r"<[^>]+>", "", text))) <= 1024:     # Telegram counts visible characters
-            mid = send_photo(path, text, f"{name} session")
-        else:   # Telegram captions are limited: photo with the headline, then the full briefing as a reply
-            mid = send_photo(path, text.split("\n\n")[0], f"{name} session")
-            if mid:
-                send(text, f"{name} session", reply_to=mid)
+        mid = None
+        if os.environ.get("SETUP_IDEAS", "on") != "off":   # 📐 owner, 11 Nov 2026: the session post = one mentor-style setup idea
+            try:
+                import setupidea
+                from research import day_used
+                du = day_used(df, df.index[-1] + pd.Timedelta(minutes=5))
+                sig_line = (None if _trend_busy(df) else
+                            f"🚨 A+/B+ signal (4H close): BUY &gt; <b>{fmt(lines[0])}</b> · SELL &lt; <b>{fmt(lines[1])}</b>")
+                dm = None if du is None else (f"📏 Day Meter <b>{du * 100:.0f}%</b> · "
+                                              + ("💎 A+ zone" if du >= 1 else "⭐ B+ zone" if du >= 0.7 else "quiet (B+ needs 70%)"))
+                mid = setupidea.post(df, name, sig_line, dm)
+            except Exception as e:
+                print("setup idea failed, old briefing:", e)
+        if not mid:
+            text = briefing_text(name, ict, conf, lv, news, df, lines, start, macro)
+            path = "session_plan.png"
+            analysis_chart(df, lv, conf, lines, path, f"Gold · {name} session plan · {local(time.time())}")
+            import html as _h, re as _re
+            if len(_h.unescape(_re.sub(r"<[^>]+>", "", text))) <= 1024:     # Telegram counts visible characters
+                mid = send_photo(path, text, f"{name} session")
+            else:   # Telegram captions are limited: photo with the headline, then the full briefing as a reply
+                mid = send_photo(path, text.split("\n\n")[0], f"{name} session")
+                if mid:
+                    send(text, f"{name} session", reply_to=mid)
         try:   # 🏦 the professional desk note (ICT + XAU.KH quant), basic English + Khmer, in 📊 Analysis
             import desk
             from research import day_used

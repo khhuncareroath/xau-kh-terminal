@@ -171,3 +171,11 @@ model is compared at the SAME $ risk (results in R), TP = 2 x that stop.
 Conclusion: the setups fail because the direction is ~50/50, not because of the stop, the entry or the costs. Fixing
 the stop only changes how the break-even is reached. The one lead (New York session, ~1 a week) needs live paper
 tracking before it can be a signal. Script: studies/edge_auditor.py.
+
+## Decision (owner, 11 Nov 2026, night): 📐 Setup ideas
+The session post in 📊 Analysis is now one mentor-style setup idea (setupidea.py): Swing 4H / Internal 15m / LTF 5m
+bias, Swing High / Low, TARGET BUY / TARGET SELL lines with SL / TP1 / TP2, details on the picture. When a closed 15m
+candle confirms a line, the bot sends 📐 SETUP in 📈 Signals (max 2 a day, not 15 min around big news, not chased), and
+track.py replies TP / SL and counts it (kind "setup"). Labelled honestly as analysis, small size 0.25-0.5%: these
+trigger lines tested near 50/50 above, so the LIVE record decides. SETUP_IDEAS=off turns it off, SETUP_TOPIC=setups
+moves the alerts to 🔎 Setup Analysis.
