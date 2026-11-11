@@ -237,3 +237,78 @@ LESSONS += [
          quiz=("Profile រាង b មានន័យថា...", ["Buyers គ្រប់គ្រង", "Sellers គ្រប់គ្រង (volume នៅបាត)", "តុល្យភាព", "គ្មានន័យ"], 1,
                "b-shape = volume ប្រមូលនៅខាងក្រោម: sellers បានរុញ និងគ្រប់គ្រង។"), chart=None),
 ]
+
+LESSONS += [
+    # ---------------- PART 5 — ORDER FLOW
+    dict(ch=22, part="PART 5 · Order Flow", title="Order Flow Foundations",
+         body="""• <b>Order flow</b> = មើល <b>អ្នកណាកំពុងទិញ/លក់</b> និងកម្លាំងប៉ុណ្ណា
+• <b>Market order</b> = ទិញ/លក់ភ្លាម (aggressive) · <b>Limit order</b> = រង់ចាំតម្លៃ (passive)
+• Market buy ស៊ី limit sell នៅ <b>Ask</b> · Market sell ស៊ី limit buy នៅ <b>Bid</b>
+• <b>Order book / DOM</b> = បញ្ជី limit orders នៅតម្លៃនីមួយៗ
+• តម្លៃឡើងពេល market buy <b>ច្រើនជាង</b> limit sell ដែលនៅសល់
+• មាស CFD (Exness) <b>គ្មាន</b> order book ពិត · order flow ពិតមកពី <b>COMEX futures</b>""",
+         quiz=("តម្លៃឡើងព្រោះ...", ["Limit buy ច្រើន", "Market buy ស៊ី limit sell អស់ ហើយត្រូវឡើងរក sellers បន្ទាប់", "Spread ធំ", "ម៉ោង"], 1,
+               "Aggressive buyers (market buy) ស៊ី orders លក់អស់នៅតម្លៃមួយ → តម្លៃឡើងទៅរកបន្ទាប់។"), chart=None),
+    dict(ch=23, part="PART 5 · Order Flow", title="Footprint · Delta · Imbalance",
+         body="""• <b>Footprint chart</b> = ទៀនដែលបង្ហាញ <b>Bid × Ask</b> volume នៅតម្លៃនីមួយៗ
+• <b>Delta</b> = Ask volume − Bid volume · វិជ្ជមាន = buyers aggressive · អវិជ្ជមាន = sellers
+• <b>Imbalance</b> = ម្ខាងច្រើនជាង 3× (diagonal) · <b>Stacked imbalances</b> 3+ ជាប់គ្នា = កម្លាំងខ្លាំង
+• Stacked imbalance ច្រើនតែក្លាយជា <b>support/resistance</b>
+• ត្រូវការ data futures (COMEX GC) និង platform ពិសេស (ATAS, Sierra, Quantower)""",
+         quiz=("Delta វិជ្ជមានធំមានន័យថា...", ["Sellers aggressive", "Buyers aggressive (market buy ច្រើន)", "គ្មាន volume", "តម្លៃត្រូវចុះ"], 1,
+               "Delta = Ask − Bid volume។ វិជ្ជមាន = market buy ច្រើនជាង។"), chart=None),
+    dict(ch=24, part="PART 5 · Order Flow", title="Absorption · Exhaustion · CVD",
+         body="""• <b>Absorption</b> = market sell ច្រើន ប៉ុន្តែតម្លៃ <b>មិនចុះ</b> → limit buyers ធំ "ស្រូប"
+• <b>Exhaustion</b> = volume ថយចុះនៅចុង move → កម្លាំងអស់
+• <b>Delta divergence</b> = តម្លៃធ្វើ high ថ្មី ប៉ុន្តែ delta ខ្សោយ → move អាចអស់
+• <b>CVD</b> (Cumulative Volume Delta) = delta បូកបន្ត · មើលទិស aggression
+• <b>Iceberg</b> = order ធំលាក់ (ឃើញតែផ្នែកតូច) · ពិបាករកឃើញពិតប្រាកដ
+• <b>Pulling/Stacking</b> = limit orders ដកចេញ/ដាក់បន្ថែមក្នុង DOM (អាចបោក)""",
+         quiz=("Market sell ច្រើនណាស់ ប៉ុន្តែតម្លៃមិនចុះ ហៅថា...", ["Exhaustion", "Absorption", "Breakout", "Spread"], 1,
+               "Absorption = limit buyers ធំស្រូប market sell ទាំងអស់ ដូច្នេះតម្លៃមិនចុះ។"), chart=None),
+    dict(ch=25, part="PART 5 · Order Flow", title="Order Flow & Gold: ការពិត",
+         body="""• Order flow ពិតសម្រាប់មាស = <b>COMEX GC futures</b> មិនមែន XAUUSD CFD
+• XAUUSD (Exness) ≈ GC ប៉ុន្តែតម្លៃខុសគ្នាបន្តិច (basis) · tick volume ≠ real volume
+• <b>COT report</b> (រាល់សប្ដាហ៍) = មូលនិធិធំ long/short ប៉ុណ្ណា
+• Data delay: feed ឥតគិតថ្លៃ ច្រើនតែយឺត · footprint ត្រូវការ data real-time បង់ប្រាក់
+• កំហុសធំ: មើល tick volume ក្នុង MT5 ហើយហៅថា "order flow" ❌
+
+💡 ក្រុមយើងប្រើ futures volume សម្រាប់ VP/VWAP និង COT ក្នុង Daily Outlook""",
+         quiz=("Order flow ពិតសម្រាប់មាសមកពី...", ["MT5 tick volume", "COMEX gold futures (GC)", "Telegram", "RSI"], 1,
+               "Futures មាន exchange កណ្ដាល និង volume ពិត។ CFD broker មិនមាន។"), chart=None),
+    # ---------------- PART 6 — COMBINING
+    dict(ch=26, part="PART 6 · Combining", title="Building a Market Bias · ទិសដៅថ្ងៃ",
+         body="""<b>ជំហាន bias រាល់ថ្ងៃ:</b>
+1️⃣ <b>HTF</b>: Weekly/Daily ទិសអ្វី? (structure)
+2️⃣ <b>Liquidity</b>: BSL/SSL ណាជិតជាង? តម្លៃ​ទើបតែ sweep ម្ខាងណា?
+3️⃣ <b>Premium/Discount</b>: តម្លៃនៅថ្លៃ ឬថោក ក្នុង dealing range?
+4️⃣ <b>Volume Profile</b>: នៅលើ/ក្រោម value? POC នៅណា?
+5️⃣ <b>Macro</b>: DXY / yields / ព័ត៌មានថ្ងៃនេះ
+→ <b>Bullish</b>, <b>Bearish</b> ឬ <b>Neutral</b> (រង់ចាំ)
+
+💡 Bias មិនមែនជា entry · វាប្រាប់ថា <b>ទិសណា</b>ដែលត្រូវរក setup""",
+         quiz=("Bias ប្រាប់អ្នក...", ["ចំណុចចូលច្បាស់", "ទិសណាដែលត្រូវរក setup", "ចំណេញប៉ុន្មាន", "Lot ប៉ុន្មាន"], 1,
+               "Bias = ទិសដែលពេញចិត្ត។ Entry ត្រូវការ setup និង confirmation។"), chart="structure"),
+    dict(ch=27, part="PART 6 · Combining", title="Confluence ដោយមិនរាប់ពីរដង",
+         body="""• <b>Confluence</b> = ភស្តុតាងពីប្រភព <b>ផ្សេងគ្នា</b> ចង្អុលទិសដូចគ្នា
+• ល្អ: ICT (liquidity) + Structure + VP + Macro = 4 ប្រភពផ្សេង
+• <b>Double-counting</b> ❌: EMA 20 + EMA 50 + MACD + RSI = ប្រភពតែមួយ (momentum) រាប់ 4 ដង
+• FVG + OB នៅកន្លែងដូចគ្នា ច្រើនតែជា <b>ចលនាតែមួយ</b> មិនមែន 2 ហេតុផល
+• Confluence ច្រើន <b>មិនធានា</b> ឈ្នះ · យើងបានឃើញ: VWAP+EMA+1H ស្របគ្នាលើ 97% នៃសញ្ញា 🖕 រួចហើយ (មិនបន្ថែម edge)
+
+💡 ច្បាប់: 2–3 ហេតុផល <b>ឯករាជ្យ</b> + risk ច្បាស់ = គ្រប់គ្រាន់""",
+         quiz=("មួយណាជា double-counting?", ["Liquidity + Volume Profile", "EMA 20 + EMA 50 + RSI ទាំងអស់ momentum", "Structure + Macro", "HTF + session"], 1,
+               "Indicator momentum ច្រើនវាស់រឿងតែមួយ។ វាមិនមែនជា confluence ពិតទេ។"), chart=None),
+    dict(ch=28, part="PART 6 · Combining", title="Gold Setups + លទ្ធផលសាកល្បងពិត",
+         body="""យើងបានសាកល្បង setup ល្បីៗលើមាស 2 ឆ្នាំ (រួមថ្លៃ spread):
+• ✅ <b>4H breakout + Day Meter ≥70%</b> (🖕 COMBO): ឈ្នះ ~68%
+• ✅ <b>ដូចគ្នា ≥100%</b> (🖕🖕 PREMIUM): ឈ្នះ ~70%
+• 🤬 <b>15m FVG pullback ក្រោយ COMBO</b> (SL ~$7): ឈ្នះ 50% ត្រង់ 2R
+• 🤬 <b>POC រាង P/b</b>: ~49% · +0.14R (មិនទាន់ proven)
+• ❌ Liquidity sweep reversal តែឯង · OB limit + SL តូច · VWAP fade · News spike · momentum candle
+• ❌ ច្រើនរបស់អ្នកដទៃ ល្អលើ screenshot តែខាតពេលសាកល្បង
+
+💡 មេរៀន: setup ល្អ = <b>បានសាកល្បង</b> មិនមែន "មើលទៅស្អាត" · Chapter 35 បង្រៀនសាកល្បងខ្លួនឯង""",
+         quiz=("Setup ដែលល្អពិតគឺ...", ["មើលទៅស្អាតលើ screenshot", "បានសាកល្បងលើទិន្នន័យច្រើន រួមថ្លៃ", "មាន indicator ច្រើន", "គ្រូនិយាយថាល្អ"], 1,
+               "មានតែការសាកល្បង (backtest + forward test) ទើបបង្ហាញថា setup មាន edge ពិត។"), chart=None),
+]
