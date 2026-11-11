@@ -24,12 +24,16 @@ TIERS = {"premium": ("A+ SETUP", PURP), "combo": ("B+ SETUP", BLUE), "normal": (
 
 def _fonts():
     import matplotlib.font_manager as fm
-    fam = "DejaVu Sans"
+    fam = ["DejaVu Sans"]
     for f in ("Inter-Medium.otf", "Inter-SemiBold.otf", "Inter-Bold.otf"):
         p = os.path.join(HERE, "assets", "fonts", f)
         if os.path.exists(p):
             fm.fontManager.addfont(p)
-            fam = "Inter"
+            fam = ["Inter"]
+    k = os.path.join(HERE, "assets", "fonts", "KantumruyPro.ttf")   # Khmer letters fall back to this font (shaped correctly)
+    if os.path.exists(k):
+        fm.fontManager.addfont(k)
+        fam.append("Kantumruy Pro")
     return fam
 
 

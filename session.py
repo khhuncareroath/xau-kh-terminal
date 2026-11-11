@@ -632,8 +632,10 @@ def analysis_chart(df, lv, conf, lines, path, title, setup=None):
             print("liquidity map failed:", e)
         if setup:   # 📐 setup idea: the instruction line says exactly what to wait for
             wt = setup.get("with_trend")
-            todo = ((f"4H {'up' if wt == 'BUY' else 'down'}: {wt} is with-trend. " if wt else "4H ranging: no trend side. ")
-                    + "Wait for the 15m close.")
+            todo = (((f"4H {'up' if wt == 'BUY' else 'down'}: {wt} is with-trend. " if wt else "4H ranging: no trend side. ")
+                     + "Wait for the 15m close.") + "\n"
+                    + (f"4H {'ឡើង' if wt == 'BUY' else 'ចុះ'}: {'ទិញ' if wt == 'BUY' else 'លក់'}ត្រូវទិស · " if wt else "4H ចំហៀង · ")
+                    + "រង់ចាំទៀន 15m បិទ")
         trend = st["trend"]
         if setup:   # the badge shows the 4H swing that grades A+ / B+ (same as the 4H pill), not the old breakout state
             trend = 1 if setup.get("swing") == "bull" else -1 if setup.get("swing") == "bear" else 0
@@ -995,7 +997,7 @@ def card(df, price, word, score, areas, path, label):
     for k, (t_, v, sub, c_) in enumerate(tiles):
         x0 = 0.055 + k * (w + 0.03)
         box(x0, 0.335, w, 0.14, CARD)
-        fig.text(x0 + 0.03, 0.44, t_ + " · 15m close", color=c_, fontsize=9, fontweight="bold", va="center")
+        fig.text(x0 + 0.03, 0.44, t_ + {"TARGET BUY": " · ទិញ", "TARGET SELL": " · លក់"}.get(t_, "") + " · 15m", color=c_, fontsize=9, fontweight="bold", va="center")
         fig.text(x0 + 0.03, 0.395, v, color=INK, fontsize=15, fontweight="bold", va="center")
         fig.text(x0 + 0.03, 0.355, sub, color=MUT, fontsize=9, va="center")
     # Day Meter bar
@@ -1011,10 +1013,11 @@ def card(df, price, word, score, areas, path, label):
         box(0.055, 0.265, 0.89 * min(used, 1.5) / 1.5, 0.018, "#AF52DE" if used >= 1 else BLUE if used >= 0.7 else "#C7C7CC", r=0.009)
     # dark box: what to do
     box(0.035, 0.03, 0.93, 0.20, DARK, r=0.025)
-    fig.text(0.075, 0.195, "What to do", color="#AEAEB2", fontsize=9.5, va="center")
-    fig.text(0.075, 0.15, ("Wait for the 15m close at a TARGET line" if b_ else "Wait: no setup until the next session"),
+    fig.text(0.075, 0.195, "What to do · ត្រូវធ្វើអ្វី", color="#AEAEB2", fontsize=9.5, va="center")
+    fig.text(0.075, 0.155, ("Wait for the 15m close at a TARGET line" if b_ else "Wait: no setup until the next session"),
              color="white", fontsize=14, fontweight="bold", va="center")
-    fig.text(0.075, 0.105, "No signal = no trade · signals come only in Signals", color="#AEAEB2", fontsize=10, va="center")
+    fig.text(0.075, 0.112, ("រង់ចាំទៀន 15m បិទហួសខ្សែ TARGET" if b_ else "រង់ចាំការវិភាគ session បន្ទាប់") + " · គ្មានសញ្ញា = មិនជួញដូរ",
+             color="#D1D1D6", fontsize=11, va="center")
     fig.text(0.075, 0.06, "Analysis, not financial advice", color="#636366", fontsize=7.8, va="center")
     fig.savefig(path, facecolor=BG)
     plt.close(fig)
@@ -1207,18 +1210,18 @@ def macro_card(macro, news, path, cot=None):
     d, y, vx = (macro.get(k) or {} for k in ("dxy", "us10y", "vix"))
     if d.get("last") is not None:
         ch = d.get("chg_pct", 0); dr = 1 if ch > 0.05 else -1 if ch < -0.05 else 0
-        tiles.append(("DXY", "US dollar", f"{d['last']}", f"{ch:+.2f}%", dr, -dr, "strong dollar = gold down"))
+        tiles.append(("DXY", "US dollar", f"{d['last']}", f"{ch:+.2f}%", dr, -dr, "ដុល្លារខ្លាំង = មាសចុះ"))
     if y.get("last") is not None:
         ch = y.get("chg_bp", 0); dr = 1 if ch > 2 else -1 if ch < -2 else 0
-        tiles.append(("US10Y", "bond yield", f"{y['last']:.2f}%", f"{ch:+.0f} bp", dr, -dr, "higher yield = gold down"))
+        tiles.append(("US10Y", "bond yield", f"{y['last']:.2f}%", f"{ch:+.0f} bp", dr, -dr, "ការប្រាក់ឡើង = មាសចុះ"))
     if vx.get("last") is not None:
         ch = vx.get("chg_pct", 0); dr = 1 if ch >= 5 else -1 if ch <= -5 else 0
         eff = 1 if vx["last"] >= 25 or ch >= 10 else -1 if vx["last"] < 16 and ch <= 0 else 0
-        tiles.append(("VIX", "fear index", f"{vx['last']}", f"{ch:+.0f}%", dr, eff, "more fear = gold up"))
+        tiles.append(("VIX", "fear index", f"{vx['last']}", f"{ch:+.0f}%", dr, eff, "ភ័យខ្លាច = មាសឡើង"))
     if cot and cot.get("net_change") is not None:
         ch = cot["net_change"]; dr = 1 if ch > 0 else -1 if ch < 0 else 0
         tiles.append(("COT", "big funds", f"{'long' if cot['net'] > 0 else 'short'} {abs(cot['net']) / 1000:,.0f}k",
-                      f"{ch / 1000:+,.0f}k", dr, dr, "funds buying = gold up"))
+                      f"{ch / 1000:+,.0f}k", dr, dr, "មូលនិធិទិញ = មាសឡើង"))
     if not tiles:
         return None
     now = datetime.now(timezone.utc)
@@ -1258,7 +1261,7 @@ def macro_card(macro, news, path, cot=None):
         fig.text(0.085, ny_ + 0.125, e["title"] + (f"  ·  forecast {e['forecast']}" if e.get("forecast") else ""),
                  color=INK, fontsize=12.5, fontweight="bold", va="center")
         if sgn:
-            for j, (lab, g) in enumerate((("If higher than forecast", sgn), ("If lower than forecast", -sgn))):
+            for j, (lab, g) in enumerate((("If higher · បើលេខខ្ពស់ជាង", sgn), ("If lower · បើលេខទាបជាង", -sgn))):
                 x = 0.085 + j * 0.425
                 c = UP if g > 0 else DN
                 box(x, ny_ + 0.02, 0.405, 0.075, c, r=0.016, alpha=0.12)
@@ -1270,14 +1273,16 @@ def macro_card(macro, news, path, cot=None):
     # dark box: what it means
     box(0.035, 0.03, 0.93, 0.235, DARK, r=0.025)
     side = "BUY" if tally > 0 else "SELL" if tally < 0 else None
-    msg = (f"Fundamentals lean gold {'UP' if tally > 0 else 'DOWN'}: {side} setups have the wind behind them" if side
-           else "Fundamentals are mixed: trade the chart setups only")
-    fig.text(0.075, 0.228, "What it means", color="#AEAEB2", fontsize=9.5, va="center")
+    msg = (f"Gold leans {'UP' if tally > 0 else 'DOWN'}: {side} setups have the wind" if side
+           else "Mixed: trade the chart setups only")
+    fig.text(0.075, 0.228, "What it means · មានន័យថា", color="#AEAEB2", fontsize=9.5, va="center")
     import textwrap
-    fig.text(0.075, 0.195, "\n".join(textwrap.wrap(msg, 50)[:2]), color="white", fontsize=13, fontweight="bold", va="top", linespacing=1.4)
-    fig.text(0.075, 0.095, f"{sum(1 for t_ in tiles if t_[5] < 0)} down · {sum(1 for t_ in tiles if t_[5] > 0)} up · "
+    fig.text(0.075, 0.2, "\n".join(textwrap.wrap(msg, 56)[:2]), color="white", fontsize=12.5, fontweight="bold", va="top", linespacing=1.3)
+    fig.text(0.075, 0.14, ("មាសទំនងឡើង · ទិញត្រូវទិស" if tally > 0 else "មាសទំនងចុះ · លក់ត្រូវទិស" if tally < 0 else "ចម្រុះ · ធ្វើតាមក្រាហ្វ"),
+             color="white", fontsize=12, va="center")
+    fig.text(0.075, 0.088, f"{sum(1 for t_ in tiles if t_[5] < 0)} down · {sum(1 for t_ in tiles if t_[5] > 0)} up · "
              f"{sum(1 for t_ in tiles if t_[5] == 0)} neutral", color=lean_col if side else "#AEAEB2", fontsize=10.5, fontweight="bold", va="center")
-    fig.text(0.075, 0.055, "Usual effect, not a promise · signals still need the chart to agree", color="#636366", fontsize=7.8, va="center")
+    fig.text(0.075, 0.052, "Usual effect, not a promise · មិនមែនការធានា", color="#636366", fontsize=7.8, va="center")
     fig.savefig(path, facecolor=BG); plt.close(fig)
     km = "មាសទំនងឡើង" if tally > 0 else "មាសទំនងចុះ" if tally < 0 else "ចម្រុះ"
     return path, f"🏛 <b>Fundamentals · gold {'UP ↑' if tally > 0 else 'DOWN ↓' if tally < 0 else 'mixed ↔'}</b> · {km}"

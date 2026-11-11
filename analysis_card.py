@@ -240,10 +240,10 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     # dark box: what to do + key numbers
     fig.patches.append(FancyBboxPatch((0.035, 0.03), 0.93, 0.25, boxstyle="round,pad=0,rounding_size=0.025",
                                       transform=fig.transFigure, fc=DARK, ec="none", zorder=0))
-    fig.text(0.075, 0.245, "What to do · M15 setups, graded A+ / B+ by the 4H · risk 0.25–0.5%" if setup else
-             "What to do · the map shows both paths, it does not predict", color="#AEAEB2", fontsize=9.5, va="center")
+    fig.text(0.075, 0.245, "What to do · ត្រូវធ្វើអ្វី · lot តូច 0.25–0.5%" if setup else
+             "What to do · ត្រូវធ្វើអ្វី · the map shows both paths", color="#AEAEB2", fontsize=9.5, va="center")
     import textwrap
-    fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
+    fig.text(0.075, 0.212, (todo if "\n" in (todo or "") else "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2])), color="white", fontsize=11.5,
              fontweight="bold", va="top", linespacing=1.4)
     rows = []
     if setup:
@@ -255,8 +255,8 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
                 rows.append((f"TARGET {side}: none · {'supply above' if side == 'BUY' else 'demand below'} ({z['tf']})",
                              f"wait · {z['lo']:,.0f}–{z['hi']:,.0f}", "#8E8E93"))
             else:
-                brk = (" supply" if side == "BUY" else " demand") if p_.get("broke") else ""
-                rows.append((f"TARGET {side}: 15m close {'above' if side == 'BUY' else 'below'}{brk}{wt}",
+                brk = (" (past supply)" if side == "BUY" else " (past demand)") if p_.get("broke") else ""
+                rows.append((f"TARGET {side} · {'ទិញ' if side == 'BUY' else 'លក់'}{brk}{' ✓' if wt else ''}",
                              f"{p_['trig']:,.2f} · SL {p_['stop']:,.0f} · TP {p_['tp1']:,.0f} / {p_['tp2']:,.0f}", col))
         for key, side, col, word in (("BUY_DZ", "BUY", UP, "demand"), ("SELL_SZ", "SELL", DN, "supply")):
             q = setup.get(key) if setup.get("zone_signals") else None
@@ -269,7 +269,7 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
             rows.append(("If a 15m candle closes above", f"{liq['trig_buy']:,.2f}" + (f" → {liq['tgt_buy']:,.0f}" if liq.get("tgt_buy") else ""), UP))
         if liq.get("trig_sell"):
             rows.append(("If a 15m candle closes below", f"{liq['trig_sell']:,.2f}" + (f" → {liq['tgt_sell']:,.0f}" if liq.get("tgt_sell") else ""), DN))
-    rows = [(("4H key levels · week high / low (A+ if broken)" if setup else "NEXT SIGNAL · 4H close: BUY above / SELL below"),
+    rows = [(("4H key levels · កម្រិតធំ (A+ if broken)" if setup else "NEXT SIGNAL · 4H close: BUY above / SELL below"),
              f"{upper:,.0f} / {lower:,.0f}", "#FFD60A")] + rows
     if plan and plan.get("side") and plan.get("edge"):
         rows.append((f"Plan {plan['side']} at POC", f"{plan['edge']:,.2f}", "#FF9500"))
