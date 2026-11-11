@@ -275,3 +275,9 @@ Exits on the same 2-year entries: live zone TP1/TP2 (half + BE) A+ +0.10R; 1R/2R
 splits: nothing consistent in both halves (the 00-06 KH hours are already blocked live).
 Decision (owner: "just want the quality better"): send A+ only. B+ (134, +0.01R) becomes a short note in Setup Analysis.
 ~10 signals a month instead of ~16. BPLUS_SIGNALS=on brings B+ back.
+
+## ⚡ Scalp: more a day? (studies/scalp_perday.py) · 12 Nov 2026
+LIVE 24h·2/day 230 trades +0.35R (total ~+80R) · 3/day 300 +0.25R (~+75R) · 4/day 347 +0.24R (~+84R) · 36h·2/day 270
++0.27R (~+74R) · 36h·3/day 359 +0.21R (~+76R) · 48h·3/day 380 +0.22R (~+84R). All still proven, but the EXTRA trades
+earn ~0 (3rd a day: about −0.07R each; 3rd+4th: about +0.03R). More signals, same money, more losing days.
+Decision: no change, stay at 2 a day / 24 h.
