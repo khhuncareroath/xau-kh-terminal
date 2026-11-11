@@ -152,6 +152,7 @@ def main():
                 send(f"✅ <b>Hit TP1</b> {(a['tp1'] - a['fill']) * (1 if a['dir'] == 'bull' else -1) * 10:+,.0f} pips · close half, "
                      f"move SL to entry (BE) {fmt(a['fill'])}\nបិទពាក់កណ្ដាល ប្ដូរ SL មកចំណុចចូល", "TP1", reply_to=a.get("msg_id"))
             if a["status"] != before and a["status"] in ICON:
+                a.setdefault("closed_at", time.time())
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))
                 if a["status"] in TRADED:

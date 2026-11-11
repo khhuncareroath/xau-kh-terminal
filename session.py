@@ -1281,21 +1281,29 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     risk = (f"📰 ព័ត៌មានធំ {esc(ev[0][1])} ម៉ោង {local(ev[0][0].timestamp())}: កុំចូលថ្មី 15 នាទីមុន/ក្រោយ" if ev else
             "⚠️ មាសប្រែប្រួលលឿនជាងធម្មតា: ប្រើ lot តូច" if vol >= 1.3 else
             "⚠️ ទិសដៅមិនទាន់ច្បាស់: កុំបង្ខំចូល" if abs(score) < 20 else None)
-    ts = trend_state(df)
-    bw = lambda v: "ឡើង ↑" if v > 0 else "ចុះ ↓" if v < 0 else "ចំហៀង ↔"
-    struct = f"និន្នាការធំ (4H): <b>{bw(ts)}</b> · ឥឡូវ (1H): <b>{bw(b['1H'])}</b>"
-    out = [f"{head} <b>សម័យ {KM_SESSION[name]} ({name})</b> · មាស <b>{fmt(price)}</b>", struct,
-           *(while_you_slept(df, news) if name == "Asia" else []),
-           "",
-           plan_line(plan := vp_plan(df), price),
-           "",
-           (f"⚡ <b>សញ្ញាធំ 4H</b>: ការជួញដូរ 4H មុននៅបើកនៅឡើយ · <b>no new 4H signal until it closes</b>"
-            if _trend_busy(df) else
-            f"⚡ <b>សញ្ញាធំ 4H</b> (ឈ្នះ 63% · 🖕 68% · 🖕🖕 77%): ទិញ បើបិទលើ <b>{fmt(upper)}</b> · លក់ បើបិទក្រោម <b>{fmt(lower)}</b>"),
-           *(no_trade_guide(name, plan, lv, df) if not (plan and plan.get("side")) and min(upper - price, price - lower) > price * 0.004
-             else []),
+    # simple format (like the Khmer channels members know): structure, the two trigger levels, what to do now
+    bias = lambda tf: ((ict.get("timeframes") or {}).get(tf) or {}).get("bias")
+    BW = {"bull": "Bullish ↑ (ឡើង)", "bear": "Bearish ↓ (ធ្លាក់)", None: "Range ↔ (ចំហៀង)"}
+    busy = _trend_busy(df)
+    plan = vp_plan(df)
+    plan_ok = plan and plan.get("side") and abs(plan["edge"] - plan["inval"]) <= plan["edge"] * 0.006
+    near = min(upper - price, price - lower) <= price * 0.004
+    now_line = ("👉 <b>Now: a 4H signal is running · follow it</b> · មានសញ្ញាកំពុងដំណើរការ" if busy else
+                "👉 <b>Now: get ready, price is near a signal line</b> · ត្រៀមខ្លួន" if near else
+                "👉 <b>Now: wait · ឥឡូវ: រង់ចាំ</b> (no signal = no trade)")
+    out = [f"{head} <b>{name.upper()} · មាស {fmt(price)}</b>", "",
+           f"Swing (4H): <b>{BW.get(bias('4H'))}</b>",
+           f"Internal (1H): <b>{BW.get(bias('1H'))}</b>",
+           f"Lower (15m): <b>{BW.get(bias('15m'))}</b>",
+           f"Swing High: <b>{fmt(upper)}</b> · Swing Low: <b>{fmt(lower)}</b>", "",
+           (f"🟢 <b>BUY</b>: រង់ចាំទៀន 4H បិទលើ <b>{fmt(upper)}</b> ({upper - price:+,.1f})" if not busy else None),
+           (f"🔴 <b>SELL</b>: រង់ចាំទៀន 4H បិទក្រោម <b>{fmt(lower)}</b> ({lower - price:+,.1f})" if not busy else None),
+           (f"🟡 <b>Plan {plan['side']}</b>: at POC <b>{fmt(plan['edge'])}</b> if a 15m candle closes "
+            f"{'below' if plan['side'] == 'SELL' else 'above'} it · lot តូច" if plan_ok else None),
            *([risk] if risk else []),
-           "", "<i>✅ សញ្ញាបានសាកល្បង · 🟡 ផែនការ = ហានិភ័យ 0.5%</i>"]
+           "", now_line,
+           "<i>Signals come automatically in 📈 Signals · details below ↓</i>"]
+    out = [x for x in out if x is not None]
     if LANG == "km":
         out = [f"{head} <b>សម័យ {KM_SESSION[name]}</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
                *[f"{'🔴 លក់' if k == 'SELL' else '🟢 ទិញ'} <b>{fmt(areas[k]['edge'])}</b> · stop {fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
