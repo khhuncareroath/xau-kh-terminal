@@ -301,11 +301,11 @@ LESSONS += [
                "Indicator momentum ច្រើនវាស់រឿងតែមួយ។ វាមិនមែនជា confluence ពិតទេ។"), chart=None),
     dict(ch=28, part="PART 6 · Combining", title="Gold Setups + លទ្ធផលសាកល្បងពិត",
          body="""យើងបានសាកល្បង setup ល្បីៗលើមាស 2 ឆ្នាំ (រួមថ្លៃ spread):
-• ✅ <b>4H breakout + Day Meter ≥70%</b> (⭐ B+): ឈ្នះ ~72%
-• ✅ <b>ដូចគ្នា ≥100%</b> (💎 A+): ឈ្នះ ~72% (+0.47R)
-• 🤬 <b>15m FVG pullback ក្រោយ B+</b> (SL ~$7): ឈ្នះ 58% ត្រង់ 2R
-• 🤬 <b>POC រាង P/b</b>: ~49% · +0.14R (មិនទាន់ proven)
-• ❌ Liquidity sweep reversal តែឯង · OB limit + SL តូច · VWAP fade · News spike · momentum candle
+• ✅ <b>4H breakout + ទៀនបិទខ្លាំង + trend ស្អាត + Day Meter ≥70%</b>: ឈ្នះ ~78% (+0.56R) · proven
+• 📐 <b>សញ្ញា XAU.KH ឥឡូវ</b>: 15m បិទហួសខ្សែ TARGET + 4H វិនិច្ឆ័យ (💎 A+ / ⭐ B+):
+  💎 A+ ឈ្នះ ~55% (+0.10R) · ⭐ B+ ~ស្មើ · ~16 ដង/ខែ · មិនទាន់ proven (live record សម្រេច)
+• ❌ <b>ទិញ Demand / លក់ Supply ពេលទៀនត្រឡប់</b>: −0.15R (ខាត) → យើងប្រើតែជា key level
+• ❌ OB limit + SL ក្រោម OB · ICT 15m/5m 1–2 ដង/ថ្ងៃ · VWAP fade · News spike · momentum candle
 • ❌ ច្រើនរបស់អ្នកដទៃ ល្អលើ screenshot តែខាតពេលសាកល្បង
 
 💡 មេរៀន: setup ល្អ = <b>បានសាកល្បង</b> មិនមែន "មើលទៅស្អាត" · Chapter 35 បង្រៀនសាកល្បងខ្លួនឯង""",
