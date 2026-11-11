@@ -14,7 +14,7 @@ trade, newest 30% +0.34R, t 1.67 (NOT yet proven: needs 2), positive in 6 of 7 q
 median SL ~$10. Positive in every setting tried (+0.12 to +0.38R). Owner's choice: live at SMALL SIZE until proven. Without the HTF bias, market entries, FVG entries,
 London/NY-only or a volume-profile filter: no edge (studies/RESULTS.md).
 
-python splus.py  -> live: posts a new S+ limit order in 🚨 Signals (card + caption) and logs it for track.py.
+python splus.py  -> live: posts a new S+ limit order in 📈 Signals (card + caption) and logs it for track.py.
 """
 import json
 import time

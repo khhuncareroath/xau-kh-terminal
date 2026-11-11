@@ -106,5 +106,5 @@ def make(group, path):
         km.append("• " + " · ".join(f"{esc(r[0])} ខ្ពស់ → មាស{'ឡើង ↑' if r[3] > 0 else 'ធ្លាក់ ↓'}" for r in rows if r[3]))
     if mv:
         km.append(f"• ពីមុន មាសរត់ <b>${mv['lo']}–{mv['hi']}</b> ក្នុង 15 នាទីដំបូង (ធំបំផុត ${mv['mx']})")
-    km.append("• ⛔ កុំចូលថ្មី 15 នាទីមុន → 15 នាទីក្រោយ · spread ធំ\n<i>Signals only in 🚨 Signals · ការអប់រំ មិនមែនដំបូន្មាន</i>")
+    km.append("• ⛔ កុំចូលថ្មី 15 នាទីមុន → 15 នាទីក្រោយ · spread ធំ\n<i>Signals only in 📈 Signals · ការអប់រំ មិនមែនដំបូន្មាន</i>")
     return path, "\n".join(km)

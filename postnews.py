@@ -180,7 +180,7 @@ def render_result(c, evts):
     if m:
         size = "ធំជាងធម្មតា · bigger than usual" if abs(mv) > m["hi"] else "តូចជាងធម្មតា · smaller than usual" if abs(mv) < m["lo"] else "ធម្មតា · normal size"
         lines.append(f"📏 {size} (usual {k}: ${m['lo']}–{m['hi']} in 15 min)")
-    lines.append("⛔ <b>No trade on the spike</b> · រង់ចាំសញ្ញាធម្មតាក្នុង 🚨 Signals\n<i>Tested 2 years: entering right after news lost money more often than not.</i>")
+    lines.append("⛔ <b>No trade on the spike</b> · រង់ចាំសញ្ញាធម្មតាក្នុង 📈 Signals\n<i>Tested 2 years: entering right after news lost money more often than not.</i>")
     return "\n".join(lines)
 
 
