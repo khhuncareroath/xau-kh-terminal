@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11b"
+VERSION = "2026-11-11c"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -16,8 +16,8 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 ✅ <b>BUY/SELL NOW</b>: tested 4H breakout. Closes within 12 h. Risk 1% max.
 🖕 <b>COMBO</b>: breakout on a moving day (68% win in test) · full size
 🖕🖕 <b>PREMIUM SWING</b>: breakout on a big day (77% win) · hold 1–5 days
-◽ <b>Normal</b>: quiet-day breakout · half size or skip
-🤬 <b>Smaller setup</b> (🟡 plan / 🔷 experimental): small size 0.25–0.5%
+⏭ Quiet-day breakouts are <b>not sent</b> (only 50/50 in testing)
+🤬 <b>Smaller setup</b> (🟡 plan): small size 0.25–0.5%
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
 📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
@@ -27,6 +27,7 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 📰 News in 30 min: no new entries 15 min before and after.
 
 💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
+💰 Every signal shows the $ result per 0.01 lot: SL $22 = −$22 at 0.01 lot.
 
 🇰🇭 🖕🖕 = ល្អបំផុត · 🖕 = ល្អ · 🤬 = តូច ប្រើ lot តូច
 ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។

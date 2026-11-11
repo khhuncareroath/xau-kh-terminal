@@ -185,15 +185,15 @@ def model_alert(lm, state, now):
     du = s.get("day_used") if s["model"] in research.TREND_PREFERENCE else None
     strong = du is not None and du >= research.COMBO_USED
     eff = s.get("efficiency")
-    if not premium and du is not None and not strong and eff is not None and eff <= research.CHOP_ER:
-        # quiet day + choppy 4H market: these breakouts lost money in testing (older and newest data) → skip, say why
+    if not premium and du is not None and not strong:
+        # COMBO only (owner's choice, 11 Nov 2026): quiet-day breakouts were ~50/50 (+0.02R) → skip and say why
         state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
         json.dump(state, open("notify_state.json", "w"))
         send(f"⏭ <b>4H {'BUY' if bull else 'SELL'} breakout skipped</b> at {fmt(s['entry'])}\n"
-             f"Quiet day ({du * 100:.0f}% of a normal day) + choppy market (trend quality {eff:.2f}). "
-             f"In 2 years of testing these lost money, so no signal.\n"
-             f"<i>ថ្ងៃស្ងាត់ + ទីផ្សាររញ៉េរញ៉ៃ = មិនចូល</i>", "Setup skipped")
-        print("model skipped: quiet + choppy", key)
+             f"Quiet day: only {du * 100:.0f}% of a normal day has moved (COMBO needs 70%). "
+             f"Quiet-day breakouts were about 50/50 in 2 years of testing, so we only send COMBO.\n"
+             f"<i>ថ្ងៃស្ងាត់ = មិនផ្ញើសញ្ញា · យើងផ្ញើតែ 🖕 COMBO</i>", "Setup skipped")
+        print("model skipped: quiet day", key)
         return False
     cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
     combo_line = None
