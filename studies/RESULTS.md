@@ -20,3 +20,11 @@ Scripts: newsplay.py, newsfilter.py, atrstop.py, luck.py, regime.py (run with th
 | COMBO window (12h after COMBO breakout) + 15m FVG dip + 5m confirmation, structure SL ~$7, TP 2R, first per day | 120 trades, 50% win, +0.33R ($0.40) / +0.28R ($0.70), newest +0.39R, luck p=0.04; needs alert within ~1 min | LIVE as 🤬 COMBO SCALP, small size (scalp.py) |
 | Same as limit order at the FVG | too few trades, inconsistent | rejected |
 | Main signal tiers | COMBO only: 144 trades 68% win; COMBO + clean trend 98 trades 72% | owner chose COMBO only |
+
+## ICT order blocks and momentum "confirmation" indicators (11 Nov)
+
+| Idea | Result | Decision |
+|---|---|---|
+| ICT/SMC order-block limit entries, SL past the OB ($3-6), 62 variants (5m/15m, 1H/4H bias, premium/discount) | median -0.16R older, -0.18R newest; best-on-older -0.42R newest | rejected |
+| Momentum-confirmation indicator (strong candle breaks highs above VWAP/EMA, trend filter), 72 variants | median -0.08R older, -0.22R newest; best-on-older 14% win newest | rejected |
+| PREMIUM as an intraday trade | 86 trades, 70% win, +0.28R, newest 80% win | live (no swing) |

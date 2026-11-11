@@ -1,0 +1,112 @@
+//@version=5
+// XAU.KH Signals — the tested XAU.KH 4H Breakout + Day Meter, on your own chart (gold only, use 5m or 15m).
+//  BUY  ▲ : a 4H candle CLOSES above the highest high of the previous 30 4H candles AND the day already moved
+//           70%+ of a normal day (🖕 COMBO, 68% win in a 2-year test) or 100%+ (🖕🖕 PREMIUM, 70% win)
+//  SELL ▼ : the same, below the lowest low.
+//  No mark on quiet days (only ~50/50 in testing) and no mark while a trade from the last signal is running.
+//  SL 0.55% · TP1 0.75R (close half, SL to entry) · TP2 3R · close within 12 hours.
+//  4H candles use the XAU.KH grid (02/06/10/14/18/22 UTC) so marks match the Telegram signals.
+//  Past results do not guarantee future results. Not financial advice.
+indicator("XAU.KH Signals", overlay = true, max_lines_count = 200, max_labels_count = 200)
+
+stopPct  = input.float(0.55, "SL %", step = 0.05) / 100
+comboMin = input.float(70, "COMBO Day Meter %") / 100
+premMin  = input.float(100, "PREMIUM Day Meter %") / 100
+showLines = input.bool(true, "Show the next BUY / SELL lines")
+
+// ---------- 4H blocks on the XAU.KH grid
+anchor = timestamp("UTC", 2000, 1, 3, 2, 0)
+blk = math.floor((time - anchor) / (4 * 3600 * 1000))
+var float bH = na
+var float bL = na
+var float bC = na
+var hiArr = array.new_float()
+var loArr = array.new_float()
+newBlk = blk != blk[1]
+float closedC = na
+float hi30 = na
+float lo30 = na
+if newBlk and not na(bH)
+    closedC := bC
+    if array.size(hiArr) >= 30
+        hi30 := array.max(hiArr)
+        lo30 := array.min(loArr)
+    array.push(hiArr, bH)
+    array.push(loArr, bL)
+    if array.size(hiArr) > 30
+        array.shift(hiArr)
+        array.shift(loArr)
+if newBlk
+    bH := high
+    bL := low
+else
+    bH := na(bH) ? high : math.max(bH, high)
+    bL := na(bL) ? low : math.min(bL, low)
+bC := close
+
+// ---------- Day Meter: today's range / median of up to 20 previous days (trading day 18:00-17:00 New York)
+nyH = hour(time, "America/New_York")
+newDay = nyH >= 18 and (nyH[1] < 18 or nyH[1] > nyH)
+var float dH = na
+var float dL = na
+var rngArr = array.new_float()
+if newDay and not na(dH)
+    array.push(rngArr, dH - dL)
+    if array.size(rngArr) > 20
+        array.shift(rngArr)
+if newDay or na(dH)
+    dH := high
+    dL := low
+else
+    dH := math.max(dH, high)
+    dL := math.min(dL, low)
+adr = array.size(rngArr) >= 10 ? array.median(rngArr) : na
+used = na(adr) or adr == 0 ? na : (dH - dL) / adr
+
+// ---------- signals: only with full confirmation, one trade at a time
+var float hiLine = na
+var float loLine = na
+if newBlk and array.size(hiArr) >= 30
+    hiLine := array.max(hiArr)
+    loLine := array.min(loArr)
+var int busyUntil = 0
+dir = 0
+if not na(closedC) and not na(hi30) and not na(used) and time >= busyUntil
+    if closedC > hi30 and used >= comboMin
+        dir := 1
+    else if closedC < lo30 and used >= comboMin
+        dir := -1
+
+if dir != 0
+    entry = open
+    sl = entry * (1 - dir * stopPct)
+    r = math.abs(entry - sl)
+    tp1 = entry + dir * 0.75 * r
+    tp2 = entry + dir * 3.0 * r
+    prem = used >= premMin
+    busyUntil := time + 12 * 3600 * 1000
+    txt = (prem ? "🖕🖕 " : "🖕 ") + (dir > 0 ? "BUY " : "SELL ") + str.tostring(entry, "#.00") + "\nSL " + str.tostring(sl, "#.00") + "\nTP1 " + str.tostring(tp1, "#.00") + "  TP2 " + str.tostring(tp2, "#.00")
+    label.new(bar_index, dir > 0 ? low : high, txt, style = dir > 0 ? label.style_label_up : label.style_label_down, color = dir > 0 ? color.new(#34C759, 0) : color.new(#FF3B30, 0), textcolor = color.white, size = size.small)
+    line.new(bar_index, sl, bar_index + 144, sl, color = #FF3B30, width = 1)
+    line.new(bar_index, tp1, bar_index + 144, tp1, color = #34C759, style = line.style_dashed)
+    line.new(bar_index, tp2, bar_index + 144, tp2, color = #34C759, width = 1)
+
+plot(showLines ? hiLine : na, "BUY line (4H close above)", color = color.new(#34C759, 30), style = plot.style_stepline, linewidth = 1)
+plot(showLines ? loLine : na, "SELL line (4H close below)", color = color.new(#FF3B30, 30), style = plot.style_stepline, linewidth = 1)
+bgcolor(not na(used) and used >= premMin ? color.new(#AF52DE, 93) : not na(used) and used >= comboMin ? color.new(#007AFF, 94) : na, title = "COMBO / PREMIUM zone")
+
+alertcondition(dir > 0, "XAU.KH BUY", "XAU.KH 🖕 BUY signal (4H breakout + COMBO)")
+alertcondition(dir < 0, "XAU.KH SELL", "XAU.KH 🖕 SELL signal (4H breakout + COMBO)")
+
+// ---------- info box
+var table tb = table.new(position.top_right, 2, 4, bgcolor = color.new(#1C1C1E, 0), border_width = 0)
+if barstate.islast
+    zone = na(used) ? "–" : used >= premMin ? "🖕🖕 PREMIUM" : used >= comboMin ? "🖕 COMBO" : "quiet day (no signal)"
+    table.cell(tb, 0, 0, "XAU.KH", text_color = #0A84FF, text_size = size.small)
+    table.cell(tb, 1, 0, "Day Meter " + (na(used) ? "–" : str.tostring(used * 100, "#") + "%"), text_color = color.white, text_size = size.small)
+    table.cell(tb, 0, 1, "Zone", text_color = #AEAEB2, text_size = size.small)
+    table.cell(tb, 1, 1, zone, text_color = color.white, text_size = size.small)
+    table.cell(tb, 0, 2, "BUY if 4H closes >", text_color = #AEAEB2, text_size = size.small)
+    table.cell(tb, 1, 2, str.tostring(hiLine, "#.00"), text_color = #34C759, text_size = size.small)
+    table.cell(tb, 0, 3, "SELL if 4H closes <", text_color = #AEAEB2, text_size = size.small)
+    table.cell(tb, 1, 3, str.tostring(loLine, "#.00"), text_color = #FF3B30, text_size = size.small)
