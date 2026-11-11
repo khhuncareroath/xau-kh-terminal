@@ -17,6 +17,7 @@ HONEST LABEL: studies/RESULTS.md: "lean before the news" did not pass the 2-year
 widens and stops slip. This is a labelled gamble on fundamentals: tiny size or just watch. The record decides.
 NEWS_BET=off turns it off.
 """
+from engine import closed
 import json
 import os
 import time
@@ -232,7 +233,7 @@ def check(df, news, macro):
         print("news bet posted", titles, lean, conf)
     # 2) grade finished bets
     changed = False
-    d5 = df.iloc[:-1]
+    d5 = closed(df)
     for b in st.get("bets", []):
         if not b.get("lean") or b.get("R") is not None:
             continue
@@ -285,7 +286,7 @@ def final_call(df, news, macro, now=None):
         group = [(t_, e, next((v for keys, v in EVENT_DIR if any(k in e["title"].lower() for k in keys)), None))
                  for t_, e, _ in group]
         fac, _, _, _ = read(group, jl("macro.json", macro), df)
-        d5 = df.iloc[:-1]
+        d5 = closed(df)
         last30 = d5[d5.index >= d5.index[-1] - pd.Timedelta(minutes=30)]
         if len(last30) >= 3:
             drift = float(last30["Close"].iloc[-1] - last30["Open"].iloc[0])

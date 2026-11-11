@@ -107,6 +107,17 @@ def _spot_5m():
     return px
 
 
+def closed(df, minutes=5, now=None):
+    """Only candles that have CLOSED by now (by the clock, not by position). Safe to apply twice. Dropping "the last
+    row" was wrong two ways: the feed sometimes has not opened the new candle yet (a closed candle got dropped), and
+    session.py + setupidea.watch dropped it twice (M15 signals came 5-10 min late)."""
+    if os.environ.get("XAU_SIM") and now is None:
+        return df.iloc[:-1]
+    now = pd.Timestamp(time.time() if now is None else now, unit="s", tz="UTC")
+    idx = df.index if df.index.tz is not None else df.index.tz_localize("UTC")
+    return df[idx + pd.Timedelta(minutes=minutes) <= now]
+
+
 def load(interval="5m", period="30d"):
     sim = os.environ.get("XAU_SIM")
     if sim:

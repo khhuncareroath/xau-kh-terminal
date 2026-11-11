@@ -15,7 +15,7 @@ import pandas as pd
 
 import research
 from backtest import candidates
-from engine import load
+from engine import load, closed
 from levels import to_ny
 
 PAD = research.LAT + 3
@@ -30,7 +30,7 @@ def jl(n):
 
 def main():
     df = to_ny(load("5m", "20d"))
-    df = df[df["Volume"] >= 0].iloc[:-1]          # drop the candle that is still forming
+    df = closed(df[df["Volume"] >= 0])          # drop the candle that is still forming
     n_real = len(df)
     last = float(df["Close"].iloc[-1])
     pad_idx = [df.index[-1] + pd.Timedelta(minutes=5 * (k + 1)) for k in range(PAD)]

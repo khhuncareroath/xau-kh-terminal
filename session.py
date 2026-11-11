@@ -1754,7 +1754,8 @@ def main():
     state = jl(STATE)
     ict, conf, lv, news, macro = jl("ict.json"), jl("confluence.json"), jl("levels.json"), jl("news.json"), jl("macro.json")
     df = to_ny(load("5m", "20d"))
-    df = df[df["Volume"] >= 0].iloc[:-1]
+    from engine import closed
+    df = closed(df[df["Volume"] >= 0])
     if (time.time() - df.index[-1].timestamp()) / 60 > 40 and not os.environ.get("XAU_SIM"):
         print("session: data is stale, nothing sent"); return
     lines = breakout_lines(df)

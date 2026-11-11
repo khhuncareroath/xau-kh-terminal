@@ -4,6 +4,7 @@ Each lesson: the text (Khmer-first, English terms), for chart chapters today's r
 today's chart"), then a Telegram quiz poll (tap an answer, see right away if it is right).
 Posted twice a day (HOURS), only chapters with a written PDF. State: academy_state.json (next lesson).  Run every cycle.
 """
+from engine import closed
 import json
 import os
 import time
@@ -90,7 +91,7 @@ def post(k):
             import session
             from engine import load
             from levels import to_ny
-            df = to_ny(load("5m", "20d")).iloc[:-1]
+            df = closed(to_ny(load("5m", "20d")))
             path = session.analysis_chart(df, jl("levels.json", {}), {}, session.breakout_lines(df), "academy_chart.png",
                                           f"Academy · Chapter {L['ch']} · today's chart")
             send_photo(path, CHART_HINT.get(L["chart"], ""), "Lesson", reply_to=mid if isinstance(mid, int) else None)

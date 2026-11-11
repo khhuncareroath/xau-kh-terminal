@@ -360,7 +360,8 @@ def watch(df):
     if not idea or now > idea.get("valid_until", 0) or "sent" in idea.get("done", {}).values():
         return False
     import ict
-    d5 = df.iloc[:-1]                                              # the newest 5m candle is still forming
+    from engine import closed
+    d5 = closed(df)                                                # closed 5m candles only (by the clock)
     d15 = ict.resample(d5, "15m")
     end = d5.index[-1] + pd.Timedelta(minutes=5)
     d15 = d15[d15.index + pd.Timedelta(minutes=15) <= end]          # closed 15m candles only
@@ -612,9 +613,9 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     mid = None
     try:
         import signal_card
-        from engine import load
+        from engine import load, closed
         from levels import to_ny
-        d5 = to_ny(load("5m", "20d")).iloc[:-1]
+        d5 = closed(to_ny(load("5m", "20d")))
         signal_card.make(d5, {"dir": "bull" if bull else "bear", "entry": entry, "stop": stop, "tp1": tp1, "target": tp2,
                               "level": p["trig"]}, "setup_card.png", tier="setup_a" if (ck or {}).get("tier") == "A+" else "setup_b", status="LIVE", stamp=local(time.time()),
                          tf_label="15m setup", hold_note="closes by 24:00")

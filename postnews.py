@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 from ai_analyst import explain
-from engine import atr, load
+from engine import atr, load, closed
 from tg import esc, fmt, local, log_alert, send
 
 MIN_FACTORS = int(os.environ.get("PN_MIN_FACTORS", 3))
@@ -218,7 +218,7 @@ def main():
     df = load("5m", "5d")
     if df.index.tz is None:
         df.index = df.index.tz_localize("UTC")
-    df = df.tz_convert("UTC").iloc[:-1]
+    df = closed(df.tz_convert("UTC"))
     levels = [(x["name"], x["price"]) for x in lv.get("ladder", []) if x["name"] in
               ("Prev day high", "Prev day low", "Asia high", "Asia low", "London high", "London low", "Prev VAH", "Prev VAL", "Prev POC")]
     for t0, evts in todo:

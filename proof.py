@@ -6,6 +6,7 @@ chart (a flag pin) and its result as gold bars on the strip below. A signal that
 marked LIVE. This is our own design (flag pins + gold-bar strip), not a copy of any indicator.
 
 Used by session.py: the Friday weekly proof and one quiet-hours check-in a day. Run alone to make proof.png."""
+from engine import closed
 import time
 
 import numpy as np
@@ -271,7 +272,7 @@ if __name__ == "__main__":
     from engine import load
     from levels import to_ny
     from tg import local as _local
-    d = to_ny(load("5m", "20d")).iloc[:-1]
+    d = closed(to_ny(load("5m", "20d")))
     try:
         b = json.load(open("backtest.json"))
     except Exception:

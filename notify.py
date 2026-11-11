@@ -12,6 +12,7 @@ Hard gates (any one fails -> no alert):
 The 7 factors are shown openly in the alert ("5 of 7"), and the backtest line tells people how these rules
 really did on past data. Env: MIN_RR (1.5), MIN_FACTORS (3), MAX_RISK_ATR (3), ALERT_EXPIRE_MIN (120),
 ALERT_COOLDOWN_H (3), SITE_URL, DISPLAY_TZ. Analysis ideas, not signals or advice."""
+from engine import closed
 import json
 import re
 import os
@@ -272,7 +273,7 @@ def model_alert(lm, state, now):
         import signal_card
         from engine import load
         from levels import to_ny
-        d5 = to_ny(load("5m", "20d")).iloc[:-1]
+        d5 = closed(to_ny(load("5m", "20d")))
         from ict import resample as _rs
         import pandas as _pd
         d4_ = _rs(d5, "4H")
@@ -305,7 +306,7 @@ def model_alert(lm, state, now):
         from levels import to_ny
         from tg import msg_link, send_photo
         link = msg_link(mid, ("BUY" if bull else "SELL") + " now")
-        d = to_ny(load("5m", "20d")).iloc[:-1]
+        d = closed(to_ny(load("5m", "20d")))
         lines_ = session.breakout_lines(d)
         tested = (f"{st_.get('trades')} trades · {wr}% win" + (" (💎 A+)" if premium else " (⭐ B+)" if strong else "")) if wr else None
         text = desk.trade_note(jl("ict.json"), jl("confluence.json"), jl("levels.json"), d, lines_,
@@ -468,7 +469,7 @@ def plan_alert(lm, state, now):
         from engine import load
         from levels import to_ny
         from tg import send_photo
-        d5 = to_ny(load("5m", "20d")).iloc[:-1]
+        d5 = closed(to_ny(load("5m", "20d")))
         signal_card.make(d5, {"dir": s["dir"], "entry": s["entry"], "stop": s["stop"], "tp1": s.get("tp1"),
                               "target": s["target"]}, "plan_card.png", tier="plan", status="LIVE",
                          win_rate=vb.get("win_rate_pct"), trades=vb.get("trades"), stamp=local(now),

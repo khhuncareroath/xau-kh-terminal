@@ -145,8 +145,10 @@ def main():
         df = load("5m", "5d")
         if df.index.tz is None:
             df.index = df.index.tz_localize("UTC")
+        from engine import closed as _closed
+        df = _closed(df)   # closed candles only, by the clock
         bars = [(int(t.timestamp()), float(r.Open), float(r.High), float(r.Low), float(r.Close))
-                for t, r in zip(df.index[:-1], df.iloc[:-1].itertuples())]   # last candle is still forming
+                for t, r in zip(df.index, df.itertuples())]
         for a in live:
             before, had_tp1, had_mid = a["status"], a.get("hit1", False), a.get("hit_mid", False)
             step(a, bars)

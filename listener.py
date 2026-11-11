@@ -10,6 +10,7 @@ loop.py calls serve(until) in the gap between its 5-minute cycles, so replies co
 Telegram long polling (getUpdates); the offset is kept in data/cache so restarts don't answer twice.
 Each member can ask once per COOLDOWN_S; the /check chart is re-drawn at most every CHART_TTL_S.
 """
+from engine import closed
 import html
 import json
 import os
@@ -90,7 +91,7 @@ def check_answer():
     import session
     from engine import load
     from levels import to_ny
-    df = to_ny(load("5m", "20d")).iloc[:-1]
+    df = closed(to_ny(load("5m", "20d")))
     lines = session.breakout_lines(df)
     st = radar.status(df, lines)
     ict, lv = jl("ict.json"), jl("levels.json")
