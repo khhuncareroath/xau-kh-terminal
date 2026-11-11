@@ -139,6 +139,51 @@ MODE = os.environ.get("ALERT_MODE", "auto")
 PLANS = os.environ.get("PN_PLANS", "off") == "on"
 
 
+def _num(x):
+    try:
+        return float(re.sub(r"[^0-9.\-]", "", x or "")) if re.search(r"\d", x or "") else None
+    except ValueError:
+        return None
+
+
+def render_result(c, evts):
+    """After the news, short and Khmer-friendly: actual vs forecast per event, what that usually means for gold,
+    what gold really did (in pips) and how big that was compared with past releases. No trade levels."""
+    from newscard import MOVES, kind
+    from outlook import EVENT_DIR
+    titles = [e["title"] for e in evts]
+    k = kind(titles)
+    lines = [f"📰 <b>After the news</b> · {esc(', '.join(dict.fromkeys(titles)))} · {local(c['t'])}"]
+    exp = 0
+    for e in evts[:4]:
+        a, f = _num(e.get("actual")), _num(e.get("forecast"))
+        sg = next((v for keys, v in EVENT_DIR if any(x in e["title"].lower() for x in keys)), None)
+        if a is None:
+            continue
+        if f is None or a == f:
+            verdict, eff = "= forecast", 0
+        else:
+            hi = a > f
+            verdict = "higher ↑" if hi else "lower ↓"
+            eff = (sg or 0) * (1 if hi else -1)
+            exp += eff
+        lines.append(f"• {esc(e['title'])}: <b>{esc(e.get('actual'))}</b> vs {esc(e.get('forecast') or '-')} → {verdict}"
+                     + (f" · usually gold {'↑' if eff > 0 else '↓'}" if eff else ""))
+    mv = c["move"]
+    pips = round(abs(mv) * 10)
+    lines.append(f"🟡 Gold <b>{'+' if mv > 0 else '−'}${abs(mv):.1f}</b> ({'+' if mv > 0 else '−'}{pips} pips) in {REACT_MIN} min · now {fmt(c['price'])}")
+    if exp and abs(mv) >= 2:
+        same = (mv > 0) == (exp > 0)
+        lines.append("✅ ប្រតិកម្មដូចការរំពឹង · reaction matched the numbers" if same else
+                     "⚠️ មាសរត់ផ្ទុយពីលេខ · gold went AGAINST the numbers: the market had priced it in, be careful")
+    m = MOVES.get(k)
+    if m:
+        size = "ធំជាងធម្មតា · bigger than usual" if abs(mv) > m["hi"] else "តូចជាងធម្មតា · smaller than usual" if abs(mv) < m["lo"] else "ធម្មតា · normal size"
+        lines.append(f"📏 {size} (usual {k}: ${m['lo']}–{m['hi']} in 15 min)")
+    lines.append("⛔ <b>No trade on the spike</b> · រង់ចាំសញ្ញាធម្មតាក្នុង 🚨 Signals\n<i>Tested 2 years: entering right after news lost money more often than not.</i>")
+    return "\n".join(lines)
+
+
 def render(c, ai, watch=True):
     head = f"📰 <b>XAU.KH · After the news</b>\n<b>{esc(c['title'])}</b> · released {local(c['t'])}"
     react = f"Gold {'+' if c['move'] > 0 else ''}{c['move']:.1f} pts in {REACT_MIN} min (from {fmt(c['p0'])}) · now {fmt(c['price'])}"
@@ -190,7 +235,7 @@ def main():
             ai = explain({k: v for k, v in c.items() if k not in ("t", "valid_until", "next_high")} |
                          {"factors": [{"name": a, "ok": g, "detail": d} for a, g, d in c["factors"]]})
         watch = MODE != "signal"   # promote only by setting ALERT_MODE=signal after track.py shows it works
-        mid = send(render(c, ai, watch), "After the news")
+        mid = send(render(c, ai, watch) if c["stage"] == "plan live" else render_result(c, evts), "After the news")
         state[str(int(t0))] = {"stage": c["stage"], "msg_id": mid if isinstance(mid, int) else None}
         card = {k: v for k, v in c.items() if k != "factors"}
         card["factors"] = [{"name": a, "ok": bool(g), "detail": d} for a, g, d in c.get("factors", [])]

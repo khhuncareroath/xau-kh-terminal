@@ -280,7 +280,10 @@ def intraday_alerts(df, lv, conf, ict, state, news):
 
 
 def pre_news(news, state):
-    """One calm warning 30 minutes before high-impact USD news (events at the same minute grouped)."""
+    """One warning ~30 minutes before high-impact USD news (events at the same minute grouped): a picture card with
+    forecast / previous, what higher / lower usually means for gold and how much gold moved on past releases."""
+    import newscard
+    from outlook import EVENT_DIR
     now = datetime.now(timezone.utc)
     sent = state.setdefault("pre_news", {})
     groups = {}
@@ -288,14 +291,23 @@ def pre_news(news, state):
         if e.get("impact") == "High":
             t = datetime.fromisoformat(e["time"].replace("Z", "+00:00"))
             if timedelta(minutes=20) <= t - now <= timedelta(minutes=35):
-                groups.setdefault(t, []).append(e["title"])
-    for t, titles in sorted(groups.items()):
+                sg = next((v for keys, v in EVENT_DIR if any(k in e["title"].lower() for k in keys)), None)
+                groups.setdefault(t, []).append((t, e, sg))
+    for t, group in sorted(groups.items()):
         key = t.isoformat()
         if key in sent:
             continue
-        msg = (f"📰 <b>In {round((t - now).total_seconds() / 60)} min ({local(t.timestamp())})</b>: {esc(', '.join(dict.fromkeys(titles)))}\n"
-               f"Big moves likely. No new entries 15 min before → 15 min after.")
-        if send(msg, "News soon") or not os.environ.get("TELEGRAM_TOKEN"):
+        ok = None
+        try:
+            path, cap = newscard.make(group, "news_card.png")
+            ok = send_photo(path, cap, "News soon")
+        except Exception as ex:
+            print("news card failed:", ex)
+        if not ok:
+            titles = list(dict.fromkeys(e["title"] for _, e, _ in group))
+            ok = send(f"📰 <b>In {round((t - now).total_seconds() / 60)} min ({local(t.timestamp())})</b>: {esc(', '.join(titles))}\n"
+                      f"Big moves likely. No new entries 15 min before → 15 min after.", "News soon")
+        if ok or not os.environ.get("TELEGRAM_TOKEN"):
             sent[key] = time.time()
             print("pre-news sent", key)
     state["pre_news"] = {k: v for k, v in sent.items() if time.time() - v < 3 * 86400}
