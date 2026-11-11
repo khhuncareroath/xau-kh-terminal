@@ -119,7 +119,25 @@ def build(df5, bars=96):
         why = ("buy-side liquidity was swept, then 15m structure turned down" if recent_bs else
                "15m structure is down and price is in premium")
     target = (ilq_up[0]["price"] if ilq_up else rh[2]) if draw == "up" else (ilq_dn[0]["price"] if ilq_dn else rl[2]) if draw == "down" else None
-    return {"price": price, "top": top, "rh": rh[2], "rl": rl[2], "rh_i": rh[0], "rl_i": rl[0], "eq": eq,
+    # mentor-style triggers: BUY on a 15m close above the nearest internal high, SELL below the nearest internal low
+    up_lv = [x["price"] for x in ilq_up] + [rh[2]]
+    dn_lv = [x["price"] for x in ilq_dn] + [rl[2]]
+    gap = max(3.0, 0.8 * float(atr(d).iloc[-1]))      # a target must be a real move away from the trigger
+    trig_buy, trig_sell = up_lv[0], dn_lv[0]
+    tgt_buy = next((x for x in up_lv[1:] if x - trig_buy >= gap), None)
+    tgt_sell = next((x for x in dn_lv[1:] if trig_sell - x >= gap), None)
+    if tgt_buy is None:      # nothing left inside the range: aim at the 50% of the range above, as mentors do
+        tgt_buy = trig_buy + max(gap, (rh[2] - rl[2]) * 0.25)
+    if tgt_sell is None:
+        tgt_sell = trig_sell - max(gap, (rh[2] - rl[2]) * 0.25)
+    ob = None
+    if last:
+        try:
+            ob = ict.order_block(d, last)
+        except Exception:
+            ob = None
+    return {"trig_buy": trig_buy, "tgt_buy": tgt_buy, "trig_sell": trig_sell, "tgt_sell": tgt_sell, "ob": ob,
+            "price": price, "top": top, "rh": rh[2], "rl": rl[2], "rh_i": rh[0], "rl_i": rl[0], "eq": eq,
             "zone": "premium" if price > eq else "discount", "ilq_up": ilq_up, "ilq_dn": ilq_dn, "sweeps": sweeps,
             "last": last, "fvgs": fv[-4:], "ema": ema, "draw": draw, "why": why, "target": target, "d15": d}
 

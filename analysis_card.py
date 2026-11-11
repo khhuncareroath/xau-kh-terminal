@@ -36,7 +36,15 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
         zt, zc = (("PREMIUM ZONE", "#AF52DE") if used >= 1.0 else ("COMBO ZONE", BLUE) if used >= 0.7 else ("QUIET DAY", MUT))
         _pill(fig, x, 0.952, zt, "white", zc, fs=10)
     fig.text(0.945, 0.952, "XAU.KH", color=BLUE, fontsize=14, fontweight="bold", va="center", ha="right")
-    fig.text(0.055, 0.915, title, color=MUT, fontsize=9.5, va="center")
+    if liq:   # top-down row: D 4H 1H 30m 15m 5m
+        xx = 0.055
+        for k in ("D", "4H", "1H", "30m", "15m", "5m"):
+            b = liq["top"].get(k)
+            xx = _pill(fig, xx, 0.912, f"{k} {'↑' if b == 'bull' else '↓' if b == 'bear' else '↔'}", "white",
+                       UP if b == "bull" else DN if b == "bear" else MUT, fs=8.5, h=0.026) - 0.004
+        fig.text(0.945, 0.912, title.split("·")[-1].strip(), color=MUT, fontsize=8.5, va="center", ha="right")
+    else:
+        fig.text(0.055, 0.915, title, color=MUT, fontsize=9.5, va="center")
 
     fig.patches.append(FancyBboxPatch((0.035, 0.30), 0.93, 0.59, boxstyle="round,pad=0,rounding_size=0.025",
                                       transform=fig.transFigure, fc=CARD, ec="none", zorder=0))
@@ -105,6 +113,28 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
                 xs = tx(z["at"])
                 ax.text(xs, z["price"], r"\$\$", fontsize=8, color="#FF9500", fontweight="bold", ha="center",
                         va="bottom" if z["kind"] == "H" else "top", zorder=5, clip_on=True)
+
+    if liq:
+        e = liq.get("last")
+        if e and show(e["level"]):
+            col = UP if e["dir"] == "bull" else DN
+            xs = max(0, tx(e["i"]) - 6)
+            ax.hlines(e["level"], xs, tx(e["i"]), color=col, lw=1.2, zorder=4)
+            ax.text(xs, e["level"], ("CHOCH" if e["type"] == "MSS" else "BOS") + (" ↑" if e["dir"] == "bull" else " ↓"),
+                    fontsize=7.5, color=col, fontweight="bold", va="bottom" if e["dir"] == "bull" else "top", zorder=5, clip_on=True)
+        ob = liq.get("ob")
+        if ob and show(ob["lo"]) and show(ob["hi"]):
+            col = UP if ob["dir"] == "bull" else DN
+            xs = tx(ob["i"])
+            ax.add_patch(Rectangle((xs, ob["lo"]), n + ext * 0.5 - xs, max(ob["hi"] - ob["lo"], 0.3), fc=col, alpha=0.13,
+                                   ec=col, lw=0.6, zorder=1))
+            ax.text(xs + 0.5, (ob["lo"] + ob["hi"]) / 2, "OB", fontsize=7, color=col, fontweight="bold", va="center", zorder=5, clip_on=True)
+        for y, lab, col in ((liq.get("trig_buy"), "BUY close >", UP), (liq.get("trig_sell"), "SELL close <", DN)):
+            if y and show(y):
+                ax.hlines(y, n - 8, n + ext, color=col, lw=1.4, zorder=4)
+                ax.text(n + ext - 0.5, y, f"{lab} {y:,.0f}", fontsize=7, color="white", fontweight="bold", ha="right",
+                        va="bottom" if col == UP else "top", zorder=6, clip_on=True,
+                        bbox=dict(boxstyle="round,pad=0.2", fc=col, ec="none"))
 
     # liquidity + 4H lines
     lad = {x["name"]: float(x["price"]) for x in lv.get("ladder", []) if x.get("price")}
@@ -194,8 +224,13 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     import textwrap
     fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
              fontweight="bold", va="top", linespacing=1.4)
-    rows = [("4H BUY signal above", f"{upper:,.2f}  ({upper - price:+,.1f})", UP),
-            ("4H SELL signal below", f"{lower:,.2f}  ({lower - price:+,.1f})", DN)]
+    rows = []
+    if liq:
+        if liq.get("trig_buy"):
+            rows.append(("TARGET BUY: 15m close above", f"{liq['trig_buy']:,.2f}" + (f" → {liq['tgt_buy']:,.0f}" if liq.get("tgt_buy") else ""), UP))
+        if liq.get("trig_sell"):
+            rows.append(("TARGET SELL: 15m close below", f"{liq['trig_sell']:,.2f}" + (f" → {liq['tgt_sell']:,.0f}" if liq.get("tgt_sell") else ""), DN))
+    rows += [("4H signal: BUY above / SELL below", f"{upper:,.0f} / {lower:,.0f}", INK if False else "#FFFFFF")]
     if plan and plan.get("side") and plan.get("edge"):
         rows.append((f"Plan {plan['side']} at POC", f"{plan['edge']:,.2f}", "#FF9500"))
     y = 0.135

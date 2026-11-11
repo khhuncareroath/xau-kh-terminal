@@ -606,6 +606,12 @@ def analysis_chart(df, lv, conf, lines, path, title):
         try:
             import liqmap
             liq = liqmap.build(df)
+            t_ = liq["top"]
+            htf = [t_.get(k) for k in ("D", "4H", "1H")]
+            if not st.get("busy") and t_.get("15m") and sum(b not in (None, t_["15m"]) for b in htf) >= 2:
+                up15 = t_["15m"] == "bull"
+                todo = (f"15m turned {'up' if up15 else 'down'} but D/4H/1H are {'down' if up15 else 'up'}: likely a pullback. "
+                        f"Small size, or wait for a {'SELL' if up15 else 'BUY'} at {'premium' if up15 else 'discount'}.")
             if liq.get("draw") and liq.get("target"):   # scenario arrow follows the draw on liquidity
                 scen = [(price, liq["target"], "#34C759" if liq["draw"] == "up" else "#FF3B30")]
         except Exception as e:
@@ -1312,19 +1318,37 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
            f"Internal (1H): <b>{BW.get(bias('1H'))}</b>",
            f"Lower (15m): <b>{BW.get(bias('15m'))}</b>",
            f"Swing High: <b>{fmt(upper)}</b> · Swing Low: <b>{fmt(lower)}</b>", "",
-           (f"🟢 <b>BUY</b>: រង់ចាំទៀន 4H បិទលើ <b>{fmt(upper)}</b> ({upper - price:+,.1f})" if not busy else None),
-           (f"🔴 <b>SELL</b>: រង់ចាំទៀន 4H បិទក្រោម <b>{fmt(lower)}</b> ({lower - price:+,.1f})" if not busy else None),
+           *_targets(df),
+           (f"⚡ 4H signal: BUY &gt; <b>{fmt(upper)}</b> · SELL &lt; <b>{fmt(lower)}</b>" if not busy else None),
            (f"🟡 <b>Plan {plan['side']}</b>: at POC <b>{fmt(plan['edge'])}</b> if a 15m candle closes "
             f"{'below' if plan['side'] == 'SELL' else 'above'} it · lot តូច" if plan_ok else None),
            *([risk] if risk else []),
            "", now_line,
-           "<i>Signals come automatically in 📈 Signals · details below ↓</i>"]
+           "<i>Details on the chart · signals come automatically in 📈 Signals</i>"]
     out = [x for x in out if x is not None]
     if LANG == "km":
         out = [f"{head} <b>សម័យ {KM_SESSION[name]}</b> · មាស <b>{fmt(price)}</b> · {KW[word]} {arrow}",
                *[f"{'🔴 លក់' if k == 'SELL' else '🟢 ទិញ'} <b>{fmt(areas[k]['edge'])}</b> · stop {fmt(areas[k]['inval'])}" for k in ("SELL", "BUY") if k in areas],
                f"⚡ 4H បិទលើ {fmt(upper)} = ទិញ · ក្រោម {fmt(lower)} = លក់"]
     return "\n".join(out)
+
+
+def _targets(df):
+    """Mentor-style lines: TARGET BUY / SELL = a 15m close beyond the nearest internal high / low, and where it aims."""
+    try:
+        import liqmap
+        m = liqmap.build(df)
+    except Exception as e:
+        print("targets failed:", e)
+        return []
+    out = []
+    if m.get("trig_buy"):
+        out.append(f"🟢 <b>TARGET BUY</b>: រង់ចាំទៀន 15m បិទលើ <b>{fmt(m['trig_buy'])}</b>"
+                   + (f" → គោលដៅ <b>{fmt(m['tgt_buy'])}</b>" if m.get("tgt_buy") else ""))
+    if m.get("trig_sell"):
+        out.append(f"🔴 <b>TARGET SELL</b>: រង់ចាំទៀន 15m បិទក្រោម <b>{fmt(m['trig_sell'])}</b>"
+                   + (f" → គោលដៅ <b>{fmt(m['tgt_sell'])}</b>" if m.get("tgt_sell") else ""))
+    return out
 
 
 def _trend_busy(df):
@@ -1737,7 +1761,8 @@ def main():
                 print("liqmap text failed, desk note:", e)
                 note = desk.note(ict, conf, lv, df, lines, f"{name} session · {local(time.time())}",
                                  day_used=day_used(df, df.index[-1] + pd.Timedelta(minutes=5)))
-            send(note, "Desk note", reply_to=mid if isinstance(mid, int) else None)
+            if os.environ.get("DESK_NOTE") == "on":   # long text off: members want the details on the picture
+                send(note, "Desk note", reply_to=mid if isinstance(mid, int) else None)
         except Exception as e:
             print("desk note failed:", e)
         if name == "Asia" or os.environ.get("MACRO_CARD_FORCE"):   # fundamentals as a picture, once a day with the morning prep
