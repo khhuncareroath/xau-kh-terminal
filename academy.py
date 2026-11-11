@@ -70,7 +70,8 @@ def main():
     st = jl(STATE, {"next": 0})
     today = now.strftime("%Y-%m-%d")
     force = os.environ.get("ACADEMY_FORCE")
-    if not force and (now.weekday() >= 5 or now.hour != HOUR or st.get("day") == today):
+    launch = "day" not in st          # very first lesson: post right away, then daily at HOUR
+    if not force and not launch and (now.weekday() >= 5 or now.hour != HOUR or st.get("day") == today):
         print("academy: not now"); return
     k = st.get("next", 0)
     if k >= len(LESSONS):
