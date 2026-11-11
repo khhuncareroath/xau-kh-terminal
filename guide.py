@@ -6,7 +6,7 @@ import os
 import urllib.parse
 import urllib.request
 
-from tg import send, setup_sections
+from tg import group_id, send, setup_sections
 
 VERSION = "2026-11-11a"
 STATE = "guide_state.json"
@@ -34,15 +34,15 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 
 SECTIONS_TEXT = """
 🗂 <b>Sections · ផ្នែក</b>
-🎯 Signals: entries, TP/SL results, Radar · ចូល / លទ្ធផល
+📈 Signals: entries, TP/SL results, Radar · ចូល / លទ្ធផល
 📊 Analysis: each session, market map · វិភាគ
-📰 News: only big news + after-news · ព័ត៌មានធំ
-🧾 Proof: every result, wins AND losses · លទ្ធផលពិត
-📚 Learn: guide and lessons · រៀន
+📰 News Events: only big news + after-news · ព័ត៌មានធំ
+🏆 Proof: every result, wins AND losses · លទ្ធផលពិត
+📚 Education: guide and lessons · មេរៀន
 💬 General: chat with members · ជជែក
 ❗ Rules · 📣 Announcement: from the admin
 """
-if os.environ.get("TELEGRAM_GROUP_ID"):   # only in the sectioned group
+if group_id():   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
@@ -61,17 +61,17 @@ Breaking the rules = removed. · បំពានច្បាប់ = ដកច�
 
 def post_rules():
     """Posts the rules once in the Rules section (sectioned group only)."""
-    if not os.environ.get("TELEGRAM_GROUP_ID"):
+    if not group_id():
         return
     try:
         st = json.load(open("rules_state.json"))
     except Exception:
         st = {}
-    if st.get("version") == RULES_VERSION and st.get("chat") == os.environ["TELEGRAM_GROUP_ID"]:
+    if st.get("version") == RULES_VERSION and st.get("chat") == group_id():
         return
     mid = send(RULES, "Rules")
     if mid:
-        json.dump({"version": RULES_VERSION, "chat": os.environ["TELEGRAM_GROUP_ID"], "msg_id": mid}, open("rules_state.json", "w"))
+        json.dump({"version": RULES_VERSION, "chat": group_id(), "msg_id": mid}, open("rules_state.json", "w"))
 
 
 def main():
@@ -84,7 +84,7 @@ def main():
     if st.get("version") == VERSION:
         return
     tok = os.environ.get("TELEGRAM_TOKEN")
-    chat = os.environ.get("TELEGRAM_GROUP_ID") or os.environ.get("TELEGRAM_CHAT_ID")
+    chat = group_id() or os.environ.get("TELEGRAM_CHAT_ID")
     if st.get("msg_id") and st.get("chat", os.environ.get("TELEGRAM_CHAT_ID")) != chat:
         st = {}   # moved to the sectioned group: post the guide there once
     if st.get("msg_id") and tok and chat:   # already posted: edit the pinned guide, never post it again

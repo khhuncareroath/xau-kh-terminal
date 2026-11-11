@@ -54,6 +54,18 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
 TOPICS_FILE = "topics.json"
 
 
+def group_id():
+    """The sectioned group: secret/variable TELEGRAM_GROUP_ID, else telegram.json (read every cycle, so a change
+    there works within minutes without restarting the bot). Empty = old single-channel mode."""
+    g = os.environ.get("TELEGRAM_GROUP_ID")
+    if not g:
+        try:
+            g = json.load(open("telegram.json")).get("group_id")
+        except Exception:
+            g = None
+    return str(g) if g else None
+
+
 def section_for(title):
     """Every send() / send_photo() call passes a title; it decides the section."""
     t = (title or "").lower()
@@ -87,8 +99,8 @@ def _topics():
         d = json.load(open(TOPICS_FILE))
     except Exception:
         d = {}
-    if d.get("chat") != os.environ.get("TELEGRAM_GROUP_ID"):   # a different group: start fresh
-        d = {"chat": os.environ.get("TELEGRAM_GROUP_ID"), "topics": {}}
+    if d.get("chat") != group_id():   # a different group: start fresh
+        d = {"chat": group_id(), "topics": {}}
     return d
 
 
@@ -138,14 +150,14 @@ def _icon(want):
 
 def setup_sections():
     """Creates every section once, in a fixed order, so the group looks complete from day one."""
-    if os.environ.get("TELEGRAM_GROUP_ID") and os.environ.get("TELEGRAM_TOKEN"):
+    if group_id() and os.environ.get("TELEGRAM_TOKEN"):
         for key in SECTIONS:
             thread_id(key)
 
 
 def target(title):
     """(chat_id, message_thread_id or None) for a post with this title."""
-    group = os.environ.get("TELEGRAM_GROUP_ID")
+    group = group_id()
     if group:
         return group, thread_id(section_for(title))
     return os.environ.get("TELEGRAM_CHAT_ID"), None
@@ -183,7 +195,7 @@ def _send_tg(method, title, fields, files=None, timeout=20):
 def send(text, title="XAU.KH", reply_to=None):
     """Sends to Telegram (HTML) and ntfy. Returns the Telegram message_id (or True if only ntfy worked, None if nothing)."""
     tok, topic = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("NTFY_TOPIC")
-    chat = os.environ.get("TELEGRAM_GROUP_ID") or os.environ.get("TELEGRAM_CHAT_ID")
+    chat = group_id() or os.environ.get("TELEGRAM_CHAT_ID")
     mid = None
     if tok and chat:
         try:
@@ -215,7 +227,7 @@ def send(text, title="XAU.KH", reply_to=None):
 def send_photo(path, caption, title="XAU.KH", reply_to=None):
     """Sends a chart image with an HTML caption (Telegram limit: 1024 characters). Returns the message_id or None."""
     tok = os.environ.get("TELEGRAM_TOKEN")
-    chat = os.environ.get("TELEGRAM_GROUP_ID") or os.environ.get("TELEGRAM_CHAT_ID")
+    chat = group_id() or os.environ.get("TELEGRAM_CHAT_ID")
     if not (tok and chat):
         print(f"photo not sent (no Telegram secrets): {path}\n{caption}")
         return None
