@@ -310,6 +310,24 @@ def day_used(df, t):
     return float(now["h"].max() - now["l"].min()) / adr if len(now) and adr > 0 else None
 
 
+CHOP_ER = 0.255   # efficiency below this = choppy 4H market (threshold = lowest third, picked on the older 70% of data)
+
+
+def efficiency(df, t):
+    """Trend quality of the 4H market at entry t: |close move over 30 4H candles| / sum of all candle moves.
+    1 = straight trend, 0 = pure chop. 11 Nov 2026 test (2 years, 4H breakout intraday):
+      quiet day (<70%) + choppy (<= 0.255): older -0.04R (22 trades), newest -0.14R (8)  -> skipped live
+      quiet day + trending: +0.05 / +0.07 · COMBO + choppy: +0.11 / +0.04 · COMBO + trending: +0.30 / +0.23 (73% / 70% win)"""
+    c4 = resample(df, "4H")["Close"]
+    k = int(c4.index.searchsorted(t - pd.Timedelta(hours=4, minutes=20)))
+    k = max(0, min(k, len(c4) - 1))
+    if k < 31:
+        return None
+    w = c4.iloc[k - 30:k + 1]
+    path = float(w.diff().abs().sum())
+    return abs(float(w.iloc[-1] - w.iloc[0])) / path if path > 0 else None
+
+
 COMBO_USED = 0.7   # 4H breakout on a day that already moved 70%+ of a normal day = STRONG COMBO
 
 

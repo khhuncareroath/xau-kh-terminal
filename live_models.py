@@ -99,6 +99,8 @@ def main():
             try:
                 u = research.day_used(df, pd.Timestamp(s["trigger_time"]))
                 s["day_used"] = round(u, 2) if u is not None else None
+                e = research.efficiency(df, pd.Timestamp(s["trigger_time"]))
+                s["efficiency"] = round(e, 3) if e is not None else None
             except Exception as e:
                 print("day_used failed:", e)
     out = {"time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "last_bar": str(df.index[-1]),

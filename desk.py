@@ -218,6 +218,11 @@ def trade_note(ict, conf, lv, df, lines, sig, stamp, day_used=None, tested=None)
         (pro if day_used >= 0.7 else con).append(
             f"Day Meter {day_used * 100:.0f}%: " + ("the day is moving, breakouts work better." if day_used >= 0.7
                                                     else "quiet day, breakouts often fail. Use half size."))
+    ef = sig.get("efficiency")
+    if ef is not None:
+        (pro if ef > 0.255 else con).append(
+            f"Trend quality {ef:.2f}: " + ("clean trend. COMBO in a clean trend won about 70% in testing."
+                                           if ef > 0.255 else "choppy market, breakouts were weaker in testing."))
     vw = F["lad"].get("VWAP")
     if vw:
         ((pro if (F["price"] > vw) == bull else con)
