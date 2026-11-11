@@ -92,7 +92,12 @@ def main():
         nxt = (int(time.time() // 300) + 1) * 300 + 20   # next 5-minute mark, +20s so the candle has closed
         if (nxt - start) / 60 > LOOP_MIN:
             break
-        time.sleep(max(0, nxt - time.time()))
+        try:   # answer member commands (/check ...) while waiting for the next cycle
+            import listener
+            listener.serve(nxt)
+        except Exception as e:
+            print("listener stopped:", e, flush=True)
+            time.sleep(max(0, nxt - time.time()))
     push()
     if market_open():
         os.makedirs("data/cache", exist_ok=True)

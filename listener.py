@@ -1,0 +1,232 @@
+"""Member commands: the bot answers in the group (any topic) or in a private chat.
+
+  /check   live chart + what the market is doing + where the next signal is + what to do (English + Khmer)
+  /signal  the open signal and its status
+  /proof   the live record
+  /lesson  a random short lesson
+  /help    the list
+
+loop.py calls serve(until) in the gap between its 5-minute cycles, so replies come within seconds.
+Telegram long polling (getUpdates); the offset is kept in data/cache so restarts don't answer twice.
+Each member can ask once per COOLDOWN_S; the /check chart is re-drawn at most every CHART_TTL_S.
+"""
+import html
+import json
+import os
+import random
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+
+OFFSET = "data/cache/updates_offset.json"
+COOLDOWN_S = 45
+CHART_TTL_S = 120
+_last_user = {}
+_chart = {"t": 0, "path": None, "text": None}
+_menu = False
+
+
+def _tok():
+    return os.environ.get("TELEGRAM_TOKEN")
+
+
+def api(method, fields, timeout=30):
+    r = urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{_tok()}/{method}",
+                                                      data=urllib.parse.urlencode(fields).encode()), timeout=timeout)
+    return json.load(r).get("result")
+
+
+def photo(fields, path):
+    b = uuid.uuid4().hex
+    parts = [f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k, v in fields.items()]
+    parts.append(f'--{b}\r\nContent-Disposition: form-data; name="photo"; filename="c.png"\r\nContent-Type: image/png\r\n\r\n'.encode()
+                 + open(path, "rb").read() + b"\r\n")
+    parts.append(f"--{b}--\r\n".encode())
+    req = urllib.request.Request(f"https://api.telegram.org/bot{_tok()}/sendPhoto", data=b"".join(parts),
+                                 headers={"Content-Type": f"multipart/form-data; boundary={b}"})
+    return json.load(urllib.request.urlopen(req, timeout=40)).get("result")
+
+
+def jl(n, d=None):
+    try:
+        return json.load(open(n))
+    except Exception:
+        return {} if d is None else d
+
+
+def fmt(x):
+    return f"{x:,.2f}"
+
+
+# ---------------------------------------------------------------- answers
+def check_answer():
+    """(chart path or None, HTML caption <= 1024 visible characters)."""
+    if time.time() - _chart["t"] < CHART_TTL_S and _chart["text"]:
+        return _chart["path"], _chart["text"]
+    import pandas as pd
+    import desk
+    import radar
+    import session
+    from engine import load
+    from levels import to_ny
+    df = to_ny(load("5m", "20d")).iloc[:-1]
+    lines = session.breakout_lines(df)
+    st = radar.status(df, lines)
+    ict, lv = jl("ict.json"), jl("levels.json")
+    F = desk.facts(ict, {}, lv, df, lines, st["used"])
+    p = st["price"]
+    lean = F["lean"]
+    trend = {"bull": "UP ↑ (buyers)", "bear": "DOWN ↓ (sellers)", None: "MIXED ↔"}[lean]
+    km_trend = {"bull": "ឡើង", "bear": "ចុះ", None: "ចំហៀង"}[lean]
+    zone = ("🖕🖕 PREMIUM zone" if st["zone"] == 2 else "🖕 COMBO zone" if st["zone"] == 1 else "quiet day")
+    nxt = session.local(lines[2].timestamp()) if hasattr(session, "local") else ""
+    live = st.get("live")
+    out = [f"🔎 <b>GOLD CHECK</b> · <b>{fmt(p)}</b> · {session.local(time.time())}",
+           f"4H trend: <b>{'UP ↑' if st['trend'] > 0 else 'DOWN ↓' if st['trend'] < 0 else 'none'}</b> · "
+           f"structure D/4H/1H: <b>{trend}</b>",
+           f"Day Meter {st['used'] * 100:.0f}% ({zone})"]
+    out += desk.quick(ict, lv, df, lines)
+    if live and live.get("status") in ("filled", "pending", "tp1"):
+        side = "BUY" if live["dir"] == "bull" else "SELL"
+        out.append(f"📈 <b>Open signal: {side} {fmt(live['entry'])}</b> · SL {fmt(live['stop'])} · TP {fmt(live['target'])}")
+        km = f"មានសញ្ញា{'ទិញ' if side == 'BUY' else 'លក់'}កំពុងបើក · ធ្វើតាមសញ្ញា កុំបើកថ្មី"
+        todo = "Follow the open signal. Don't open a new trade against it."
+    else:
+        out.append(f"⚡ Next 4H signal: BUY if a 4H candle closes above <b>{fmt(lines[0])}</b> ({lines[0] - p:+,.1f}) · "
+                   f"SELL below <b>{fmt(lines[1])}</b> ({lines[1] - p:+,.1f}) · next close {nxt}")
+        near = min(lines[0] - p, p - lines[1]) <= p * 0.004
+        todo = ("Price is close to a signal line: get ready, wait for the 4H close." if near else
+                "No signal now. Waiting is the trade. Don't force an entry.")
+        km = ("ជិតបន្ទាត់សញ្ញា: ត្រៀមខ្លួន រង់ចាំទៀន 4H បិទ" if near else "មិនទាន់មានសញ្ញា: រង់ចាំ កុំបង្ខំចូល")
+    out += [f"👉 <b>{todo}</b>", f"🇰🇭 ទិសដៅ{km_trend} · {km}",
+            "<i>Not financial advice · /signal /proof /lesson</i>"]
+    text = "\n".join(out)
+    path = None
+    try:
+        path, _ = radar.chart(df, lines, "check.png", local=session.local, title="Gold check")
+    except Exception as e:
+        print("check chart failed:", e)
+    _chart.update(t=time.time(), path=path, text=text)
+    return path, text
+
+
+def signal_answer():
+    log = jl("alerts_log.json", [])
+    a = next((x for x in reversed(log) if x.get("kind") in ("model", "scalp", "plan")), None)
+    if not a:
+        return "No signal yet. · មិនទាន់មានសញ្ញា"
+    side = "BUY" if a["dir"] == "bull" else "SELL"
+    stt = {"filled": "🟢 running", "pending": "⏳ waiting for entry", "win": "🏆 TP hit", "tp1": "✅ TP1 banked",
+           "loss": "❌ SL hit", "expired": "⚪ expired", "missed": "⚪ missed", "timed out": "⏱ closed (time)"}.get(a["status"], a["status"])
+    import session
+    return (f"📈 <b>Latest signal: {side} {fmt(a['entry'])}</b> ({session.local(a['created'])})\n"
+            f"SL {fmt(a['stop'])} · TP {fmt(a['target'])}\nStatus: <b>{stt}</b>"
+            + (f" · R {a['R']:+.2f}" if a.get("R") is not None else ""))
+
+
+def proof_answer():
+    s = jl("results.json")
+    if not s.get("traded"):
+        return "No closed trades yet."
+    names = {"model": "🖕 4H breakout", "scalp": "🤬 COMBO scalp", "plan": "🤬 plan setups", "late": "⚠️ late plans",
+             "post-news": "📰 after-news (stopped)", "setup": "old ICT ideas (stopped)", "watch": "old watch ideas (stopped)"}
+    rows = []
+    for k, v in (s.get("by_kind") or {}).items():
+        if v.get("traded"):
+            rows.append(f"{names.get(k, k)}: {v['wins']}W / {v['losses']}L · {v.get('total_R', 0):+.1f}R")
+    return ("🏆 <b>Live record since 3 Nov</b> (every result, wins and losses)\n"
+            f"All: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R\n" + "\n".join(rows)
+            + "\n\nTested 2 years: 🖕 COMBO 68% win · 🖕🖕 PREMIUM 77% · 🤬 scalp 50% at 2R\n"
+              "<i>A few weeks is a small sample: judge by months.</i>")
+
+
+def lesson_answer():
+    import lessons
+    t, body = random.choice(lessons.LESSONS)
+    return f"📚 <b>{html.escape(t)}</b>\n{html.escape(body)}"
+
+
+HELP = ("🤖 <b>XAU.KH bot</b>\n/check: gold right now + what to do · មើលមាសឥឡូវ\n/signal: latest signal · សញ្ញាចុងក្រោយ\n"
+        "/proof: live record · លទ្ធផល\n/lesson: a short lesson · មេរៀន")
+
+
+# ---------------------------------------------------------------- loop
+def handle(msg):
+    text = (msg.get("text") or "").strip()
+    if not text.startswith("/"):
+        return
+    if time.time() - msg.get("date", 0) > 600:   # old command (bot was offline): don't answer late
+        return
+    cmd = text.split()[0].split("@")[0].lower()
+    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/help", "/start"):
+        return
+    user = (msg.get("from") or {}).get("id")
+    if user and time.time() - _last_user.get((user, cmd), 0) < COOLDOWN_S and cmd != "/help":
+        return
+    _last_user[(user, cmd)] = time.time()
+    chat = msg["chat"]["id"]
+    base = {"chat_id": chat, "parse_mode": "HTML",
+            "reply_parameters": json.dumps({"message_id": msg["message_id"], "allow_sending_without_reply": True})}
+    if msg.get("is_topic_message") and msg.get("message_thread_id"):
+        base["message_thread_id"] = msg["message_thread_id"]
+    try:
+        if cmd == "/check":
+            path, text = check_answer()
+            if path:
+                photo(dict(base, caption=text[:1024]), path)
+                return
+            api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))
+            return
+        text = {"/signal": signal_answer, "/proof": proof_answer, "/lesson": lesson_answer}.get(cmd, lambda: HELP)()
+        api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))
+    except Exception as e:
+        print("listener reply failed:", cmd, e)
+
+
+def serve(until):
+    """Answer commands until the unix time `until`. Never raises."""
+    if not _tok():
+        time.sleep(max(0, until - time.time()))
+        return
+    global _menu
+    if not _menu:
+        try:   # show the commands in Telegram's "/" menu
+            api("setMyCommands", {"commands": json.dumps([
+                {"command": "check", "description": "Gold right now + what to do · មើលមាសឥឡូវ"},
+                {"command": "signal", "description": "Latest signal · សញ្ញាចុងក្រោយ"},
+                {"command": "proof", "description": "Live record, wins and losses · លទ្ធផល"},
+                {"command": "lesson", "description": "A short lesson · មេរៀន"}], ensure_ascii=False)})
+            _menu = True
+        except Exception as e:
+            print("setMyCommands failed:", e)
+    try:
+        off = jl(OFFSET).get("offset", 0)
+    except Exception:
+        off = 0
+    while time.time() < until - 3:
+        wait = int(max(1, min(25, until - time.time() - 3)))
+        try:
+            ups = api("getUpdates", {"offset": off, "timeout": wait, "allowed_updates": json.dumps(["message"])},
+                      timeout=wait + 10) or []
+        except urllib.error.HTTPError as e:
+            print("getUpdates:", e.code)   # 409 = another runner is polling: just wait
+            time.sleep(min(10, max(0, until - time.time())))
+            continue
+        except Exception as e:
+            print("getUpdates failed:", e)
+            time.sleep(min(10, max(0, until - time.time())))
+            continue
+        for u in ups:
+            off = u["update_id"] + 1
+            if u.get("message"):
+                handle(u["message"])
+        if ups:
+            os.makedirs("data/cache", exist_ok=True)
+            json.dump({"offset": off}, open(OFFSET, "w"))
+    time.sleep(max(0, until - time.time()))
+
+
+if __name__ == "__main__":   # manual test: answer for 60 seconds
+    serve(time.time() + 60)
