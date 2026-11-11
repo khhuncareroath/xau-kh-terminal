@@ -1,5 +1,5 @@
 {
-  "time": "2026-11-11 09:28 UTC",
+  "time": "2026-11-11 22:31 UTC",
   "data": {
     "bars": 143192,
     "from": "2024-11-03 18:00:00-05:00",
@@ -1734,6 +1734,68 @@
       "proven": false,
       "verdict": "Positive so far, but only 9 trades in the newest data (10 needed): waiting for more."
     },
+    "trend_bplus": {
+      "description": "\u2b50 B+ only: the A+/B+ setup on a day that moved 70-100% of a normal day",
+      "all": {
+        "trades": 24,
+        "win_rate_pct": 75,
+        "avg_R": 0.484
+      },
+      "older_70pct": {
+        "trades": 20,
+        "win_rate_pct": 80,
+        "avg_R": 0.484
+      },
+      "newest_30pct": {
+        "trades": 4,
+        "win_rate_pct": 50,
+        "avg_R": 0.483
+      },
+      "quarters": {
+        "2025-Q1": {
+          "trades": 3,
+          "avg_R": 0.531
+        },
+        "2025-Q2": {
+          "trades": 4,
+          "avg_R": 0.378
+        },
+        "2025-Q3": {
+          "trades": 5,
+          "avg_R": 0.299
+        },
+        "2025-Q4": {
+          "trades": 7,
+          "avg_R": 0.658
+        },
+        "2026-Q1": {
+          "trades": 1,
+          "avg_R": 0.486
+        },
+        "2026-Q2": {
+          "trades": 3,
+          "avg_R": -0.016
+        },
+        "2026-Q3": {
+          "trades": 1,
+          "avg_R": 1.983
+        }
+      },
+      "by_direction": {
+        "long": {
+          "trades": 16,
+          "avg_R": 0.551
+        },
+        "short": {
+          "trades": 8,
+          "avg_R": 0.351
+        }
+      },
+      "positive_quarters": "2 of 2",
+      "t_stat": 2.5,
+      "proven": false,
+      "verdict": "Not enough trades yet (24 of 30 needed)."
+    },
     "breakout_cisd": {
       "description": "After a 4H breakout: sweep + CISD entry in London/New York, stop beyond the sweep, 3R target",
       "all": {
@@ -2212,68 +2274,6 @@
       "proven": true,
       "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
     },
-    "trend_bplus": {
-      "description": "\u2b50 B+ only: the A+/B+ setup on a day that moved 70-100% of a normal day",
-      "all": {
-        "trades": 24,
-        "win_rate_pct": 75,
-        "avg_R": 0.484
-      },
-      "older_70pct": {
-        "trades": 20,
-        "win_rate_pct": 80,
-        "avg_R": 0.484
-      },
-      "newest_30pct": {
-        "trades": 4,
-        "win_rate_pct": 50,
-        "avg_R": 0.483
-      },
-      "quarters": {
-        "2025-Q1": {
-          "trades": 3,
-          "avg_R": 0.531
-        },
-        "2025-Q2": {
-          "trades": 4,
-          "avg_R": 0.378
-        },
-        "2025-Q3": {
-          "trades": 5,
-          "avg_R": 0.299
-        },
-        "2025-Q4": {
-          "trades": 7,
-          "avg_R": 0.658
-        },
-        "2026-Q1": {
-          "trades": 1,
-          "avg_R": 0.486
-        },
-        "2026-Q2": {
-          "trades": 3,
-          "avg_R": -0.016
-        },
-        "2026-Q3": {
-          "trades": 1,
-          "avg_R": 1.983
-        }
-      },
-      "by_direction": {
-        "long": {
-          "trades": 16,
-          "avg_R": 0.551
-        },
-        "short": {
-          "trades": 8,
-          "avg_R": 0.351
-        }
-      },
-      "positive_quarters": "2 of 2",
-      "t_stat": 2.5,
-      "proven": false,
-      "verdict": "Not enough trades yet (24 of 30 needed)."
-    },
     "wide_scalp": {
       "description": "\u26a1 SCALP: any 4H breakout, then the first 5m dip into a 15m FVG + confirmation (24 h, 2 a day), SL ~$7, TP 2R, 3h",
       "all": {
@@ -2343,6 +2343,76 @@
       "t_stat": 3.78,
       "proven": true,
       "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
+    },
+    "ict_splus": {
+      "description": "\ud83c\udfaf S+ SETUP: Daily/4H FVG/OB zone, 15m liquidity sweep + MSS, limit on the OB retest, SL beyond the sweep, TP 3R, small size",
+      "all": {
+        "trades": 101,
+        "win_rate_pct": 42,
+        "avg_R": 0.285
+      },
+      "older_70pct": {
+        "trades": 71,
+        "win_rate_pct": 46,
+        "avg_R": 0.339
+      },
+      "newest_30pct": {
+        "trades": 30,
+        "win_rate_pct": 30,
+        "avg_R": 0.156
+      },
+      "quarters": {
+        "2024-Q4": {
+          "trades": 9,
+          "avg_R": 0.249
+        },
+        "2025-Q1": {
+          "trades": 27,
+          "avg_R": 0.207
+        },
+        "2025-Q2": {
+          "trades": 12,
+          "avg_R": 0.245
+        },
+        "2025-Q3": {
+          "trades": 16,
+          "avg_R": 0.437
+        },
+        "2025-Q4": {
+          "trades": 5,
+          "avg_R": 0.868
+        },
+        "2026-Q1": {
+          "trades": 2,
+          "avg_R": 0.979
+        },
+        "2026-Q2": {
+          "trades": 8,
+          "avg_R": 0.458
+        },
+        "2026-Q3": {
+          "trades": 17,
+          "avg_R": 0.365
+        },
+        "2026-Q4": {
+          "trades": 5,
+          "avg_R": -1.036
+        }
+      },
+      "by_direction": {
+        "short": {
+          "trades": 44,
+          "avg_R": 0.48
+        },
+        "long": {
+          "trades": 57,
+          "avg_R": 0.133
+        }
+      },
+      "positive_quarters": "7 of 8",
+      "t_stat": 1.68,
+      "proven": false,
+      "verdict": "Positive (+0.28R) but not statistically clear yet (t=1.7, need 2): could still be luck."
     }
   },
   "alert_mode": "watch"
