@@ -1,16 +1,32 @@
 {
- "time": "2026-11-11 15:15 UTC",
- "last_bar": "2026-11-11 10:10:00-05:00",
- "price": 4016.83,
+ "time": "2026-11-11 15:25 UTC",
+ "last_bar": "2026-11-11 10:20:00-05:00",
+ "price": 4013.89,
  "signals": [
   {
-   "entry": 4016.83,
+   "entry": 4013.89,
+   "dir": "bear",
+   "stop": 4023.21,
+   "target": 3942.7,
+   "trigger_time": "2026-11-11 10:45:00-05:00",
+   "model": "acceptance",
+   "rr": 7.63,
+   "proven": false,
+   "backtest": {
+    "trades": 308,
+    "win_rate_pct": 40,
+    "avg_R": 0.034
+   },
+   "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation"
+  },
+  {
+   "entry": 4016.8,
    "dir": "bull",
    "stop": 4010.39,
    "target": 4043.47,
    "trigger_time": "2026-11-11 10:15:00-05:00",
    "model": "vwap_fade",
-   "rr": 4.14,
+   "rr": 4.16,
    "proven": false,
    "backtest": {
     "trades": 618,
