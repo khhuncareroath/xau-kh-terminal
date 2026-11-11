@@ -594,8 +594,16 @@ def analysis_chart(df, lv, conf, lines, path, title):
             todo = "Price is close to a 4H signal line. Get ready, but wait for the 4H candle to close."
         else:
             todo = "No signal now. Waiting is the trade: don't force an entry."
+        scen = []
+        try:   # bull path to the nearest stops above, bear path to the nearest stops below (from the desk facts)
+            import desk
+            F = desk.facts(jl("ict.json"), {}, lv, df, lines)
+            scen.append((price, F["up_liq"][0][0] if F["up_liq"] else lines[0], "#34C759"))
+            scen.append((price, F["dn_liq"][0][0] if F["dn_liq"] else lines[1], "#FF3B30"))
+        except Exception as e:
+            print("scenarios failed:", e)
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
-                                  plan=p if p and p.get("side") else None, todo=todo, trend=st["trend"])
+                                  plan=p if p and p.get("side") else None, todo=todo, trend=st["trend"], scenarios=scen)
     except Exception as e:
         print("analysis card failed, old chart:", e)
         return _analysis_chart_old(df, lv, conf, lines, path, title)
@@ -1721,9 +1729,14 @@ def main():
             print("desk note failed:", e)
         if name == "Asia" or os.environ.get("MACRO_CARD_FORCE"):   # fundamentals as a picture, once a day with the morning prep
             try:
-                mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
+                try:   # 🌅 Daily Outlook card (ZTD-style fundamentals + key levels + Khmer story)
+                    import outlook
+                    mc = outlook.make(macro, news, lv, lines, float(df["Close"].iloc[-1]), "outlook.png")
+                except Exception as e:
+                    print("outlook failed, old card:", e)
+                    mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
                 if mc:
-                    send_photo(mc[0], mc[1], "Fundamentals", reply_to=mid if isinstance(mid, int) else None)
+                    send_photo(mc[0], mc[1][:1024], "Fundamentals", reply_to=mid if isinstance(mid, int) else None)
                     state["macro_snap"] = macro_snapshot(macro)
             except Exception as e:
                 print("macro card failed:", e)

@@ -15,7 +15,7 @@ from signal_card import BG, CARD, INK, MUT, GRID, UP, DN, BLUE, DARK, _pill, _pi
 LIQ = ("Prev day high", "Prev day low", "Asia high", "Asia low")
 
 
-def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96):
+def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -43,7 +43,7 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     ax = fig.add_axes([0.06, 0.32, 0.74, 0.555])
     ax.set_zorder(3)
     ax.set_facecolor(CARD)
-    ext = int(n * 0.12)
+    ext = int(n * 0.22)
     lo_v = min(l.min(), price - (upper - lower) * 0.02)
     hi_v = max(h.max(), price + (upper - lower) * 0.02)
     pad = (hi_v - lo_v) * 0.06
@@ -112,6 +112,39 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
                 fontweight="bold", va="center", bbox=dict(boxstyle="round,pad=0.3", fc=INK, ec="none"), zorder=5)
     ax.text(0.5, 0.5, "XAU.KH", transform=ax.transAxes, color=BLUE, alpha=0.04, fontsize=64, fontweight="bold",
             ha="center", va="center")
+
+    # volume profile of the last ~5 days (Aizen-style): bars on the right edge, POC + value area
+    vp = None
+    try:
+        src = df[df.index >= df.index[-1] - pd.Timedelta(days=5)]
+        if "Volume" in src and src["Volume"].sum() > 0:
+            step = 1.0
+            mids = ((src["High"] + src["Low"]) / 2 / step).round() * step
+            prof = src["Volume"].groupby(mids).sum().sort_index()
+            prof = prof[(prof.index >= ylo) & (prof.index <= yhi)]
+            if len(prof) > 10:
+                poc = float(prof.idxmax())
+                order = prof.sort_values(ascending=False)
+                va = order[order.cumsum() <= order.sum() * 0.7].index
+                vah, val = float(va.max()), float(va.min())
+                width = ext * 0.9
+                for y, v in prof.items():
+                    inva = val <= y <= vah
+                    ax.add_patch(Rectangle((n + ext - width * v / prof.max(), y - step * 0.45), width * v / prof.max(), step * 0.9,
+                                           fc=BLUE if inva else "#C7C7CC", alpha=0.25 if inva else 0.18, ec="none", zorder=1))
+                ax.hlines(poc, 0, n + ext, color=BLUE, lw=0.9, alpha=0.7, zorder=2)
+                ax.text(n + ext - 0.5, poc, f"POC {poc:,.0f}", color=BLUE, fontsize=6.8, fontweight="bold", ha="right",
+                        va="bottom", zorder=4, clip_on=True)
+                vp = (poc, vah, val)
+    except Exception as e:
+        print("volume profile failed:", e)
+
+    # two scenarios (mentor-chart style): where price likely goes if it holds / if it breaks
+    if scenarios:
+        for (y0, y1, col) in scenarios[:2]:
+            if show(y1):
+                ax.annotate("", xy=(n + ext * 0.55, y1), xytext=(n - 1, y0),
+                            arrowprops=dict(arrowstyle="-|>", color=col, lw=1.5, ls=(0, (4, 2)), alpha=0.85), zorder=5)
 
     # Day Meter bar on the right
     if used is not None:
