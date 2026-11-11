@@ -244,3 +244,6 @@ one target 2R +0.03R (40% wins) · ½ TP1 → rest TP3 +0.02R · ½ TP1 → rest
 · 3R only +0.04R (35% wins). None proven (t ≤ 0.7, 3–5 of 9 quarters positive); worst run 11–14 losses, max drop 37–54R.
 Decision: still a labelled gamble. LIVE uses ⅓ at TP1 / TP2 / TP3 with the SL to entry after TP1 (same result as the
 best others, more wins felt, and each TP is a real action for members).
+Owner follow-up (same day): drop the 3R target, split 1R→2R into three: ⅓ at 1R / 1.5R / 2R, SL to entry after TP1:
+−0.004R (52% end in profit; TP1 50%, TP2 34%, TP3 24%), trailing the SL to TP1 −0.005R, 0.7/1.3/2R −0.02R. All within
+luck of the 1/2/3R version (+0.02R, t 0.6): no real difference, all break-even. LIVE now: 1R / 1.5R / 2R (owner's choice).
