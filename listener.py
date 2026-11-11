@@ -49,6 +49,25 @@ def photo(fields, path):
     return json.load(urllib.request.urlopen(req, timeout=40)).get("result")
 
 
+def document(fields, path, filename):
+    b = uuid.uuid4().hex
+    parts = [f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k, v in fields.items()]
+    parts.append(f'--{b}\r\nContent-Disposition: form-data; name="document"; filename="{filename}"\r\nContent-Type: application/pdf\r\n\r\n'.encode()
+                 + open(path, "rb").read() + b"\r\n")
+    parts.append(f"--{b}--\r\n".encode())
+    req = urllib.request.Request(f"https://api.telegram.org/bot{_tok()}/sendDocument", data=b"".join(parts),
+                                 headers={"Content-Type": f"multipart/form-data; boundary={b}"})
+    return json.load(urllib.request.urlopen(req, timeout=60)).get("result")
+
+
+def lesson_chapter(arg=None):
+    from academy_content import LESSONS
+    if arg and arg.isdigit():
+        return next((x for x in LESSONS if x["ch"] == int(arg)), None)
+    k = min(jl("academy_state.json", {"next": 1}).get("next", 1), len(LESSONS)) - 1
+    return LESSONS[max(k, 0)]
+
+
 def jl(n, d=None):
     try:
         return json.load(open(n))
@@ -191,6 +210,14 @@ def handle(msg):
             api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))
             return
         arg = text.split()[1] if len(text.split()) > 1 else None
+        if cmd == "/lesson":   # the full PDF when that chapter has one, else the text lesson
+            import academy
+            L = lesson_chapter(arg)
+            pdf = L and academy.pdf_path(L["ch"])
+            if pdf:
+                document(dict(base, caption=academy.PDF_CAPTION.format(ch=L["ch"], t=L["title"])
+                              + f"\n\n<i>/lesson {L['ch'] + 1} = next · /academy = all</i>"), pdf, academy.pdf_name(L))
+                return
         text = {"/signal": signal_answer, "/proof": proof_answer, "/lesson": lambda: lesson_answer(arg),
                 "/academy": academy_answer}.get(cmd, lambda: HELP)()
         api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))

@@ -11,7 +11,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from academy_content import LESSONS
-from tg import _api, send, send_photo, target
+from tg import _api, send, send_document, send_photo, target
 
 TZ = ZoneInfo(os.environ.get("DISPLAY_TZ", "Asia/Phnom_Penh"))
 HOUR = int(os.environ.get("ACADEMY_HOUR", 12))
@@ -24,6 +24,23 @@ CHART_HINT = {"structure": "📍 <b>On today's real chart</b>: find the <b>HH / 
               "fvg": "📍 <b>On today's chart</b>: the green/red shaded boxes marked <b>FVG</b> and the <b>OB</b> box.\n📍 រក FVG និង OB",
               "pd": "📍 <b>On today's chart</b>: the <b>EQ 50%</b> line splits premium (above) and discount (below).\n📍 រក EQ 50%",
               "vp": "📍 <b>On today's chart</b>: the blue bars on the right = volume profile, <b>POC</b> = busiest price.\n📍 រក POC"}
+
+
+PDF_DIR = "academy_pdfs"
+
+
+def pdf_path(ch):
+    """The full-lesson PDF for a chapter, if it has been written yet."""
+    p = os.path.join(PDF_DIR, f"ch{ch:02d}.pdf")
+    return p if os.path.exists(p) else None
+
+
+def pdf_name(L):
+    return f"XAUKH_Academy_Ch{L['ch']:02d}.pdf"
+
+
+PDF_CAPTION = ("📖 <b>មេរៀនពេញ · Full lesson (PDF)</b>\nChapter {ch}: {t}\n"
+               "ចុចបើក អានលើទូរស័ព្ទបាន · Tap to open")
 
 
 def jl(n, d):
@@ -47,23 +64,28 @@ def text(L):
 
 
 def contents():
-    out = ["📚 <b>XAU.KH ACADEMY · 45 Chapters</b>", "Type <b>/lesson N</b> to open a chapter · វាយ /lesson លេខ", ""]
+    out = ["📚 <b>XAU.KH ACADEMY · 45 Chapters</b>", "Type <b>/lesson N</b> to open a chapter · វាយ /lesson លេខ · 📖 = PDF", ""]
     part = None
     for L in LESSONS:
         if L["part"] != part:
             part = L["part"]
             out.append(f"\n<b>{part}</b>")
-        out.append(f"{L['ch']}. {L['title'].split(' · ')[0]}")
+        out.append(f"{L['ch']}. {L['title'].split(' · ')[0]}" + (" 📖" if pdf_path(L["ch"]) else ""))
     return "\n".join(out)
 
 
 def post(k):
     L = LESSONS[k]
     head = header(L)
-    mid = send(head + L["body"] + "\n\n<i>Quiz below ↓ · មេរៀនបន្ទាប់ថ្ងៃស្អែក · /check ដើម្បីអនុវត្ត</i>", "Lesson")
+    pdf = pdf_path(L["ch"])
+    foot = ("📖 PDF មេរៀនពេញនៅខាងក្រោម ↓ · Quiz ↓" if pdf else "Quiz below ↓") + " · មេរៀនបន្ទាប់ថ្ងៃស្អែក · /check ដើម្បីអនុវត្ត"
+    mid = send(head + L["body"] + f"\n\n<i>{foot}</i>", "Lesson")
     if not mid:
         return False
-    if L.get("chart"):
+    if pdf:
+        send_document(pdf, PDF_CAPTION.format(ch=L["ch"], t=L["title"]), "Lesson",
+                      reply_to=mid if isinstance(mid, int) else None, filename=pdf_name(L))
+    elif L.get("chart"):
         try:
             import session
             from engine import load

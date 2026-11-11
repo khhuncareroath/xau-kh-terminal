@@ -191,7 +191,7 @@ def _send_tg(method, title, fields, files=None, timeout=20):
             parts = [f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k, v in f.items()]
             for k, (fname, data) in files.items():
                 parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{k}"; filename="{fname}"\r\n'
-                             f'Content-Type: image/png\r\n\r\n'.encode() + data + b"\r\n")
+                             f'Content-Type: {"application/pdf" if fname.endswith(".pdf") else "image/png"}\r\n\r\n'.encode() + data + b"\r\n")
             parts.append(f"--{b}--\r\n".encode())
             tok = os.environ.get("TELEGRAM_TOKEN")
             req = urllib.request.Request(f"https://api.telegram.org/bot{tok}/{method}", data=b"".join(parts),
@@ -255,6 +255,26 @@ def send_photo(path, caption, title="XAU.KH", reply_to=None):
         return mid
     except Exception as e:
         print("telegram photo failed:", e)
+        return None
+
+
+def send_document(path, caption, title="XAU.KH", reply_to=None, filename=None):
+    """Sends a file (e.g. a lesson PDF) with an HTML caption. Returns the message_id or None."""
+    if not os.environ.get("TELEGRAM_TOKEN") or not (group_id() or os.environ.get("TELEGRAM_CHAT_ID")):
+        print(f"document not sent (no Telegram secrets): {path}")
+        return None
+    fields = {"caption": caption[:1024], "parse_mode": "HTML"}
+    if reply_to:
+        fields["reply_parameters"] = json.dumps({"message_id": reply_to, "allow_sending_without_reply": True})
+    try:
+        res = _send_tg("sendDocument", title, fields,
+                       files={"document": (filename or os.path.basename(path), open(path, "rb").read())}, timeout=60)
+        mid = (res or {}).get("message_id")
+        if mid:
+            mark_post()
+        return mid
+    except Exception as e:
+        print("telegram document failed:", e)
         return None
 
 
