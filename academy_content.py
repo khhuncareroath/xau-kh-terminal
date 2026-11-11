@@ -114,3 +114,126 @@ LESSONS = [
          quiz=("តម្លៃបិទទៀនជាច្រើនហួស level ហើយនៅទីនោះ ហៅថា...", ["Rejection", "Acceptance", "Correction", "Spread"], 1,
                "Acceptance = ទីផ្សារទទួលយកតម្លៃថ្មី (បិទទៀនហួស និងនៅបាន)។"), chart=None),
 ]
+
+LESSONS += [
+    # ---------------- PART 3 — ICT
+    dict(ch=11, part="PART 3 · ICT", title="ICT Foundations · គោលគំនិត ICT",
+         body="""<b>ICT</b> (Inner Circle Trader) = វិធីមើលទីផ្សារតាម <b>liquidity</b>: តម្លៃរត់ទៅរក stop/orders
+• គំនិតមូលដ្ឋាន: អ្នកធំត្រូវការ <b>liquidity</b> (orders ច្រើន) ដើម្បីបើក position ធំ
+• តម្លៃរត់ពី <b>liquidity មួយ → liquidity មួយទៀត</b> (ពី IRL ទៅ ERL)
+• <b>Dealing range</b> = ចន្លោះ swing high និង swing low ដែលតម្លៃកំពុងដើរ
+• ការយល់ខុស: ICT មិនមែន "អ្នកធំបោកយើង" គ្រប់ចលនាទេ · OB/FVG ទាំងអស់ <b>មិនមែន</b>ដំណើរការទាំងអស់
+• ICT ល្អ = <b>context</b> (HTF + liquidity + time) មិនមែនគូរប្រអប់ច្រើន
+
+💡 យើងបានសាកល្បង: OB entry SL តូចតែឯង <b>ខាត</b> លើមាស · ICT ល្អសម្រាប់ <b>analysis</b> និង <b>context</b>""",
+         quiz=("ក្នុង ICT តម្លៃភាគច្រើនរត់ទៅរក...", ["Indicator", "Liquidity (កន្លែងដែល stop/orders ដេក)", "លេខមូល", "ព័ត៌មាន"], 1,
+               "ICT មើលថាតម្លៃរត់ពី liquidity មួយទៅមួយទៀត ព្រោះអ្នកធំត្រូវការ orders ច្រើន។"), chart="liquidity"),
+    dict(ch=12, part="PART 3 · ICT", title="Liquidity: BSL · SSL · Sweeps",
+         body="""• <b>BSL</b> (Buy-side liquidity) = stop របស់អ្នកលក់ + buy stop <b>លើ</b> swing high
+• <b>SSL</b> (Sell-side liquidity) = stop របស់អ្នកទិញ <b>ក្រោម</b> swing low
+• កន្លែងល្អ: <b>Equal highs/lows</b>, Prev day high/low, Prev week high/low, Asia/London high/low
+• <b>ELQ</b> = liquidity ខាងក្រៅ (ចុង range) · <b>ILQ</b> = ខាងក្នុង range
+• <b>Sweep / Raid</b> ($$) = wick ឆ្លង level ហើយ <b>បិទត្រឡប់ចូល</b> → stop ត្រូវបានយក
+• Sweep + <b>CHOCH</b> ទិសផ្ទុយ = setup reversal ដ៏ល្បី
+
+👉 Chart ថ្ងៃនេះ: រក <b>ELQ</b> ពីរចុង, <b>ILQ</b> (ទឹកក្រូច) និង <b>$$</b>""",
+         quiz=("SSL (Sell-side liquidity) ស្ថិតនៅ...", ["លើ swing high", "ក្រោម swing low", "នៅ POC", "នៅ EMA"], 1,
+               "SSL = stop loss របស់អ្នកទិញ ដែលដាក់ក្រោម swing low។"), chart="liquidity"),
+    dict(ch=13, part="PART 3 · ICT", title="Fair Value Gap · FVG · IFVG",
+         body="""• <b>FVG</b> = ចន្លោះតម្លៃដែលទៀន 3 គ្រាប់ទុក (wick ទៀន 1 និង 3 មិនប៉ះគ្នា) ពេលរត់លឿន
+• <b>Bullish FVG</b> (ក្រោមតម្លៃ) = support · <b>Bearish FVG</b> (លើតម្លៃ) = resistance
+• <b>Displacement</b> = ទៀនធំដែលបង្កើត FVG · FVG ពី displacement ខ្លាំងជាង
+• <b>CE</b> (Consequent encroachment) = 50% នៃ FVG · តម្លៃច្រើនតែប៉ះត្រឹម CE
+• <b>Mitigated</b> = តម្លៃមកបំពេញ · <b>IFVG</b> = FVG ដែលបែក ក្លាយជាទិសផ្ទុយ
+• FVG ខ្សោយ: តូចពេក, ផ្ទុយ HTF, នៅកណ្ដាល range
+
+👉 Chart ថ្ងៃនេះ: ប្រអប់ពណ៌ <b>FVG</b> · សញ្ញា 🤬 COMBO SCALP ប្រើ 15m FVG""",
+         quiz=("FVG កើតឡើងពេល...", ["ទៀន 3 គ្រាប់ wick ទៀន 1 និង 3 មិនប៉ះគ្នា", "ទៀន doji", "តម្លៃនៅ POC", "Spread ធំ"], 0,
+               "FVG = ចន្លោះដែលទៀនទី 1 និងទី 3 មិនត្រួតគ្នា ពេលតម្លៃរត់លឿន។"), chart="fvg"),
+    dict(ch=14, part="PART 3 · ICT", title="Order Block · Breaker · Mitigation",
+         body="""• <b>Bullish OB</b> = ទៀនចុះចុងក្រោយ មុនចលនាឡើងខ្លាំងដែល <b>បែក structure</b>
+• <b>Bearish OB</b> = ទៀនឡើងចុងក្រោយ មុនចលនាចុះខ្លាំង
+• <b>Breaker</b> = OB ដែលបរាជ័យ (តម្លៃបែកឆ្លង) ក្លាយជាតំបន់ទិសផ្ទុយ
+• <b>Mitigation block</b> = OB ដែលតម្លៃត្រឡប់មកប៉ះ ដើម្បី "ដោះស្រាយ" orders ចាស់
+• OB ល្អ: មាន <b>displacement</b> + <b>BOS</b> + FVG នៅក្បែរ + ស្រប HTF
+• OB ខុស (invalid): បិទទៀនឆ្លងហួស OB
+
+⚠️ យើងសាកល្បង 62 វិធី: limit order នៅ OB + SL តូច <b>ខាត</b> លើមាស · OB = តំបន់មើល មិនមែនច្បាប់ចូលតែឯង""",
+         quiz=("Bullish Order Block គឺ...", ["ទៀនឡើងធំណាមួយ", "ទៀនចុះចុងក្រោយ មុនចលនាឡើងខ្លាំងដែលបែក structure", "Wick វែង", "កម្រិត POC"], 1,
+               "Bullish OB = ទៀនចុះចុងក្រោយ មុន displacement ឡើងដែល BOS។"), chart="fvg"),
+    dict(ch=15, part="PART 3 · ICT", title="Premium & Discount · EQ · OTE",
+         body="""• <b>Dealing range</b> = swing low → swing high · <b>EQ</b> (Equilibrium) = 50%
+• លើ EQ = <b>Premium</b> (ថ្លៃ: រកលក់) · ក្រោម EQ = <b>Discount</b> (ថោក: រកទិញ)
+• <b>Fibonacci</b>: 0.5 = EQ · <b>OTE</b> (Optimal Trade Entry) = 0.62–0.79
+• ច្បាប់: uptrend → ទិញក្នុង <b>discount</b> · downtrend → លក់ក្នុង <b>premium</b>
+• កុំទិញក្នុង premium ក្នុង range (ថ្លៃពេក) · ប្រើជាមួយ structure ជានិច្ច
+
+💡 ករណីលើកលែង: <b>breakout</b> (ដូចសញ្ញា 🖕) ចាកចេញពី range ដូច្នេះ premium/discount សំខាន់តិច
+
+👉 Chart ថ្ងៃនេះ: បន្ទាត់ <b>EQ 50%</b>""",
+         quiz=("ក្នុង uptrend គួររកទិញនៅតំបន់...", ["Premium (លើ EQ)", "Discount (ក្រោម EQ)", "នៅ high ចុងក្រោយ", "កន្លែងណាក៏បាន"], 1,
+               "ទិញថោក (discount) ក្នុង uptrend ផ្ដល់ RR ល្អជាង។"), chart="pd"),
+    dict(ch=16, part="PART 3 · ICT", title="Sessions & Kill Zones (ម៉ោងកម្ពុជា)",
+         body="""<b>ម៉ោងកម្ពុជា (រដូវរងារ/winter):</b>
+• 🌏 <b>Asia</b> 07:00–14:00 · range តូច បង្កើត liquidity
+• 🇬🇧 <b>London</b> 14:00–19:00 · <b>Kill zone</b> 14:00–17:00 · ច្រើនតែ sweep Asia high/low
+• 🇺🇸 <b>New York</b> 19:30–00:00 · <b>Kill zone</b> 19:30–22:00 · ព័ត៌មាន US 20:30
+• (រដូវក្ដៅ/summer US DST: ម៉ោងលឿន 1 ម៉ោង)
+• <b>Judas swing</b> = ចលនាបោកដំបូងនៃ session (sweep) មុនទិសពិត
+• <b>Daily bias</b> = ទិសដែលរំពឹងសម្រាប់ថ្ងៃ (ពី HTF + liquidity)
+
+👉 Analysis របស់យើងចេញមុន session នីមួយៗ: Asia · London · New York""",
+         quiz=("London kill zone (ម៉ោងកម្ពុជា winter) ប្រហែល...", ["07:00–09:00", "14:00–17:00", "23:00–02:00", "12:00–13:00"], 1,
+               "London បើកប្រហែល 14:00–15:00 ម៉ោងកម្ពុជា (winter)។ Kill zone = ម៉ោងសកម្មបំផុត។"), chart=None),
+    dict(ch=17, part="PART 3 · ICT", title="Advanced ICT: PO3 · SMT · OTE · Turtle Soup",
+         body="""• <b>PO3</b> (Power of Three) = <b>A</b>ccumulation (Asia) → <b>M</b>anipulation (sweep/Judas) → <b>D</b>istribution (ចលនាពិត)
+• <b>SMT divergence</b> = មាស vs ប្រាក់ (XAG) ឬ DXY ធ្វើ high/low មិនដូចគ្នា → សញ្ញាខ្សោយ
+• <b>OTE</b> = ចូលនៅ 62–79% retracement បន្ទាប់ពី displacement
+• <b>Turtle Soup</b> = sweep high/low ចាស់ ហើយត្រឡប់ → ចូលទិសផ្ទុយ
+• ច្បាប់មាស: <b>កុំដាក់ concept ច្រើនពេកលើ chart តែមួយ</b> · 2–3 concept ស្របគ្នាគ្រប់គ្រាន់
+
+⚠️ Concept ល្អ ≠ ចំណេញ · ត្រូវសាកល្បង (backtest) ជានិច្ច · Chapter 35 នឹងបង្រៀន""",
+         quiz=("PO3 គឺ...", ["Accumulation → Manipulation → Distribution", "Buy → Sell → Buy", "RSI 3 ដង", "3 lots"], 0,
+               "Power of Three: ប្រមូល (Asia) → បោក (sweep) → រត់ពិត (distribution)។"), chart=None),
+    # ---------------- PART 4 — VOLUME PROFILE
+    dict(ch=18, part="PART 4 · Volume Profile", title="Volume Foundations",
+         body="""• <b>Volume</b> = ចំនួន contracts/ticks ដែលបានជួញដូរ · បង្ហាញ <b>កម្លាំង</b> ពីក្រោយចលនា
+• <b>Tick volume</b> (broker/MT5) = ចំនួនការប្ដូរតម្លៃ · <b>Real volume</b> = COMEX futures
+• មាស spot <b>គ្មាន</b> volume កណ្ដាលពិត · យើងប្រើ futures volume ជាជំនួយ
+• ចលនាឡើង + volume ខ្ពស់ = ខ្លាំង · ចលនាឡើង + volume ទាប = ខ្សោយ (អាចត្រឡប់)
+• កំណត់: tick volume រវាង broker ខុសគ្នា · កុំសន្និដ្ឋានធំពីវាតែឯង""",
+         quiz=("Volume ក្នុង MT5 សម្រាប់មាស spot ជា...", ["Real volume ពី exchange", "Tick volume (ចំនួនការប្ដូរតម្លៃ)", "ចំនួនអ្នក trade", "លុយសរុប"], 1,
+               "Spot gold គ្មាន exchange កណ្ដាល។ MT5 បង្ហាញ tick volume។"), chart=None),
+    dict(ch=19, part="PART 4 · Volume Profile", title="Volume Profile: POC · VAH · VAL",
+         body="""• <b>Volume Profile</b> = volume តាម <b>តម្លៃ</b> (bar ផ្ដេក) មិនមែនតាមពេល
+• <b>POC</b> (Point of Control) = តម្លៃដែល volume ច្រើនបំផុត = "តម្លៃយុត្តិធម៌"
+• <b>Value Area</b> = 70% នៃ volume · <b>VAH</b> = កំពូល · <b>VAL</b> = បាត
+• <b>HVN</b> (High volume node) = តម្លៃយឺត/ឈប់ · <b>LVN</b> (Low volume node) = តម្លៃរត់លឿនឆ្លង
+• តម្លៃច្រើនតែត្រឡប់មក <b>POC</b> · VAH/VAL = S/R
+
+👉 Chart ថ្ងៃនេះ: bar ខៀវខាងស្ដាំ = volume profile 5 ថ្ងៃ · បន្ទាត់ <b>POC</b>""",
+         quiz=("POC គឺ...", ["តម្លៃខ្ពស់បំផុត", "តម្លៃដែលមាន volume ច្រើនបំផុត", "តម្លៃបើក", "EMA 200"], 1,
+               "Point of Control = តម្លៃដែលជួញដូរច្រើនបំផុត។"), chart="vp"),
+    dict(ch=20, part="PART 4 · Volume Profile", title="ប្រភេទ Volume Profile",
+         body="""• <b>Session VP</b> = តាម session (Asia/London/NY) · ល្អសម្រាប់ intraday
+• <b>Fixed Range VP</b> = អ្នកជ្រើសចន្លោះខ្លួនឯង (ឧ. ពី swing low ដល់ swing high)
+• <b>Visible Range VP</b> = អ្វីដែលឃើញលើអេក្រង់
+• <b>Developing VP</b> = POC ផ្លាស់ទីតាមពេល (ឃើញ value ផ្លាស់ទី)
+• <b>Composite VP</b> = ច្រើនថ្ងៃ/សប្ដាហ៍ · level ធំ
+• ជ្រើស: intraday → Session · swing → Composite
+
+💡 សញ្ញា 🤬 Plan របស់យើងប្រើ <b>Session VP</b> (រាង P/b) និង POC""",
+         quiz=("ចង់ trade intraday ប្រើ VP ប្រភេទណាល្អ?", ["Composite 1 ឆ្នាំ", "Session VP", "គ្មាន", "Weekly"], 1,
+               "Intraday ត្រូវការ level ថ្មីៗ: Session VP (Asia/London/NY)។"), chart=None),
+    dict(ch=21, part="PART 4 · Volume Profile", title="Advanced VP: Acceptance · Shapes",
+         body="""• <b>Acceptance</b> = តម្លៃនៅក្នុង value area ថ្មី · <b>Rejection</b> = ប៉ះហើយចេញលឿន (LVN)
+• <b>Value migration</b>: value ឡើងរាល់ថ្ងៃ = uptrend · ចុះ = downtrend
+• <b>Poor high/low</b> = កំពូល/បាតរាបស្មើ (មិនទាន់បញ្ចប់) → ច្រើនតែត្រូវយកវិញ
+• <b>Single prints</b> = តំបន់ volume តូចខ្លាំង → តម្លៃច្រើនតែត្រឡប់មកបំពេញ
+• <b>រាង</b>: <b>P</b> = buyers គ្រប់គ្រង · <b>b</b> = sellers គ្រប់គ្រង · <b>D</b> = តុល្យភាព
+• VP + Structure: POC នៅក្បែរ OB/FVG = តំបន់ខ្លាំង
+
+💡 រាង P/b ធ្វើការល្អ <b>មុនពេល</b> ថ្ងៃរត់ច្រើន (Day Meter &lt; 70%) · យើងបានសាកល្បងហើយ""",
+         quiz=("Profile រាង b មានន័យថា...", ["Buyers គ្រប់គ្រង", "Sellers គ្រប់គ្រង (volume នៅបាត)", "តុល្យភាព", "គ្មានន័យ"], 1,
+               "b-shape = volume ប្រមូលនៅខាងក្រោម: sellers បានរុញ និងគ្រប់គ្រង។"), chart=None),
+]
