@@ -205,7 +205,7 @@ def _send_tg(method, title, fields, files=None, timeout=20):
             raise RuntimeError(msg[:200])
 
 
-def send(text, title="XAU.KH", reply_to=None):
+def send(text, title="XAU.KH", reply_to=None, silent=False):
     """Sends to Telegram (HTML) and ntfy. Returns the Telegram message_id (or True if only ntfy worked, None if nothing)."""
     tok, topic = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("NTFY_TOPIC")
     chat = group_id() or os.environ.get("TELEGRAM_CHAT_ID")
@@ -213,6 +213,8 @@ def send(text, title="XAU.KH", reply_to=None):
     if tok and chat:
         try:
             body = {"text": text, "parse_mode": "HTML", "disable_web_page_preview": "true"}
+            if silent:   # no sound / no notification for members
+                body["disable_notification"] = "true"
             if reply_to:
                 body["reply_parameters"] = json.dumps({"message_id": reply_to, "allow_sending_without_reply": True})
             res = _send_tg("sendMessage", title, body)

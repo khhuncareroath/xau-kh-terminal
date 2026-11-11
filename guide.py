@@ -61,7 +61,8 @@ if group_id():   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
-RULES_VERSION = "2026-11-11n"
+RULES_VERSION = "rules-2026-11-11"   # change ONLY when the rules text changes: the Rules post is then EDITED in place
+                                    # (silent). Different prefix from VERSION so a guide update can never touch it.
 RULES = """❗ <b>RULES · ច្បាប់ក្រុម</b>
 
 1. Be respectful. No insults, no politics. · គោរពគ្នា
@@ -82,9 +83,24 @@ def post_rules():
         st = json.load(open("rules_state.json"))
     except Exception:
         st = {}
-    if st.get("version") == RULES_VERSION and st.get("chat") == group_id():
+    if st.get("chat") == group_id() and st.get("msg_id"):
+        if st.get("version") == RULES_VERSION or str(st.get("version", "")).startswith("2026-"):
+            if st.get("version") != RULES_VERSION:   # old shared version numbers: adopt, never re-post
+                st["version"] = RULES_VERSION
+                json.dump(st, open("rules_state.json", "w"))
+            return
+        tok = os.environ.get("TELEGRAM_TOKEN")
+        try:   # rules text changed: edit the existing post, no new message, no alert
+            body = urllib.parse.urlencode({"chat_id": group_id(), "message_id": st["msg_id"], "text": RULES,
+                                           "parse_mode": "HTML"}).encode()
+            urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{tok}/editMessageText", data=body), timeout=20)
+            print("rules edited in place")
+        except Exception as e:
+            print("rules edit failed (kept the old post, no new one):", e)
+        st["version"] = RULES_VERSION
+        json.dump(st, open("rules_state.json", "w"))
         return
-    mid = send(RULES, "Rules")
+    mid = send(RULES, "Rules", silent=True)   # first time in this group only
     if mid:
         json.dump({"version": RULES_VERSION, "chat": group_id(), "msg_id": mid}, open("rules_state.json", "w"))
 
@@ -113,7 +129,7 @@ def main():
         st["version"] = VERSION
         json.dump(st, open(STATE, "w"))
         return
-    mid = send(GUIDE, "Guide")
+    mid = send(GUIDE, "Guide", silent=True)
     if not mid:
         return
     st = {"version": VERSION, "msg_id": mid if isinstance(mid, int) else None, "chat": chat}
