@@ -21,7 +21,7 @@ from levels import to_ny
 from tg import fmt, local, log_alert, send, send_photo
 
 STATE = "scalp_state.json"
-WINDOW_S = 12 * 3600
+WINDOW_S = 24 * 3600     # wide scalp: 24 h after any 4H breakout (research.wide_scalp)
 MAX_LATE_S = 180          # the candle must have closed less than 3 minutes ago
 
 
@@ -51,7 +51,8 @@ def breakout_from_data(now):
         d = to_ny(load("5m", "20d"))
         if d.index.tz is None:
             d.index = d.index.tz_localize("UTC")
-        trades = research.trend_combo(d)
+        trades = research.trend_intraday(d)
+        strong = {t for t, *_ in research.trend_combo(d)}
     except Exception as e:
         print("scalp: breakout scan failed:", e)
         return None
@@ -59,7 +60,7 @@ def breakout_from_data(now):
         age = now - t.timestamp()
         if 15 * 60 <= age <= WINDOW_S:
             return {"dir": "bull" if side == "long" else "bear", "entry": float(d["Open"].iloc[int(d.index.searchsorted(t))]),
-                    "id": f"combo|{t}", "created": t.timestamp()}
+                    "id": f"brk|{t}", "created": t.timestamp(), "strong": t in strong}
         if age > WINDOW_S:
             break
     return None
@@ -104,8 +105,8 @@ def main():
     sg = 1 if br["dir"] == "bull" else -1
     day = str((df.index[i] - pd.Timedelta(hours=18)).date())
     st = jl(STATE, {})
-    if st.get("day") == day:
-        print("scalp: today's scalp already sent"); return
+    if st.get("day") == day and st.get("count", 1) >= research.SCALP_PER_DAY:
+        print("scalp: today's scalps already sent"); return
     o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
     a = atr(df).to_numpy()
     e20 = pd.Series(c).ewm(span=20).mean().to_numpy()
@@ -119,10 +120,10 @@ def main():
         print(f"scalp: stop ${risk:.1f} outside the tested ${research.SCALP_RISK[0]:.0f}-{research.SCALP_RISK[1]:.0f}"); return
     tgt = entry + sg * research.SCALP_RR * risk
     bull = sg > 0
-    bt = (jl("backtest.json", {}).get("models", {}).get("combo_scalp") or {}).get("all") or {}
+    bt = (jl("backtest.json", {}).get("models", {}).get("wide_scalp") or {}).get("all") or {}
     side = "BUY" if bull else "SELL"
     caption = "\n".join(x for x in [
-        f"⚡ <b>XAU/USD — {side} | SCALP</b>",
+        f"⚡ <b>XAU/USD — {side} | SCALP</b>" + (" · 💎 strong breakout" if br.get("strong") else ""),
         f"📍 Entry: <b>{fmt(entry)}</b>",
         f"🛑 SL: <b>{fmt(sw)}</b>",
         f"🎯 TP: <b>{fmt(tgt)}</b> (2R)",
@@ -134,8 +135,8 @@ def main():
     try:
         import signal_card
         signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": sw, "tp1": None, "target": tgt},
-                         "scalp_card.png", tier="scalp", status="LIVE", win_rate=bt.get("win_rate_pct") or 50,
-                         trades=bt.get("trades") or 120, stamp=local(now), tf_label="scalp · 5m entry",
+                         "scalp_card.png", tier="scalp", status="LIVE", win_rate=bt.get("win_rate_pct") or 45,
+                         trades=bt.get("trades") or 412, stamp=local(now), tf_label="scalp · 5m entry",
                          bars=80, hold_note="closes within 3 h")
         mid = send_photo("scalp_card.png", caption, f"{side} scalp")
     except Exception as e:
@@ -144,7 +145,7 @@ def main():
         mid = send(caption, f"{side} scalp")
     if not mid:
         return
-    json.dump({"day": day, "t": now}, open(STATE, "w"))
+    json.dump({"day": day, "t": now, "count": (st.get("count", 0) if st.get("day") == day else 0) + 1}, open(STATE, "w"))
     log_alert({"id": f"scalp|{df.index[i]}", "kind": "scalp", "model": "combo_scalp", "dir": "bull" if bull else "bear",
                "entry": entry, "stop": float(sw), "target": float(tgt), "rr": research.SCALP_RR, "created": now,
                "valid_until": now + 300, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,

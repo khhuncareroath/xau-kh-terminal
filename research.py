@@ -734,6 +734,49 @@ SCALP_RR = 2.0
 SCALP_HOLD = 36            # 3 hours
 
 
+SCALP_WINDOW_H, SCALP_PER_DAY = 24, 2   # wide scalp (owner: more scalps): any 4H breakout, 24 h window, 2 a day
+
+
+def wide_scalp(df, lat=1):
+    """⚡ SCALP, wide version (11 Nov 2026, studies/scalp_more.py): the same 5m dip entry as combo_scalp, but after ANY
+    intraday 4H breakout (not only A+/B+), for 24 hours, up to 2 a day. 2 years: 412 trades (~17 a month), 45% win at 2R,
+    +0.15R, older +0.13 / newest +0.22, 7 of 9 quarters, t 2.2. Every looser breakout window tested was positive on both
+    halves; scalping on the 4H structure alone (no breakout) was ~0R."""
+    return _scalp(df, trend_intraday(df), SCALP_WINDOW_H, SCALP_PER_DAY, lat)
+
+
+def _scalp(df, triggers, hours, per_day, lat=1):
+    o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
+    n = len(df)
+    a = atr(df).to_numpy()
+    e20 = pd.Series(c).ewm(span=20).mean().to_numpy()
+    fd, flo, fhi = fvg_15m_state(df)
+    act = np.zeros(n)
+    for t, _, d in triggers:
+        i = int(df.index.searchsorted(t))
+        act[i + 3:min(i + hours * 12, n)] = 1 if d == "long" else -1
+    day = np.array((df.index - pd.Timedelta(hours=18)).date)
+    out, busy, used = [], -1, {}
+    for i in range(300, n - 2):
+        sg = int(act[i])
+        if sg == 0 or i <= busy or used.get(day[i], 0) >= per_day:
+            continue
+        sw = scalp_trigger(o, h, l, c, e20, a, fd, flo, fhi, i, sg)
+        if sw is None:
+            continue
+        j0 = i + lat
+        risk = (o[j0] - sw) * sg
+        if not SCALP_RISK[0] <= risk <= SCALP_RISK[1]:
+            continue
+        r, j = _run_trade(o, h, l, c, j0, min(j0 + SCALP_HOLD, n - 1), sg, sw, o[j0] + sg * SCALP_RR * risk)
+        if r is None:
+            continue
+        busy = j
+        used[day[i]] = used.get(day[i], 0) + 1
+        out.append((df.index[j0], r, "long" if sg > 0 else "short"))
+    return out
+
+
 def combo_scalp(df, lat=1):
     """COMBO SCALP (11 Nov 2026): after a STRONG COMBO 4H breakout, for the next 12 hours, the FIRST 5m candle per day
     that dips into a fresh 15m fair value gap in the breakout direction and closes back beyond the previous candle and
@@ -822,6 +865,7 @@ def judge(trades, split_t):
 
 DESCRIBE = {"ict_splus": "🎯 S+ SETUP: Daily/4H FVG/OB zone, 15m liquidity sweep + MSS, limit on the OB retest, SL beyond the sweep, TP 3R, small size",
             "trend_premium_intraday": "🖕🖕 PREMIUM intraday: 4H breakout on a 100%+ day, SL 0.55%, TP1 1R + BE, TP2 3R, 12h",
+            "wide_scalp": "⚡ SCALP: any 4H breakout, then the first 5m dip into a 15m FVG + confirmation (24 h, 2 a day), SL ~$7, TP 2R, 3h",
             "combo_scalp": "🤬 COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
             "london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
             "vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
@@ -847,11 +891,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"ict_splus": 12, "combo_scalp": 3, "trend_premium_intraday": 12, "trend_bplus": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"ict_splus": 12, "combo_scalp": 3, "wide_scalp": 3, "trend_premium_intraday": 12, "trend_bplus": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "trend_bplus": trend_bplus(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df), "ict_splus": ict_splus(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "trend_bplus": trend_bplus(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df), "wide_scalp": wide_scalp(df), "ict_splus": ict_splus(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

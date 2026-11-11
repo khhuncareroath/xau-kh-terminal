@@ -213,3 +213,14 @@ risk 0.25-0.5%, the live record decides. For comparison the 4H breakout alone wa
 | **8 h but closed by 24:00 Cambodia, no new trade 00:00-06:00** | **+0.086** | **+0.107** |
 Decision: closed by midnight (LIVE). ⚡ Scalp after an A+/B+ 4H breakout re-tested with today's stricter breakout:
 57 trades, 60% win, +0.62R, newest 62% +0.77R, t 3.3, PROVEN -> back on by default (SCALP=off stops it), ~2-3 a month.
+
+## More scalps (owner: "2-3 a month?!") · studies/scalp_more.py
+Same 5m dip entry (TP 2R, 3 h), looser triggers. Every breakout-window version was positive on both halves:
+| Trigger | /month | Win | Avg R | Older / newest | Proven |
+|---|---|---|---|---|---|
+| A+/B+ breakout, 12 h, 1 a day (was live) | 2.4 | 60% | +0.62 | +0.56 / +0.77 | yes |
+| any 4H breakout, 12 h | 7.0 | 47% | +0.23 | +0.26 / +0.15 | yes |
+| **any 4H breakout, 24 h, 2 a day (LIVE)** | **17** | **45%** | **+0.15** | +0.13 / +0.22 | **yes (t 2.2, 7/9 q)** |
+| 4H structure only / 4H+1H agree (no breakout) | 18-32 | 39-41% | ~0 to +0.07 | | no |
+| after an M15 A+/B+ signal | 11 | 36% | -0.06 | | no |
+More R per month than the rare version (~+2.6R vs ~+1.5R). Scalps inside an A+/B+ window are marked 💎 strong.
