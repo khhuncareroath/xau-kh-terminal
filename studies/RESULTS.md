@@ -133,3 +133,22 @@ want more signals: close >= 60% and ER > 0.255: 82 trades, 73% win, +0.47R, newe
 
 Decision (owner): LIVE as the only signal. Scalp (SCALP=on), S+ (SPLUS=on) and the Volume Plan (VP_PLAN=on) are off.
 Scripts: studies/best_setup.py, studies/best_setup_check.py.
+
+## Mentor model at 1-2 setups a day (11 Nov 2026, night) · HTF key level -> 15m / 5m confirmation -> OB entry, TP 2R
+
+Key levels: Daily / 4H / 1H FVG + OB, previous-day high/low, Asia high/low. Price taps a level -> on 15m or 5m an
+optional sweep, then MSS with displacement -> LIMIT at the OB (edge or 50%), SL under the OB (mentor) or under the
+sweep, TP 2R, max 2 trades a day, 8 h. 192 versions.
+
+| Result | |
+|---|---|
+| All 192 versions | median -0.07R per trade (older -0.08, newest -0.05) |
+| Versions with 1+ trade a day | 68, **none positive on both older and newest data** |
+| Mentor version, all levels, 15m, SL under OB | ~0.9 a day, 37% win, +0.02R (newest -0.04 / +0.01): break-even before spread/slippage beyond $0.40 |
+| Same on 5m | ~1.4 a day, 32% win, **-0.15R, t -3.0 (reliably losing)**, SL ~$3.7 |
+| SL under OB vs under the sweep | -0.13R vs -0.03R (the OB gets run through, as in the earlier test) |
+| Best found (D+4H only, 15m, ~0.4 a day) | +0.10 to +0.12R, t ~1.1 after 192 tries: what luck looks like, not proven |
+
+Why: with TP 2R you need 34%+ wins just to break even, and a $4-6 stop makes the $0.40 cost ~0.08R per trade. More
+levels and 5m entries add trades but they are the weaker ones. Decision: no new signal; A+ / B+ stays the only one.
+Script: studies/ltf_ict.py.
