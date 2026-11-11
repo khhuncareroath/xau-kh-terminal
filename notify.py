@@ -248,6 +248,11 @@ def model_alert(lm, state, now):
           [f"🎯 TP: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"]),
         (f"📊 Win rate: {wr}% (tested 2 years, {st_.get('trades')} trades)" if wr else
          "📊 Quiet day: about 50/50 in testing → half size or skip" if du is not None else None),
+        # real money per 0.01 lot (1 oz: $1 move = $1), so members size by dollars, not by a "small SL"
+        f"💰 0.01 lot: SL −${abs(s['entry'] - s['stop']):,.0f}"
+        + (f" · TP1 +${abs(s['tp1'] - s['entry']) * 0.5:,.0f} (half) · TP2 +${abs(s['target'] - s['entry']) * 0.5:,.0f} (half)" if s.get("tp1")
+           else f" · TP +${abs(s['target'] - s['entry']):,.0f}")
+        + f" · use 0.01 lot per ${abs(s['entry'] - s['stop']) * 100:,.0f} of account (1% risk)",
         f"⏱ 4H breakout · " + (f"hold up to {hold_h // 24} days" if hold_h >= 48 else f"closes within {hold_h} h"),
         "⏰ Enter within 15 min · risk 0.5–1% · ចូលក្នុង 15 នាទី",
     ] if l)
