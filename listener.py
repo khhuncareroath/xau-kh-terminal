@@ -105,7 +105,7 @@ def check_answer():
     text = "\n".join(out)
     path = None
     try:
-        path, _ = radar.chart(df, lines, "check.png", local=session.local, title="Gold check")
+        path = session.analysis_chart(df, lv, {}, lines, "check.png", f"Gold check · {session.local(time.time())}")
     except Exception as e:
         print("check chart failed:", e)
     _chart.update(t=time.time(), path=path, text=text)

@@ -578,6 +578,30 @@ def plan_line(p, price=None):
 
 
 def analysis_chart(df, lv, conf, lines, path, title):
+    """New clean card (analysis_card.py); falls back to the old chart if it fails."""
+    try:
+        import analysis_card
+        import radar
+        st = radar.status(df, lines)
+        p = vp_plan(df)
+        price = st["price"]
+        near = min(lines[0] - price, price - lines[1]) <= price * 0.004
+        if st.get("busy"):
+            todo = "A 4H signal is running: follow it, don't open a new trade against it."
+        elif p and p.get("side") and abs(p["edge"] - p["inval"]) <= p["edge"] * 0.006:
+            todo = f"Plan: {p['side']} only if price comes back to the POC {fmt(p['edge'])} and a 15m candle confirms. Otherwise wait."
+        elif near:
+            todo = "Price is close to a 4H signal line. Get ready, but wait for the 4H candle to close."
+        else:
+            todo = "No signal now. Waiting is the trade: don't force an entry."
+        return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
+                                  plan=p if p and p.get("side") else None, todo=todo, trend=st["trend"])
+    except Exception as e:
+        print("analysis card failed, old chart:", e)
+        return _analysis_chart_old(df, lv, conf, lines, path, title)
+
+
+def _analysis_chart_old(df, lv, conf, lines, path, title):
     """Mentor-style picture: 4H context on the left, 15m execution on the right. Yesterday's range, the with-trend
     zone with its position box (entry, stop, 2R target), a dashed projected path, and short structure labels."""
     import matplotlib

@@ -1,0 +1,151 @@
+"""XAU.KH analysis card: the clean, light chart for 📊 Analysis posts and /check (same style as signal_card).
+
+15m candles with structure (HH/HL/LH/LL), EMA 21/50, 15m + 1H fair value gaps (unfilled), liquidity levels
+(previous day high/low, Asia high/low), the 4H signal lines, the plan zone (POC) if there is one, and a Day Meter bar.
+Header: trend pills + one-line "what to do". Bottom dark box: the key numbers.
+
+make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0) -> path
+"""
+import numpy as np
+import pandas as pd
+
+import signal_card as sc
+from signal_card import BG, CARD, INK, MUT, GRID, UP, DN, BLUE, DARK, _pill, _pivots, _fonts
+
+LIQ = ("Prev day high", "Prev day low", "Asia high", "Asia low")
+
+
+def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch, Rectangle
+    plt.rcParams["font.family"] = _fonts()
+
+    d = df.resample("15min").agg({"Open": "first", "High": "max", "Low": "min", "Close": "last"}).dropna().tail(bars)
+    o, h, l, c = (d[k].to_numpy(float) for k in ("Open", "High", "Low", "Close"))
+    n = len(d)
+    price = float(c[-1])
+    upper, lower = float(lines[0]), float(lines[1])
+
+    fig = plt.figure(figsize=(7.2, 9.0), dpi=150, facecolor=BG)
+    fig.text(0.055, 0.952, "XAU/USD", color=INK, fontsize=21, fontweight="bold", va="center")
+    tr_txt, tr_col = ("4H UP", UP) if trend > 0 else ("4H DOWN", DN) if trend < 0 else ("4H RANGE", MUT)
+    x = _pill(fig, 0.30, 0.952, tr_txt, "white", tr_col, fs=11)
+    if used is not None:
+        zt, zc = (("PREMIUM ZONE", "#AF52DE") if used >= 1.0 else ("COMBO ZONE", BLUE) if used >= 0.7 else ("QUIET DAY", MUT))
+        _pill(fig, x, 0.952, zt, "white", zc, fs=10)
+    fig.text(0.945, 0.952, "XAU.KH", color=BLUE, fontsize=14, fontweight="bold", va="center", ha="right")
+    fig.text(0.055, 0.915, title, color=MUT, fontsize=9.5, va="center")
+
+    fig.patches.append(FancyBboxPatch((0.035, 0.30), 0.93, 0.59, boxstyle="round,pad=0,rounding_size=0.025",
+                                      transform=fig.transFigure, fc=CARD, ec="none", zorder=0))
+    ax = fig.add_axes([0.06, 0.32, 0.74, 0.555])
+    ax.set_zorder(3)
+    ax.set_facecolor(CARD)
+    ext = int(n * 0.12)
+    lo_v = min(l.min(), price - (upper - lower) * 0.02)
+    hi_v = max(h.max(), price + (upper - lower) * 0.02)
+    pad = (hi_v - lo_v) * 0.06
+    ylo, yhi = lo_v - pad, hi_v + pad
+    show = lambda y: ylo + pad * 0.3 <= y <= yhi - pad * 0.3
+    ax.set_ylim(ylo, yhi)
+
+    # fair value gaps (unfilled), drawn from their time to the right edge
+    t0 = d.index[0]
+    for tf in ("15m", "1H"):
+        for z in ((ict.get("timeframes") or {}).get(tf) or {}).get("fvgs") or []:
+            if z.get("status") in ("filled", "broken"):
+                continue
+            try:
+                zt = pd.Timestamp(z["time"])
+                xi = max(0, int(d.index.searchsorted(zt.tz_convert(d.index.tz) if zt.tzinfo else zt)))
+            except Exception:
+                xi = 0
+            if not (show(z["lo"]) and show(z["hi"])):
+                continue
+            col = UP if z["dir"] == "bull" else DN
+            ax.add_patch(Rectangle((xi, z["lo"]), n + ext - xi, z["hi"] - z["lo"], fc=col, alpha=0.08, ec="none", zorder=1))
+            ax.text(n + ext - 0.5, (z["lo"] + z["hi"]) / 2, f"{tf} FVG", color=col, fontsize=6.5, ha="right", va="center", alpha=0.8, clip_on=True)
+
+    for i in range(n):
+        col = UP if c[i] >= o[i] else DN
+        ax.vlines(i, l[i], h[i], color=col, lw=0.8, zorder=3)
+        ax.add_patch(Rectangle((i - 0.33, min(o[i], c[i])), 0.66, max(abs(c[i] - o[i]), 0.05), fc=col, ec=col, lw=0.4, zorder=3))
+    cs = pd.Series(c)
+    ax.plot(range(n), cs.ewm(span=21).mean(), color="#FF9500", lw=1.0, alpha=0.8, zorder=2)
+    ax.plot(range(n), cs.ewm(span=50).mean(), color=BLUE, lw=1.0, alpha=0.55, zorder=2)
+    for i, p, lab, sgn in _pivots(h, l)[-7:]:
+        ax.annotate(lab, (i, p), xytext=(0, 9 * sgn), textcoords="offset points", ha="center",
+                    va="bottom" if sgn > 0 else "top", fontsize=7.5, fontweight="bold",
+                    color=UP if lab in ("HH", "HL") else DN, zorder=4)
+
+    # liquidity + 4H lines
+    lad = {x["name"]: float(x["price"]) for x in lv.get("ladder", []) if x.get("price")}
+    for name in LIQ:
+        y = lad.get(name)
+        if y and show(y):
+            ax.hlines(y, 0, n + ext, color=MUT, lw=0.7, ls=(0, (2, 3)), zorder=2)
+            ax.text(1, y, f"{name} {y:,.2f}  · stops", fontsize=6.8, color=MUT, va="bottom", zorder=4, clip_on=True)
+    for y, lab, col in ((upper, "4H BUY above", UP), (lower, "4H SELL below", DN)):
+        if show(y):
+            ax.hlines(y, 0, n + ext, color=col, lw=1.2, ls=(0, (6, 3)), zorder=2)
+            ax.text(1, y, f"{lab} {y:,.2f}", fontsize=7.5, color=col, fontweight="bold", va="bottom" if col == UP else "top",
+                    zorder=4, bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
+    if plan and plan.get("side") and plan.get("edge") and show(plan["edge"]):
+        y = plan["edge"]
+        col = DN if plan["side"] == "SELL" else UP
+        ax.add_patch(Rectangle((n - 1, y - 0.6), ext + 1, 1.2, fc=col, alpha=0.5, ec="none", zorder=2))
+        ax.text(n + ext - 0.5, y, f"PLAN {plan['side']} POC {y:,.2f}", color=col, fontsize=7, fontweight="bold",
+                ha="right", va="bottom", zorder=4)
+
+    ax.set_xlim(-1, n + ext)
+    ax.yaxis.tick_right()
+    ax.tick_params(axis="y", labelsize=7.5, colors=MUT, length=0)
+    ax.grid(axis="y", color=GRID, lw=0.6)
+    days = [i for i in range(1, n) if d.index[i].date() != d.index[i - 1].date()]
+    ax.set_xticks(days); ax.set_xticklabels([d.index[i].strftime("%d %b") for i in days], fontsize=7.5, color=MUT)
+    ax.tick_params(axis="x", length=0)
+    for s_ in ax.spines.values():
+        s_.set_visible(False)
+    ax.annotate(f" {price:,.2f} ", (n - 1, price), xytext=(n + 1, price), fontsize=8, color="white",
+                fontweight="bold", va="center", bbox=dict(boxstyle="round,pad=0.3", fc=INK, ec="none"), zorder=5)
+    ax.text(0.5, 0.5, "XAU.KH", transform=ax.transAxes, color=BLUE, alpha=0.04, fontsize=64, fontweight="bold",
+            ha="center", va="center")
+
+    # Day Meter bar on the right
+    if used is not None:
+        bx = fig.add_axes([0.875, 0.32, 0.05, 0.555])
+        bx.set_zorder(3)
+        bx.set_xlim(0, 1); bx.set_ylim(0, 1.5)
+        bx.axis("off")
+        bx.add_patch(Rectangle((0.15, 0), 0.7, 1.5, fc="#F2F2F7", ec="none"))
+        v = min(used, 1.5)
+        bx.add_patch(Rectangle((0.15, 0), 0.7, v, fc="#AF52DE" if used >= 1 else BLUE if used >= 0.7 else "#C7C7CC", ec="none"))
+        for yv, lab in ((0.7, "70%"), (1.0, "100%")):
+            bx.hlines(yv, 0.05, 0.95, color=INK, lw=0.8)
+            bx.text(0.5, yv + 0.02, lab, ha="center", va="bottom", fontsize=6.5, color=INK)
+        bx.text(0.5, -0.05, f"{used * 100:.0f}%", ha="center", va="top", fontsize=9, fontweight="bold", color=INK)
+        fig.text(0.90, 0.885, "Day\nMeter", ha="center", va="top", fontsize=7, color=MUT)
+
+    # dark box: what to do + key numbers
+    fig.patches.append(FancyBboxPatch((0.035, 0.03), 0.93, 0.25, boxstyle="round,pad=0,rounding_size=0.025",
+                                      transform=fig.transFigure, fc=DARK, ec="none", zorder=0))
+    fig.text(0.075, 0.245, "What to do", color="#AEAEB2", fontsize=9.5, va="center")
+    import textwrap
+    fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
+             fontweight="bold", va="top", linespacing=1.4)
+    rows = [("4H BUY signal above", f"{upper:,.2f}  ({upper - price:+,.1f})", UP),
+            ("4H SELL signal below", f"{lower:,.2f}  ({lower - price:+,.1f})", DN)]
+    if plan and plan.get("side") and plan.get("edge"):
+        rows.append((f"Plan {plan['side']} at POC", f"{plan['edge']:,.2f}", "#FF9500"))
+    y = 0.135
+    for a_, b_, col in rows:
+        fig.text(0.075, y, a_, color="#AEAEB2", fontsize=10, va="center")
+        fig.text(0.925, y, b_, color=col, fontsize=11, fontweight="bold", va="center", ha="right")
+        y -= 0.034
+    fig.text(0.075, 0.045, "Analysis, not a signal · entries come only in 📈 Signals".replace("📈 ", ""), color="#636366",
+             fontsize=7.5, va="center")
+    fig.savefig(path, facecolor=BG)
+    plt.close(fig)
+    return path
