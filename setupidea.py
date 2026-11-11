@@ -27,7 +27,8 @@ import pandas as pd
 from engine import atr
 
 STATE = "setup_idea.json"
-SL_MIN, SL_MAX = 4.0, 15.0        # $ stop range: below 4 the spread decides, above 15 it is not a 15m setup
+SL_MIN, SL_MAX = 5.0, 15.0        # $ stop range: below 4 the spread decides, above 15 it is not a 15m setup
+ZONE_MAX = 20.0                   # $: wider zones are areas, not levels
 VALID_H = 8                       # an idea lives one session
 MAX_PER_DAY = 2
 ON = os.environ.get("SETUP_IDEAS", "on") != "off"
@@ -62,15 +63,81 @@ def _side(m, sg, a15):
     return {"trig": round(trig, 2), "stop": round(stop, 2), "zone": round(zone, 2), "tp1": tp1, "tp2": tp2}
 
 
+def zones(df, price, m=None):
+    """Active demand (fully below price) and supply (fully above): the 15m FVGs drawn on the analysis card (open or
+    partly filled, from liqmap) + the 15m order block of the last structure break + 1H / 4H FVGs and order blocks
+    that price has not closed through (splus.py detection). Returns (demand, supply), nearest first."""
+    import splus
+    now = df.index[-1]
+    out = []
+    if m:
+        out += [dict(dir=z["dir"], lo=float(z["lo"]), hi=float(z["hi"]), tf="15m FVG") for z in (m.get("fvgs") or [])]
+        ob = m.get("ob")
+        if ob:
+            out.append(dict(dir=ob["dir"], lo=float(ob["lo"]), hi=float(ob["hi"]), tf="15m OB"))
+    for tf, life in (("1H", 5), ("4H", 15)):   # Daily zones are too wide for a 15m setup
+        try:
+            zs, _ = splus._zones(df, tf, life)
+        except Exception as e:
+            print("zones", tf, "failed:", e)
+            continue
+        out += [dict(z, tf=tf) for z in zs if z["t0"] <= now <= z["t1"]]
+    out = [z for z in out if z["hi"] - z["lo"] <= ZONE_MAX]
+    dem = sorted([z for z in out if z["dir"] == "bull" and z["hi"] <= price], key=lambda z: -z["hi"])   # fully below
+    sup = sorted([z for z in out if z["dir"] == "bear" and z["lo"] >= price], key=lambda z: z["lo"])    # fully above
+    return dem, sup
+
+
+def _room(p, sg, opp, a15=3.0):
+    """Mentor rule: never SELL into demand / BUY into supply. If a demand zone holds the SELL trigger or sits within
+    1R under it, the SELL waits for a 15m close BELOW that demand (broken demand = supply), SL just above the zone;
+    zones in a row are chained. TP1 then stops before the next demand. Mirror for BUY and supply."""
+    risk = abs(p["trig"] - p["stop"])
+    trig, broke, chained = p["trig"], None, 0
+    for z in opp:                                        # nearest first, at most 2 zones in a row
+        if chained >= 2:
+            break
+        near, far = (z["hi"], z["lo"]) if sg < 0 else (z["lo"], z["hi"])
+        if (far - trig) * sg <= 0:
+            continue                                     # between price and the trigger: closing past the trigger breaks it
+        if (near - trig) * sg <= 0 or abs(near - trig) < risk:
+            trig, broke, chained = far, z, chained + 1   # trigger moves past the zone
+        else:
+            break
+    if broke:
+        back = broke["lo"] if sg > 0 else broke["hi"]    # SL beyond the broken zone
+        r = min(max(abs(trig - back) + 0.1 * a15, SL_MIN), SL_MAX)
+        p.update(trig=round(trig, 2), stop=round(trig - sg * r, 2),
+                 broke={"tf": broke["tf"], "lo": round(broke["lo"], 2), "hi": round(broke["hi"], 2)})
+        p["tp1"], p["tp2"] = _levels(p["trig"], p["stop"], sg, p["zone"] if (p["zone"] - p["trig"]) * sg > 0 else None)
+        risk = r
+    for z in opp:                                        # the next zone ahead: take profit before it
+        near = z["hi"] if sg < 0 else z["lo"]
+        if (near - p["trig"]) * sg <= 0:
+            continue
+        if (p["tp1"] - near) * sg > 0 and abs(near - p["trig"]) >= risk:
+            p["tp1"] = round(near, 2)
+            p["tp2"] = round(p["trig"] + sg * max(2 * risk, abs(p["tp1"] - p["trig"]) + 0.5 * risk), 2)
+            p["before"] = {"tf": z["tf"], "lo": round(z["lo"], 2), "hi": round(z["hi"], 2)}
+        break
+    return p
+
+
 def build(df):
     import liqmap
     m = liqmap.build(df)
     a15 = float(atr(m["d15"]).iloc[-1])
     t = m["top"]
+    dem, sup = zones(df, m["price"], m)
     idea = {"t": time.time(), "valid_until": time.time() + VALID_H * 3600, "price": round(m["price"], 2),
             "swing": t.get("4H"), "internal": t.get("15m"), "ltf": t.get("5m"), "daily": t.get("D"), "h1": t.get("1H"),
             "rh": round(m["rh"], 2), "rl": round(m["rl"], 2), "eq": round(m["eq"], 2), "zone": m["zone"],
-            "BUY": _side(m, 1, a15), "SELL": _side(m, -1, a15), "done": {}, "atr15": a15}
+            "BUY": _room(_side(m, 1, a15), 1, sup, a15), "SELL": _room(_side(m, -1, a15), -1, dem, a15), "done": {}, "atr15": a15,
+            "demand": [{k: (round(z[k], 2) if k in ("lo", "hi") else z[k]) for k in ("lo", "hi", "tf")} for z in dem[:2]],
+            "supply": [{k: (round(z[k], 2) if k in ("lo", "hi") else z[k]) for k in ("lo", "hi", "tf")} for z in sup[:2]]}
+    for side in ("BUY", "SELL"):
+        if idea[side].get("blocked"):
+            idea["done"][side] = "blocked"
     sw = idea["swing"]
     idea["with_trend"] = "BUY" if sw == "bull" else "SELL" if sw == "bear" else None
     return idea, m
@@ -89,8 +156,12 @@ def caption(idea, name, signal_line=None, day_meter=None):
         f"LTF Structure : <b>{W[idea['ltf']][0]}</b>",
         f"Swing Low Price: <b>{n(idea['rl'])}</b>",
         f"Swing High Price: <b>{n(idea['rh'])}</b>", "",
-        f"🟢 <b>TARGET BUY</b> : រង់ចាំតម្លៃទីផ្សារបិទលើតម្លៃ <b>{n(b['trig'])}</b> (ទិញជាលក្ខណៈ Pullback នៃ Structure · Target Zone High: <b>{n(b['tp1'])}</b>)",
-        f"🔻 <b>TARGET SELL</b> : រង់ចាំតម្លៃទីផ្សារបិទក្រោមតម្លៃ <b>{n(s['trig'])}</b> (Target Zone Low: <b>{n(s['tp1'])}</b>)"])
+        f"🟢 <b>TARGET BUY</b> : រង់ចាំតម្លៃទីផ្សារបិទលើតម្លៃ <b>{n(b['trig'])}</b> ("
+        + (f"បំបែក Supply {n(b['broke']['lo'])}–{n(b['broke']['hi'])} · " if b.get("broke") else "ទិញជាលក្ខណៈ Pullback នៃ Structure · ")
+        + f"Target Zone High: <b>{n(b['tp1'])}</b>)",
+        f"🔻 <b>TARGET SELL</b> : រង់ចាំតម្លៃទីផ្សារបិទក្រោមតម្លៃ <b>{n(s['trig'])}</b> ("
+        + (f"បំបែក Demand {n(s['broke']['lo'])}–{n(s['broke']['hi'])} · " if s.get("broke") else "")
+        + f"Target Zone Low: <b>{n(s['tp1'])}</b>)"])
 
 
 # ------------------------------------------------------------------ picture
@@ -259,7 +330,7 @@ def watch(df):
     st = jl(STATE)
     idea = st.get("idea")
     now = time.time()
-    if not idea or now > idea.get("valid_until", 0) or len(idea.get("done", {})) >= 1:
+    if not idea or now > idea.get("valid_until", 0) or "sent" in idea.get("done", {}).values():
         return False
     import ict
     d5 = df.iloc[:-1]                                              # the newest 5m candle is still forming
@@ -280,7 +351,7 @@ def watch(df):
     cl = float(d15["Close"].iloc[-1])
     for side, sg in (("BUY", 1), ("SELL", -1)):
         p = idea[side]
-        if (cl - p["trig"]) * sg <= 0:
+        if side in idea.get("done", {}) or (cl - p["trig"]) * sg <= 0:   # blocked / skipped sides stay off
             continue
         key = f"{side}|{last_t}"
         if st.get("last_key") == key:
@@ -296,9 +367,20 @@ def watch(df):
         entry = float(d5["Close"].iloc[-1])
         recent = d15.iloc[-6:]
         struct = float(recent["Low"].min()) if sg > 0 else float(recent["High"].max())   # the pullback that must hold
+        if p.get("broke"):   # broken demand / supply: the SL sits beyond that zone
+            struct = p["broke"]["lo"] if sg > 0 else p["broke"]["hi"]
         risk = min(max((entry - (struct - sg * 0.1 * a15)) * sg, SL_MIN), SL_MAX)
         stop = round(entry - sg * risk, 2)
         tp1, tp2 = _levels(entry, stop, sg, p["zone"])
+        if p.get("before"):   # demand / supply ahead: take profit before it
+            near = p["before"]["hi"] if sg < 0 else p["before"]["lo"]
+            if (tp1 - near) * sg > 0:
+                tp1 = round(near, 2)
+            if abs(near - entry) < risk:   # price moved closer to the zone: no room left
+                idea["done"][side] = "blocked"
+                json.dump(st, open(STATE, "w"), indent=1, default=str)
+                print("setup: no room before the", "demand" if sg < 0 else "supply", "zone")
+                return False
         if (entry - p["trig"]) * sg > 0.8 * risk:                  # already ran away: do not chase
             idea["done"][side] = "chased"
             json.dump(st, open(STATE, "w"), indent=1, default=str)

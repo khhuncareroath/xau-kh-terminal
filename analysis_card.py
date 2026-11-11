@@ -16,6 +16,12 @@ LIQ = ("Prev day high", "Prev day low", "Asia high", "Asia low")
 
 
 def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None, liq=None, setup=None):
+    if setup:   # a side blocked by demand / supply gets no trigger line and no arrow on the chart
+        bb, sb = setup["BUY"].get("blocked"), setup["SELL"].get("blocked")
+        if liq:   # the chart draws the setup's own trigger lines (moved past demand / supply when needed)
+            liq = dict(liq, trig_buy=None if bb else setup["BUY"]["trig"], trig_sell=None if sb else setup["SELL"]["trig"])
+        scenarios = ([] if bb else [(setup["BUY"]["trig"], setup["BUY"]["tp1"], "#34C759")]) + \
+                    ([] if sb else [(setup["SELL"]["trig"], setup["SELL"]["tp1"], "#FF3B30")])
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -139,6 +145,17 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
                         va="bottom" if col == UP else "top", zorder=6, clip_on=True,
                         bbox=dict(boxstyle="round,pad=0.2", fc=col, ec="none"))
 
+    if setup:   # demand / supply that the setup respects: labelled boxes on the right
+        for key, col, word in (("demand", UP, "DEMAND"), ("supply", DN, "SUPPLY")):
+            side_ = "SELL" if key == "demand" else "BUY"
+            zs_ = [setup[side_]["broke"]] if setup[side_].get("broke") else (setup.get(key) or [])[:1]
+            for z in zs_:
+                if show(z["lo"]) or show(z["hi"]):
+                    ax.add_patch(Rectangle((n - 14, z["lo"]), ext + 14, max(z["hi"] - z["lo"], 0.4), fc=col, alpha=0.16,
+                                           ec=col, lw=0.9, zorder=2))
+                    ax.text(n - 13.5, (z["lo"] + z["hi"]) / 2, f"{word} {z['tf']}", fontsize=7, color=col,
+                            fontweight="bold", va="center", zorder=6, clip_on=True)
+
     # liquidity + 4H lines
     lad = {x["name"]: float(x["price"]) for x in lv.get("ladder", []) if x.get("price")}
     for name in LIQ:
@@ -232,8 +249,14 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
         for side, col in (("BUY", UP), ("SELL", DN)):
             p_ = setup[side]
             wt = " ✓ trend" if side == setup.get("with_trend") else ""
-            rows.append((f"TARGET {side}: 15m close {'above' if side == 'BUY' else 'below'}{wt}",
-                         f"{p_['trig']:,.2f} · SL {p_['stop']:,.0f} · TP {p_['tp1']:,.0f} / {p_['tp2']:,.0f}", col))
+            if p_.get("blocked"):
+                z = p_["blocked"]
+                rows.append((f"TARGET {side}: none · {'supply above' if side == 'BUY' else 'demand below'} ({z['tf']})",
+                             f"wait · {z['lo']:,.0f}–{z['hi']:,.0f}", "#8E8E93"))
+            else:
+                brk = (" supply" if side == "BUY" else " demand") if p_.get("broke") else ""
+                rows.append((f"TARGET {side}: 15m close {'above' if side == 'BUY' else 'below'}{brk}{wt}",
+                             f"{p_['trig']:,.2f} · SL {p_['stop']:,.0f} · TP {p_['tp1']:,.0f} / {p_['tp2']:,.0f}", col))
         liq = dict(liq or {}, trig_buy=None, trig_sell=None)
     if liq:
         if liq.get("trig_buy"):
