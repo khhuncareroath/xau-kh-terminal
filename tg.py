@@ -42,12 +42,14 @@ def mark_post():
 # Set TELEGRAM_GROUP_ID (a supergroup with Topics turned on, the bot is admin with "Manage topics") and every post
 # goes to its own section. The bot creates the sections itself and closes them so only admins post there; members
 # talk in the group's "General" topic. Without TELEGRAM_GROUP_ID everything goes to TELEGRAM_CHAT_ID as before.
-SECTIONS = {   # key: (topic name, Telegram icon colour)
-    "signals":  ("🎯 Signals · សញ្ញា", 9367192),
-    "analysis": ("📊 Analysis · វិភាគ", 7322096),
-    "news":     ("📰 News · ព័ត៌មាន", 16478047),
-    "proof":    ("🧾 Proof · លទ្ធផល", 16766590),
-    "learn":    ("📚 Learn · រៀន", 13338331),
+SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji in order of preference)
+    "rules":    ("Rules · ច្បាប់", 16766590, ["❗", "❗️", "‼", "📝"]),
+    "announce": ("Announcement · ដំណឹង", 16478047, ["📣", "📢", "🔥"]),
+    "signals":  ("Signals · សញ្ញា", 9367192, ["📈", "🎯", "💰"]),
+    "analysis": ("Analysis · វិភាគ", 7322096, ["📊", "📉", "🔎"]),
+    "news":     ("News Events · ព័ត៌មាន", 16478047, ["📰", "🗞", "⚡"]),
+    "proof":    ("Proof · លទ្ធផល", 16766590, ["🏆", "✅", "💎"]),
+    "learn":    ("Education · មេរៀន", 13338331, ["📚", "🎓", "💡"]),
 }
 TOPICS_FILE = "topics.json"
 
@@ -55,6 +57,10 @@ TOPICS_FILE = "topics.json"
 def section_for(title):
     """Every send() / send_photo() call passes a title; it decides the section."""
     t = (title or "").lower()
+    if t == "rules":
+        return "rules"
+    if t == "announcement":
+        return "announce"
     if t in ("guide", "lesson"):
         return "learn"
     if t in ("breaking", "after the news", "news soon"):
@@ -92,9 +98,13 @@ def thread_id(key, fresh=False):
     if fresh:
         d["topics"].pop(key, None)
     if key not in d["topics"]:
-        name, color = SECTIONS[key]
+        name, color, want = SECTIONS[key]
         try:
-            res = _api("createForumTopic", {"chat_id": d["chat"], "name": name, "icon_color": color})
+            fields = {"chat_id": d["chat"], "name": name, "icon_color": color}
+            icon = _icon(want)
+            if icon:
+                fields["icon_custom_emoji_id"] = icon
+            res = _api("createForumTopic", fields)
             d["topics"][key] = res["message_thread_id"]
             try:   # closed topic = only admins (the bot) can post, members read and react
                 _api("closeForumTopic", {"chat_id": d["chat"], "message_thread_id": res["message_thread_id"]})
@@ -106,6 +116,31 @@ def thread_id(key, fresh=False):
             print("could not create section", key, e)
             return None
     return d["topics"].get(key)
+
+
+_ICONS = None
+
+
+def _icon(want):
+    """Telegram's free topic icons (the same ones you can pick in the app). Returns the id of the first wanted emoji."""
+    global _ICONS
+    if _ICONS is None:
+        try:
+            _ICONS = {st.get("emoji"): st.get("custom_emoji_id") for st in _api("getForumTopicIconStickers", {}) or []}
+        except Exception as e:
+            print("topic icons not available:", e)
+            _ICONS = {}
+    for e in want:
+        if _ICONS.get(e):
+            return _ICONS[e]
+    return None
+
+
+def setup_sections():
+    """Creates every section once, in a fixed order, so the group looks complete from day one."""
+    if os.environ.get("TELEGRAM_GROUP_ID") and os.environ.get("TELEGRAM_TOKEN"):
+        for key in SECTIONS:
+            thread_id(key)
 
 
 def target(title):

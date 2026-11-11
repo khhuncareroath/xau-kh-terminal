@@ -6,7 +6,7 @@ import os
 import urllib.parse
 import urllib.request
 
-from tg import send, target
+from tg import send, setup_sections
 
 VERSION = "2026-11-11a"
 STATE = "guide_state.json"
@@ -40,12 +40,43 @@ SECTIONS_TEXT = """
 🧾 Proof: every result, wins AND losses · លទ្ធផលពិត
 📚 Learn: guide and lessons · រៀន
 💬 General: chat with members · ជជែក
+❗ Rules · 📣 Announcement: from the admin
 """
 if os.environ.get("TELEGRAM_GROUP_ID"):   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
+RULES_VERSION = "1"
+RULES = """❗ <b>RULES · ច្បាប់ក្រុម</b>
+
+1. Be respectful. No insults, no politics. · គោរពគ្នា
+2. No ads, no links to other groups or brokers. · ហាមផ្សាយពាណិជ្ជកម្ម
+3. ⚠️ Admins <b>never</b> DM you first and never ask for money, passwords or your account. Anyone who does is a scammer. · Admin មិនដែល DM មុនទេ
+4. Signals are education, not financial advice. Risk 0.5–1% per trade, always use SL. · មិនមែនដំបូន្មានហិរញ្ញវត្ថុ
+5. Every result is shown in 🏆 Proof, wins AND losses. · លទ្ធផលពិតទាំងអស់
+6. Chat in 💬 General. The other sections are read-only. · ជជែកនៅ General
+
+Breaking the rules = removed. · បំពានច្បាប់ = ដកចេញ"""
+
+
+def post_rules():
+    """Posts the rules once in the Rules section (sectioned group only)."""
+    if not os.environ.get("TELEGRAM_GROUP_ID"):
+        return
+    try:
+        st = json.load(open("rules_state.json"))
+    except Exception:
+        st = {}
+    if st.get("version") == RULES_VERSION and st.get("chat") == os.environ["TELEGRAM_GROUP_ID"]:
+        return
+    mid = send(RULES, "Rules")
+    if mid:
+        json.dump({"version": RULES_VERSION, "chat": os.environ["TELEGRAM_GROUP_ID"], "msg_id": mid}, open("rules_state.json", "w"))
+
+
 def main():
+    setup_sections()
+    post_rules()
     try:
         st = json.load(open(STATE))
     except Exception:
