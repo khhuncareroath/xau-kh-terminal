@@ -512,7 +512,11 @@ def vp_plan(df, raw=False):
     """The 🟡 plan-trade setup for the current/next session: shape of the last finished session's volume profile.
     Same rules as research.vp_shape (so the prep shows exactly what the bot will trade), including its Day Range
     filter: when today already moved 70%+ of a normal day the bot will NOT take the plan, so the plan comes back
-    with side=None and "skip_used" (raw=True returns the plan anyway, for plan_watch follow-ups)."""
+    with side=None and "skip_used" (raw=True returns the plan anyway, for plan_watch follow-ups).
+    11 Nov 2026 (owner): only A+ / B+ are signals, so the plan is off everywhere (captions, follow-ups, pictures)
+    unless the repo variable VP_PLAN=on."""
+    if os.environ.get("VP_PLAN") != "on":
+        return None
     p = _vp_plan(df)
     if raw or not p or not p.get("side"):
         return p
@@ -627,7 +631,7 @@ def analysis_chart(df, lv, conf, lines, path, title):
         except Exception as e:
             print("liquidity map failed:", e)
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
-                                  plan=p if p and p.get("side") else None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq)
+                                  plan=None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq)
     except Exception as e:
         print("analysis card failed, old chart:", e)
         return _analysis_chart_old(df, lv, conf, lines, path, title)
@@ -1428,7 +1432,7 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
         beyond = price > upper if up else price < lower
         out.append(f"⚡ <b>4H {'BUY' if up else 'SELL'} line {fmt(lvl)}</b>: price is {'already ' + ('above' if up else 'below') if beyond else f'{abs(lvl - price):,.1f} away'}. "
                    f"{'BUY' if up else 'SELL'} signal only if the 4H candle closing at {local(nxt4.timestamp())} is {'above' if up else 'below'} it. Don't enter early.")
-    out.append(f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else "🟡 No plan this session: wait")
+    out.append(f"🟡 Plan: {'SELL' if p['side'] == 'SELL' else 'BUY'} at POC {fmt(p['edge'])}" if plan_ok else "👉 Wait for an A+ / B+ signal · រង់ចាំសញ្ញា A+ / B+")
     if nx and (nx[0][0] - datetime.now(timezone.utc)).total_seconds() < 6 * 3600:
         out.append(f"📰 {esc(nx[0][1])} ម៉ោង {local(nx[0][0].timestamp())}")
     return "\n".join(out)

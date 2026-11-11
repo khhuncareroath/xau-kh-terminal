@@ -14,11 +14,9 @@ import pandas as pd
 import research
 from ict import resample
 
-TIERS = {   # model: (short name, tier, ring colour)
+TIERS = {   # model: (short name, tier, ring colour). 11 Nov 2026 (owner): only A+ / B+ are signals, so only they are replayed
     "trend_premium_intraday": ("A+ setup", "A+", "#FFD60A"),
-    "trend_intraday": ("4H Breakout", "TESTED", "#E3B04B"),
-    "combo_scalp": ("Combo Scalp", "PLAN", "#FF9500"),
-    "vp_shape": ("Volume Plan", "PLAN", "#5AC8FA"),
+    "trend_bplus": ("B+ setup", "B+", "#E3B04B"),
 }
 TIER_KM = {"TESTED": "បានសាកល្បង", "PLAN": "ផែនការ", "EXPERIMENTAL": "សាកល្បង"}
 
@@ -126,11 +124,8 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
     for t in shown:
         t["live"] = _live_match(t, df, log)
         t["combo"] = False
-        if t["model"] == "trend_intraday":
-            try:
-                t["combo"] = (research.day_used(df, df.index[t["j0"]]) or 0) >= research.COMBO_USED
-            except Exception:
-                pass
+        if t["model"] in ("trend_intraday", "trend_bplus"):
+            t["combo"] = t["model"] == "trend_bplus"
     d1 = resample(df[df.index >= start], "1H")
     N = len(d1)
     pos = lambda j: int(np.clip(d1.index.searchsorted(df.index[j], side="right") - 1, 0, N - 1))

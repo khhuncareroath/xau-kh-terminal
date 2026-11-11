@@ -100,3 +100,36 @@ volume-profile POC-VAL inside the OB), SL a bit under the OB or under the sweep,
 SL under the OB (~$5-8): -0.12 to -0.63R in every version (the OB gets run through). SL under the sweep (~$10): only
 21-23 fills, older +0.5 to +1.3R but newest -0.25 to -0.57R: not reliable. The volume-profile entry did not help.
 Current A+/B+ market entry: 92 trades, 72% win, +0.42R (newest +0.40R). Decision: no combined model; the breakout entry stays.
+
+## Best setup: everything combined (11 Nov 2026, night, owner: "combine everything, best setup, A+ and B+, that's it")
+
+All 213 intraday 4H breakouts (2 years), each with every tested ingredient attached: Day Meter, trend quality (ER),
+breakout candle body, close location, stretch past the line, candle size, volatility regime, repeat breakouts, daily
+EMA20 / 1H EMA50 side, session, direction. 2,430 threshold combinations, chosen on the OLDER 70% only.
+
+| Ingredient (one at a time, older / newest) | Result |
+|---|---|
+| Day Meter high third | +0.33 / +0.60R (low third +0.01 / -0.08) · confirmed |
+| Trend quality (ER) low third | +0.05 / +0.14R · confirmed (choppy = weak) |
+| **Close location** of the breakout 4H candle (inside B+ set) | **close >= 70%: +0.44 / +0.68R · weaker close: +0.23 / -0.15R** · NEW |
+| Body size, stretch past line, candle size, volatility, repeat count, session | mixed between halves: no filter |
+| Daily EMA20 / 1H EMA50 side | already agree on 93-100% of breakouts: nothing to add |
+
+Neighbours of the chosen cut: strong close 0.6 / 0.65 / 0.7 / 0.75 / 0.8 and ER 0.20-0.35 all better than no close filter,
+on older AND newest data. Luck test: strong close vs random picks of the same size inside the B+ set p = 0.03
+(the old A+ "Day Meter 100%" split alone: p = 0.28).
+
+| Final (SL 0.55%, TP1 1R + BE, TP2 3R, 12 h) | Trades | /month | Win | Avg R | Newest 30% | Quarters + |
+|---|---|---|---|---|---|---|
+| 💎 A+ = breakout + strong close (>=70%) + ER > 0.30 + Day Meter >= 100% | 34 | 1.4 | 79% | +0.61R | 9 trades, 89% win, +0.89R | 4/4 |
+| ⭐ B+ = same, Day Meter 70-100% | 24 | 1.0 | 75% | +0.48R | 4 trades, +0.48R | 2/2 |
+| A+ and B+ together (judge: PROVEN, t 4.5) | 58 | 2.4 | 78% | +0.56R | 13 trades, 77% win, +0.76R | 7/7 |
+| (old A+/B+, before this study) | 90 | 3.8 | 71% | +0.41R | 22 trades, +0.45R | 7/7 |
+| Dropped by the new rules (weak close or ER 0.255-0.30) | 32 | 1.3 | 59% | +0.16R | +0.00R | t 0.8 |
+
+Trade-off, honestly: fewer signals (2.4 instead of 3.8 a month), so total R per month is about the same (~+1.3R vs ~+1.5R)
+but with a higher win rate, shorter losing streaks (max 2) and a better newest-data result. Softer alternative if members
+want more signals: close >= 60% and ER > 0.255: 82 trades, 73% win, +0.47R, newest +0.60R.
+
+Decision (owner): LIVE as the only signal. Scalp (SCALP=on), S+ (SPLUS=on) and the Volume Plan (VP_PLAN=on) are off.
+Scripts: studies/best_setup.py, studies/best_setup_check.py.

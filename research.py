@@ -314,7 +314,23 @@ def day_used(df, t):
     return float(now["h"].max() - now["l"].min()) / adr if len(now) and adr > 0 else None
 
 
-CHOP_ER = 0.255   # efficiency below this = choppy 4H market (threshold = lowest third, picked on the older 70% of data)
+CHOP_ER = 0.30    # efficiency at or below this = choppy 4H market. Was 0.255 (lowest third); 0.30 picked on the older 70% in
+                  # the 11 Nov 2026 best-setup study (studies/best_setup.py), smooth from 0.20 to 0.35 on both halves
+STRONG_CLOSE = 0.7   # breakout 4H candle must close in the top 30% of its range (bottom 30% for a sell). 11 Nov 2026,
+                     # 2 years: B+ breakouts with a strong close +0.49R (71), weak close +0.11R (19); newest +0.68 vs -0.15.
+                     # Every cut 0.6-0.8 helped on older AND newest data; beats random same-size picks (p 0.03).
+
+
+def close_location(df, t, side):
+    """Where the breakout 4H candle (the one that closed just before entry t) closed inside its own range:
+    1 = at the high for a buy (at the low for a sell), 0 = at the other end. A strong close = buyers/sellers held it."""
+    d4 = resample(df, "4H")
+    k = int(d4.index.searchsorted(t - pd.Timedelta(hours=4, minutes=20)))
+    k = max(0, min(k, len(d4) - 1))
+    h, l, c = float(d4["High"].iloc[k]), float(d4["Low"].iloc[k]), float(d4["Close"].iloc[k])
+    if h - l <= 0:
+        return None
+    return (c - l) / (h - l) if side in ("long", "bull") else (h - c) / (h - l)
 
 
 def efficiency(df, t):
@@ -339,15 +355,22 @@ def trend_combo(df):
     """STRONG COMBO = the intraday 4H breakout (same trades) when today has already moved 70%+ of a normal day: the
     breakout has real momentum behind it. 2 years: 143 of the 218 breakouts, 68% win, +0.21R (all others ~0R).
     Smooth across thresholds 50-90% (all proven), found after looking at the data, so it is a label, not a new rule."""
-    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= COMBO_USED and _clean(df, t[0])]
+    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= COMBO_USED and _clean(df, t[0], t[2])]
 
 
-def _clean(df, t):
+def _clean(df, t, side=None):
     """Strong signals only (owner's choice, 11 Nov 2026): skip breakouts in a choppy 4H market (efficiency <= CHOP_ER).
     2 years with TP1 1R: COMBO 137 trades 67% win +0.34R -> COMBO + clean 92 trades 72% win +0.42R (newest +0.40R);
-    PREMIUM 79 trades +0.42R -> 53 trades 72% win +0.47R (newest 80% win +0.65R). About 4 signals a month."""
+    PREMIUM 79 trades +0.42R -> 53 trades 72% win +0.47R (newest 80% win +0.65R). About 4 signals a month.
+    11 Nov 2026 best-setup study: + strong close (STRONG_CLOSE) and CHOP_ER 0.30 -> A+ and B+ together 58 trades,
+    78% win, +0.56R (newest 13 trades 77% win +0.76R), 7 of 7 quarters positive, about 2.4 signals a month."""
     e = efficiency(df, t)
-    return e is None or e > CHOP_ER
+    if not (e is None or e > CHOP_ER):
+        return False
+    if side is None:
+        return True
+    cl = close_location(df, t, side)
+    return cl is None or cl >= STRONG_CLOSE
 
 
 PREMIUM_USED = 1.0   # swing breakout on a day that already moved a full normal day = PREMIUM SWING
@@ -365,7 +388,13 @@ def trend_premium_intraday(df):
     """🖕🖕 PREMIUM, intraday (11 Nov 2026, owner: no swing): the intraday 4H breakout (SL 0.55%, TP1 0.75R + BE,
     TP2 3R, closed within 12 h) on a day that already moved 100%+ of a normal day.
     2 years: 86 trades, 70% win, +0.28R, newest 30%: 30 trades, 80% win, +0.34R."""
-    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= PREMIUM_USED and _clean(df, t[0])]
+    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= PREMIUM_USED and _clean(df, t[0], t[2])]
+
+
+def trend_bplus(df):
+    """⭐ B+ alone: the A+/B+ setup on a day that moved 70-100% of a normal day (A+ = 100%+). 11 Nov 2026: 24 trades,
+    75% win, +0.48R (newest only 4 trades). A label inside the proven set, not a separate rule."""
+    return [t for t in trend_combo(df) if (day_used(df, t[0]) or 0) < PREMIUM_USED]
 
 
 def trend_tight(df):
@@ -797,6 +826,7 @@ DESCRIBE = {"ict_splus": "🎯 S+ SETUP: Daily/4H FVG/OB zone, 15m liquidity swe
             "london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
             "vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
             "trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
+            "trend_bplus": "⭐ B+ only: the A+/B+ setup on a day that moved 70-100% of a normal day",
             "trend_combo": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
             "range_extreme": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
             "trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 1R then stop to entry, rest to 3R, closed within 12 hours",
@@ -817,11 +847,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"ict_splus": 12, "combo_scalp": 3, "trend_premium_intraday": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"ict_splus": 12, "combo_scalp": 3, "trend_premium_intraday": 12, "trend_bplus": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df), "ict_splus": ict_splus(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "trend_bplus": trend_bplus(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df), "ict_splus": ict_splus(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

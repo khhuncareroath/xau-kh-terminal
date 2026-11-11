@@ -8,17 +8,20 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11k"
+VERSION = "2026-11-11m"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
-✅ <b>BUY/SELL NOW</b>: tested 4H breakout. <b>Intraday only</b>: closes within 12 h. Risk 1% max.
-💎 <b>A+ SETUP</b>: breakout on a big day in a clean trend (72% win, best profit in test) · full size
-⭐ <b>B+ SETUP</b>: breakout on a moving day in a clean trend (72% win in test) · full size
-⏭ Quiet-day and choppy-market breakouts are <b>not sent</b> (weak in testing)
-🤬 <b>SCALP</b>: after an A+/B+ breakout, a fast 5m entry with a small SL (~$7), TP 2R (58% win in test). Enter at once or skip. Size 0.25–0.5%
-🤬 <b>Plan</b> 🟡: other smaller setups, small size 0.25–0.5%
+✅ <b>BUY/SELL NOW</b>: one tested signal, the 4H breakout. <b>Intraday only</b>: closes within 12 h. Risk 1% max.
+It is sent only when ALL of these are true:
+ 1️⃣ 4H candle closes beyond the 1-week high/low
+ 2️⃣ strong close (near the high for BUY, near the low for SELL)
+ 3️⃣ clean 4H trend (not choppy)
+ 4️⃣ Day Meter 70%+ (the day is moving)
+💎 <b>A+</b>: all 4 + Day Meter 100%+ (79% win in 2-year test) · full size
+⭐ <b>B+</b>: all 4, Day Meter 70–100% (75% win in test) · full size
+⏭ Anything else is <b>not sent</b>: about 2–3 signals a month. Fewer, but stronger.
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
 📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
@@ -34,7 +37,7 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
 💰 Every signal shows the $ result per 0.01 lot: SL $22 = −$22 at 0.01 lot.
 
-🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ · 🤬 Scalp = តូច ប្រើ lot តូច
+🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ · សញ្ញាតិច តែខ្លាំង (២–៣ ដង/ខែ)
 ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
@@ -53,7 +56,7 @@ if group_id():   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
-RULES_VERSION = "2026-11-11k"
+RULES_VERSION = "2026-11-11m"
 RULES = """❗ <b>RULES · ច្បាប់ក្រុម</b>
 
 1. Be respectful. No insults, no politics. · គោរពគ្នា

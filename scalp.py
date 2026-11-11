@@ -9,6 +9,7 @@ Speed matters (with a 10-15 min delay the edge mostly disappears), so loop.py ru
 after each 5-minute close, and it only looks at the candle that just closed.  Run:  python scalp.py
 """
 import json
+import os
 import time
 
 import numpy as np
@@ -44,6 +45,8 @@ def active_breakout(now):
 
 
 def main():
+    if os.environ.get("SCALP") != "on":   # owner, 11 Nov 2026: only A+ / B+ signals. SCALP=on (repo variable) re-enables
+        print("scalp: off (only A+ / B+)"); return
     now = time.time()
     br = active_breakout(now)
     if not br:

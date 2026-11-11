@@ -161,34 +161,8 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
                 color=UP if sg > 0 else DN, fontsize=7, fontweight="bold", ha="center", va="bottom",
                 bbox=dict(boxstyle="round,pad=0.2", fc=PANEL, ec=PREM if f == 2 else GOLD, lw=0.8), zorder=9)
         yhi = max(yhi, y + span * 0.12); ax.set_ylim(ylo, yhi)
-    # 🤬 = smaller tested setups you can trade yourself (small size): where 🟡 Volume Plan / 🔷 Day Range Snap entered
-    t0, t1 = d.index[0], d.index[-1] + pd.Timedelta(minutes=15)
-    for t in replay(df):
-        if t["model"] not in ("vp_shape", "range_extreme") or not (t0 <= df.index[t["j0"]] < t1):
-            continue
-        i = int(d.index.searchsorted(df.index[t["j0"]], side="right") - 1)
-        sg = t["sg"]
-        y = float(d["Low"].iloc[i]) - span * 0.05 if sg > 0 else float(d["High"].iloc[i]) + span * 0.05
-        _emoji(ax, i, y, 0.12, "angry")
-        ax.text(i, y - sg * span * 0.045, f"{BUY_W if sg > 0 else SELL_W}",
-                color=UP if sg > 0 else DN, fontsize=6.5, fontweight="bold", ha="center", va="top" if sg > 0 else "bottom")
-        ylo, yhi = min(ylo, y - span * 0.12), max(yhi, y + span * 0.12)
-    # the waiting 🟡 plan zone (same rules as the plan alert): 🤬 at the right edge
+    # 11 Nov 2026 (owner): only A+ / B+ are signals, so the old 🤬 Volume Plan / Day Range marks and plan zone are gone
     pz = None
-    try:
-        from session import vp_plan
-        pz = vp_plan(df)
-    except Exception as e:
-        print("radar plan zone failed:", e)
-    if pz and pz.get("side") and abs(pz["edge"] - pz["inval"]) <= pz["edge"] * 0.006 and abs(pz["edge"] - p) < span * 1.2:
-        buy = pz["side"] == "BUY"
-        ylo, yhi = min(ylo, pz["edge"] - span * 0.06, pz["inval"] - span * 0.03), max(yhi, pz["edge"] + span * 0.06)
-        zc = UP if buy else DN
-        ax.plot([N - 14, N + 8], [pz["edge"]] * 2, color=zc, lw=1.2, ls=(0, (2, 2)))
-        _emoji(ax, N + 6.5, pz["edge"], 0.12, "angry")
-        ax.text(N - 14, pz["edge"], f"{BUY_W if buy else SELL_W} zone {pz['edge']:,.2f} (POC) · wait for the 15m close ",
-                color=zc, fontsize=7.5, fontweight="bold", ha="right", va="center",
-                bbox=dict(boxstyle="round,pad=0.25", fc=PANEL, ec="none"))
     ax.set_ylim(ylo, yhi)
     st["plan_zone"] = pz if pz and pz.get("side") else None
     ax.axhline(p, color=INK, lw=0.6, alpha=0.4)
@@ -254,11 +228,11 @@ def caption(st, why, next_close_local):
     o_ = (st.get("open") or [None])[-1]
     zone_line = (f"✅ A 4H {'BUY' if o_['sg'] > 0 else 'SELL'} from this move is still running (entry {o_['entry']:,.2f}): "
                  f"<b>no new 4H signal until it closes</b> · ទុកការជួញដូរមុនឲ្យរត់" if st.get("busy") else
-                 "💎 <b>A+ zone</b>: a 4H close beyond a line now = A+ SETUP (72% in test)" if z == 2 else
+                 "💎 <b>A+ zone</b>: a strong 4H close beyond a line now = A+ SETUP (79% in test)" if z == 2 else
                  (f"⭐ <b>B+ zone</b> (day {st['used'] * 100:.0f}%, but a swing is already running): a 4H close beyond a line "
-                  f"now = B+ signal (72% in test), not a new swing" if st.get("swing_busy") else
-                  "⭐ <b>B+ zone</b>: a 4H close beyond a line now = B+ signal (72% in test)") if z == 1 else
-                 "◽ Day still quiet: a breakout now would be a Normal signal (half size)")
+                  f"now = B+ signal (75% in test), not a new swing" if st.get("swing_busy") else
+                  "⭐ <b>B+ zone</b>: a strong 4H close beyond a line now = B+ signal (75% in test)") if z == 1 else
+                 "◽ Day still quiet: a breakout now is skipped (A+ / B+ need the Day Meter at 70%+)")
     side = ("BUY" if st["to_buy"] < st["to_sell"] else "SELL")
     dist = min(st["to_buy"], st["to_sell"])
     head = {"combo": "⭐ <b>B+ ZONE OPEN</b>", "premium": "💎 <b>A+ ZONE OPEN</b>", "4h": "📡 <b>STRATEGY RADAR</b>"}[why]

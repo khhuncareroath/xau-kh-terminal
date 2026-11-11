@@ -29,9 +29,6 @@ EXPIRE_MIN = float(os.environ.get("ALERT_EXPIRE_MIN", 120))
 COOLDOWN = float(os.environ.get("ALERT_COOLDOWN_H", 3)) * 3600
 STALE_MIN = 40
 MODE = os.environ.get("ALERT_MODE", "auto")   # auto: trade-style only if backtest.json proves the rules; else "watch" posts
-from engine import live_source
-TV = ("https://www.tradingview.com/chart/?symbol=OANDA%3AXAUUSD" if live_source() == "spot"
-      else "https://www.tradingview.com/chart/?symbol=COMEX%3AGC1%21")
 NY = ZoneInfo("America/New_York")
 
 
@@ -171,7 +168,7 @@ def model_alert(lm, state, now):
         if key in state.get("model_keys", []):
             return False
     bull = s["dir"] == "bull"
-    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 53, "win_rate_pct": 72, "avg_R": 0.47}) \
+    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 34, "win_rate_pct": 79, "avg_R": 0.61}) \
         if premium else (s.get("backtest") or {})
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
@@ -202,7 +199,22 @@ def model_alert(lm, state, now):
              f"<i>ទីផ្សារច្របូកច្របល់ = មិនផ្ញើសញ្ញា · យើងផ្ញើតែ A+ / B+</i>", "Setup skipped")
         print("model skipped: choppy", key)
         return False
-    cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
+    cl = s.get("close_loc")
+    if du is not None and cl is not None and cl < research.STRONG_CLOSE:
+        # best-setup study (11 Nov 2026): weak-close breakouts +0.11R (newest -0.15R) vs strong close +0.49R -> skip
+        state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
+        json.dump(state, open("notify_state.json", "w"))
+        send(f"⏭ <b>4H {'BUY' if bull else 'SELL'} breakout skipped</b> at {fmt(s['entry'])}\n"
+             f"Weak close: the 4H candle closed only {cl * 100:.0f}% of the way to its {'high' if bull else 'low'} "
+             f"(A+ / B+ need {research.STRONG_CLOSE * 100:.0f}%+). In 2 years of testing, weak-close breakouts were about break-even, "
+             f"so we only send strong-close A+ / B+ setups.\n"
+             f"<i>ទៀនបិទខ្សោយ = មិនផ្ញើសញ្ញា · យើងផ្ញើតែ A+ / B+</i>", "Setup skipped")
+        print("model skipped: weak close", key)
+        return False
+    if du is None:   # Day Meter unknown (not enough history): cannot tell A+ from B+, so nothing is sent
+        print("model skipped: Day Meter unknown", key)
+        return False
+    cb = (jl("backtest.json").get("models", {}).get("trend_bplus") or {}).get("all") or {"trades": 24, "win_rate_pct": 75, "avg_R": 0.48}
     combo_line = None
     if premium:
         combo_line = (f"💎 <b>A+ SETUP</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
@@ -390,11 +402,12 @@ def setup_message(mode, st, ict, fs, valid_until, summ, ai):
                 "<i>" + ("មិនមែនសញ្ញាជួញដូរទេ។ ប្រើជាផែនទីប៉ុណ្ណោះ។" if mode == "watch" else "មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។") + "</i>"]
     if ai and LANG != "km":
         out.insert(out.index("<b>Why</b>") + 1, esc(ai)) if "<b>Why</b>" in out else None
-    out.append(SITE or TV)
+    if SITE:   # no TradingView links (owner's rule)
+        out.append(SITE)
     return out
 
 
-PLAN_MODELS = ("vp_shape",)   # vp_late removed 11 Nov: -0.07R in 2y (-0.22R newest), 3/3 live was luck   # range_extreme removed 11 Nov: counter-trend, not proven (t 1.95), 0/2 live          # promising but not yet proven: sent as "plan trade", small risk, results posted
+PLAN_MODELS = ()   # owner, 11 Nov 2026: only A+ / B+ are sent. vp_shape removed: not proven (49% win, +0.16R)   # vp_late removed 11 Nov: -0.07R in 2y (-0.22R newest), 3/3 live was luck   # range_extreme removed 11 Nov: counter-trend, not proven (t 1.95), 0/2 live          # promising but not yet proven: sent as "plan trade", small risk, results posted
 WATCH_ALERTS = os.environ.get("WATCH_ALERTS", "off") == "on"   # old ICT watch ideas lost money in testing: off
 
 

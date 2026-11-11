@@ -21,6 +21,8 @@ env:
   TELEGRAM_GROUP_ID: ${{ vars.TELEGRAM_GROUP_ID || secrets.TELEGRAM_GROUP_ID }}   # optional: group with Topics = sections
   NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
   SITE_URL: ${{ vars.SITE_URL }}
+  SCALP: ${{ vars.SCALP || 'off' }}                     # only A+ / B+ are sent; 'on' brings back the scalp
+  SPLUS: ${{ vars.SPLUS || 'off' }}                     # 'on' brings back the S+ ICT setup
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}         # optional, free tier: breaking news in Khmer
   GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}

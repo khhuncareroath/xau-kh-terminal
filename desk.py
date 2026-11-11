@@ -148,9 +148,15 @@ def _sections(F, breakout=False):
     du = F.get("day_used")
     if du is not None:
         q.append(f"• Day Meter <b>{du * 100:.0f}%</b> of a normal day: "
-                 + ("💎 A+ zone (big day, breakouts tested 72% win)" if du >= 1.0 else
-                    "⭐ B+ zone (breakouts tested 72% win)" if du >= 0.7 else
+                 + ("💎 A+ zone (big day: a strong-close breakout tested 79% win)" if du >= 1.0 else
+                    "⭐ B+ zone (a strong-close breakout tested 75% win)" if du >= 0.7 else
                     "quiet day (breakouts only ~50/50, smaller size)"))
+    clo = sig.get("close_loc")
+    if clo is not None:
+        import research as _r
+        (pro if clo >= _r.STRONG_CLOSE else con).append(
+            f"Breakout candle closed {clo * 100:.0f}% of the way to its {'high' if bull else 'low'}: "
+            + ("strong close, buyers/sellers held it." if clo >= _r.STRONG_CLOSE else "weak close, skipped in testing."))
     vw = F["lad"].get("VWAP")
     if vw:
         q.append(f"• VWAP <b>{f(vw)}</b>: price {'above → intraday buyers stronger' if p > vw else 'below → intraday sellers stronger'}")
@@ -220,9 +226,10 @@ def trade_note(ict, conf, lv, df, lines, sig, stamp, day_used=None, tested=None)
                                                     else "quiet day, breakouts often fail. Use half size."))
     ef = sig.get("efficiency")
     if ef is not None:
-        (pro if ef > 0.255 else con).append(
-            f"Trend quality {ef:.2f}: " + ("clean trend. B+ in a clean trend won about 72% in testing."
-                                           if ef > 0.255 else "choppy market, breakouts were weaker in testing."))
+        import research as _r
+        (pro if ef > _r.CHOP_ER else con).append(
+            f"Trend quality {ef:.2f}: " + ("clean trend. A+ / B+ in a clean trend won 75-79% in testing."
+                                           if ef > _r.CHOP_ER else "choppy market, breakouts were weaker in testing."))
     vw = F["lad"].get("VWAP")
     if vw:
         ((pro if (F["price"] > vw) == bull else con)
