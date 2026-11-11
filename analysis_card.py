@@ -15,7 +15,7 @@ from signal_card import BG, CARD, INK, MUT, GRID, UP, DN, BLUE, DARK, _pill, _pi
 LIQ = ("Prev day high", "Prev day low", "Asia high", "Asia low")
 
 
-def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None):
+def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None, liq=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -79,6 +79,32 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
         ax.annotate(lab, (i, p), xytext=(0, 9 * sgn), textcoords="offset points", ha="center",
                     va="bottom" if sgn > 0 else "top", fontsize=7.5, fontweight="bold",
                     color=UP if lab in ("HH", "HL") else DN, zorder=4)
+
+    # mentor-style liquidity map: dealing range box, EQ, ELQ edges, ILQ dashed lines, $$ sweeps
+    if liq:
+        tx = lambda i15: int(d.index.searchsorted(liq["d15"].index[min(i15, len(liq["d15"]) - 1)]))
+        x0 = max(0, min(tx(liq["rh_i"]), tx(liq["rl_i"])))
+        if show(liq["rh"]) or show(liq["rl"]):
+            ax.add_patch(Rectangle((x0, liq["rl"]), n + ext - x0, liq["rh"] - liq["rl"], fc="none", ec=INK, lw=0.8,
+                                   alpha=0.35, zorder=2))
+        for y, lab in ((liq["rh"], "ELQ buy-side"), (liq["rl"], "ELQ sell-side")):
+            if show(y):
+                ax.text(x0 + 1, y, lab, fontsize=7, color=INK, fontweight="bold", va="bottom" if "buy" in lab else "top",
+                        zorder=4, clip_on=True)
+        if show(liq["eq"]):
+            ax.hlines(liq["eq"], x0, n + ext, color=INK, lw=0.6, ls=(0, (1, 2)), alpha=0.5, zorder=2)
+            ax.text(x0 + 1, liq["eq"], "EQ 50%", fontsize=6.5, color=MUT, va="bottom", zorder=4, clip_on=True)
+        for z in liq["ilq_up"] + liq["ilq_dn"]:
+            if show(z["price"]):
+                xs = tx(z["i"])
+                ax.hlines(z["price"], xs, n + ext * 0.5, color="#FF9500", lw=0.9, ls=(0, (3, 2)), zorder=2)
+                ax.text(xs, z["price"], "ILQ", fontsize=6.5, color="#FF9500", fontweight="bold",
+                        va="bottom" if z["kind"] == "H" else "top", zorder=4, clip_on=True)
+        for z in liq["sweeps"]:
+            if z.get("at") is not None and show(z["price"]):
+                xs = tx(z["at"])
+                ax.text(xs, z["price"], r"\$\$", fontsize=8, color="#FF9500", fontweight="bold", ha="center",
+                        va="bottom" if z["kind"] == "H" else "top", zorder=5, clip_on=True)
 
     # liquidity + 4H lines
     lad = {x["name"]: float(x["price"]) for x in lv.get("ladder", []) if x.get("price")}

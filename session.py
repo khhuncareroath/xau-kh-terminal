@@ -602,8 +602,16 @@ def analysis_chart(df, lv, conf, lines, path, title):
             scen.append((price, F["dn_liq"][0][0] if F["dn_liq"] else lines[1], "#FF3B30"))
         except Exception as e:
             print("scenarios failed:", e)
+        liq = None
+        try:
+            import liqmap
+            liq = liqmap.build(df)
+            if liq.get("draw") and liq.get("target"):   # scenario arrow follows the draw on liquidity
+                scen = [(price, liq["target"], "#34C759" if liq["draw"] == "up" else "#FF3B30")]
+        except Exception as e:
+            print("liquidity map failed:", e)
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
-                                  plan=p if p and p.get("side") else None, todo=todo, trend=st["trend"], scenarios=scen)
+                                  plan=p if p and p.get("side") else None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq)
     except Exception as e:
         print("analysis card failed, old chart:", e)
         return _analysis_chart_old(df, lv, conf, lines, path, title)
@@ -1722,8 +1730,13 @@ def main():
         try:   # 🏦 the professional desk note (ICT + XAU.KH quant), basic English + Khmer, in 📊 Analysis
             import desk
             from research import day_used
-            note = desk.note(ict, conf, lv, df, lines, f"{name} session · {local(time.time())}",
-                             day_used=day_used(df, df.index[-1] + pd.Timedelta(minutes=5)))
+            try:   # mentor-style 15m liquidity map (top-down, dealing range, ELQ/ILQ, sweeps, IRL -> ERL, 5m confirmation)
+                import liqmap
+                note = liqmap.text(liqmap.build(df), fmt)
+            except Exception as e:
+                print("liqmap text failed, desk note:", e)
+                note = desk.note(ict, conf, lv, df, lines, f"{name} session · {local(time.time())}",
+                                 day_used=day_used(df, df.index[-1] + pd.Timedelta(minutes=5)))
             send(note, "Desk note", reply_to=mid if isinstance(mid, int) else None)
         except Exception as e:
             print("desk note failed:", e)
