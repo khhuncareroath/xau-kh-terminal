@@ -596,7 +596,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     if not mid:
         return None
     now = time.time()
-    log_alert({"id": f"setup|{side}|{'zone' if why else 'break'}|{t15}", "kind": "setup", "model": "setup_idea", "dir": "bull" if bull else "bear",
+    log_alert({"id": f"setup|{side}|{'zone' if why else 'break'}|{t15}", "kind": "m15", "model": "setup_idea", "dir": "bull" if bull else "bear",
                "entry": entry, "stop": stop, "target": tp2, "tp1": tp1, "part": 0.5, "rr": round(abs(tp2 - entry) / risk, 2),
                "created": now, "valid_until": now + 900, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
                "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": 8 * 3600, "tier": (ck or {}).get("tier") or "setup",

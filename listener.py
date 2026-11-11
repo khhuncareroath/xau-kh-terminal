@@ -99,7 +99,7 @@ def check_answer():
     lean = F["lean"]
     trend = {"bull": "UP ↑ (buyers)", "bear": "DOWN ↓ (sellers)", None: "MIXED ↔"}[lean]
     km_trend = {"bull": "ឡើង", "bear": "ចុះ", None: "ចំហៀង"}[lean]
-    zone = ("💎 A+ zone" if st["zone"] == 2 else "⭐ B+ zone" if st["zone"] == 1 else "quiet day")
+    zone = ("big day" if st["zone"] == 2 else "moving day" if st["zone"] == 1 else "quiet day")
     nxt = session.local(lines[2].timestamp()) if hasattr(session, "local") else ""
     live = st.get("live")
     out = [f"🔎 <b>GOLD CHECK</b> · <b>{fmt(p)}</b> · {session.local(time.time())}",
@@ -113,12 +113,17 @@ def check_answer():
         km = f"មានសញ្ញា{'ទិញ' if side == 'BUY' else 'លក់'}កំពុងបើក · ធ្វើតាមសញ្ញា កុំបើកថ្មី"
         todo = "Follow the open signal. Don't open a new trade against it."
     else:
-        out.append(f"⚡ Next 4H signal: BUY if a 4H candle closes above <b>{fmt(lines[0])}</b> ({lines[0] - p:+,.1f}) · "
-                   f"SELL below <b>{fmt(lines[1])}</b> ({lines[1] - p:+,.1f}) · next close {nxt}")
-        near = min(lines[0] - p, p - lines[1]) <= p * 0.004
-        todo = ("Price is close to a signal line: get ready, wait for the 4H close." if near else
+        idea = (jl("setup_idea.json").get("idea") or {})
+        if idea and time.time() < idea.get("valid_until", 0):
+            b_, s_ = idea["BUY"], idea["SELL"]
+            out.append(f"📐 {idea.get('session', 'Session')} setup idea: BUY if a 15m candle closes above <b>{fmt(b_['trig'])}</b> "
+                       f"({b_['trig'] - p:+,.1f}) · SELL below <b>{fmt(s_['trig'])}</b> ({s_['trig'] - p:+,.1f})")
+            near = min(abs(b_['trig'] - p), abs(p - s_['trig'])) <= 3
+        else:
+            near = False
+        todo = ("Price is close to a setup line: get ready, wait for the 15m close." if near else
                 "No signal now. Waiting is the trade. Don't force an entry.")
-        km = ("ជិតបន្ទាត់សញ្ញា: ត្រៀមខ្លួន រង់ចាំទៀន 4H បិទ" if near else "មិនទាន់មានសញ្ញា: រង់ចាំ កុំបង្ខំចូល")
+        km = ("ជិតបន្ទាត់ setup: ត្រៀមខ្លួន រង់ចាំទៀន 15m បិទ" if near else "មិនទាន់មានសញ្ញា: រង់ចាំ កុំបង្ខំចូល")
     out += [f"👉 <b>{todo}</b>", f"🇰🇭 ទិសដៅ{km_trend} · {km}",
             "<i>Not financial advice · /signal /proof /lesson</i>"]
     text = "\n".join(out)
@@ -133,7 +138,7 @@ def check_answer():
 
 def signal_answer():
     log = jl("alerts_log.json", [])
-    a = next((x for x in reversed(log) if x.get("kind") in ("model", "scalp", "plan", "splus")), None)
+    a = next((x for x in reversed(log) if x.get("kind") in ("m15", "model", "scalp", "plan", "splus")), None)
     if not a:
         return "No signal yet. · មិនទាន់មានសញ្ញា"
     side = "BUY" if a["dir"] == "bull" else "SELL"
@@ -149,7 +154,7 @@ def proof_answer():
     s = jl("results.json")
     if not s.get("traded"):
         return "No closed trades yet."
-    names = {"model": "⭐ 4H breakout", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
+    names = {"m15": "📐 M15 setups (A+ / B+)", "model": "⭐ 4H breakout (old)", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
              "post-news": "📰 after-news (stopped)", "setup": "old ICT ideas (stopped)", "watch": "old watch ideas (stopped)"}
     rows = []
     for k, v in (s.get("by_kind") or {}).items():
@@ -157,7 +162,7 @@ def proof_answer():
             rows.append(f"{names.get(k, k)}: {v['wins']}W / {v['losses']}L · {v.get('total_R', 0):+.1f}R")
     return ("🏆 <b>Live record since 3 Nov</b> (every result, wins and losses)\n"
             f"All: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R\n" + "\n".join(rows)
-            + "\n\nTested 2 years: 💎 A+ 72% win (+0.47R) · ⭐ B+ 72% (+0.42R) · 🤬 scalp 58% at 2R\n"
+            + "\n\n📐 M15 setups are new: their live record above is the real test.\n"
               "<i>A few weeks is a small sample: judge by months.</i>")
 
 
