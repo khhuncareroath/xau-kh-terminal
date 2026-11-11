@@ -290,3 +290,21 @@ Decision: no change, stay at 2 a day / 24 h.
 **Volume profile LVN + FVG / VAL (AIZEN video):** already tested as vp_shape (+0.15R, t 2.0, not proven), value_80 (+0.09R),
 vp_late (−0.09R).
 **Band touches on 1m (MM Trader video):** already tested as vwap_fade (2-sigma band, close back inside): −0.15R, 618 trades.
+
+## 📊 Volume profile: what makes it better? (studies/vp_learn.py, vp_robust.py) · 12 Nov 2026
+vp_shape (P shape -> buy the pullback to last session's POC, b shape -> sell it), live settings: 239 trades, +0.16R, t 2.0.
+Split by tag (a lesson must hold in BOTH older and newest data):
+- **4H does NOT agree: +0.25R (122, t 2.3, older +0.23 / newest +0.30, 8 of 9 quarters) PROVEN. 4H agrees: +0.06R (117).**
+  Holds in every setting tried (profile 0.50-0.65 x target 1.5-2.5R): against-4H +0.17 to +0.31R, with-4H −0.02 to +0.08R.
+  Proven at the live profile setting for 1.5R, 2R and 2.5R. Meaning: the profile shows a NEW side took control (buyers
+  won the last session while the 4H still points down, or the reverse); the first pullback to its POC is the trade.
+  Where the 4H already agrees, the move is old news and the pullback edge is gone.
+- London +0.20R both halves; Asia older +0.45 / newest −0.08; New York weak (older −0.16): not consistent, no rule.
+- Clean 4H trend: too few trades to say. Bigger lopsidedness: mixed.
+Candidate: "Volume Plan, 4H not agreeing" ~5 a month, +0.25-0.31R. Several splits were looked at (multiple testing), but the
+same direction in all 12 settings makes luck unlikely.
+
+## 🐢 Turtle Soup at 8:30 Cambodia (Asia), deeper (vp_learn.py part 2) · 12 Nov 2026
+Ranges: the hour before, 06:00-08:30, the last New York session. Fading the sweep (the video): −0.10 to −0.34R in every
+version (t to −3.4). Trading WITH the sweep (continuation): about 0R. With the 4H: still negative. Lesson: in the Asia
+morning, sweeps of the early range are usually the start of a move, not a trap; fading them loses. No signal.
