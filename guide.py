@@ -8,43 +8,33 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11p"
+VERSION = "2026-11-11q"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
-✅ <b>BUY/SELL NOW</b>: one tested signal, the 4H breakout. <b>Intraday only</b>: closes within 12 h. Risk 1% max.
-It is sent only when ALL of these are true:
- 1️⃣ 4H candle closes beyond the 1-week high/low
- 2️⃣ strong close (near the high for BUY, near the low for SELL)
- 3️⃣ clean 4H trend (not choppy)
- 4️⃣ Day Meter 70%+ (the day is moving)
-💎 <b>A+</b>: all 4 + Day Meter 100%+ (79% win in 2-year test) · full size
-⭐ <b>B+</b>: all 4, Day Meter 70–100% (75% win in test) · full size
-⏭ Other breakouts are <b>not sent</b>: about 2–3 A+/B+ a month. Fewer, but stronger.
-🎯 <b>TP1 hit</b>: close half, move SL to entry.
+📊 <b>Analysis</b> (every session): the 4H gives the key levels and the trend; the M15 gives the setup.
+🟢 TARGET BUY / 🔻 TARGET SELL lines, and BUY at Demand / SELL at Supply zones.
 
-📐 <b>SETUP IDEA</b> (📊 Analysis, every session): Swing / Internal bias, Swing High / Low, 🟢 TARGET BUY and 🔴 TARGET SELL lines.
-When a 15m candle <b>closes</b> beyond a line (or rejects a demand / supply zone) AND at least 4 of 7 confirmations agree,
-the bot sends 📐 <b>SETUP</b> in 📈 Signals, with the reasons ✅/❌ in 🔎 Setup Analysis. Max 2 a day.
-Setup ideas are analysis, not tested like A+/B+: <b>small size 0.25–0.5%</b>. Every result is shown, wins AND losses.
+✅ <b>SIGNAL</b> (📈 Signals): sent only when a <b>15m candle closes</b> at a line or rejects a zone, AND the 4H agrees.
+💎 <b>A+</b>: with the 4H trend + 6 of 7 confirmations, or a fresh 4H breakout the same way
+⭐ <b>B+</b>: with the 4H trend + at least 4 of 7 confirmations
+⏭ Against the 4H trend or too few confirmations: <b>not sent</b> (reason shown in 🔎 Setup Analysis)
+🎯 <b>TP1 hit</b>: close half, move SL to entry. Max 2 signals a day, closes within 8 h.
 
-📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
-📏 Day Meter: 70% = B+ zone · 100% = A+ zone
-KE TV HX = buy · LUK MOA = sell (on the charts)
-🧾 <b>Signal proof</b> / 📊 Friday report: every result, wins AND losses.
+🔎 <b>Setup Analysis</b>: why each signal, ✅/❌ checklist.
+🏆 <b>Proof</b> / 📊 Friday report: every result, wins AND losses.
 📰 News in 30 min: no new entries 15 min before and after.
 
-🔔 <b>Get an alert only for real trades</b>: mute the group, then unmute only 📈 Signals. Your phone rings only for a confirmed BUY/SELL. · បិទសំឡេង group ហើយបើកតែ Signals
+🔔 <b>Get an alert only for real trades</b>: mute the group, then unmute only 📈 Signals. · បិទសំឡេង group ហើយបើកតែ Signals
 🤖 Type <b>/check</b> anytime: gold right now + what to do · វាយ /check ដើម្បីមើលមាសឥឡូវ
 🎓 <b>/academy</b>: all 45 lessons · <b>/lesson 5</b>: open chapter 5 · មេរៀនទាំងអស់
 
-💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
-💰 Every signal shows the $ result per 0.01 lot: SL $22 = −$22 at 0.01 lot.
+💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.25–0.5% of your account per trade.
+💰 Every signal shows the $ at SL per 0.01 lot.
 
-🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ (២–៣ ដង/ខែ) · 📐 Setup = គំនិតពីការវិភាគ ប្រើ lot តូច
-រង់ចាំទៀន 15m បិទលើ/ក្រោមខ្សែ TARGET ទើបចូល។
-ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
+🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ · 4H ជាអ្នកវិនិច្ឆ័យ M15
+រង់ចាំទៀន 15m បិទ ទើបចូល។ ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
 SECTIONS_TEXT = """

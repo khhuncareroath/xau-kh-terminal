@@ -458,16 +458,51 @@ def checks(idea, sg, d5, d15, entry, reaction=False, clear=True):
     ] + ([(False, "big news soon: wait", "ព័ត៌មានធំជិតមកដល់")] if news else [])
 
 
+def htf_break(d5, sg, hours=12):
+    """The tested 4H rule as a helper for M15: did a 4H candle in the last `hours` close beyond the 1-week high / low
+    in this direction, with a strong close and a clean 4H trend? (research.py A+/B+ conditions, without the Day Meter.)"""
+    import ict
+    import research
+    d4 = ict.resample(d5, "4H")
+    end = d5.index[-1] + pd.Timedelta(minutes=5)
+    d4 = d4[d4.index + pd.Timedelta(hours=4) <= end]
+    if len(d4) < 35:
+        return None
+    hi30, lo30 = d4["High"].rolling(30).max().shift(1), d4["Low"].rolling(30).min().shift(1)
+    for k in range(len(d4) - 1, len(d4) - 1 - max(1, hours // 4), -1):
+        c = float(d4["Close"].iloc[k])
+        if (c > hi30.iloc[k]) if sg > 0 else (c < lo30.iloc[k]):
+            t = d4.index[k] + pd.Timedelta(hours=4, minutes=20)
+            cl = research.close_location(d5, t, "bull" if sg > 0 else "bear")
+            er = research.efficiency(d5, t)
+            if (cl is None or cl >= research.STRONG_CLOSE) and (er is None or er > research.CHOP_ER):
+                return {"time": str(d4.index[k] + pd.Timedelta(hours=4)), "level": round(float(hi30.iloc[k] if sg > 0 else lo30.iloc[k]), 2)}
+    return None
+
+
+def grade(idea, sg, score, brk):
+    """4H judges the M15 setup. A+ = with the 4H trend AND (6+ confirmations OR a fresh tested 4H breakout the same way).
+    B+ = with the 4H trend and MIN_CONF+. Against the 4H trend or too few confirmations = None (not sent)."""
+    with4h = idea.get("swing") == ("bull" if sg > 0 else "bear")
+    if not with4h or score < MIN_CONF:
+        return None
+    return "A+" if (score >= 6 or brk) else "B+"
+
+
 def _gate(idea, side, sg, d5, d15, entry, kind, reaction=False, clear=True):
     """True = enough confirmations: send the signal. False = post a short 'not enough' note in 🔎 Setup Analysis."""
     ck = checks(idea, sg, d5, d15, entry, reaction, clear)
     score = sum(1 for ok, *_ in ck if ok)
-    idea.setdefault("checks", {})[side] = {"score": score, "of": len(ck), "list": [[bool(a), b, c] for a, b, c in ck]}
-    if score >= MIN_CONF and not any(not ok and "news" in en for ok, en, _ in ck):
+    brk = htf_break(d5, sg)
+    tier = None if any(not ok and "news" in en for ok, en, _ in ck) else grade(idea, sg, score, brk)
+    idea.setdefault("checks", {})[side] = {"score": score, "of": len(ck), "list": [[bool(a), b, c] for a, b, c in ck],
+                                           "tier": tier, "htf_break": brk}
+    if tier:
         return True
     from tg import fmt, send
-    send(f"🔎 <b>{side} setup seen, NOT sent</b> · {kind} at {fmt(entry)}\n"
-         f"Confirmations <b>{score}/{len(ck)}</b> (needs {MIN_CONF}):\n"
+    why = ("against the 4H trend" if idea.get("swing") != ("bull" if sg > 0 else "bear") else
+           f"{score}/{len(ck)} confirmations (needs {MIN_CONF})")
+    send(f"🔎 <b>{side} setup seen, NOT sent</b> · {kind} at {fmt(entry)} · {why}\n"
          + "\n".join(f"{'✅' if ok else '❌'} {en}" for ok, en, _ in ck)
          + f"\n<i>មិនទាន់គ្រប់ការបញ្ជាក់ · មិនផ្ញើសញ្ញា</i>", "Setup not sent")
     print("setup: not enough confirmations", side, score)
@@ -535,13 +570,13 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     wt = idea.get("with_trend")
     ck = idea.get("checks", {}).get(side)
     cap = "\n".join(x for x in [
-        f"{'🟢' if bull else '🔴'} <b>XAU/USD — {side} | SETUP</b>",
+        f"{'🟢' if bull else '🔴'} <b>XAU/USD — {side} | " + ("💎 A+" if (ck or {}).get("tier") == "A+" else "⭐ B+") + "</b>",
         f"📍 Entry: <b>{fmt(entry)}</b>",
         f"🛑 SL: <b>{fmt(stop)}</b>",
         f"🎯 TP1: <b>{fmt(tp1)}</b>",
         f"🎯 TP2: <b>{fmt(tp2)}</b>",
         (f"🧩 Confirmations: <b>{ck['score']}/{ck['of']}</b>" if ck else None),
-        f"⏱ Timeframe: M15 · lot តូច · −${risk:,.0f} at SL (0.01 lot)",
+        f"⏱ Timeframe: M15 · 4H " + ("trend + breakout" if (ck or {}).get("htf_break") else "trend") + f" · −${risk:,.0f} at SL (0.01 lot)",
     ] if x)
     title = f"{side} idea" if TOPIC == "signals" else f"{side} setup triggered"
     mid = None
@@ -551,7 +586,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
         from levels import to_ny
         d5 = to_ny(load("5m", "20d")).iloc[:-1]
         signal_card.make(d5, {"dir": "bull" if bull else "bear", "entry": entry, "stop": stop, "tp1": tp1, "target": tp2,
-                              "level": p["trig"]}, "setup_card.png", tier="setup", status="LIVE", stamp=local(time.time()),
+                              "level": p["trig"]}, "setup_card.png", tier="setup_a" if (ck or {}).get("tier") == "A+" else "setup_b", status="LIVE", stamp=local(time.time()),
                          tf_label="15m setup", hold_note="closes within 8 h")
         mid = send_photo("setup_card.png", cap, title)
     except Exception as e:
@@ -564,7 +599,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     log_alert({"id": f"setup|{side}|{'zone' if why else 'break'}|{t15}", "kind": "setup", "model": "setup_idea", "dir": "bull" if bull else "bear",
                "entry": entry, "stop": stop, "target": tp2, "tp1": tp1, "part": 0.5, "rr": round(abs(tp2 - entry) / risk, 2),
                "created": now, "valid_until": now + 900, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
-               "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": 8 * 3600, "tier": "setup",
+               "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": 8 * 3600, "tier": (ck or {}).get("tier") or "setup",
                "zone": f"TARGET {side} {p['trig']}"})
     print("setup sent", side, entry, stop, tp1, tp2)
     try:   # 🔎 the reason recap, separate from the clean signal feed
@@ -575,6 +610,9 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
             f"📍 {why or ('15m candle closed ' + ('above' if bull else 'below') + ' the TARGET ' + side + ' line ' + fmt(p['trig']))}",
             f"🗺 Swing 4H {BW[idea.get('swing')][0]} · 1H {BW[idea.get('h1')][0]} · 15m {BW[idea.get('internal')][0]} · Swing range "
             f"{fmt(idea['rl'])}–{fmt(idea['rh'])}",
+            (f"⚖️ 4H judge: <b>{ck.get('tier')}</b> · with the 4H trend"
+             + (f" + tested 4H breakout {'above' if bull else 'below'} {fmt(ck['htf_break']['level'])}" if ck.get("htf_break") else "")
+             + (" + 6/7 confirmations" if ck["score"] >= 6 else "") if ck else None),
             *([f"🧩 <b>Confirmations {ck['score']}/{ck['of']}</b>"] + [f"{'✅' if ok else '❌'} {en} · {km}" for ok, en, km in ck["list"]]
               if ck else []),
             f"🛑 Wrong if price closes {'below' if bull else 'above'} {fmt(stop)} · 🎯 TP1 {fmt(tp1)} → TP2 {fmt(tp2)}",

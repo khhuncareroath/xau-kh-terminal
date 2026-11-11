@@ -179,3 +179,11 @@ candle confirms a line, the bot sends 📐 SETUP in 📈 Signals (max 2 a day, n
 track.py replies TP / SL and counts it (kind "setup"). Labelled honestly as analysis, small size 0.25-0.5%: these
 trigger lines tested near 50/50 above, so the LIVE record decides. SETUP_IDEAS=off turns it off, SETUP_TOPIC=setups
 moves the alerts to 🔎 Setup Analysis.
+
+## Decision (owner, 11 Nov 2026, night): ONE signal = the M15 setup, graded by the 4H
+The separate 4H breakout signal is OFF (BREAKOUT_SIGNALS=on brings it back). The 4H now only gives key levels and
+judges the M15 setup: 💎 A+ = with the 4H swing trend AND (6/7 confirmations OR a tested 4H breakout the same way in
+the last 12 h: strong close + clean trend); ⭐ B+ = with the 4H trend and 4/7+. Counter-4H or weaker setups are noted
+in 🔎 Setup Analysis, not sent. Replay of 30 sessions: 8 A+, 6 B+ (about 1-2 a day). HONEST NOTE: the only rule
+proven on 2 years was the 4H breakout itself (78% win, +0.56R); the M15 setups and the grade are not proven yet,
+so every signal says risk 0.25-0.5% and the live record in Proof decides.

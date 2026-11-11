@@ -240,7 +240,7 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     # dark box: what to do + key numbers
     fig.patches.append(FancyBboxPatch((0.035, 0.03), 0.93, 0.25, boxstyle="round,pad=0,rounding_size=0.025",
                                       transform=fig.transFigure, fc=DARK, ec="none", zorder=0))
-    fig.text(0.075, 0.245, "What to do · setup ideas, not tested signals · small size 0.25–0.5%" if setup else
+    fig.text(0.075, 0.245, "What to do · M15 setups, graded A+ / B+ by the 4H · risk 0.25–0.5%" if setup else
              "What to do · the map shows both paths, it does not predict", color="#AEAEB2", fontsize=9.5, va="center")
     import textwrap
     fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
@@ -269,7 +269,8 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
             rows.append(("If a 15m candle closes above", f"{liq['trig_buy']:,.2f}" + (f" → {liq['tgt_buy']:,.0f}" if liq.get("tgt_buy") else ""), UP))
         if liq.get("trig_sell"):
             rows.append(("If a 15m candle closes below", f"{liq['trig_sell']:,.2f}" + (f" → {liq['tgt_sell']:,.0f}" if liq.get("tgt_sell") else ""), DN))
-    rows = [("NEXT SIGNAL · 4H close: BUY above / SELL below", f"{upper:,.0f} / {lower:,.0f}", "#FFD60A")] + rows
+    rows = [(("4H key levels · week high / low (A+ if broken)" if setup else "NEXT SIGNAL · 4H close: BUY above / SELL below"),
+             f"{upper:,.0f} / {lower:,.0f}", "#FFD60A")] + rows
     if plan and plan.get("side") and plan.get("edge"):
         rows.append((f"Plan {plan['side']} at POC", f"{plan['edge']:,.2f}", "#FF9500"))
     y, dy, fa, fb = (0.152, 0.027, 8.8, 9.8) if len(rows) > 3 else (0.135, 0.034, 10, 11)

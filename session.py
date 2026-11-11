@@ -1747,7 +1747,9 @@ def main():
     if (time.time() - df.index[-1].timestamp()) / 60 > 40 and not os.environ.get("XAU_SIM"):
         print("session: data is stale, nothing sent"); return
     lines = breakout_lines(df)
-    heads_up(df, lines, state)
+    BRK = os.environ.get("BREAKOUT_SIGNALS", "off") == "on"
+    if BRK:   # "price near the 4H signal line" heads-up: only while the separate 4H signal is on
+        heads_up(df, lines, state)
     try:
         intraday_alerts(df, lv, conf, ict, state, news)   # old 🟠 alerts: off unless INTRADAY_ALERTS=on
         if os.environ.get("LEVEL_ALERTS") == "on":   # level heads-ups had no edge in testing: off
@@ -1761,8 +1763,9 @@ def main():
         except Exception as e:
             print("setup watch failed:", e)
         quiet_checkin(ict, lv, news, df, lines, state)
-        proof_post(df, state)
-        radar_post(df, lines, state)
+        if BRK:   # these replay / explain the 4H breakout signal
+            proof_post(df, state)
+            radar_post(df, lines, state)
     except Exception as e:
         print("level alerts failed:", e)
     due = due_session(state, datetime.now(timezone.utc)) if not os.environ.get("SESSION_FORCE") else \

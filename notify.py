@@ -501,7 +501,9 @@ def main():
     if ns:
         print("high-impact news soon, holding alerts:", ns); return
     lm = jl("live_models.json")
-    if model_alert(lm, state, now) or plan_alert(lm, state, now):
+    # owner, 11 Nov 2026: ONE signal = the M15 setup (setupidea.py), graded A+ / B+ by the 4H. The 4H breakout is
+    # only a helper (key levels + the A+ grade). BREAKOUT_SIGNALS=on brings the separate 4H signal back.
+    if os.environ.get("BREAKOUT_SIGNALS", "off") == "on" and (model_alert(lm, state, now) or plan_alert(lm, state, now)):
         return
     if not WATCH_ALERTS:
         print("watch alerts off"); return
