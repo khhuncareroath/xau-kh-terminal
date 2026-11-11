@@ -203,3 +203,13 @@ setupidea.py exactly as the bot runs it, every session (998), watch() after ever
 Decision: zone-reaction trades are no longer sent (ZONE_SIGNALS=on brings them back); zones stay on the card as key
 levels and a reaction gets a note in Setup Analysis. Positive but NOT proven (t < 2), longest losing streak 9:
 risk 0.25-0.5%, the live record decides. For comparison the 4H breakout alone was 78% win, +0.56R, proven (2-3 a month).
+
+## Shorter trades for members who sleep (11 Nov 2026, night)
+| Exit on the live M15 signal (383 replayed) | Avg R | A+ |
+|---|---|---|
+| now: TP1 + TP2, max 8 h | +0.070 | +0.104 |
+| max 4 h / 3 h / 2 h | +0.046 / +0.045 / +0.044 | +0.08 / +0.07 / +0.05 |
+| single TP 1R, max 2-3 h | +0.04 | +0.06-0.07 |
+| **8 h but closed by 24:00 Cambodia, no new trade 00:00-06:00** | **+0.086** | **+0.107** |
+Decision: closed by midnight (LIVE). ⚡ Scalp after an A+/B+ 4H breakout re-tested with today's stricter breakout:
+57 trades, 60% win, +0.62R, newest 62% +0.77R, t 3.3, PROVEN -> back on by default (SCALP=off stops it), ~2-3 a month.

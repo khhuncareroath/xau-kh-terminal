@@ -44,13 +44,34 @@ def active_breakout(now):
     return None
 
 
+def breakout_from_data(now):
+    """The tested A+/B+ 4H breakout (research.trend_combo: Day Meter 70%+, clean trend, strong close) in the last 12 h,
+    found in the live candles. Used now that the separate 4H signal is not posted (it is only the M15 judge)."""
+    try:
+        d = to_ny(load("5m", "20d"))
+        if d.index.tz is None:
+            d.index = d.index.tz_localize("UTC")
+        trades = research.trend_combo(d)
+    except Exception as e:
+        print("scalp: breakout scan failed:", e)
+        return None
+    for t, _r, side in reversed(trades):
+        age = now - t.timestamp()
+        if 15 * 60 <= age <= WINDOW_S:
+            return {"dir": "bull" if side == "long" else "bear", "entry": float(d["Open"].iloc[int(d.index.searchsorted(t))]),
+                    "id": f"combo|{t}", "created": t.timestamp()}
+        if age > WINDOW_S:
+            break
+    return None
+
+
 def main():
-    if os.environ.get("SCALP") != "on":   # owner, 11 Nov 2026: only A+ / B+ signals. SCALP=on (repo variable) re-enables
-        print("scalp: off (only A+ / B+)"); return
+    if os.environ.get("SCALP", "on") == "off":   # owner, 11 Nov 2026: ⚡ scalp back on (60% win at 2R, proven). SCALP=off stops it
+        print("scalp: off"); return
     now = time.time()
-    br = active_breakout(now)
+    br = active_breakout(now) or breakout_from_data(now)
     if not br:
-        print("scalp: no B+ breakout window open"); return
+        print("scalp: no A+/B+ 4H breakout window open"); return
     log = jl("alerts_log.json", [])
     if any(a.get("kind") == "scalp" and a["status"] in ("pending", "filled") for a in log):
         print("scalp: a scalp trade is still open"); return
@@ -101,16 +122,13 @@ def main():
     bt = (jl("backtest.json", {}).get("models", {}).get("combo_scalp") or {}).get("all") or {}
     side = "BUY" if bull else "SELL"
     caption = "\n".join(x for x in [
-        f"🤬 <b>XAU/USD — {side} | SCALP</b> (small SL)",
-        f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}ឥឡូវ</b> · ចូល {fmt(entry)} · SL {fmt(sw)} · TP {fmt(tgt)} · lot តូច",
-        f"📍 Entry: <b>{fmt(entry)}</b> (now)",
-        f"🛑 SL: <b>{fmt(sw)}</b> ({risk * 10:,.0f} pips)",
-        f"🎯 TP: <b>{fmt(tgt)}</b> (+{risk * research.SCALP_RR * 10:,.0f} pips) = 2R",
-        f"💰 0.01 lot: SL −${risk:,.1f} · TP +${risk * research.SCALP_RR:,.1f} · 0.01 lot per ${risk * 200:,.0f} of account (0.5% risk)",
-        (f"📊 Tested 2 years: {bt.get('trades')} trades · {bt.get('win_rate_pct')}% win · small-size setup" if bt.get("trades") else
-         "📊 Tested 2 years: 120 trades · 50% win · small-size setup"),
-        f"⏱ 5m entry in the direction of the ⭐ {fmt(br['entry'])} breakout · closes within 3 h",
-        "⚡ Fast setup: enter now or skip · ចូលឥឡូវ ឬរំលង · risk 0.25–0.5%",
+        f"⚡ <b>XAU/USD — {side} | SCALP</b>",
+        f"📍 Entry: <b>{fmt(entry)}</b>",
+        f"🛑 SL: <b>{fmt(sw)}</b>",
+        f"🎯 TP: <b>{fmt(tgt)}</b> (2R)",
+        (f"📊 Tested: <b>{bt.get('win_rate_pct')}%</b> win ({bt.get('trades')} trades, 2 years)" if bt.get("trades") else None),
+        f"⏱ Timeframe: M5 · after a 4H breakout · closes within 3 h · −${risk:,.0f} at SL (0.01 lot)",
+        "<i>Enter now or skip · ចូលឥឡូវ ឬរំលង</i>",
     ] if x)
     mid = None
     try:

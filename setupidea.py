@@ -375,6 +375,9 @@ def watch(df):
     dk = day.strftime("%Y-%m-%d")
     if st.get("count", {}).get(dk, 0) >= MAX_PER_DAY:
         return False
+    loc = pd.Timestamp(now, unit="s", tz="Asia/Phnom_Penh")
+    if loc.hour < 6:   # 2-year replay: closing by midnight Cambodia was as good or better (+0.086R vs +0.070R): no new trades at night
+        return False
     cl = float(d15["Close"].iloc[-1])
     if _watch_zones(idea, st, d5, d15, cl, now, dk):
         return True
@@ -594,6 +597,8 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     link = msg_link(idea.get("msg_id"), f"{idea.get('session', '')} session")
     wt = idea.get("with_trend")
     ck = idea.get("checks", {}).get(side)
+    loc = pd.Timestamp(time.time(), unit="s", tz="Asia/Phnom_Penh")
+    hold_s = int(min(8 * 3600, ((loc.normalize() + pd.Timedelta(days=1)) - loc).total_seconds()))   # closed by 24:00 Cambodia
     cap = "\n".join(x for x in [
         f"{'🟢' if bull else '🔴'} <b>XAU/USD — {side} | " + ("💎 A+" if (ck or {}).get("tier") == "A+" else "⭐ B+") + "</b>",
         f"📍 Entry: <b>{fmt(entry)}</b>",
@@ -601,7 +606,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
         f"🎯 TP1: <b>{fmt(tp1)}</b>",
         f"🎯 TP2: <b>{fmt(tp2)}</b>",
         (f"🧩 Confirmations: <b>{ck['score']}/{ck['of']}</b>" if ck else None),
-        f"⏱ Timeframe: M15 · 4H " + ("trend + breakout" if (ck or {}).get("htf_break") else "trend") + f" · −${risk:,.0f} at SL (0.01 lot)",
+        f"⏱ Timeframe: M15 · 4H " + ("trend + breakout" if (ck or {}).get("htf_break") else "trend") + f" · closes by 24:00 · −${risk:,.0f} at SL (0.01 lot)",
     ] if x)
     title = f"{side} idea" if TOPIC == "signals" else f"{side} setup triggered"
     mid = None
@@ -612,7 +617,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
         d5 = to_ny(load("5m", "20d")).iloc[:-1]
         signal_card.make(d5, {"dir": "bull" if bull else "bear", "entry": entry, "stop": stop, "tp1": tp1, "target": tp2,
                               "level": p["trig"]}, "setup_card.png", tier="setup_a" if (ck or {}).get("tier") == "A+" else "setup_b", status="LIVE", stamp=local(time.time()),
-                         tf_label="15m setup", hold_note="closes within 8 h")
+                         tf_label="15m setup", hold_note="closes by 24:00")
         mid = send_photo("setup_card.png", cap, title)
     except Exception as e:
         print("setup card failed, text:", e)
@@ -624,7 +629,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     log_alert({"id": f"setup|{side}|{'zone' if why else 'break'}|{t15}", "kind": "m15", "model": "setup_idea", "dir": "bull" if bull else "bear",
                "entry": entry, "stop": stop, "target": tp2, "tp1": tp1, "part": 0.5, "rr": round(abs(tp2 - entry) / risk, 2),
                "created": now, "valid_until": now + 900, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
-               "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": 8 * 3600, "tier": (ck or {}).get("tier") or "setup",
+               "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": hold_s, "tier": (ck or {}).get("tier") or "setup",
                "zone": f"TARGET {side} {p['trig']}"})
     print("setup sent", side, entry, stop, tp1, tp2)
     try:   # 🔎 the reason recap, separate from the clean signal feed

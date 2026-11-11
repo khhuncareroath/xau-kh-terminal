@@ -86,7 +86,8 @@ for n, i0 in enumerate(starts):
             e = sent[-1]
             r, hit1 = grade(e, j + 1)
             ck = (idea.get("checks") or {})
-            results.append({"t": str(IDX[j + 1]), "dir": e["dir"], "tier": e.get("tier"), "R": round(r, 3), "tp1": hit1,
+            results.append({"t": str(IDX[j + 1]), "j0": j + 1, "entry": e["entry"], "stop": e["stop"], "tp1p": e["tp1"], "tp2p": e["target"],
+                            "dir": e["dir"], "tier": e.get("tier"), "R": round(r, 3), "tp1": hit1,
                             "kind": "zone" if "|zone|" in e["id"] else "break", "risk": round(abs(e["entry"] - e["stop"]), 2)})
             break
     if n % 50 == 0:
