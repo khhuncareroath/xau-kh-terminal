@@ -174,7 +174,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     _pill(fig, 0.25, 0.298, "BUY" if bull else "SELL", side_col, "#2C2C2E", fs=10.5)
     fig.text(0.925, 0.298, status, color="#0A84FF" if live else (UP if "TP" in status.upper() else DN), fontsize=11,
              fontweight="bold", va="center", ha="right")
-    rows = [("Entry", f"{e:,.2f}", ""), ("Stop loss", f"{sl:,.2f}", f"({abs(pips(e, sl)):,.0f})")]
+    rows = [("Entry", f"{e:,.2f}", ""), ("Stop loss", f"{sl:,.2f}", f"(−{abs(pips(e, sl)):,.0f})")]
     if tp1:
         rows.append(("TP1 · close half, SL to entry", f"{tp1:,.2f}", f"(+{abs(pips(e, tp1)):,.0f})"))
     rows.append(("TP2" if tp1 else "Target", f"{tp2:,.2f}", f"(+{abs(pips(e, tp2)):,.0f})"))
