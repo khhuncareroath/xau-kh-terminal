@@ -652,7 +652,7 @@ def _analysis_chart_old(df, lv, conf, lines, path, title):
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
     plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#F2F2F7", "#FFFFFF", "#E5E5EA", "#1C1C1E", "#8E8E93", "#34C759", "#FF3B30", "#C9971C"
     price = float(df["Close"].iloc[-1])
     ts = trend_state(df)
     areas = plan_areas(df)
@@ -756,7 +756,7 @@ def trade_chart(df, lv, sig, path):
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
     plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#F2F2F7", "#FFFFFF", "#E5E5EA", "#1C1C1E", "#8E8E93", "#34C759", "#FF3B30", "#C9971C"
     bull = sig["dir"] == "bull"
     en, sl, tp = sig["entry"], sig["stop"], sig["target"]
     pips = lambda px: f"{(px - en) * (1 if bull else -1):+,.1f} $"
@@ -829,7 +829,7 @@ def market_map(df, lv, lines, path, tf="1H", bars=110, strength=4, title="Daily 
     import research
     from ict import swings
     plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD, BLUE = "#0B0B0D", "#121215", "#1E1E22", "#E8E8ED", "#7C7C85", "#2BD07B", "#FF4D4D", "#E3B04B", "#5AC8FA"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD, BLUE = "#F2F2F7", "#FFFFFF", "#E5E5EA", "#1C1C1E", "#8E8E93", "#34C759", "#FF3B30", "#C9971C", "#007AFF"
     d1 = resample(df, tf).tail(bars)
     price = float(df["Close"].iloc[-1])
     upper, lower, _, _ = lines
@@ -879,7 +879,7 @@ def market_map(df, lv, lines, path, tf="1H", bars=110, strength=4, title="Daily 
     if dstep:
         xs = np.where((d1.index - pd.Timedelta(hours=18)).date == tday[-1])[0]
         x_a = (xs[0] - 0.5) if len(xs) else N - 1
-        ZC = [("Normal", "99%", "#30D158", 0.10), ("Extended", "80%", "#FFD60A", 0.10), ("Stretched", "53%", "#FF9F0A", 0.12)]
+        ZC = [("Normal", "99%", "#34C759", 0.10), ("Extended", "80%", "#C9971C", 0.12), ("Stretched", "53%", "#FF9500", 0.12)]
         for k_, (nm, pc, zc, al) in enumerate(ZC):
             for sgn in (1, -1):
                 y0, y1 = dop + sgn * k_ * dstep, dop + sgn * (k_ + 1) * dstep
@@ -903,7 +903,7 @@ def market_map(df, lv, lines, path, tf="1H", bars=110, strength=4, title="Daily 
         ax.text(i, p, t, color=(UP if t in ("HH", "HL") else DN if t in ("LH", "LL") else MUT), fontsize=7.5, fontweight="bold",
                 ha="center", va="bottom" if k == "H" else "top")
     drawn = []
-    for name, y, col, ls in (("4H BUY signal above", upper, UP, (0, (5, 3))), ("4H SELL signal below", lower, DN, (0, (5, 3))),
+    for name, y, col, ls in (("4H key level · week high", upper, UP, (0, (5, 3))), ("4H key level · week low", lower, DN, (0, (5, 3))),
                              ("Week high", wk_hi, MUT, (0, (1, 3))), ("Week low", wk_lo, MUT, (0, (1, 3))),
                              ("Yesterday high", lad.get("Prev day high"), MUT, (0, (2, 3))), ("Yesterday low", lad.get("Prev day low"), MUT, (0, (2, 3))),
                              ("POC 5 days (busiest price)", poc, GOLD, "-")):

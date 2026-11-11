@@ -204,7 +204,7 @@ def chart(idea, m, path, title):
         plt.rcParams["font.family"] = signal_card._fonts()
     except Exception:
         pass
-    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#0B0B0D", "#141418", "#22222A", "#ECECF1", "#8A8A94", "#2BD07B", "#FF4D4D", "#E3B04B"
+    BG, PANEL, GRID, INK, MUT, UP, DN, GOLD = "#F2F2F7", "#FFFFFF", "#E5E5EA", "#1C1C1E", "#8E8E93", "#34C759", "#FF3B30", "#C9971C"
     d = m["d15"].tail(80)
     off = len(m["d15"]) - len(d)
     N = len(d)

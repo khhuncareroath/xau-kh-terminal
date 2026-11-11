@@ -105,7 +105,12 @@ def card(item, path):
     from matplotlib.patches import FancyBboxPatch
     import textwrap
     plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, CARD, INK, MUT, UP, DN, GOLD, RED = "#0B0B0D", "#1C1C1E", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#E3B04B", "#FF3B30"
+    try:
+        from signal_card import _fonts
+        plt.rcParams["font.family"] = _fonts()
+    except Exception:
+        pass
+    BG, CARD, INK, MUT, UP, DN, GOLD, RED = "#F2F2F7", "#FFFFFF", "#1C1C1E", "#8E8E93", "#34C759", "#FF3B30", "#C9971C", "#FF3B30"
     g = item.get("gold", "mixed")
     col, arrow, word = (UP, "↑", "BULLISH") if g == "bullish" else (DN, "↓", "BEARISH") if g == "bearish" else (GOLD, "↔", "MIXED")
     u = item.get("usd", "mixed")
