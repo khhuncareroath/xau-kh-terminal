@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11e"
+VERSION = "2026-11-11f"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -26,6 +26,9 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 KE TV HX = buy · LUK MOA = sell (on the charts)
 🧾 <b>Signal proof</b> / 📊 Friday report: every result, wins AND losses.
 📰 News in 30 min: no new entries 15 min before and after.
+
+🔔 <b>Get an alert only for real trades</b>: mute the group, then unmute only 📈 Signals. Your phone rings only for a confirmed BUY/SELL. · បិទសំឡេង group ហើយបើកតែ Signals
+🤖 Type <b>/check</b> anytime: gold right now + what to do · វាយ /check ដើម្បីមើលមាសឥឡូវ
 
 💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
 💰 Every signal shows the $ result per 0.01 lot: SL $22 = −$22 at 0.01 lot.
