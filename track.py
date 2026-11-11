@@ -135,6 +135,7 @@ def _summary(log):
 def main():
     log = jl("alerts_log.json", [])
     live = [a for a in log if a["status"] in ("pending", "filled")]
+    closed = []
     if live:
         df = load("5m", "5d")
         if df.index.tz is None:
@@ -153,9 +154,17 @@ def main():
             if a["status"] != before and a["status"] in ICON:
                 send(reply_text(a), "Result", reply_to=a.get("msg_id"))
                 print("resolved", a["id"], a["status"], a.get("R"))
+                if a["status"] in TRADED:
+                    closed.append(a)
     json.dump(log, open("alerts_log.json", "w"), indent=1)
     s = summary(log)
     json.dump(s, open("results.json", "w"), indent=2)
+    for a in closed:   # 📚 every closed trade becomes a short lesson in Education
+        try:
+            import recap
+            recap.post(a, s)
+        except Exception as e:
+            print("recap failed:", e)
     print(f"track: {s['alerts']} alerts, {s['traded']} traded, win rate {s['win_rate_pct']}, total {s['total_R']}R")
 
 

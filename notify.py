@@ -268,24 +268,28 @@ def model_alert(lm, state, now):
     log_alert({"id": key, "kind": "model", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
                "target": s["target"], "rr": s["rr"], "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
-               "max_hold_s": hold_h * 3600, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
+               "max_hold_s": hold_h * 3600, "tier": tier, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
     print("sent", key)
-    # 2) 🔍 Setup Analysis: why this trade, with the structure chart (separate from the signal feed)
+    # 2) 🔍 Setup Analysis: the professional breakdown (ICT + quant), separate from the clean signal feed
     try:
-        from tg import msg_link, send_photo
-        link = msg_link(mid, ("BUY" if bull else "SELL") + " now")
-        why = [l for l in (out[out.index("", 2) + 1:] if out.count("") >= 2 else out) if l]   # the explanation lines
-        text = "\n".join([f"🔍 <b>SETUP ANALYSIS · {'BUY' if bull else 'SELL'} {fmt(s['entry'])}</b>  ({local(now)})", ""]
-                          + why + ([f"\n👉 <a href=\"{link}\">Open the signal</a>"] if link else []))
+        import desk
         import session
         from engine import load
         from levels import to_ny
+        from tg import msg_link, send_photo
+        link = msg_link(mid, ("BUY" if bull else "SELL") + " now")
         d = to_ny(load("5m", "20d")).iloc[:-1]
-        session.chart(d, jl("confluence.json"), jl("levels.json"), session.breakout_lines(d), "signal_chart.png",
+        lines_ = session.breakout_lines(d)
+        tested = (f"{st_.get('trades')} trades · {wr}% win" + (" (🖕🖕 PREMIUM)" if premium else " (🖕 COMBO)" if strong else "")) if wr else None
+        text = desk.trade_note(jl("ict.json"), jl("confluence.json"), jl("levels.json"), d, lines_,
+                               dict(s, level=up_ if bull else lo_) if "up_" in dir() else s, local(now), day_used=du, tested=tested)
+        if link:
+            text += f'\n\n👉 <a href="{link}">Open the signal · មើលសញ្ញា</a>'
+        session.chart(d, jl("confluence.json"), jl("levels.json"), lines_, "signal_chart.png",
                       f"Gold · {'BUY' if bull else 'SELL'} setup · {local(now)}",
                       position={"dir": s["dir"], "entry": s["entry"], "stop": s["stop"], "tp1": s.get("tp1"), "tp2": s["target"]})
-        if not send_photo("signal_chart.png", text[:1024], "Setup analysis"):
-            send(text, "Setup analysis")
+        pm = send_photo("signal_chart.png", f"🔍 <b>Setup analysis · {'BUY' if bull else 'SELL'} {fmt(s['entry'])}</b>", "Setup analysis")
+        send(text, "Setup analysis", reply_to=pm if isinstance(pm, int) else None)
     except Exception as e:
         print("setup analysis failed:", e)
     return True
@@ -365,7 +369,7 @@ def setup_message(mode, st, ict, fs, valid_until, summ, ai):
     return out
 
 
-PLAN_MODELS = ("vp_shape", "range_extreme", "vp_late")          # promising but not yet proven: sent as "plan trade", small risk, results posted
+PLAN_MODELS = ("vp_shape", "vp_late")   # range_extreme removed 11 Nov: counter-trend, not proven (t 1.95), 0/2 live          # promising but not yet proven: sent as "plan trade", small risk, results posted
 WATCH_ALERTS = os.environ.get("WATCH_ALERTS", "off") == "on"   # old ICT watch ideas lost money in testing: off
 
 

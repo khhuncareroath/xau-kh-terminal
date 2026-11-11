@@ -1349,6 +1349,13 @@ def pulse_text(ict, conf, lv, news, df, lines, macro):
 
 def pulse_send(ict, conf, lv, news, df, lines, macro, why):
     text = pulse_text(ict, conf, lv, news, df, lines, macro)
+    try:   # desk context: last structure break + where the stops are
+        import desk
+        extra = desk.quick(ict, lv, df, lines)
+        if extra:
+            text = text.replace("\n", "\n" + "\n".join(extra) + "\n", 1) if "\n" in text else text + "\n" + "\n".join(extra)
+    except Exception as e:
+        print("desk quick failed:", e)
     if "4H" not in why:
         text = text.replace("\n", f" · 🔔 {why}\n", 1)
     try:
@@ -1672,6 +1679,14 @@ def main():
             mid = send_photo(path, text.split("\n\n")[0], f"{name} session")
             if mid:
                 send(text, f"{name} session", reply_to=mid)
+        try:   # 🏦 the professional desk note (ICT + XAU.KH quant), basic English + Khmer, in 📊 Analysis
+            import desk
+            from research import day_used
+            note = desk.note(ict, conf, lv, df, lines, f"{name} session · {local(time.time())}",
+                             day_used=day_used(df, df.index[-1] + pd.Timedelta(minutes=5)))
+            send(note, "Desk note", reply_to=mid if isinstance(mid, int) else None)
+        except Exception as e:
+            print("desk note failed:", e)
         if name == "Asia" or os.environ.get("MACRO_CARD_FORCE"):   # fundamentals as a picture, once a day with the morning prep
             try:
                 mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
