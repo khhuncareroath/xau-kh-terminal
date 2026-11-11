@@ -15,7 +15,7 @@ from signal_card import BG, CARD, INK, MUT, GRID, UP, DN, BLUE, DARK, _pill, _pi
 LIQ = ("Prev day high", "Prev day low", "Asia high", "Asia low")
 
 
-def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None, liq=None):
+def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None, liq=None, setup=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -228,6 +228,13 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
              fontweight="bold", va="top", linespacing=1.4)
     rows = []
+    if setup:
+        for side, col in (("BUY", UP), ("SELL", DN)):
+            p_ = setup[side]
+            wt = " ✓ trend" if side == setup.get("with_trend") else ""
+            rows.append((f"TARGET {side}: 15m close {'above' if side == 'BUY' else 'below'}{wt}",
+                         f"{p_['trig']:,.2f} · SL {p_['stop']:,.0f} · TP {p_['tp1']:,.0f} / {p_['tp2']:,.0f}", col))
+        liq = dict(liq or {}, trig_buy=None, trig_sell=None)
     if liq:
         if liq.get("trig_buy"):
             rows.append(("If a 15m candle closes above", f"{liq['trig_buy']:,.2f}" + (f" → {liq['tgt_buy']:,.0f}" if liq.get("tgt_buy") else ""), UP))
@@ -241,7 +248,8 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
         fig.text(0.075, y, a_, color="#AEAEB2", fontsize=10, va="center")
         fig.text(0.925, y, b_, color=col, fontsize=11, fontweight="bold", va="center", ha="right")
         y -= 0.034
-    fig.text(0.075, 0.045, "Analysis, not a signal · entries come only in 📈 Signals".replace("📈 ", ""), color="#636366",
+    fig.text(0.075, 0.045, "Setup idea, not a tested A+/B+ signal · small size 0.25–0.5%" if setup else
+             "Analysis, not a signal · entries come only in 📈 Signals".replace("📈 ", ""), color="#636366",
              fontsize=7.5, va="center")
     fig.savefig(path, facecolor=BG)
     plt.close(fig)

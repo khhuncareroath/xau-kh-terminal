@@ -224,11 +224,19 @@ def chart(idea, m, path, title):
 
 # ------------------------------------------------------------------ post + watch
 
-def post(df, name, signal_line=None, day_meter=None):
-    """Builds and posts the session's setup idea in 📊 Analysis. Returns the message id (or None)."""
+def post(df, name, signal_line=None, day_meter=None, draw=None):
+    """Builds and posts the session's setup idea in 📊 Analysis. Returns the message id (or None).
+    draw(idea, path): the session's analysis card (owner's preferred picture); chart() is the fallback."""
     from tg import local, send, send_photo
     idea, m = build(df)
-    path = chart(idea, m, "setup_idea.png", f"XAU/USD · {name.upper()} SETUP IDEA · {local(time.time())}")
+    path = None
+    if draw:
+        try:
+            path = draw(idea, "setup_idea.png")
+        except Exception as e:
+            print("setup card failed, dark chart:", e)
+    if not path:
+        path = chart(idea, m, "setup_idea.png", f"XAU/USD · {name.upper()} SETUP IDEA · {local(time.time())}")
     cap = caption(idea, name, signal_line, day_meter)
     mid = send_photo(path, cap, f"{name} session")
     if not mid:

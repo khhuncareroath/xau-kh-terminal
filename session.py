@@ -593,7 +593,7 @@ def plan_line(p, price=None):
             f"• SL ~${risk:,.0f} · TP 1.5R · បូតនឹងផ្ញើពេលចូលបាន")
 
 
-def analysis_chart(df, lv, conf, lines, path, title):
+def analysis_chart(df, lv, conf, lines, path, title, setup=None):
     """New clean card (analysis_card.py); falls back to the old chart if it fails."""
     try:
         import analysis_card
@@ -630,8 +630,12 @@ def analysis_chart(df, lv, conf, lines, path, title):
             scen = [(price, liq[k], c) for k, c in (("tgt_buy", "#34C759"), ("tgt_sell", "#FF3B30")) if liq.get(k)] or scen
         except Exception as e:
             print("liquidity map failed:", e)
+        if setup:   # 📐 setup idea: the instruction line says exactly what to wait for
+            wt = setup.get("with_trend")
+            todo = ((f"4H is {'up' if wt == 'BUY' else 'down'}: {wt} is the with-trend side. " if wt else "4H is ranging. ")
+                    + "Wait for a 15m CLOSE beyond a TARGET line.")
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
-                                  plan=None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq)
+                                  plan=None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq, setup=setup)
     except Exception as e:
         print("analysis card failed, old chart:", e)
         return _analysis_chart_old(df, lv, conf, lines, path, title)
@@ -1775,7 +1779,8 @@ def main():
                             f"🚨 A+/B+ signal (4H close): BUY &gt; <b>{fmt(lines[0])}</b> · SELL &lt; <b>{fmt(lines[1])}</b>")
                 dm = None if du is None else (f"📏 Day Meter <b>{du * 100:.0f}%</b> · "
                                               + ("💎 A+ zone" if du >= 1 else "⭐ B+ zone" if du >= 0.7 else "quiet (B+ needs 70%)"))
-                mid = setupidea.post(df, name, sig_line, dm)
+                mid = setupidea.post(df, name, sig_line, dm, draw=lambda idea, path: analysis_chart(
+                    df, lv, conf, lines, path, f"{name} setup idea · {local(time.time())}", setup=idea))
             except Exception as e:
                 print("setup idea failed, old briefing:", e)
         if not mid:
