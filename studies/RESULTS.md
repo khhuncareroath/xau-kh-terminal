@@ -262,3 +262,9 @@ The loop runs back to back (no gaps between jobs), each cycle 20 s after the 5-m
 Bug found: session.py and setupidea.watch each dropped the last 5m row, and the feed sometimes has not opened the new
 candle yet, so M15 signals came 5-10 min after the 15m close (11 Nov SELL: close 07:15 NY, sent 07:25).
 Fixed with engine.closed() (cut by the clock), now used everywhere. ⚡ Scalp and 🎰 Fun Scalp already cut by the clock.
+
+## 📈 M15 signal + clean-trend filter (studies/m15_clean.py) · 11 Nov 2026
+Saved 2-year replay of the live M15 signal (breakouts only, 383 signals, 16/mo): all +0.07R (t 1.2) · A+ 249 +0.10R ·
+B+ 134 +0.01R. The scalp's clean-4H-trend filter does NOT help here: clean +0.04R (136) vs choppy +0.09R (247); A+ clean
++0.03R vs A+ choppy +0.15R. Other cut-offs (0.20-0.40) mixed, nothing clearly better on both halves. No change.
+Honest picture: A+ is the part that earns; B+ is break-even (already marked small size 0.25-0.5% on the card).
