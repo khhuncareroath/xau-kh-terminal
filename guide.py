@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11q"
+VERSION = "2026-11-11r"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -25,6 +25,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 🔎 <b>Setup Analysis</b>: why each signal, ✅/❌ checklist.
 🏆 <b>Proof</b> / 📊 Friday report: every result, wins AND losses.
 📰 News in 30 min: no new entries 15 min before and after.
+🎲 <b>News bet</b> (📰 News): the bot's BUY/SELL lean from the fundamentals before big news, with its win/loss record. A gamble, not a signal: tiny size or just watch.
 
 🔔 <b>Get an alert only for real trades</b>: mute the group, then unmute only 📈 Signals. · បិទសំឡេង group ហើយបើកតែ Signals
 🤖 Type <b>/check</b> anytime: gold right now + what to do · វាយ /check ដើម្បីមើលមាសឥឡូវ

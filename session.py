@@ -1755,6 +1755,11 @@ def main():
         if os.environ.get("LEVEL_ALERTS") == "on":   # level heads-ups had no edge in testing: off
             near_level_alert(df, lv, conf, ict, state)
         pre_news(news, state)
+        try:   # 🎲 news bet: fundamentals lean before the release, graded after (newsbet.py)
+            import newsbet
+            newsbet.check(df, news, macro)
+        except Exception as e:
+            print("news bet failed:", e)
         macro_shift(macro, news, state)
         plan_watch(df, state)
         try:   # 📐 a 15m candle confirmed the session's setup idea -> send the setup (setupidea.py)
