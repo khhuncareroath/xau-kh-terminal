@@ -308,3 +308,11 @@ same direction in all 12 settings makes luck unlikely.
 Ranges: the hour before, 06:00-08:30, the last New York session. Fading the sweep (the video): −0.10 to −0.34R in every
 version (t to −3.4). Trading WITH the sweep (continuation): about 0R. With the 4H: still negative. Lesson: in the Asia
 morning, sweeps of the early range are usually the start of a move, not a trap; fading them loses. No signal.
+
+## 📊 Volume as a confirmation inside existing signals (studies/vp_combo.py) · 12 Nov 2026
+Owner: "combo volume with the low-timeframe entry, no separate signal, more signals but keep the standard".
+- M15 A+: volume not against +0.15R (147) vs against +0.04R (102), both halves the same way; B+: volume does not rescue it.
+- Fun Scalp: volume adds nothing (clean + agree +0.15R vs clean +0.17R); choppy + volume still loses (−0.08R). No change.
+- The volume entry itself (research.vp_turn: profile shows a new side, 4H not agreeing, 15m close back at the POC) is
+  added to 📈 Signals as "💎 A+ · 📊 Volume", same format: 122 trades, +0.27R (t 2.1, proven); with the 24:00 close rule
+  +0.26R, still proven. Max 1 a day, never while another M15 signal is open, no 00-06 KH, news pause. ~5 a month.

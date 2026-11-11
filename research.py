@@ -524,6 +524,20 @@ def vp_shape(df, th=0.55, rr=1.5, max_used=0.7):
     return out
 
 
+def vp_turn(df, rr=2.0):
+    """📊 VOLUME TURN (12 Nov 2026, studies/vp_learn.py + vp_robust.py): vp_shape trades taken only when the 4H swing does
+    NOT already point the same way. The last session's profile shows a NEW side in control (P shape while the 4H is
+    down, or b shape while it is up); the first pullback to its POC + a 15m close back = entry, target 2R.
+    2 years: 122 trades, 48% win, +0.27R (t 2.1, older +0.31 / newest +0.17, 8 of 9 quarters) = proven. Same direction in
+    all 12 settings tried (+0.17 to +0.31R); the trades where the 4H agrees only made +0.05R."""
+    tr = vp_shape(df, rr=rr)
+    if not tr:
+        return tr
+    b4 = _bias(df, "4H", pd.Timedelta(hours=4))
+    pos = df.index.get_indexer([t for t, *_ in tr])
+    return [x for x, p in zip(tr, pos) if b4[p - 1] != ("bull" if x[2] == "long" else "bear")]
+
+
 def vp_late(df):
     """LATE PLAN: the Volume Plan entries that vp_shape SKIPS because the day already moved 70%+ of a normal day.
     2 years: 83 trades, 39% win, -0.10R (newest 30%: -0.27R) = losing. Sent only as a ⚠️ warning with the honest odds
@@ -869,6 +883,7 @@ def judge(trades, split_t):
 
 DESCRIBE = {"ict_splus": "🎯 S+ SETUP: Daily/4H FVG/OB zone, 15m liquidity sweep + MSS, limit on the OB retest, SL beyond the sweep, TP 3R, small size",
             "trend_premium_intraday": "🖕🖕 PREMIUM intraday: 4H breakout on a 100%+ day, SL 0.55%, TP1 1R + BE, TP2 3R, 12h",
+            "vp_turn": "📊 VOLUME TURN: last session's volume profile shows a new side in control (4H not agreeing yet); first pullback to its POC + 15m close back, target 2R",
             "wide_scalp": "⚡ SCALP: any 4H breakout, then the first 5m dip into a 15m FVG + confirmation (24 h, 2 a day), SL ~$7, TP 2R, 3h",
             "combo_scalp": "🤬 COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
             "london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
@@ -895,11 +910,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"ict_splus": 12, "combo_scalp": 3, "wide_scalp": 3, "trend_premium_intraday": 12, "trend_bplus": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"vp_turn": 8, "ict_splus": 12, "combo_scalp": 3, "wide_scalp": 3, "trend_premium_intraday": 12, "trend_bplus": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "trend_bplus": trend_bplus(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df), "wide_scalp": wide_scalp(df), "ict_splus": ict_splus(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "trend_bplus": trend_bplus(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_turn": vp_turn(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df), "wide_scalp": wide_scalp(df), "ict_splus": ict_splus(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

@@ -148,7 +148,7 @@ def model_alert(lm, state, now):
     Entry is at the current price, as the backtest assumes. ALERT_MODE=watch turns these off. Returns True if sent."""
     if MODE == "watch":
         return False
-    sigs = [s for s in lm.get("signals", []) if s.get("proven") and s.get("model") not in PLAN_MODELS]
+    sigs = [s for s in lm.get("signals", []) if s.get("proven") and s.get("model") not in PLAN_MODELS + ("vp_turn",)]   # vp_turn: volplan.py
     import research
     trend = [m for m in research.TREND_PREFERENCE if any(s["model"] == m for s in sigs)]
     if trend:                                                # same breakout: alert only the preferred proven version

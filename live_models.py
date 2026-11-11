@@ -63,7 +63,7 @@ def main():
         runs = {"sweep_htf": lambda d: research.sweep_htf(d, candidates), "value": research.value_models,
                 "sessions": research.session_breakouts, "trend_pullback": research.trend_pullback, "vwap_fade": research.vwap_fade,
                 "trend_breakout": research.trend_breakout, "trend_buy": research.trend_buy,
-                "trend_tight": research.trend_tight, "trend_intraday": research.trend_intraday, "breakout_cisd": research.breakout_cisd, "crt_daily": research.crt_daily, "vp_shape": research.vp_shape, "vp_late": research.vp_late, "range_extreme": research.range_extreme}
+                "trend_tight": research.trend_tight, "trend_intraday": research.trend_intraday, "breakout_cisd": research.breakout_cisd, "crt_daily": research.crt_daily, "vp_shape": research.vp_shape, "vp_turn": research.vp_turn, "vp_late": research.vp_late, "range_extreme": research.range_extreme}
         for name, fn in runs.items():
             before = len(found)
             try:
