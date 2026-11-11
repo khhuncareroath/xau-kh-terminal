@@ -171,7 +171,7 @@ def model_alert(lm, state, now):
         if key in state.get("model_keys", []):
             return False
     bull = s["dir"] == "bull"
-    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 86, "win_rate_pct": 70, "avg_R": 0.28}) \
+    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 86, "win_rate_pct": 66, "avg_R": 0.37}) \
         if premium else (s.get("backtest") or {})
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)

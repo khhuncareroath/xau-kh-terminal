@@ -8,14 +8,14 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11g"
+VERSION = "2026-11-11h"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
 ✅ <b>BUY/SELL NOW</b>: tested 4H breakout. <b>Intraday only</b>: closes within 12 h. Risk 1% max.
-🖕 <b>COMBO</b>: breakout on a moving day (68% win in test) · full size
-🖕🖕 <b>PREMIUM</b>: breakout on a big day (70% win in test) · intraday, full size
+🖕 <b>COMBO</b>: breakout on a moving day (65% win in test, TP1 = 1R) · full size
+🖕🖕 <b>PREMIUM</b>: breakout on a big day (66% win in test) · intraday, full size
 ⏭ Quiet-day breakouts are <b>not sent</b> (only 50/50 in testing)
 🤬 <b>COMBO SCALP</b>: after a 🖕 breakout, a fast 5m entry with a small SL (~$7), TP 2R. Enter at once or skip. Size 0.25–0.5%
 🤬 <b>Plan</b> 🟡: other smaller setups, small size 0.25–0.5%

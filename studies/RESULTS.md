@@ -29,3 +29,15 @@ Scripts: newsplay.py, newsfilter.py, atrstop.py, luck.py, regime.py (run with th
 | Momentum-confirmation indicator (strong candle breaks highs above VWAP/EMA, trend filter), 72 variants | median -0.08R older, -0.22R newest; best-on-older 14% win newest | rejected |
 | PREMIUM as an intraday trade | 86 trades, 70% win, +0.28R, newest 80% win | live (no swing) |
 | Mentor "full confirmation" filters on COMBO breakouts (VWAP, EMA50/200, 1H structure, strong candle) | VWAP/EMA/1H already agree on ~97-100% of COMBO breakouts; candle-strength filters helped on newest data but not on older | no change: the signal already has full confirmation |
+
+## Exits and sessions on COMBO (11 Nov, evening)
+
+| Idea | Result | Decision |
+|---|---|---|
+| TP1 0.75R -> 1R (half off, stop to entry, rest 3R, 12h) | +0.22R -> +0.30R; older +0.25 -> +0.29, newest +0.16 -> +0.31; win 68% -> 65%; every TP1 0.9-1.25R beat 0.75R on both halves; PREMIUM +0.28 -> +0.37R | LIVE (TP1_R = 1.0) |
+| Hold 24h instead of 12h | +0.39R with TP1 1R (newest +0.33) | better, but crosses the night: owner wants intraday, offered as an option |
+| Trailing stop after TP1 (15m swing, ATR x3/x5, EMA20) | all at or below the fixed 3R target | rejected |
+| Partial size 1/3 or 2/3 at TP1, no break-even | no clear gain (no BE: win 56%) | no change |
+| Session of the breakout | London 02-08 NY best (+0.41R); NY 08-13 +0.25 older but -0.36 newest (13 trades) | not consistent: no filter |
+
+Script: scratchpad exits.py (2-year CSV).

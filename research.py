@@ -288,11 +288,15 @@ def trend_breakout(df, buy_only=False, scaled=False, stop_pct=None, tp1=1.0, tp2
     return out
 
 
+TP1_R = 1.0   # 11 Nov 2026 exit study (COMBO, 2 years): TP1 0.75R -> 1R: +0.22R -> +0.30R, newest 30% +0.16 -> +0.31R,
+              # win 68% -> 65%. Every TP1 from 0.9R to 1.25R beat 0.75R on older AND newest data; trailing stops did not help.
+
+
 def trend_intraday(df):
-    """Intraday version of the 4H breakout (for day traders): same entry, SL 0.55% (~$22), half at 0.75R with the
+    """Intraday version of the 4H breakout (for day traders): same entry, SL 0.55% (~$22), half at 1R with the
     stop to entry, rest to 3R, everything closed after 12 hours. 2 years: 217 trades, 62% win, +0.15R, t=2.4.
     Weaker than the 5-day swing version (+0.30R) but every trade ends the same day."""
-    return trend_breakout(df, scaled=True, stop_pct=0.0055, tp1=0.75, tp2=3.0, hold_bars=144, clock=True)
+    return trend_breakout(df, scaled=True, stop_pct=0.0055, tp1=TP1_R, tp2=3.0, hold_bars=144, clock=True)
 
 
 def day_used(df, t):
@@ -773,14 +777,14 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"trend_premium_intraday": "🖕🖕 PREMIUM intraday: 4H breakout on a 100%+ day, SL 0.55%, TP1 0.75R + BE, TP2 3R, 12h",
+DESCRIBE = {"trend_premium_intraday": "🖕🖕 PREMIUM intraday: 4H breakout on a 100%+ day, SL 0.55%, TP1 1R + BE, TP2 3R, 12h",
             "combo_scalp": "🤬 COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
             "london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
             "vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
             "trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
             "trend_combo": "STRONG COMBO: the intraday 4H breakout on a day that already moved 70%+ of a normal day",
             "range_extreme": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
-            "trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 0.75R then stop to entry, rest to 3R, closed within 12 hours",
+            "trend_intraday": "4H breakout traded intraday: SL 0.55%, half at 1R then stop to entry, rest to 3R, closed within 12 hours",
             "vp_shape": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
             "crt_daily": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
             "sweep_htf": "Sweep + structure shift, only with the 4H and Daily trend, market entry, 1.5R target",

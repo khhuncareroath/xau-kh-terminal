@@ -157,7 +157,7 @@ def proof_answer():
             rows.append(f"{names.get(k, k)}: {v['wins']}W / {v['losses']}L · {v.get('total_R', 0):+.1f}R")
     return ("🏆 <b>Live record since 3 Nov</b> (every result, wins and losses)\n"
             f"All: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R\n" + "\n".join(rows)
-            + "\n\nTested 2 years: 🖕 COMBO 68% win · 🖕🖕 PREMIUM 77% · 🤬 scalp 50% at 2R\n"
+            + "\n\nTested 2 years: 🖕 COMBO 65% win · 🖕🖕 PREMIUM 66% · 🤬 scalp 50% at 2R\n"
               "<i>A few weeks is a small sample: judge by months.</i>")
 
 
