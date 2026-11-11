@@ -3,6 +3,7 @@ Telegram: TELEGRAM_TOKEN + TELEGRAM_CHAT_ID. ntfy.sh: NTFY_TOPIC. Messages use T
 import html
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime
@@ -37,18 +38,125 @@ def mark_post():
         pass
 
 
+# ---------------------------------------------------------------- sections (Telegram group with Topics)
+# Set TELEGRAM_GROUP_ID (a supergroup with Topics turned on, the bot is admin with "Manage topics") and every post
+# goes to its own section. The bot creates the sections itself and closes them so only admins post there; members
+# talk in the group's "General" topic. Without TELEGRAM_GROUP_ID everything goes to TELEGRAM_CHAT_ID as before.
+SECTIONS = {   # key: (topic name, Telegram icon colour)
+    "signals":  ("🎯 Signals · សញ្ញា", 9367192),
+    "analysis": ("📊 Analysis · វិភាគ", 7322096),
+    "news":     ("📰 News · ព័ត៌មាន", 16478047),
+    "proof":    ("🧾 Proof · លទ្ធផល", 16766590),
+    "learn":    ("📚 Learn · រៀន", 13338331),
+}
+TOPICS_FILE = "topics.json"
+
+
+def section_for(title):
+    """Every send() / send_photo() call passes a title; it decides the section."""
+    t = (title or "").lower()
+    if t in ("guide", "lesson"):
+        return "learn"
+    if t in ("breaking", "after the news", "news soon"):
+        return "news"
+    if "proof" in t:
+        return "proof"
+    if any(k in t for k in ("session", "pulse", "check-in", "market map", "fundamentals", "week ahead")):
+        return "analysis"
+    if any(k in t for k in ("buy", "sell", "plan", "idea", "retest", "result", "tp1", "level failed", "area", "near",
+                            "heads up", "radar", "zone", "watch")):
+        return "signals"
+    return "analysis"
+
+
+def _api(method, fields, timeout=20):
+    tok = os.environ.get("TELEGRAM_TOKEN")
+    r = urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{tok}/{method}",
+                                                      data=urllib.parse.urlencode(fields).encode()), timeout=timeout)
+    return json.load(r).get("result")
+
+
+def _topics():
+    try:
+        d = json.load(open(TOPICS_FILE))
+    except Exception:
+        d = {}
+    if d.get("chat") != os.environ.get("TELEGRAM_GROUP_ID"):   # a different group: start fresh
+        d = {"chat": os.environ.get("TELEGRAM_GROUP_ID"), "topics": {}}
+    return d
+
+
+def thread_id(key, fresh=False):
+    """The topic id for a section, creating (and closing to members) the topic the first time."""
+    d = _topics()
+    if fresh:
+        d["topics"].pop(key, None)
+    if key not in d["topics"]:
+        name, color = SECTIONS[key]
+        try:
+            res = _api("createForumTopic", {"chat_id": d["chat"], "name": name, "icon_color": color})
+            d["topics"][key] = res["message_thread_id"]
+            try:   # closed topic = only admins (the bot) can post, members read and react
+                _api("closeForumTopic", {"chat_id": d["chat"], "message_thread_id": res["message_thread_id"]})
+            except Exception as e:
+                print("could not close topic (give the bot 'Manage topics'):", e)
+            json.dump(d, open(TOPICS_FILE, "w"), indent=1, ensure_ascii=False)
+            print("created section", name)
+        except Exception as e:
+            print("could not create section", key, e)
+            return None
+    return d["topics"].get(key)
+
+
+def target(title):
+    """(chat_id, message_thread_id or None) for a post with this title."""
+    group = os.environ.get("TELEGRAM_GROUP_ID")
+    if group:
+        return group, thread_id(section_for(title))
+    return os.environ.get("TELEGRAM_CHAT_ID"), None
+
+
+def _send_tg(method, title, fields, files=None, timeout=20):
+    """Sends with the right chat/topic. If a topic was deleted, it is made again once."""
+    chat, th = target(title)
+    for attempt in range(2):
+        f = dict(fields, chat_id=chat)
+        if th:
+            f["message_thread_id"] = th
+        try:
+            if files is None:
+                return _api(method, f, timeout)
+            import uuid
+            b = uuid.uuid4().hex
+            parts = [f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k, v in f.items()]
+            for k, (fname, data) in files.items():
+                parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{k}"; filename="{fname}"\r\n'
+                             f'Content-Type: image/png\r\n\r\n'.encode() + data + b"\r\n")
+            parts.append(f"--{b}--\r\n".encode())
+            tok = os.environ.get("TELEGRAM_TOKEN")
+            req = urllib.request.Request(f"https://api.telegram.org/bot{tok}/{method}", data=b"".join(parts),
+                                         headers={"Content-Type": f"multipart/form-data; boundary={b}"})
+            return json.load(urllib.request.urlopen(req, timeout=timeout)).get("result")
+        except urllib.error.HTTPError as e:
+            msg = e.read().decode("utf-8", "ignore")
+            if th and attempt == 0 and ("thread not found" in msg or "TOPIC_DELETED" in msg or "TOPIC_ID_INVALID" in msg):
+                th = thread_id(section_for(title), fresh=True)
+                continue
+            raise RuntimeError(msg[:200])
+
+
 def send(text, title="XAU.KH", reply_to=None):
     """Sends to Telegram (HTML) and ntfy. Returns the Telegram message_id (or True if only ntfy worked, None if nothing)."""
-    tok, chat, topic = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID"), os.environ.get("NTFY_TOPIC")
+    tok, topic = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("NTFY_TOPIC")
+    chat = os.environ.get("TELEGRAM_GROUP_ID") or os.environ.get("TELEGRAM_CHAT_ID")
     mid = None
     if tok and chat:
         try:
-            body = {"chat_id": chat, "text": text, "parse_mode": "HTML", "disable_web_page_preview": "true"}
+            body = {"text": text, "parse_mode": "HTML", "disable_web_page_preview": "true"}
             if reply_to:
                 body["reply_parameters"] = json.dumps({"message_id": reply_to, "allow_sending_without_reply": True})
-            r = urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{tok}/sendMessage",
-                                                              data=urllib.parse.urlencode(body).encode()), timeout=20)
-            mid = json.load(r).get("result", {}).get("message_id") or True
+            res = _send_tg("sendMessage", title, body)
+            mid = (res or {}).get("message_id") or True
         except Exception as e:
             print("telegram failed:", e)
     if topic:
@@ -71,25 +179,17 @@ def send(text, title="XAU.KH", reply_to=None):
 
 def send_photo(path, caption, title="XAU.KH", reply_to=None):
     """Sends a chart image with an HTML caption (Telegram limit: 1024 characters). Returns the message_id or None."""
-    tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    tok = os.environ.get("TELEGRAM_TOKEN")
+    chat = os.environ.get("TELEGRAM_GROUP_ID") or os.environ.get("TELEGRAM_CHAT_ID")
     if not (tok and chat):
         print(f"photo not sent (no Telegram secrets): {path}\n{caption}")
         return None
-    import uuid
-    b = uuid.uuid4().hex
-    parts = []
-    fields = [("chat_id", chat), ("caption", caption[:1024]), ("parse_mode", "HTML")]
+    fields = {"caption": caption[:1024], "parse_mode": "HTML"}
     if reply_to:
-        fields.append(("reply_parameters", json.dumps({"message_id": reply_to, "allow_sending_without_reply": True})))
-    for k, v in fields:
-        parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode())
-    parts.append(f'--{b}\r\nContent-Disposition: form-data; name="photo"; filename="chart.png"\r\nContent-Type: image/png\r\n\r\n'.encode()
-                 + open(path, "rb").read() + b"\r\n")
-    parts.append(f"--{b}--\r\n".encode())
+        fields["reply_parameters"] = json.dumps({"message_id": reply_to, "allow_sending_without_reply": True})
     try:
-        req = urllib.request.Request(f"https://api.telegram.org/bot{tok}/sendPhoto", data=b"".join(parts),
-                                     headers={"Content-Type": f"multipart/form-data; boundary={b}"})
-        mid = json.load(urllib.request.urlopen(req, timeout=40)).get("result", {}).get("message_id")
+        res = _send_tg("sendPhoto", title, fields, files={"photo": ("chart.png", open(path, "rb").read())}, timeout=40)
+        mid = (res or {}).get("message_id")
         if mid:
             mark_post()
         return mid

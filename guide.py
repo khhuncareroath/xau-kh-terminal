@@ -6,9 +6,9 @@ import os
 import urllib.parse
 import urllib.request
 
-from tg import send
+from tg import send, target
 
-VERSION = "2026-11-04d"
+VERSION = "2026-11-11a"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -32,6 +32,18 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
+SECTIONS_TEXT = """
+🗂 <b>Sections · ផ្នែក</b>
+🎯 Signals: entries, TP/SL results, Radar · ចូល / លទ្ធផល
+📊 Analysis: each session, market map · វិភាគ
+📰 News: only big news + after-news · ព័ត៌មានធំ
+🧾 Proof: every result, wins AND losses · លទ្ធផលពិត
+📚 Learn: guide and lessons · រៀន
+💬 General: chat with members · ជជែក
+"""
+if os.environ.get("TELEGRAM_GROUP_ID"):   # only in the sectioned group
+    GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
+
 
 def main():
     try:
@@ -40,7 +52,10 @@ def main():
         st = {}
     if st.get("version") == VERSION:
         return
-    tok, chat = os.environ.get("TELEGRAM_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    tok = os.environ.get("TELEGRAM_TOKEN")
+    chat = os.environ.get("TELEGRAM_GROUP_ID") or os.environ.get("TELEGRAM_CHAT_ID")
+    if st.get("msg_id") and st.get("chat", os.environ.get("TELEGRAM_CHAT_ID")) != chat:
+        st = {}   # moved to the sectioned group: post the guide there once
     if st.get("msg_id") and tok and chat:   # already posted: edit the pinned guide, never post it again
         try:
             body = urllib.parse.urlencode({"chat_id": chat, "message_id": st["msg_id"], "text": GUIDE, "parse_mode": "HTML",
@@ -55,7 +70,7 @@ def main():
     mid = send(GUIDE, "Guide")
     if not mid:
         return
-    st = {"version": VERSION, "msg_id": mid if isinstance(mid, int) else None}
+    st = {"version": VERSION, "msg_id": mid if isinstance(mid, int) else None, "chat": chat}
     if tok and chat and isinstance(mid, int):
         try:
             body = urllib.parse.urlencode({"chat_id": chat, "message_id": mid, "disable_notification": "true"}).encode()

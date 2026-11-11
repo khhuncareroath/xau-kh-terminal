@@ -18,6 +18,7 @@ env:
   TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
+  TELEGRAM_GROUP_ID: ${{ vars.TELEGRAM_GROUP_ID || secrets.TELEGRAM_GROUP_ID }}   # optional: group with Topics = sections
   NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
   SITE_URL: ${{ vars.SITE_URL }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
