@@ -13,7 +13,7 @@ from tg import local, send, send_photo
 
 NY = ZoneInfo("America/New_York")
 STATE = "pips_state.json"
-NAMES = {"model": "4H breakout", "scalp": "Combo scalp", "plan": "Plan", "late": "Late plan", "post-news": "After news"}
+NAMES = {"splus": "S+ setup", "model": "4H breakout", "scalp": "Combo scalp", "plan": "Plan", "late": "Late plan", "post-news": "After news"}
 RES = {"win": "TP2", "tp1": "TP1 + BE", "loss": "SL", "timed out": "Time exit"}
 
 

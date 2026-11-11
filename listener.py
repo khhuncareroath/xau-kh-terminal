@@ -133,7 +133,7 @@ def check_answer():
 
 def signal_answer():
     log = jl("alerts_log.json", [])
-    a = next((x for x in reversed(log) if x.get("kind") in ("model", "scalp", "plan")), None)
+    a = next((x for x in reversed(log) if x.get("kind") in ("model", "scalp", "plan", "splus")), None)
     if not a:
         return "No signal yet. · មិនទាន់មានសញ្ញា"
     side = "BUY" if a["dir"] == "bull" else "SELL"
@@ -149,7 +149,7 @@ def proof_answer():
     s = jl("results.json")
     if not s.get("traded"):
         return "No closed trades yet."
-    names = {"model": "⭐ 4H breakout", "scalp": "🤬 scalp", "plan": "🤬 plan setups", "late": "⚠️ late plans",
+    names = {"model": "⭐ 4H breakout", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
              "post-news": "📰 after-news (stopped)", "setup": "old ICT ideas (stopped)", "watch": "old watch ideas (stopped)"}
     rows = []
     for k, v in (s.get("by_kind") or {}).items():
@@ -157,7 +157,7 @@ def proof_answer():
             rows.append(f"{names.get(k, k)}: {v['wins']}W / {v['losses']}L · {v.get('total_R', 0):+.1f}R")
     return ("🏆 <b>Live record since 3 Nov</b> (every result, wins and losses)\n"
             f"All: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R\n" + "\n".join(rows)
-            + "\n\nTested 2 years: 💎 A+ 72% win (+0.47R) · ⭐ B+ 72% (+0.42R) · 🤬 scalp 58% at 2R\n"
+            + "\n\nTested 2 years: 💎 A+ 72% win (+0.47R) · ⭐ B+ 72% (+0.42R) · 🤬 scalp 58% at 2R · 🎯 S+ 42% at 3R\n"
               "<i>A few weeks is a small sample: judge by months.</i>")
 
 

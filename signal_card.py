@@ -17,7 +17,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BG, CARD, INK, MUT, GRID = "#F2F2F7", "#FFFFFF", "#1C1C1E", "#8E8E93", "#E5E5EA"
 UP, DN, BLUE, PURP, DARK = "#34C759", "#FF3B30", "#007AFF", "#AF52DE", "#1C1C1E"
 TIERS = {"premium": ("A+ SETUP", PURP), "combo": ("B+ SETUP", BLUE), "normal": ("NORMAL · half size", MUT),
-         "plan": ("PLAN · small size", "#FF9500"), "scalp": ("SCALP · small SL", "#FF9500")}
+         "plan": ("PLAN · small size", "#FF9500"), "scalp": ("SCALP · small SL", "#FF9500"),
+         "splus": ("S+ SETUP · small size", "#30B0C7")}
 
 
 def _fonts():
@@ -80,7 +81,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     x = _pill(fig, 0.30, 0.952, "BUY" if bull else "SELL", "white", side_col, fs=12)
     name, tcol = TIERS.get(tier, TIERS["combo"])
     x = _pill(fig, x, 0.952, name, "white", tcol, fs=10)
-    live = status.upper().startswith("LIVE")
+    live = status.upper().startswith(("LIVE", "LIMIT"))
     _pill(fig, x, 0.952, status, BLUE if live else "white", "#E3EEFF" if live else (UP if "TP" in status.upper() else DN), fs=9.5)
     fig.text(0.945, 0.952, "XAU.KH", color=BLUE, fontsize=14, fontweight="bold", va="center", ha="right")
     fig.text(0.055, 0.915, f"{tf_label}  ·  15m chart  ·  {stamp}", color=MUT, fontsize=9.5, va="center")
@@ -180,7 +181,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
         y -= 0.044
     foot = (f"Tested 2 years: {win_rate}% win · {trades} trades" if win_rate else "Tested rules only") + f"  ·  {hold_note}"
     fig.text(0.075, 0.068, foot, color="#AEAEB2", fontsize=9, va="center")
-    fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan") else "Risk 0.5–1% per trade")
+    fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan", "splus") else "Risk 0.5–1% per trade")
              + " · pips: 1 pip = $0.10 · not financial advice", color="#636366",
              fontsize=7.5, va="center")
     fig.savefig(path, facecolor=BG)

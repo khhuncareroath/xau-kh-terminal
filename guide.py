@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11i"
+VERSION = "2026-11-11j"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -18,6 +18,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 ⭐ <b>B+ SETUP</b>: breakout on a moving day in a clean trend (72% win in test) · full size
 ⏭ Quiet-day and choppy-market breakouts are <b>not sent</b> (weak in testing)
 🤬 <b>SCALP</b>: after an A+/B+ breakout, a fast 5m entry with a small SL (~$7), TP 2R (58% win in test). Enter at once or skip. Size 0.25–0.5%
+🎯 <b>S+ SETUP</b>: ICT limit order (Daily/4H zone, sweep + MSS, OB retest), small SL ~$10, TP 3R, 42% win in test. If not filled in 2 h = no trade. Small size 0.25–0.5%
 🤬 <b>Plan</b> 🟡: other smaller setups, small size 0.25–0.5%
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
@@ -53,7 +54,7 @@ if group_id():   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
-RULES_VERSION = "2026-11-11i"
+RULES_VERSION = "2026-11-11j"
 RULES = """❗ <b>RULES · ច្បាប់ក្រុម</b>
 
 1. Be respectful. No insults, no politics. · គោរពគ្នា
