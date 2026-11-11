@@ -15,6 +15,70 @@ from signal_card import BG, CARD, INK, MUT, GRID, UP, DN, BLUE, DARK, _pill, _pi
 LIQ = ("Prev day high", "Prev day low", "Asia high", "Asia low")
 
 
+def _priority(txt):
+    """Which chart label wins when two collide (higher = keep). The price tag and the trigger lines always win."""
+    t = txt.strip().replace("\\$", "$")
+    if not t:
+        return -1
+    if t.replace(",", "").replace(".", "").isdigit():
+        return 100                                   # the live price tag
+    for p_, keys in ((90, ("BUY close", "SELL close")), (80, ("SUPPLY", "DEMAND")), (70, ("CHOCH", "BOS")),
+                     (60, ("4H BUY", "4H SELL", "4H key")), (50, ("ELQ",)), (45, ("POC",)), (40, ("OB",)),
+                     (30, ("HH", "HL", "LH", "LL")), (25, ("EQ",)), (20, ("FVG",)), (15, ("Asia", "Prev", "Yesterday", "Week")),
+                     (5, ("ILQ", "$$"))):
+        if any(t.startswith(k) or k in t for k in keys):
+            return p_
+    return 10
+
+
+def declutter(fig, ax, pad=2.0, steps=6):
+    """No overlapping labels: most important first; a colliding label is nudged up/down a few pixels at a time, and
+    hidden if it still collides (the line or box it names stays visible)."""
+    fig.canvas.draw()
+    r = fig.canvas.get_renderer()
+    texts = [t for t in ax.texts if t.get_visible() and t.get_text().strip()]
+    for t in texts:
+        pr = _priority(t.get_text())
+        if pr <= 5 or t.get_text().strip().startswith("EQ"):
+            t.set_visible(False)                      # ILQ / $$ / EQ tags: the dashed lines already show them
+        elif pr < 90 and t.get_bbox_patch() is None:
+            t.set_bbox(dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.8))   # readable over candles
+    texts = [t for t in texts if t.get_visible()]
+    texts.sort(key=lambda t: -_priority(t.get_text()))
+    placed = []
+    y0, y1 = ax.get_ylim()
+    px_per_y = ax.get_window_extent(r).height / max(y1 - y0, 1e-9)
+
+    def box(t):
+        b = t.get_window_extent(r)
+        return b.expanded(1.0, 1.0).padded(pad)
+
+    names = []
+    for t in texts:
+        b = box(t)
+        hit = [k for k, q in enumerate(placed) if b.overlaps(q)]
+        if not hit:
+            placed.append(b); names.append(t.get_text()); continue
+        if any(names[k] == t.get_text() for k in hit):   # the same word twice on the same spot: keep one
+            t.set_visible(False); continue
+        if _priority(t.get_text()) >= 90:            # never move the price tag / trigger lines
+            placed.append(b); names.append(t.get_text()); continue
+        x, y = t.get_position()
+        ok = False
+        for k in range(1, steps + 1):
+            for sgn in (1, -1):
+                t.set_position((x, y + sgn * k * (b.height * 0.75) / px_per_y))
+                nb = box(t)
+                inside = ax.get_window_extent(r).padded(-1).contains(nb.x0, nb.y0) and ax.get_window_extent(r).contains(nb.x1, nb.y1)
+                if inside and not any(nb.overlaps(q) for q in placed):
+                    placed.append(nb); names.append(t.get_text()); ok = True; break
+            if ok:
+                break
+        if not ok:
+            t.set_position((x, y))
+            t.set_visible(False)                      # still collides: drop the least important label
+
+
 def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0, bars=96, scenarios=None, liq=None, setup=None):
     if setup:   # a side blocked by demand / supply gets no trigger line and no arrow on the chart
         bb, sb = setup["BUY"].get("blocked"), setup["SELL"].get("blocked")
@@ -281,6 +345,10 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     fig.text(0.075, 0.045, ("" if len(rows) > 3 else "Setup idea, not a tested A+/B+ signal · small size 0.25–0.5%") if setup else
              "Analysis, not a signal · entries come only in 📈 Signals".replace("📈 ", ""), color="#636366",
              fontsize=7.5, va="center")
+    try:
+        declutter(fig, ax)
+    except Exception as e:
+        print("declutter failed:", e)
     fig.savefig(path, facecolor=BG)
     plt.close(fig)
     return path
