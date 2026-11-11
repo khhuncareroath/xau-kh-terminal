@@ -174,6 +174,9 @@ def jl(n, d):
 
 
 def main():
+    import os
+    if os.environ.get("SPLUS") != "on":   # owner, 11 Nov 2026: ONE signal model (A+ / B+); S+ kept for later, off
+        print("splus: off (one-model mode)"); return
     from engine import load
     from levels import to_ny
     from tg import fmt, local, log_alert, send, send_photo
