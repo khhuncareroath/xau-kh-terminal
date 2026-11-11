@@ -87,3 +87,8 @@ Robustness (3R, bias): displacement 0.4/0.6/0.8/1.0 ATR -> +0.37/+0.44/+0.51/+0.
 max SL $15/20/25 -> +0.23/+0.44/+0.38; limit wait 1/2/4 h -> +0.42/+0.44/+0.40. Positive in 8 of 9 quarters, longs +0.25R
 and shorts +0.70R. Median SL $10.6 (middle half $5.7-14.1). Candidate for a live signal (limit-order alert).
 Script: scratchpad owner_ict.py / owner_rob.py.
+
+**Correction (same evening):** the first study processed setups in zone order, not time order, which changed which
+overlapping trades were taken. With the live code (splus.py, time order): 96 trades, 42% win, +0.29R, newest +0.34R,
+t 1.67, 6 of 7 quarters positive; every setting tried stayed positive (+0.12 to +0.38R) but none reached t 2.
+Decision (owner): live as 🎯 S+ SETUP at small size (0.25-0.5%) until the live record proves it.
