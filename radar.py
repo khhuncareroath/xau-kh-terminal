@@ -46,11 +46,11 @@ def trend_open(df):
     (busy, list of open trades)."""
     from proof import replay
     try:
-        op = [t for t in replay(df, ["trend_intraday", "trend_tight"]) if t["status"] == "open"]
+        op = [t for t in replay(df, ["trend_intraday"]) if t["status"] == "open"]   # no swing since 11 Nov 2026
     except Exception as e:
         print("trend_open failed:", e)
         return False, []
-    return {t["model"] for t in op} >= {"trend_intraday", "trend_tight"}, op
+    return bool(op), op
 
 
 def status(df, lines):
@@ -74,7 +74,7 @@ def status(df, lines):
     except Exception:
         pass
     if busy:
-        ref = next((t for t in op if t["model"] == "trend_tight"), op[-1])
+        ref = op[-1]
         if not (live and (live.get("dir") == "bull") == (ref["sg"] > 0) and abs(live.get("entry", 0) - ref["entry"]) <= 5):
             live = {"dir": "bull" if ref["sg"] > 0 else "bear", "entry": ref["entry"], "stop": ref["stop"],
                     "tp1": ref.get("tp1"), "target": ref["tgt"], "status": "filled"}

@@ -349,6 +349,13 @@ def trend_premium(df):
     return [t for t in trend_tight(df) if (day_used(df, t[0]) or 0) >= PREMIUM_USED]
 
 
+def trend_premium_intraday(df):
+    """🖕🖕 PREMIUM, intraday (11 Nov 2026, owner: no swing): the intraday 4H breakout (SL 0.55%, TP1 0.75R + BE,
+    TP2 3R, closed within 12 h) on a day that already moved 100%+ of a normal day.
+    2 years: 86 trades, 70% win, +0.28R, newest 30%: 30 trades, 80% win, +0.34R."""
+    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= PREMIUM_USED]
+
+
 def trend_tight(df):
     """Trend following with a tight stop (0.65% of price, about $25 at $3,900) on the same 4H breakouts, both
     directions: half closed at TP1 = 0.75R (stop moves to entry), rest to TP2 = 3R. On 2 years of spot gold:
@@ -766,7 +773,8 @@ def judge(trades, split_t):
     return out
 
 
-DESCRIBE = {"combo_scalp": "🤬 COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
+DESCRIBE = {"trend_premium_intraday": "🖕🖕 PREMIUM intraday: 4H breakout on a 100%+ day, SL 0.55%, TP1 0.75R + BE, TP2 3R, 12h",
+            "combo_scalp": "🤬 COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
             "london_trend": "RESEARCH: London breakout of the Asia range in the 4H trend on a moving day (50%+), 2R",
             "vp_late": "LATE PLAN warning: the Volume Plan entry on a day that already moved 70%+ (losing in testing)",
             "trend_premium": "PREMIUM SWING: the 5-day 4H breakout swing only on a day that already moved 100%+ of a normal day",
@@ -790,11 +798,11 @@ TREND_PREFERENCE = ["trend_intraday", "trend_tight", "trend_buy", "trend_breakou
 # trend_buy is a child of trend_breakout (same breakouts). When both are proven, notify.py alerts only trend_buy.
 
 
-MAX_HOLD_H = {"combo_scalp": 3, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
+MAX_HOLD_H = {"combo_scalp": 3, "trend_premium_intraday": 12, "vp_late": 8, "trend_premium": 120, "range_extreme": 12, "trend_intraday": 12, "vp_shape": 8, "crt_daily": 72, "breakout_cisd": 12, "trend_breakout": 120, "trend_buy": 120, "trend_tight": 120, "trend_pullback": 8, "vwap_fade": 4, "sweep_htf": 12}   # others: until the session/day ends (<= 24h)
 
 
 def run_all(df, cands_fn, split_t):
     models = {"sweep_htf": sweep_htf(df, cands_fn), **value_models(df), **session_breakouts(df),
               "trend_pullback": trend_pullback(df), "vwap_fade": vwap_fade(df), "trend_breakout": trend_breakout(df),
-              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df)}
+              "trend_buy": trend_buy(df), "trend_tight": trend_tight(df), "trend_intraday": trend_intraday(df), "trend_combo": trend_combo(df), "trend_premium": trend_premium(df), "trend_premium_intraday": trend_premium_intraday(df), "breakout_cisd": breakout_cisd(df), "crt_daily": crt_daily(df), "vp_shape": vp_shape(df), "vp_late": vp_late(df), "london_trend": london_trend(df), "range_extreme": range_extreme(df), "combo_scalp": combo_scalp(df)}
     return {k: {"description": DESCRIBE[k], **judge(v, split_t)} for k, v in models.items()}

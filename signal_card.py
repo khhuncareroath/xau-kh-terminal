@@ -16,7 +16,7 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 BG, CARD, INK, MUT, GRID = "#F2F2F7", "#FFFFFF", "#1C1C1E", "#8E8E93", "#E5E5EA"
 UP, DN, BLUE, PURP, DARK = "#34C759", "#FF3B30", "#007AFF", "#AF52DE", "#1C1C1E"
-TIERS = {"premium": ("PREMIUM SWING", PURP), "combo": ("COMBO", BLUE), "normal": ("NORMAL · half size", MUT),
+TIERS = {"premium": ("PREMIUM · intraday", PURP), "combo": ("COMBO", BLUE), "normal": ("NORMAL · half size", MUT),
          "plan": ("PLAN · small size", "#FF9500"), "scalp": ("COMBO SCALP · small SL", "#FF9500")}
 
 

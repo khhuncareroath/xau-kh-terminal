@@ -15,10 +15,10 @@ import research
 from ict import resample
 
 TIERS = {   # model: (short name, tier, ring colour)
-    "trend_premium": ("Premium Swing", "PREMIUM", "#FFD60A"),
+    "trend_premium_intraday": ("Premium", "PREMIUM", "#FFD60A"),
     "trend_intraday": ("4H Breakout", "TESTED", "#E3B04B"),
+    "combo_scalp": ("Combo Scalp", "PLAN", "#FF9500"),
     "vp_shape": ("Volume Plan", "PLAN", "#5AC8FA"),
-    "range_extreme": ("Day Range Snap", "EXPERIMENTAL", "#BF5AF2"),
 }
 TIER_KM = {"TESTED": "បានសាកល្បង", "PLAN": "ផែនការ", "EXPERIMENTAL": "សាកល្បង"}
 
@@ -65,7 +65,7 @@ def replay(df, models=None):
             trades[before:] = [t for t in trades[before:] if df.index[t["j0"]] in keep]
     finally:
         research._run_trade, research._run_scaled = real_t, real_s
-    prem = {(t["j0"], t["sg"]) for t in trades if t["model"] == "trend_premium"}
+    prem = {(t["j0"], t["sg"]) for t in trades if t["model"] == "trend_premium_intraday"}
     trades = [t for t in trades if not (t["model"] == "trend_intraday" and (t["j0"], t["sg"]) in prem)]   # live sends one
     return sorted(trades, key=lambda t: t["j0"])
 
@@ -179,7 +179,7 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
                 va="center", zorder=7)
         if t["model"] in ("vp_shape", "range_extreme"):   # 🤬 = smaller tested setup (plan / experimental)
             _emoji(ax, x0 + 4.6, yb + fh / 2, 0.14, "angry")
-        n_f = 2 if t["model"] == "trend_premium" else 1 if t.get("combo") else 0
+        n_f = 2 if t["model"] == "trend_premium_intraday" else 1 if t.get("combo") else 0
         if n_f:   # the XAU.KH mark: one finger = COMBO, two = PREMIUM
             for q in range(n_f):
                 _finger(ax, x0 + 4.6 + q * 2.6, yb + fh / 2, 0.15)
@@ -213,7 +213,7 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
     closed = [t for t in shown if t["status"] != "open"]
     W = sum(t["R"] > 0 for t in closed); tot = sum(t["R"] for t in closed)
     models = (bt or {}).get("models", {})
-    pr = (models.get("trend_premium") or {}).get("all") or {}
+    pr = (models.get("trend_premium_intraday") or {}).get("all") or {}
     cb = (models.get("trend_combo") or {}).get("all") or {}
     stamp = local(time.time()) if local else ""
     fig.text(0.05, 0.955, "XAU.KH", color=GOLD, fontsize=16, fontweight="bold")

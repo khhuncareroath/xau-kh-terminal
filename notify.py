@@ -162,20 +162,17 @@ def model_alert(lm, state, now):
     if key in state.get("model_keys", []):
         return False
     import research
-    # PREMIUM SWING: the same breakout on a big day is sent as the 5-day swing version (wider SL, holds up to 5 days)
+    # 🖕🖕 PREMIUM = the same INTRADAY breakout on a 100%+ day (no swing since 11 Nov 2026: owner's choice, and the
+    # intraday version tested 86 trades, 70% win, +0.28R, newest 80% win). Everything closes within 12 h.
     models_bt = jl("backtest.json").get("models", {})
-    premium = False
-    if s["model"] in research.TREND_PREFERENCE and (models_bt.get("trend_premium") or {}).get("proven"):
-        tt = next((x for x in lm.get("signals", []) if x.get("model") == "trend_tight" and x.get("dir") == s["dir"]
-                   and x.get("trigger_time") == s.get("trigger_time")), None)
-        du_ = (tt or {}).get("day_used") if tt else None
-        if tt and du_ is not None and du_ >= research.PREMIUM_USED:
-            s, premium = tt, True
-            key = f"model|trend_premium|{s['trigger_time']}"
-            if key in state.get("model_keys", []):
-                return False
+    premium = s["model"] in research.TREND_PREFERENCE and (s.get("day_used") or 0) >= research.PREMIUM_USED
+    if premium:
+        key = f"model|trend_premium|{s['trigger_time']}"
+        if key in state.get("model_keys", []):
+            return False
     bull = s["dir"] == "bull"
-    b = (models_bt.get("trend_premium") or {}).get("all") if premium else (s.get("backtest") or {})
+    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 86, "win_rate_pct": 70, "avg_R": 0.28}) \
+        if premium else (s.get("backtest") or {})
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
     out = []
@@ -198,8 +195,8 @@ def model_alert(lm, state, now):
     cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
     combo_line = None
     if premium:
-        combo_line = (f"🖕🖕 <b>PREMIUM SWING</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
-                      f"Rare: about 1 every 1–2 weeks. Hold 1–5 days · ឱកាសល្អ កាន់ 1–5 ថ្ងៃ")
+        combo_line = (f"🖕🖕 <b>PREMIUM</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
+                      f"Tested: {b.get('trades')} trades · {b.get('win_rate_pct')}% win · closes within 12 h · ឱកាសល្អបំផុត")
     elif du is not None:
         combo_line = (f"🖕 <b>STRONG COMBO</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
                       + (f" Tested: {cb['trades']} trades · {cb['win_rate_pct']}% win." if cb.get("trades") else "")
@@ -240,7 +237,7 @@ def model_alert(lm, state, now):
     wr = st_.get("win_rate_pct")   # quiet-day (normal) breakouts were ~50/50: no win rate is promised
     caption = "\n".join(l for l in [
         f"{'🟢' if bull else '🔴'} <b>XAU/USD — {'BUY' if bull else 'SELL'}</b> | "
-        + ("🖕🖕 PREMIUM SWING" if premium else "🖕 COMBO" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
+        + ("🖕🖕 PREMIUM" if premium else "🖕 COMBO" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
         f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}មាសឥឡូវ</b> · ចូល {fmt(s['entry'])} · SL {fmt(s['stop'])} · "
         + (f"TP1 {fmt(s['tp1'])} (បិទពាក់កណ្ដាល) · TP2 {fmt(s['target'])}" if s.get("tp1") else f"TP {fmt(s['target'])}"),
         f"📍 Entry: <b>{fmt(s['entry'])}</b>",
