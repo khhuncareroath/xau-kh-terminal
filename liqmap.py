@@ -65,11 +65,32 @@ def _state(d, sw, i_from):
     return out
 
 
+_DAILY = {"t": 0, "bias": None}
+
+
+def _daily_bias(df5):
+    """Daily structure needs ~6 months of daily candles; the live 5m feed only holds ~20 days (the D pill was always
+    blank). Uses Yahoo daily candles, cached 6 hours; falls back to the 5m data if that fails."""
+    import time
+    if time.time() - _DAILY["t"] < 6 * 3600 and _DAILY["bias"] is not None:
+        return _DAILY["bias"]
+    try:
+        from engine import _yahoo
+        d = _yahoo("1d", "6mo")
+        b = _bias(d)
+        if b:
+            _DAILY.update(t=time.time(), bias=b)
+            return b
+    except Exception as e:
+        print("daily bias download failed:", e)
+    return _bias(ict.resample(df5, "D"))
+
+
 def build(df5, bars=96):
     d = ict.resample(df5, "15m").tail(400)
     price = float(d["Close"].iloc[-1])
     n = len(d)
-    top = {"D": _bias(ict.resample(df5, "D")), "4H": _bias(ict.resample(df5, "4H")), "1H": _bias(ict.resample(df5, "1H")),
+    top = {"D": _daily_bias(df5), "4H": _bias(ict.resample(df5, "4H")), "1H": _bias(ict.resample(df5, "1H")),
            "30m": _bias(df5.resample("30min").agg(ict.AGG).dropna()), "15m": _bias(d), "5m": _bias(df5.tail(600))}
     # dealing range: last external swing high and low that are still above / below price
     ext = _state(d, _sw(d, EXT_N), 0)

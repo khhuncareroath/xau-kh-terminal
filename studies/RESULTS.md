@@ -41,3 +41,18 @@ Scripts: newsplay.py, newsfilter.py, atrstop.py, luck.py, regime.py (run with th
 | Session of the breakout | London 02-08 NY best (+0.41R); NY 08-13 +0.25 older but -0.36 newest (13 trades) | not consistent: no filter |
 
 Script: scratchpad exits.py (2-year CSV).
+
+## Does the analysis predict direction? (11 Nov, evening; 1,405 session posts over 2 years, next 8 hours)
+
+| Part of the analysis | Agrees with which way gold moved $10 first | Decision |
+|---|---|---|
+| TARGET BUY / SELL lines (15m close beyond trigger -> target) | reached 71% when triggered; RANDOM lines at the same distances 77% | no edge: targets are small vs gold's range; no "accuracy %" will be advertised |
+| Top-down bias (D/4H/1H, 30m/15m, all six) | 50% / 50% / 50% (all six agree: 52%) | coin flip |
+| Draw on liquidity, premium/discount zone, last CHOCH/BOS, EMA50 side | 52% / 50% / 50% / 50% | coin flip |
+| 4H breakout trend state, 24h momentum, side of the day open, Day Meter >= 100% | 50% / 51% / 52% / 52% | coin flip at a random hour |
+
+Conclusion: at a random time gold's next move is close to 50/50 whatever the picture shows. The proven edge is only at
+the 4H-breakout moment with the Day Meter filter and the scaled exit (the signals). The analysis is a MAP (where price
+may react, where the next signal fires, when news hits), not a forecast. Bug found: the D pill was always blank
+(live 5m feed ~20 days < 30 daily candles): fixed with 6 months of daily candles.
+Scripts: scratchpad ana_bt.py, ana_dir.py, ana_dir2.py.
