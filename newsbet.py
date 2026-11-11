@@ -9,6 +9,9 @@ Fundamental read (each factor votes +1 gold up / -1 gold down / 0):
   4. Gold's 4H structure: the trend often carries through the release
 Lean = sign of the sum; 0 = "no bet: fundamentals mixed". Confidence: |sum| 1 = low, 2 = medium, 3-4 = high.
 Trade: entry = first price at the release, SL $15, TP $30 (2R), closed after 60 min. Result replied under the bet.
+⏰ FINAL CALL (python newsbet.py, first step of every loop cycle): in the last cycle before the release it waits until
+~1 minute before, re-reads the fundamentals with fresh data + gold's drift in the last 30 min, and posts BUY / SELL NOW
+(or no bet). The FINAL lean is the one that is graded.
 
 HONEST LABEL: studies/RESULTS.md: "lean before the news" did not pass the 2-year test, and at the release the spread
 widens and stops slip. This is a labelled gamble on fundamentals: tiny size or just watch. The record decides.
@@ -207,13 +210,14 @@ def check(df, news, macro):
         lines = [f"🎲 <b>NEWS BET · {esc(titles)}</b> · {local(t.timestamp())}", ""]
         if lean:
             bull = lean == "BUY"
-            lines += [f"{'🟢' if bull else '🔴'} <b>Lean: {lean} gold</b> · confidence {conf} ({abs(s)}/{len(fac)})",
+            lines += [f"{'🟢' if bull else '🔴'} <b>Early lean: {lean} gold</b> · confidence {conf} ({abs(s)}/{len(fac)})",
                       f"🇰🇭 {'ទិញ' if bull else 'លក់'}មាស · ទំនុកចិត្ត {'ទាប' if conf == 'low' else 'មធ្យម' if conf == 'medium' else 'ខ្ពស់'}", ""]
         else:
             lines += ["⚪ <b>No bet</b>: the fundamentals point both ways · មិនភ្នាល់ទេ", ""]
         lines += [f"{'✅' if (v > 0) == (lean == 'BUY') and v != 0 else '❌' if v != 0 else '▫️'} {en}" for v, en, _ in fac]
         if lean:
-            lines += ["", f"📍 Entry: price at {local(t.timestamp())} · 🛑 SL ${SL:.0f} · 🎯 TP ${TP:.0f} · closed after {HOLD_MIN} min"]
+            lines += ["", f"📍 Entry: price at {local(t.timestamp())} · 🛑 SL ${SL:.0f} · 🎯 TP ${TP:.0f} · closed after {HOLD_MIN} min",
+                      "⏰ <b>Final call ~1 min before the news</b> (it can change) · ការសម្រេចចុងក្រោយ ១ នាទីមុន"]
         lines += [rec, "<i>Gamble on fundamentals, not a tested signal (betting before news lost in our 2-year test). "
                        "Spread widens at the release · tiny size or just watch · ការភ្នាល់ មិនមែនសញ្ញា</i>"]
         mid = send("\n".join(lines), "news soon")
@@ -258,3 +262,68 @@ def check(df, news, macro):
              f"📊 Record: {wn}W {ln}L · {tot:+.1f}R · លទ្ធផលពិត ទាំងឈ្នះ និងចាញ់", "after the news", reply_to=b.get("msg_id"))
     if changed:
         json.dump(st, open(STATE, "w"), indent=1)
+
+
+def final_call(df, news, macro, now=None):
+    """Last cycle before a release: wait until ~60 s before it, re-read the fundamentals (fresh macro + gold's drift in
+    the last 30 min) and post BUY / SELL NOW as a reply to the bet. The final lean replaces the early one for grading."""
+    from tg import esc, fmt, local, send
+    st = jl(STATE, {})
+    now = now or datetime.now(timezone.utc)
+    for b in st.get("bets", []):
+        if b.get("final"):
+            continue
+        t = datetime.fromisoformat(b["key"])
+        secs = (t - now).total_seconds()
+        if not 0 < secs <= 6.5 * 60:
+            continue
+        wait = min(max(secs - 60, 0), 170)       # the loop step has 240 s
+        time.sleep(wait)
+        group = [(t, e, None) for e in news.get("events", []) if e.get("impact") == "High"
+                 and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) == t]
+        from outlook import EVENT_DIR
+        group = [(t_, e, next((v for keys, v in EVENT_DIR if any(k in e["title"].lower() for k in keys)), None))
+                 for t_, e, _ in group]
+        fac, _, _, _ = read(group, jl("macro.json", macro), df)
+        d5 = df.iloc[:-1]
+        last30 = d5[d5.index >= d5.index[-1] - pd.Timedelta(minutes=30)]
+        if len(last30) >= 3:
+            drift = float(last30["Close"].iloc[-1] - last30["Open"].iloc[0])
+            v = 1 if drift >= 3 else -1 if drift <= -3 else 0
+            fac.append((v, f"Gold last 30 min {drift:+.1f}$" + (" (buyers moving in)" if v > 0 else " (sellers moving in)" if v < 0 else " (quiet)"),
+                        "មាស ៣០ នាទីចុងក្រោយ " + ("ឡើង" if v > 0 else "ចុះ" if v < 0 else "ស្ងាត់")))
+        s_ = sum(v for v, *_ in fac)
+        lean = "BUY" if s_ > 0 else "SELL" if s_ < 0 else None
+        price = float(d5["Close"].iloc[-1])
+        changed = b.get("lean") and lean != b.get("lean")
+        if lean:
+            bull = lean == "BUY"
+            head = (f"⏰ <b>FINAL CALL · {esc(b['titles'])} in ~{max(1, round((secs - wait) / 60))} min</b>\n"
+                    f"{'🟢' if bull else '🔴'} <b>{lean} gold now</b> · {abs(s_)}/{len(fac)} factors · price {fmt(price)}"
+                    + (f"\n⚠️ Changed from the early lean ({b['lean']})" if changed else "")
+                    + f"\n🇰🇭 {'ទិញ' if bull else 'លក់'}មាសឥឡូវ · SL ${SL:.0f} · TP ${TP:.0f} · បិទក្រោយ {HOLD_MIN} នាទី")
+        else:
+            head = (f"⏰ <b>FINAL CALL · {esc(b['titles'])}</b>\n⚪ <b>No bet</b>: the factors now point both ways · មិនភ្នាល់ទេ")
+        body = "\n".join(f"{'✅' if v and (v > 0) == (lean == 'BUY') else '❌' if v else '▫️'} {en}" for v, en, _ in fac)
+        send(head + "\n" + body + "\n<i>Gamble, not a signal · spread is wide now · tiny size or just watch</i>",
+             "news soon", reply_to=b.get("msg_id"))
+        b.update(final=True, lean=lean, score=s_, called_at=price)
+        json.dump(st, open(STATE, "w"), indent=1)
+        print("news bet final call", b["titles"], lean)
+
+
+def main():
+    if not ON:
+        return
+    st = jl(STATE, {})
+    now = datetime.now(timezone.utc)
+    if not any(not b.get("final") and 0 < (datetime.fromisoformat(b["key"]) - now).total_seconds() <= 6.5 * 60
+               for b in st.get("bets", [])):
+        return                                   # nothing due: stay fast
+    from engine import load
+    from levels import to_ny
+    final_call(to_ny(load("5m", "5d")), jl("news.json", {}), jl("macro.json", {}))
+
+
+if __name__ == "__main__":
+    main()
