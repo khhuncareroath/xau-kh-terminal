@@ -533,21 +533,15 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     pp = lambda px: f"{abs(px - entry) * 10:,.0f}"
     link = msg_link(idea.get("msg_id"), f"{idea.get('session', '')} session")
     wt = idea.get("with_trend")
+    ck = idea.get("checks", {}).get(side)
     cap = "\n".join(x for x in [
-        f"📐 <b>XAU/USD — {side} | SETUP</b> (from the {idea.get('session', '')} analysis)",
-        f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}</b> · ចូល {fmt(entry)} · SL {fmt(stop)} · TP1 {fmt(tp1)} (បិទពាក់កណ្ដាល) · TP2 {fmt(tp2)} · lot តូច",
-        f"✅ {why}" if why else f"✅ 15m candle closed {'above' if bull else 'below'} <b>{fmt(p['trig'])}</b> (TARGET {side})",
+        f"{'🟢' if bull else '🔴'} <b>XAU/USD — {side} | SETUP</b>",
         f"📍 Entry: <b>{fmt(entry)}</b>",
-        f"🛑 SL: <b>{fmt(stop)}</b> ({pp(stop)} pips) · {('under the demand' if bull else 'above the supply') if why else ('under the pullback low' if bull else 'above the pullback high')}",
-        f"🎯 TP1: <b>{fmt(tp1)}</b> (+{pp(tp1)}) → close half, SL to entry",
-        f"🎯 TP2: <b>{fmt(tp2)}</b> (+{pp(tp2)})",
-        f"💰 0.01 lot: SL −${risk:,.1f} · 0.01 lot per ${risk * 200:,.0f} of account (0.5% risk)",
-        (f"🧩 Confirmations <b>{idea['checks'][side]['score']}/{idea['checks'][side]['of']}</b> · reasons in 🔎 Setup Analysis"
-         if idea.get("checks", {}).get(side) else None),
-        ("✅ With the 4H trend" if side == wt else "⚠️ Against the 4H trend: smaller size or skip" if wt else None),
-        "⏱ Closes within 8 h · enter now or skip",
-        "<i>Setup idea from analysis, not a tested A+/B+ signal · risk 0.25–0.5% · result shown in 🏆 Proof</i>",
-        (f"<a href=\"{link}\">📊 See the analysis</a>" if link else None),
+        f"🛑 SL: <b>{fmt(stop)}</b>",
+        f"🎯 TP1: <b>{fmt(tp1)}</b>",
+        f"🎯 TP2: <b>{fmt(tp2)}</b>",
+        (f"🧩 Confirmations: <b>{ck['score']}/{ck['of']}</b>" if ck else None),
+        f"⏱ Timeframe: M15 · lot តូច · −${risk:,.0f} at SL (0.01 lot)",
     ] if x)
     title = f"{side} idea" if TOPIC == "signals" else f"{side} setup triggered"
     mid = None

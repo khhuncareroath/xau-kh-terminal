@@ -257,25 +257,15 @@ def model_alert(lm, state, now):
     pp = lambda px: f"{abs(px - s['entry']) * 10:,.0f}"
     st_ = cb if (strong and not premium and cb.get("trades")) else (b or {}) if (premium or du is None or strong) else {}
     wr = st_.get("win_rate_pct")   # quiet-day (normal) breakouts were ~50/50: no win rate is promised
-    caption = "\n".join(l for l in [
-        f"{'🟢' if bull else '🔴'} <b>XAU/USD — {'BUY' if bull else 'SELL'}</b> | "
-        + ("💎 A+" if premium else "⭐ B+" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
-        f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}មាសឥឡូវ</b> · ចូល {fmt(s['entry'])} · SL {fmt(s['stop'])} · "
-        + (f"TP1 {fmt(s['tp1'])} (បិទពាក់កណ្ដាល) · TP2 {fmt(s['target'])}" if s.get("tp1") else f"TP {fmt(s['target'])}"),
+    caption = "\n".join(l for l in [   # short and clean: numbers here, details on the card
+        f"{'🟢' if bull else '🔴'} <b>XAU/USD — {'BUY' if bull else 'SELL'} | "
+        + ("💎 A+" if premium else "⭐ B+" if strong else "4H BREAKOUT") + "</b>",
         f"📍 Entry: <b>{fmt(s['entry'])}</b>",
-        f"🛑 SL: <b>{fmt(s['stop'])}</b> ({pp(s['stop'])} pips)",
-        *([f"🎯 TP1: <b>{fmt(s['tp1'])}</b> (+{pp(s['tp1'])}) → close half, SL to entry",
-           f"🎯 TP2: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"] if s.get("tp1") else
-          [f"🎯 TP: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"]),
-        (f"📊 Win rate: {wr}% (tested 2 years, {st_.get('trades')} trades)" if wr else
-         "📊 Quiet day: about 50/50 in testing → half size or skip" if du is not None else None),
-        # real money per 0.01 lot (1 oz: $1 move = $1), so members size by dollars, not by a "small SL"
-        f"💰 0.01 lot: SL −${abs(s['entry'] - s['stop']):,.0f}"
-        + (f" · TP1 +${abs(s['tp1'] - s['entry']) * 0.5:,.0f} (half) · TP2 +${abs(s['target'] - s['entry']) * 0.5:,.0f} (half)" if s.get("tp1")
-           else f" · TP +${abs(s['target'] - s['entry']):,.0f}")
-        + f" · use 0.01 lot per ${abs(s['entry'] - s['stop']) * 100:,.0f} of account (1% risk)",
-        f"⏱ 4H breakout · " + (f"hold up to {hold_h // 24} days" if hold_h >= 48 else f"closes within {hold_h} h"),
-        "⏰ Enter within 15 min · risk 0.5–1% · ចូលក្នុង 15 នាទី",
+        f"🛑 SL: <b>{fmt(s['stop'])}</b>",
+        *([f"🎯 TP1: <b>{fmt(s['tp1'])}</b>", f"🎯 TP2: <b>{fmt(s['target'])}</b>"] if s.get("tp1") else
+          [f"🎯 TP: <b>{fmt(s['target'])}</b>"]),
+        (f"📊 Tested: <b>{wr}%</b> win ({st_.get('trades')} trades, 2 years)" if wr else None),
+        f"⏱ Timeframe: 4H · closes within {hold_h} h · −${abs(s['entry'] - s['stop']):,.0f} at SL (0.01 lot)",
     ] if l)
     mid = None
     try:
