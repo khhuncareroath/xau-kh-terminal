@@ -134,13 +134,16 @@ def analyse(df, t0, evts, ict, levels, now, next_high):
 
 
 MODE = os.environ.get("ALERT_MODE", "auto")
+# 11 Nov 2026 News Playbook test (2 years, 98 reactions): the after-news pullback lost money (19% win, -0.55R per trade,
+# t -4.6), and continuation / fade / "lean before" versions had no edge either. So the reaction is reported, no levels.
+PLANS = os.environ.get("PN_PLANS", "off") == "on"
 
 
 def render(c, ai, watch=True):
     head = f"📰 <b>XAU.KH · After the news</b>\n<b>{esc(c['title'])}</b> · released {local(c['t'])}"
     react = f"Gold {'+' if c['move'] > 0 else ''}{c['move']:.1f} pts in {REACT_MIN} min (from {fmt(c['p0'])}) · now {fmt(c['price'])}"
     if c["stage"] != "plan live":
-        lines = [head, react, "Lean: <b>no plan</b>. " + esc(c["why"])]
+        lines = [head, react, "<b>No trade</b>. " + esc(c["why"])]
         if c.get("factors"):
             lines.append(f"Factors {c['n_ok']}/{len(c['factors'])}: " + " ".join(f"{'✅' if g else '▫️'}{esc(a)}" for a, g, _ in c["factors"]))
         lines.append("<i>Volatility stays high after releases. Waiting is a position.</i>")
@@ -179,6 +182,10 @@ def main():
         if c is None:
             print("postnews: not enough candles yet for", evts[0]["title"]); continue
         ai = None
+        if c["stage"] == "plan live" and not PLANS:
+            c["stage"] = "no plan"
+            c["why"] = ("We do not trade news spikes: tested 2 years, entering after the news lost money more often than not. "
+                        "Wait for our normal signals. · មិនជួញដូរពេលព័ត៌មាន រង់ចាំសញ្ញាធម្មតា")
         if c["stage"] == "plan live":
             ai = explain({k: v for k, v in c.items() if k not in ("t", "valid_until", "next_high")} |
                          {"factors": [{"name": a, "ok": g, "detail": d} for a, g, d in c["factors"]]})
