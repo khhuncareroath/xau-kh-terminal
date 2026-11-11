@@ -54,6 +54,9 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     ext = int(n * 0.22)
     lo_v = min(l.min(), price - (upper - lower) * 0.02)
     hi_v = max(h.max(), price + (upper - lower) * 0.02)
+    for (_, y1, _) in (scenarios or [])[:2]:   # keep both if/then paths on the chart
+        if abs(y1 - price) < price * 0.02:
+            lo_v, hi_v = min(lo_v, y1), max(hi_v, y1)
     pad = (hi_v - lo_v) * 0.06
     ylo, yhi = lo_v - pad, hi_v + pad
     show = lambda y: ylo + pad * 0.3 <= y <= yhi - pad * 0.3
@@ -220,17 +223,17 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     # dark box: what to do + key numbers
     fig.patches.append(FancyBboxPatch((0.035, 0.03), 0.93, 0.25, boxstyle="round,pad=0,rounding_size=0.025",
                                       transform=fig.transFigure, fc=DARK, ec="none", zorder=0))
-    fig.text(0.075, 0.245, "What to do", color="#AEAEB2", fontsize=9.5, va="center")
+    fig.text(0.075, 0.245, "What to do · the map shows both paths, it does not predict", color="#AEAEB2", fontsize=9.5, va="center")
     import textwrap
     fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
              fontweight="bold", va="top", linespacing=1.4)
     rows = []
     if liq:
         if liq.get("trig_buy"):
-            rows.append(("TARGET BUY: 15m close above", f"{liq['trig_buy']:,.2f}" + (f" → {liq['tgt_buy']:,.0f}" if liq.get("tgt_buy") else ""), UP))
+            rows.append(("If a 15m candle closes above", f"{liq['trig_buy']:,.2f}" + (f" → {liq['tgt_buy']:,.0f}" if liq.get("tgt_buy") else ""), UP))
         if liq.get("trig_sell"):
-            rows.append(("TARGET SELL: 15m close below", f"{liq['trig_sell']:,.2f}" + (f" → {liq['tgt_sell']:,.0f}" if liq.get("tgt_sell") else ""), DN))
-    rows += [("4H signal: BUY above / SELL below", f"{upper:,.0f} / {lower:,.0f}", INK if False else "#FFFFFF")]
+            rows.append(("If a 15m candle closes below", f"{liq['trig_sell']:,.2f}" + (f" → {liq['tgt_sell']:,.0f}" if liq.get("tgt_sell") else ""), DN))
+    rows = [("NEXT SIGNAL · 4H close: BUY above / SELL below", f"{upper:,.0f} / {lower:,.0f}", "#FFD60A")] + rows
     if plan and plan.get("side") and plan.get("edge"):
         rows.append((f"Plan {plan['side']} at POC", f"{plan['edge']:,.2f}", "#FF9500"))
     y = 0.135

@@ -605,7 +605,10 @@ def analysis_chart(df, lv, conf, lines, path, title):
         elif near:
             todo = "Price is close to a 4H signal line. Get ready, but wait for the 4H candle to close."
         else:
-            todo = "No signal now. Waiting is the trade: don't force an entry."
+            u = st.get("used")
+            todo = ("No signal yet: wait for a 4H candle to close beyond a signal line. "
+                    + (f"Day Meter {u * 100:.0f}%: " + ("strong day, a breakout would be PREMIUM." if u >= 1 else
+                       "a breakout now would be COMBO." if u >= 0.7 else "quiet so far (COMBO needs 70%).") if u is not None else ""))
         scen = []
         try:   # bull path to the nearest stops above, bear path to the nearest stops below (from the desk facts)
             import desk
@@ -618,14 +621,9 @@ def analysis_chart(df, lv, conf, lines, path, title):
         try:
             import liqmap
             liq = liqmap.build(df)
-            t_ = liq["top"]
-            htf = [t_.get(k) for k in ("D", "4H", "1H")]
-            if not st.get("busy") and t_.get("15m") and sum(b not in (None, t_["15m"]) for b in htf) >= 2:
-                up15 = t_["15m"] == "bull"
-                todo = (f"15m turned {'up' if up15 else 'down'} but D/4H/1H are {'down' if up15 else 'up'}: likely a pullback. "
-                        f"Small size, or wait for a {'SELL' if up15 else 'BUY'} at {'premium' if up15 else 'discount'}.")
-            if liq.get("draw") and liq.get("target"):   # scenario arrow follows the draw on liquidity
-                scen = [(price, liq["target"], "#34C759" if liq["draw"] == "up" else "#FF3B30")]
+            # 11 Nov 2026 test: bias / draw / zone called gold's next 8 h only ~50% of the time, so the picture shows BOTH
+            # paths (if/then) and never a one-way "lean"; the main message is where the next proven signal fires.
+            scen = [(price, liq[k], c) for k, c in (("tgt_buy", "#34C759"), ("tgt_sell", "#FF3B30")) if liq.get(k)] or scen
         except Exception as e:
             print("liquidity map failed:", e)
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
@@ -1325,16 +1323,21 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     now_line = ("👉 <b>Now: a 4H signal is running · follow it</b> · មានសញ្ញាកំពុងដំណើរការ" if busy else
                 "👉 <b>Now: get ready, price is near a signal line</b> · ត្រៀមខ្លួន" if near else
                 "👉 <b>Now: wait · ឥឡូវ: រង់ចាំ</b> (no signal = no trade)")
+    try:
+        from research import day_used
+        du = day_used(df, df.index[-1] + pd.Timedelta(minutes=5))
+    except Exception:
+        du = None
+    dm = (None if du is None else f"📏 Day Meter <b>{du * 100:.0f}%</b> · " +
+          ("ថ្ងៃខ្លាំង → 🖕🖕 PREMIUM" if du >= 1 else "ល្មម → 🖕 COMBO" if du >= 0.7 else "ស្ងាត់ (🖕 ត្រូវការ 70%)"))
     out = [f"{head} <b>{name.upper()} · មាស {fmt(price)}</b>", "",
-           f"Swing (4H): <b>{BW.get(bias('4H'))}</b>",
-           f"Internal (1H): <b>{BW.get(bias('1H'))}</b>",
-           f"Lower (15m): <b>{BW.get(bias('15m'))}</b>",
-           f"Swing High: <b>{fmt(upper)}</b> · Swing Low: <b>{fmt(lower)}</b>", "",
+           (f"🚨 <b>Next signal (4H close)</b>: BUY &gt; <b>{fmt(upper)}</b> · SELL &lt; <b>{fmt(lower)}</b>" if not busy else None),
+           dm,
+           *([risk] if risk else []), "",
+           f"🗺 <b>Map</b> · 4H {BW.get(bias('4H'))} · 1H {BW.get(bias('1H'))} · 15m {BW.get(bias('15m'))}",
            *_targets(df),
-           (f"⚡ 4H signal: BUY &gt; <b>{fmt(upper)}</b> · SELL &lt; <b>{fmt(lower)}</b>" if not busy else None),
            (f"🟡 <b>Plan {plan['side']}</b>: at POC <b>{fmt(plan['edge'])}</b> if a 15m candle closes "
             f"{'below' if plan['side'] == 'SELL' else 'above'} it · lot តូច" if plan_ok else None),
-           *([risk] if risk else []),
            "", now_line,
            "<i>Details on the chart · signals come automatically in 📈 Signals</i>"]
     out = [x for x in out if x is not None]
@@ -1353,13 +1356,13 @@ def _targets(df):
     except Exception as e:
         print("targets failed:", e)
         return []
-    out = []
+    out = []   # if/then map, not a forecast (tested: these lines alone have no edge)
     if m.get("trig_buy"):
-        out.append(f"🟢 <b>TARGET BUY</b>: រង់ចាំទៀន 15m បិទលើ <b>{fmt(m['trig_buy'])}</b>"
-                   + (f" → គោលដៅ <b>{fmt(m['tgt_buy'])}</b>" if m.get("tgt_buy") else ""))
+        out.append(f"🟢 បើទៀន 15m បិទលើ <b>{fmt(m['trig_buy'])}</b>"
+                   + (f" → កម្រិតបន្ទាប់ <b>{fmt(m['tgt_buy'])}</b>" if m.get("tgt_buy") else ""))
     if m.get("trig_sell"):
-        out.append(f"🔴 <b>TARGET SELL</b>: រង់ចាំទៀន 15m បិទក្រោម <b>{fmt(m['trig_sell'])}</b>"
-                   + (f" → គោលដៅ <b>{fmt(m['tgt_sell'])}</b>" if m.get("tgt_sell") else ""))
+        out.append(f"🔴 បើទៀន 15m បិទក្រោម <b>{fmt(m['trig_sell'])}</b>"
+                   + (f" → កម្រិតបន្ទាប់ <b>{fmt(m['tgt_sell'])}</b>" if m.get("tgt_sell") else ""))
     return out
 
 
