@@ -67,3 +67,23 @@ Scripts: scratchpad ana_bt.py, ana_dir.py, ana_dir2.py.
 | (old COMBO, choppy included) | 137 | ~6 | 67% | +0.34R | 67%, +0.34R |
 
 Clean trend = 4H efficiency > CHOP_ER (0.255). Choppy breakouts are now skipped with a note in Setup Analysis.
+
+## Owner's ICT / SMC model (11 Nov, evening) · HTF zone -> 15m sweep + MSS -> 5m OB/CISD retest
+
+Rules: Daily + 4H FVG / order-block zones (active until a close beyond the far edge); price taps a zone; within 6 h on
+15m a liquidity sweep (low below the last 15m swing low) then MSS (15m close beyond the last swing high, body >= 0.6 ATR);
+entry = limit at the last opposite 15m candle (OB / CISD level), waits 2 h, cancelled if the stop is hit first;
+SL beyond the sweep extreme + 0.1 ATR ($2-20); TP 3R; max 12 h. 66 versions tested (entry x exit x bias x session x VP).
+
+| Version | Trades | Win | Avg R | Older / newest | t | Proven |
+|---|---|---|---|---|---|---|
+| OB retest + Daily/4H bias + 3R | 84 (~3.5/month) | 45% | +0.44R | +0.41 / +0.52 | 2.29 | YES |
+| same, 2R / half 1R + 3R | 84 | 48% / 59% | +0.28 / +0.18 | +0.28 / +0.20 | 1.8 / 1.5 | close |
+| same without the HTF bias | 95 | 39% | +0.23 (3R) | +0.30 / +0.06 | 1.3 | no |
+| market entry or FVG retest (any filters) | | | mostly ~0 or negative on newest | | | no |
+| London/NY-only or volume-profile filter | | | weaker (fewer trades, no gain) | | | no |
+
+Robustness (3R, bias): displacement 0.4/0.6/0.8/1.0 ATR -> +0.37/+0.44/+0.51/+0.25R; window 4/6/8 h -> +0.21/+0.44/+0.40;
+max SL $15/20/25 -> +0.23/+0.44/+0.38; limit wait 1/2/4 h -> +0.42/+0.44/+0.40. Positive in 8 of 9 quarters, longs +0.25R
+and shorts +0.70R. Median SL $10.6 (middle half $5.7-14.1). Candidate for a live signal (limit-order alert).
+Script: scratchpad owner_ict.py / owner_rob.py.
