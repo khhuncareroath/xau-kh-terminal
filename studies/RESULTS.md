@@ -187,3 +187,19 @@ the last 12 h: strong close + clean trend); ⭐ B+ = with the 4H trend and 4/7+.
 in 🔎 Setup Analysis, not sent. Replay of 30 sessions: 8 A+, 6 B+ (about 1-2 a day). HONEST NOTE: the only rule
 proven on 2 years was the 4H breakout itself (78% win, +0.56R); the M15 setups and the grade are not proven yet,
 so every signal says risk 0.25-0.5% and the live record in Proof decides.
+
+## 2-year replay of the LIVE M15 signal (11 Nov 2026, night) · studies/m15_replay.py
+setupidea.py exactly as the bot runs it, every session (998), watch() after every 15m close, graded like track.py
+(half at TP1 + SL to entry, TP2, 8 h, $0.40). No historical news calendar, so the news pause is not applied.
+
+| Version | Signals | /month | Win | Avg R | Older / newest | Quarters + |
+|---|---|---|---|---|---|---|
+| As launched (breakouts + zone reactions) | 501 | 21 | 50% | +0.007R (t 0.2) | +0.01 / +0.01 | |
+| Zone reactions only | 138 | 6 | 43% | **-0.147R** | -0.12 / -0.19 | |
+| **Now: TARGET-line breakouts only** | 383 | 16 | 53% | **+0.070R** (t 1.2) | +0.03 / +0.16 | 4/9 |
+| 💎 A+ | 249 | 10 | 55% | +0.104R (t 1.5) | +0.07 / +0.19 | 6/9 |
+| ⭐ B+ | 134 | 6 | 50% | +0.006R | -0.04 / +0.09 | 4/9 |
+
+Decision: zone-reaction trades are no longer sent (ZONE_SIGNALS=on brings them back); zones stay on the card as key
+levels and a reaction gets a note in Setup Analysis. Positive but NOT proven (t < 2), longest losing streak 9:
+risk 0.25-0.5%, the live record decides. For comparison the 4H breakout alone was 78% win, +0.56R, proven (2-3 a month).

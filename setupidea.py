@@ -31,6 +31,8 @@ SL_MIN, SL_MAX = 5.0, 15.0        # $ stop range: below 4 the spread decides, ab
 ZONE_MAX = 20.0                   # $: wider zones are areas, not levels
 VALID_H = 8                       # an idea lives one session
 MAX_PER_DAY = 2
+ZONE_SIGNALS = os.environ.get("ZONE_SIGNALS", "off") == "on"   # 11 Nov 2026 replay: zone reactions -0.15R (138) -> notes only
+NOTES_PER_DAY = 1                 # "setup seen, not sent" notes in Setup Analysis: at most 1 a day (owner: too many messages)
 MIN_CONF = int(os.environ.get("SETUP_MIN_CONF", 4))   # confirmations needed (of 7) before a setup becomes a signal
 ON = os.environ.get("SETUP_IDEAS", "on") != "off"
 TOPIC = os.environ.get("SETUP_TOPIC", "signals")
@@ -156,6 +158,7 @@ def build(df):
     pick = lambda side, zs, sg: (idea[side].get("broke") or
                                  next((z for z in zs if abs(m["price"] - (z["hi"] if sg > 0 else z["lo"])) >= max(5.0, a15)), None))
     dz, sz = pick("SELL", dem, 1), pick("BUY", sup, -1)
+    idea["zone_signals"] = ZONE_SIGNALS
     idea["BUY_DZ"] = _reaction(dz, 1, a15, m["price"]) if dz else None     # buy the demand, with confirmation
     idea["SELL_SZ"] = _reaction(sz, -1, a15, m["price"]) if sz else None   # sell the supply, with confirmation
     sw = idea["swing"]
@@ -183,9 +186,9 @@ def caption(idea, name, signal_line=None, day_meter=None):
         + (f"បំបែក Demand {n(s['broke']['lo'])}–{n(s['broke']['hi'])} · " if s.get("broke") else "")
         + f"Target Zone Low: <b>{n(s['tp1'])}</b>)",
         *([f"🟢 <b>BUY at Demand</b> : បើតម្លៃចូល Demand <b>{n(idea['BUY_DZ']['zone']['lo'])}–{n(idea['BUY_DZ']['zone']['hi'])}</b> "
-           f"ហើយទៀន 15m បិទត្រឡប់លើ <b>{n(idea['BUY_DZ']['edge'])}</b> ទើបទិញ (SL ក្រោម Demand)"] if idea.get("BUY_DZ") else []),
+           f"ហើយទៀន 15m បិទត្រឡប់លើ <b>{n(idea['BUY_DZ']['edge'])}</b> ទើបទិញ (SL ក្រោម Demand)"] if idea.get("BUY_DZ") and idea.get("zone_signals") else []),
         *([f"🔻 <b>SELL at Supply</b> : បើតម្លៃចូល Supply <b>{n(idea['SELL_SZ']['zone']['lo'])}–{n(idea['SELL_SZ']['zone']['hi'])}</b> "
-           f"ហើយទៀន 15m បិទត្រឡប់ក្រោម <b>{n(idea['SELL_SZ']['edge'])}</b> ទើបលក់ (SL លើ Supply)"] if idea.get("SELL_SZ") else [])])
+           f"ហើយទៀន 15m បិទត្រឡប់ក្រោម <b>{n(idea['SELL_SZ']['edge'])}</b> ទើបលក់ (SL លើ Supply)"] if idea.get("SELL_SZ") and idea.get("zone_signals") else [])])
 
 
 # ------------------------------------------------------------------ picture
@@ -432,6 +435,21 @@ def watch(df):
     return False
 
 
+def _note(text, title="Setup not sent"):
+    """'Seen, not sent' notes go to 🔎 Setup Analysis, at most NOTES_PER_DAY a day (silent)."""
+    from tg import send
+    day = (pd.Timestamp(time.time(), unit="s", tz="America/New_York") - pd.Timedelta(hours=18)).strftime("%Y-%m-%d")
+    n = jl("setup_notes.json")
+    if n.get("day") != day:
+        n = {"day": day, "count": 0}
+    if n["count"] >= NOTES_PER_DAY:
+        print("setup note skipped (daily cap):", text[:60])
+        return
+    send(text, title, silent=True)
+    n["count"] += 1
+    json.dump(n, open("setup_notes.json", "w"))
+
+
 def checks(idea, sg, d5, d15, entry, reaction=False, clear=True):
     """The confirmation checklist, from closed candles at the moment of the setup. Returns [(ok, English, Khmer)]."""
     import liqmap
@@ -502,7 +520,7 @@ def _gate(idea, side, sg, d5, d15, entry, kind, reaction=False, clear=True):
     from tg import fmt, send
     why = ("against the 4H trend" if idea.get("swing") != ("bull" if sg > 0 else "bear") else
            f"{score}/{len(ck)} confirmations (needs {MIN_CONF})")
-    send(f"🔎 <b>{side} setup seen, NOT sent</b> · {kind} at {fmt(entry)} · {why}\n"
+    _note(f"🔎 <b>{side} setup seen, NOT sent</b> · {kind} at {fmt(entry)} · {why}\n"
          + "\n".join(f"{'✅' if ok else '❌'} {en}" for ok, en, _ in ck)
          + f"\n<i>មិនទាន់គ្រប់ការបញ្ជាក់ · មិនផ្ញើសញ្ញា</i>", "Setup not sent")
     print("setup: not enough confirmations", side, score)
@@ -549,6 +567,13 @@ def _watch_zones(idea, st, d5, d15, cl, now, dk):
         tp1, tp2 = _levels(entry, stop, sg, None)
         why = (f"Price came into the {'demand' if sg > 0 else 'supply'} {z['lo']:,.2f}–{z['hi']:,.2f} ({z['tf']}) and a 15m candle "
                f"closed back {'above' if sg > 0 else 'below'} it")
+        if not ZONE_SIGNALS:   # tested 2 years: these lose; the zone stays on the chart as a key level
+            idea["done"][key] = "note only"
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            _note(f"🔎 <b>{side} reaction at the {'demand' if sg > 0 else 'supply'} {z['lo']:,.0f}–{z['hi']:,.0f}</b> "
+                  f"(15m close back {'above' if sg > 0 else 'below'})\n<i>Analysis only, not a signal: in 2 years of testing these "
+                  f"reaction trades lost (−0.15R each). Signals come from the TARGET lines. · វិភាគប៉ុណ្ណោះ មិនមែនសញ្ញា</i>")
+            continue
         if not _gate(idea, side, sg, d5, d15, entry, f"{'demand' if sg > 0 else 'supply'} {z['lo']:,.0f}–{z['hi']:,.0f} reaction", reaction=True):
             idea["done"][key] = "weak"
             json.dump(st, open(STATE, "w"), indent=1, default=str)

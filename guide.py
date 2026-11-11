@@ -8,17 +8,18 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11r"
+VERSION = "2026-11-11s"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
 📊 <b>Analysis</b> (every session): the 4H gives the key levels and the trend; the M15 gives the setup.
-🟢 TARGET BUY / 🔻 TARGET SELL lines, and BUY at Demand / SELL at Supply zones.
+🟢 TARGET BUY / 🔻 TARGET SELL lines · Demand / Supply zones = key levels.
 
-✅ <b>SIGNAL</b> (📈 Signals): sent only when a <b>15m candle closes</b> at a line or rejects a zone, AND the 4H agrees.
+✅ <b>SIGNAL</b> (📈 Signals): sent only when a <b>15m candle closes</b> beyond a TARGET line AND the 4H agrees.
 💎 <b>A+</b>: with the 4H trend + 6 of 7 confirmations, or a fresh 4H breakout the same way
-⭐ <b>B+</b>: with the 4H trend + at least 4 of 7 confirmations
+⭐ <b>B+</b>: with the 4H trend + at least 4 of 7 confirmations (smaller size)
+📊 2-year replay of these exact rules: 💎 A+ 55% win · ⭐ B+ about break-even · all ~16 a month
 ⏭ Against the 4H trend or too few confirmations: <b>not sent</b> (reason shown in 🔎 Setup Analysis)
 🎯 <b>TP1 hit</b>: close half, move SL to entry. Max 2 signals a day, closes within 8 h.
 

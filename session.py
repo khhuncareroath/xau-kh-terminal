@@ -634,8 +634,11 @@ def analysis_chart(df, lv, conf, lines, path, title, setup=None):
             wt = setup.get("with_trend")
             todo = ((f"4H {'up' if wt == 'BUY' else 'down'}: {wt} is with-trend. " if wt else "4H ranging: no trend side. ")
                     + "Wait for the 15m close.")
+        trend = st["trend"]
+        if setup:   # the badge shows the 4H swing that grades A+ / B+ (same as the 4H pill), not the old breakout state
+            trend = 1 if setup.get("swing") == "bull" else -1 if setup.get("swing") == "bear" else 0
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
-                                  plan=None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq, setup=setup)
+                                  plan=None, todo=todo, trend=trend, scenarios=scen, liq=liq, setup=setup)
     except Exception as e:
         print("analysis card failed, old chart:", e)
         return _analysis_chart_old(df, lv, conf, lines, path, title)

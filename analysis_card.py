@@ -259,7 +259,7 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
                 rows.append((f"TARGET {side}: 15m close {'above' if side == 'BUY' else 'below'}{brk}{wt}",
                              f"{p_['trig']:,.2f} · SL {p_['stop']:,.0f} · TP {p_['tp1']:,.0f} / {p_['tp2']:,.0f}", col))
         for key, side, col, word in (("BUY_DZ", "BUY", UP, "demand"), ("SELL_SZ", "SELL", DN, "supply")):
-            q = setup.get(key)
+            q = setup.get(key) if setup.get("zone_signals") else None
             if q:
                 rows.append((f"{side} at {word} {q['zone']['lo']:,.0f}–{q['zone']['hi']:,.0f}: 15m close back {'above' if side == 'BUY' else 'below'}",
                              f"{q['edge']:,.2f} · SL {q['stop']:,.0f} · TP {q['tp1']:,.0f} / {q['tp2']:,.0f}", col))
