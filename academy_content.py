@@ -312,3 +312,62 @@ LESSONS += [
          quiz=("Setup ដែលល្អពិតគឺ...", ["មើលទៅស្អាតលើ screenshot", "បានសាកល្បងលើទិន្នន័យច្រើន រួមថ្លៃ", "មាន indicator ច្រើន", "គ្រូនិយាយថាល្អ"], 1,
                "មានតែការសាកល្បង (backtest + forward test) ទើបបង្ហាញថា setup មាន edge ពិត។"), chart=None),
 ]
+
+LESSONS += [
+    # ---------------- PART 7 — EXECUTION
+    dict(ch=29, part="PART 7 · Execution", title="Entry Techniques · វិធីចូល",
+         body="""• <b>Market entry</b> = ចូលភ្លាម (សញ្ញា 🖕 របស់យើង: ចូលក្នុង 15 នាទី)
+• <b>Limit entry</b> = ដាក់ order រង់ចាំតម្លៃត្រឡប់មក (ប្រហែលមិនបាន fill)
+• <b>Stop entry</b> = ចូលពេលតម្លៃឆ្លង level (breakout)
+• <b>Confirmation entry</b> = រង់ចាំទៀនបិទ / CHOCH 5m មុនចូល (យឺតតែសុវត្ថិភាពជាង)
+• <b>Avoid late entries</b>: បើតម្លៃរត់ទៅជិត TP1 រួចហើយ → <b>រំលង</b> កុំដេញ
+• Timing: ជៀសវាង 15 នាទីមុន/ក្រោយព័ត៌មានធំ និងម៉ោងបិទទីផ្សារ
+
+💡 យើងបានសាកល្បង: រង់ចាំ retest ក្រោយ breakout <b>អាក្រក់ជាង</b> ចូលភ្លាម (breakout ខ្លាំងមិនត្រឡប់មកវិញ)""",
+         quiz=("សញ្ញាចេញ ប៉ុន្តែតម្លៃរត់ជិត TP1 រួចហើយ។ គួរ...", ["ដេញចូលភ្លាម", "រំលង រង់ចាំសញ្ញាបន្ទាប់", "ចូល lot ធំ", "ផ្លាស់ SL"], 1,
+               "ចូលយឺត = RR អាក្រក់។ រំលងល្អជាងដេញ។"), chart=None),
+    dict(ch=30, part="PART 7 · Execution", title="Stop Loss & Take Profit",
+         body="""• <b>Structural SL</b> = ក្រោយ swing/OB ដែលការពារ idea · <b>Volatility SL</b> = តាម ATR
+• SL ត្រូវនៅកន្លែងដែល <b>idea ខុស</b> មិនមែនកន្លែងដែល "ខាតតិច"
+• <b>RR</b> (Risk:Reward) = TP ÷ SL · ឧ. SL $22, TP $66 = 1:3
+• <b>Partial profit</b>: បិទពាក់កណ្ដាលនៅ TP1 · <b>Break-even</b>: ប្ដូរ SL មកចំណុចចូល
+• <b>Trailing stop</b> = SL ដើរតាមតម្លៃ
+• ❌ <b>កុំ</b> ផ្លាស់ SL ឆ្ងាយទៀតពេលតម្លៃមករក
+
+💡 សញ្ញា 🖕: SL 0.55% (~$22) · TP1 0.75R បិទពាក់កណ្ដាល + BE · TP2 3R · SL តូចជាងនេះ <b>ខាត</b>ពេលសាកល្បង""",
+         quiz=("ពេលតម្លៃជិតដល់ SL អ្នកគួរ...", ["ផ្លាស់ SL ឆ្ងាយទៀត", "ទុកឱ្យ SL ធ្វើការងារ", "បន្ថែម lot", "លុប SL"], 1,
+               "SL គឺជាចំណុចដែល idea ខុស។ ផ្លាស់ឆ្ងាយ = ខាតធំ។"), chart=None),
+    dict(ch=31, part="PART 7 · Execution", title="Sessions & News · ព័ត៌មានធំ",
+         body="""• <b>CPI</b> (អតិផរណា) · <b>NFP</b> (ការងារ, ថ្ងៃសុក្រទី 1) · <b>FOMC</b> (ការប្រាក់) = ព័ត៌មានធំបំផុត
+• ម៉ោងកម្ពុជា: US data ភាគច្រើន <b>20:30</b> (winter) · FOMC <b>02:00</b> យប់
+• ពេលព័ត៌មាន: spread <b>ធំ</b> · តម្លៃលោត $10–30 · SL អាច <b>slip</b> (ចេញអាក្រក់ជាង)
+• ច្បាប់: <b>កុំបើកថ្មី 15 នាទីមុន/ក្រោយ</b>
+• Plan ថ្ងៃ: ពិនិត្យ calendar ព្រឹក (Daily Outlook) → ដឹងម៉ោងគ្រោះថ្នាក់
+
+💡 យើងសាកល្បង "trade ក្រោយព័ត៌មាន" 98 ដង: ឈ្នះតែ 19% · ដូច្នេះ bot មិនផ្ញើសញ្ញាពេលព័ត៌មាន""",
+         quiz=("CPI ចេញម៉ោង 20:30។ ពេលណាមិនគួរបើក trade ថ្មី?", ["20:15–20:45", "08:00", "12:00", "គ្មាន"], 0,
+               "15 នាទីមុន និងក្រោយព័ត៌មានធំ spread ធំ និងតម្លៃលោត។"), chart=None),
+    # ---------------- PART 8 — RISK
+    dict(ch=32, part="PART 8 · Risk", title="Capital Protection · គណនា Lot",
+         body="""<b>រូបមន្ត:</b> Lot = (Account × Risk%) ÷ (SL $ × 100)
+ឧ. Account $1,000 · Risk 1% = $10 · SL $22 → 10 ÷ 2,200 = <b>0.0045 lot</b>
+→ 0.01 lot = $22 risk = 2.2% · Account តូចពេកសម្រាប់ 1%
+• Account <b>តូច</b> ($100–500): ប្រើ <b>Cent account</b> ឬ risk ច្រើនជាងគោល = គ្រោះថ្នាក់
+• <b>Max daily loss</b> 2–3% · <b>Max weekly</b> 5–6% → ឈប់
+• <b>Drawdown</b> = ធ្លាក់ពីកំពូលគណនី · 10 ខាតជាប់ × 10% risk = គណនីបាត់ ❌
+
+💡 ប្រើ <b>Scale Up</b> លើ website ដើម្បីគណនា lot ដោយស្វ័យប្រវត្តិ""",
+         quiz=("Account $2,000 risk 1% SL $20។ Lot ប្រហែល...", ["0.01", "0.10", "1.00", "0.50"], 0,
+               "$2,000 × 1% = $20 ÷ ($20 × 100) = 0.01 lot។"), chart=None),
+    dict(ch=33, part="PART 8 · Risk", title="Risk Discipline · ខាតជាប់គ្នា",
+         body="""• ឈ្នះ 68% ក៏នៅតែមាន <b>ខាត 3–4 ដងជាប់គ្នា</b> ពីរបីដងក្នុងមួយឆ្នាំ: <b>ធម្មតា</b>
+• <b>Overtrading</b> = trade ពេលគ្មាន setup · <b>Revenge trading</b> = trade ដើម្បីយកលុយវិញ ❌
+• <b>Overleverage</b> = lot ធំពេក → ខាតម្ដងបាត់ច្រើន
+• <b>Correlated risk</b> = បើក 3 order មាសទិសដូចគ្នា = risk 3 ដង
+• ក្រោយខាត 2 ដងជាប់: <b>ឈប់ថ្ងៃនោះ</b> · ពិនិត្យ journal
+• Capital preservation មុន profit: គណនីនៅរស់ = មានឱកាស
+
+💡 ទំព័រ Scale Up: ក្រោយខាត risk ធ្លាក់ពាក់កណ្ដាលដោយស្វ័យប្រវត្តិ""",
+         quiz=("ខាត 2 ដងជាប់ ហើយខឹង។ អ្វីល្អ?", ["បើក lot ធំដើម្បីយកវិញ", "ឈប់សម្រាប់ថ្ងៃនោះ ពិនិត្យ journal", "Trade រាល់ setup", "លុប SL"], 1,
+               "Revenge trading ជាមូលហេតុធំនៃការបាត់គណនី។ ឈប់ ហើយពិនិត្យ។"), chart=None),
+]
