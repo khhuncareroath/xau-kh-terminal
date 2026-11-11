@@ -224,3 +224,9 @@ Same 5m dip entry (TP 2R, 3 h), looser triggers. Every breakout-window version w
 | 4H structure only / 4H+1H agree (no breakout) | 18-32 | 39-41% | ~0 to +0.07 | | no |
 | after an M15 A+/B+ signal | 11 | 36% | -0.06 | | no |
 More R per month than the rare version (~+2.6R vs ~+1.5R). Scalps inside an A+/B+ window are marked 💎 strong.
+
+## Scalp "analyses along" (studies/scalp_filters.py)
+One check at a time on the wide scalp, kept only if better on BOTH halves. Clean 4H trend (efficiency > CHOP_ER, the
+same rule as A+/B+): choppy-market scalps lost (-0.08R). LIVE wide scalp = any 4H breakout, 24 h, 2 a day, clean trend:
+230 trades (~10 a month), 51% win at 2R, +0.35R, newest 51 trades 63% win +0.74R, t 3.8, 7/9 quarters, PROVEN.
+(1H agreeing and "skip the 2nd scalp after a loss" also helped a little; not added, to keep the rule simple.)

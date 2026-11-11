@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11u"
+VERSION = "2026-11-11v"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -22,7 +22,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 📊 2-year replay of these exact rules: 💎 A+ 55% win · ⭐ B+ about break-even · all ~16 a month
 ⏭ Against the 4H trend or too few confirmations: <b>not sent</b> (reason shown in 🔎 Setup Analysis)
 🎯 <b>TP1 hit</b>: close half, move SL to entry. Max 2 signals a day, all closed by 24:00 (no trades while you sleep).
-⚡ <b>SCALP</b>: a quick 5m entry on a small dip after a 4H breakout, TP 2R, closes within 3 h. Tested 2 years: ~4 a week, 45% win (wins are 2× losses). 💎 = strong breakout (60% win).
+⚡ <b>SCALP</b>: a quick 5m entry on a small dip after a 4H breakout, TP 2R, closes within 3 h. Only in a clean 4H trend. Tested 2 years: ~2–3 a week, 51% win (wins are 2× losses). 💎 = strong breakout.
 
 🔎 <b>Setup Analysis</b>: why each signal, ✅/❌ checklist.
 🏆 <b>Proof</b> / 📊 Friday report: every result, wins AND losses.

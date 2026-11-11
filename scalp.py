@@ -118,6 +118,9 @@ def main():
     risk = (entry - sw) * sg
     if not research.SCALP_RISK[0] <= risk <= research.SCALP_RISK[1]:
         print(f"scalp: stop ${risk:.1f} outside the tested ${research.SCALP_RISK[0]:.0f}-{research.SCALP_RISK[1]:.0f}"); return
+    er = research.efficiency(df, df.index[i] + pd.Timedelta(minutes=5))
+    if er is not None and er <= research.CHOP_ER:   # same check as research.wide_scalp: choppy 4H market = no scalp
+        print(f"scalp: 4H market choppy (trend quality {er:.2f}), skipped"); return
     tgt = entry + sg * research.SCALP_RR * risk
     bull = sg > 0
     bt = (jl("backtest.json", {}).get("models", {}).get("wide_scalp") or {}).get("all") or {}
@@ -128,7 +131,7 @@ def main():
         f"🛑 SL: <b>{fmt(sw)}</b>",
         f"🎯 TP: <b>{fmt(tgt)}</b> (2R)",
         (f"📊 Tested: <b>{bt.get('win_rate_pct')}%</b> win ({bt.get('trades')} trades, 2 years)" if bt.get("trades") else None),
-        f"⏱ Timeframe: M5 · after a 4H breakout · closes within 3 h · −${risk:,.0f} at SL (0.01 lot)",
+        f"⏱ Timeframe: M5 · after a 4H breakout · clean 4H trend · closes within 3 h · −${risk:,.0f} at SL (0.01 lot)",
         "<i>Enter now or skip · ចូលឥឡូវ ឬរំលង</i>",
     ] if x)
     mid = None

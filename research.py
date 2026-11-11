@@ -738,14 +738,14 @@ SCALP_WINDOW_H, SCALP_PER_DAY = 24, 2   # wide scalp (owner: more scalps): any 4
 
 
 def wide_scalp(df, lat=1):
-    """⚡ SCALP, wide version (11 Nov 2026, studies/scalp_more.py): the same 5m dip entry as combo_scalp, but after ANY
-    intraday 4H breakout (not only A+/B+), for 24 hours, up to 2 a day. 2 years: 412 trades (~17 a month), 45% win at 2R,
-    +0.15R, older +0.13 / newest +0.22, 7 of 9 quarters, t 2.2. Every looser breakout window tested was positive on both
-    halves; scalping on the 4H structure alone (no breakout) was ~0R."""
-    return _scalp(df, trend_intraday(df), SCALP_WINDOW_H, SCALP_PER_DAY, lat)
+    """⚡ SCALP, wide version (11 Nov 2026, studies/scalp_more.py + scalp_filters.py): the same 5m dip entry as combo_scalp,
+    after ANY intraday 4H breakout, for 24 hours, up to 2 a day, ONLY in a clean 4H trend (efficiency > CHOP_ER).
+    Without the trend check: 412 trades, 45% win, +0.15R, worst streak 12. With it: ~8 a month, 54% win at 2R, +0.42R,
+    older +0.30 / newest +0.76, worst streak 7 (the choppy-market scalps lost -0.08R)."""
+    return _scalp(df, trend_intraday(df), SCALP_WINDOW_H, SCALP_PER_DAY, lat, clean=True)
 
 
-def _scalp(df, triggers, hours, per_day, lat=1):
+def _scalp(df, triggers, hours, per_day, lat=1, clean=False):
     o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
     n = len(df)
     a = atr(df).to_numpy()
@@ -768,6 +768,10 @@ def _scalp(df, triggers, hours, per_day, lat=1):
         risk = (o[j0] - sw) * sg
         if not SCALP_RISK[0] <= risk <= SCALP_RISK[1]:
             continue
+        if clean:   # the bot "analyses along": only in a clean 4H trend (studies/scalp_filters.py: choppy scalps -0.08R)
+            e = efficiency(df, df.index[j0])
+            if e is not None and e <= CHOP_ER:
+                continue
         r, j = _run_trade(o, h, l, c, j0, min(j0 + SCALP_HOLD, n - 1), sg, sw, o[j0] + sg * SCALP_RR * risk)
         if r is None:
             continue
