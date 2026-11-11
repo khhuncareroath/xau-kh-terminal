@@ -64,6 +64,8 @@ def step(a, bars):
             if not hit1 and ((h >= a["tp1"]) if sg > 0 else (l <= a["tp1"])):
                 a.update(hit1=True, tp1_at=t)
                 hit1, banked, left = True, part * r1, 1 - part
+            if hit1 and a.get("tp_mid") and not a.get("hit_mid") and ((h >= a["tp_mid"]) if sg > 0 else (l <= a["tp_mid"])):
+                a.update(hit_mid=True)          # 🎰 three-target trades: TP2 is a progress reply, the rest runs to TP3
             if hit1 and ((h >= a["target"]) if sg > 0 else (l <= a["target"])):
                 a.update(status="win", closed=t, exit=a["target"], R=round(banked + left * r2, 2))
                 return
@@ -93,7 +95,7 @@ def _reply_text(a):
     sg = 1 if a["dir"] == "bull" else -1
     pips = lambda px: f"{(px - a['entry']) * sg * 10:+,.0f} pips"
     if s == "win":
-        return f"🏆 <b>Hit TP{'2' if a.get('tp1') else ''}</b> {pips(a['target'])} · full target · ដល់ TP"
+        return f"🏆 <b>Hit TP{'3' if a.get('tp_mid') else '2' if a.get('tp1') else ''}</b> {pips(a['target'])} · full target · ដល់ TP"
     if s == "tp1":
         return f"✅ <b>TP1 banked</b> {pips(a['tp1'])}, rest closed at entry (BE) · ឈ្នះ"
     if s == "loss":
@@ -143,8 +145,10 @@ def main():
         bars = [(int(t.timestamp()), float(r.Open), float(r.High), float(r.Low), float(r.Close))
                 for t, r in zip(df.index[:-1], df.iloc[:-1].itertuples())]   # last candle is still forming
         for a in live:
-            before, had_tp1 = a["status"], a.get("hit1", False)
+            before, had_tp1, had_mid = a["status"], a.get("hit1", False), a.get("hit_mid", False)
             step(a, bars)
+            if a.get("hit_mid") and not had_mid:
+                send(f"✅ <b>Hit TP2</b> · ដល់ TP2", "fun scalp TP2" if a.get("kind") == "fun" else "TP2", reply_to=a.get("msg_id"))
             if a["status"] in TRADED and "R_gross" not in a and a.get("R") is not None:   # same cost as the backtest
                 risk = abs(a["entry"] - a["stop"]) or 1
                 a["R_gross"], a["R"] = a["R"], round(a["R"] - COST / risk, 2)

@@ -33,6 +33,31 @@ def jl(n, d):
         return d
 
 
+def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid):
+    from tg import msg_link
+    bull = sg > 0
+    side = "BUY" if bull else "SELL"
+    lo, hi = float(flo[i]), float(fhi[i])
+    du = None
+    try:
+        du = research.day_used(df, df.index[i] + pd.Timedelta(minutes=5))
+    except Exception:
+        pass
+    link = msg_link(mid if isinstance(mid, int) else None, f"{side} fun scalp")
+    lines = [f"🔎 <b>WHY THIS FUN SCALP · {side} {fmt(entry)}</b>", "",
+             f"1️⃣ 4H trend is {'UP ↑' if bull else 'DOWN ↓'} → only {side}s · និន្នាការ 4H {'ឡើង' if bull else 'ចុះ'}",
+             (f"2️⃣ Price dipped into a 15m gap (FVG) {fmt(min(lo, hi))}–{fmt(max(lo, hi))} · តម្លៃ{'ធ្លាក់' if bull else 'ឡើង'}ចូល FVG 15m"
+              if lo == lo and hi == hi else "2️⃣ Price dipped into a fresh 15m gap (FVG)"),
+             f"3️⃣ The 5m candle closed back {'above' if bull else 'below'} the previous candle and EMA20 {fmt(float(e20[i]))} "
+             f"→ {'buyers' if bull else 'sellers'} are back · ទៀន 5m បិទត្រឡប់",
+             f"🛑 SL {fmt(sl)} = {'under' if bull else 'above'} the last 6 candles · 🎯 TP1/2/3 = 1R / 2R / 3R",
+             *([f"📏 Day Meter {du * 100:.0f}%"] if du is not None else []),
+             "<i>🎰 Gamble for fun · cent account</i>"]
+    if link:
+        lines.append(f"<a href=\"{link}\">🎰 The scalp</a>")
+    send("\n".join(lines), "Setup reason", silent=True)
+
+
 def main():
     if os.environ.get("FUN_SCALP", "on") == "off":
         print("fun scalp: off"); return
@@ -74,22 +99,22 @@ def main():
     risk = (entry - sw) * sg
     if not research.SCALP_RISK[0] <= risk <= research.SCALP_RISK[1]:
         print(f"fun scalp: stop ${risk:.1f} outside ${research.SCALP_RISK[0]:.0f}-{research.SCALP_RISK[1]:.0f}"); return
-    tgt = entry + sg * research.SCALP_RR * risk
+    tp1, tp2, tp3 = (round(entry + sg * k * risk, 2) for k in (1, 2, 3))
     bull = sg > 0
     side = "BUY" if bull else "SELL"
     caption = "\n".join([
         f"🎰 <b>FUN SCALP — {side}</b>",
         f"📍 Entry: <b>{fmt(entry)}</b>",
         f"🛑 SL: <b>{fmt(sw)}</b>",
-        f"🎯 TP: <b>{fmt(tgt)}</b> (2R)",
-        f"⏱ M5 · with the 4H · closes within 3 h · −${risk:,.0f} at SL (0.01 lot)",
-        "<i>🎲 Gamble for fun: cent account, tiny lot · ~break-even in 2-year test · ភ្នាល់លេង គណនី cent ប៉ុណ្ណោះ</i>",
+        f"🎯 TP1: <b>{fmt(tp1)}</b>",
+        f"🎯 TP2: <b>{fmt(tp2)}</b>",
+        f"🎯 TP3: <b>{fmt(tp3)}</b>",
     ])
     title = f"{side} fun scalp"
     mid = None
     try:
         import signal_card
-        signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": float(sw), "tp1": None, "target": tgt},
+        signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": float(sw), "tp1": tp1, "target": tp3},
                          "fun_card.png", tier="fun", status="LIVE", stamp=local(now), tf_label="fun scalp · 5m",
                          bars=80, hold_note="closes within 3 h")
         mid = send_photo("fun_card.png", caption, title)
@@ -101,10 +126,14 @@ def main():
         return
     json.dump({"day": day, "count": n_today + 1, "t": now}, open(STATE, "w"))
     log_alert({"id": f"fun|{df.index[i]}", "kind": "fun", "model": "fun_scalp", "dir": "bull" if bull else "bear",
-               "entry": entry, "stop": float(sw), "target": float(tgt), "rr": research.SCALP_RR, "created": now,
+               "entry": entry, "stop": float(sw), "target": tp3, "tp1": tp1, "tp_mid": tp2, "part": 0.5, "rr": 3.0, "created": now,
                "valid_until": now + 300, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
                "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": research.SCALP_HOLD * 300, "tier": "fun"})
-    print("fun scalp sent", side, entry, sw, tgt)
+    print("fun scalp sent", side, entry, sw, tp1, tp2, tp3)
+    try:   # 🔎 why the bot sent it, in Setup Analysis (the signal itself stays numbers only)
+        why_post(df, i, sg, entry, float(sw), (tp1, tp2, tp3), fd, flo, fhi, a, e20, mid)
+    except Exception as e:
+        print("fun scalp why failed:", e)
 
 
 if __name__ == "__main__":
