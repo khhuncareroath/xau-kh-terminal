@@ -28,3 +28,4 @@ Scripts: newsplay.py, newsfilter.py, atrstop.py, luck.py, regime.py (run with th
 | ICT/SMC order-block limit entries, SL past the OB ($3-6), 62 variants (5m/15m, 1H/4H bias, premium/discount) | median -0.16R older, -0.18R newest; best-on-older -0.42R newest | rejected |
 | Momentum-confirmation indicator (strong candle breaks highs above VWAP/EMA, trend filter), 72 variants | median -0.08R older, -0.22R newest; best-on-older 14% win newest | rejected |
 | PREMIUM as an intraday trade | 86 trades, 70% win, +0.28R, newest 80% win | live (no swing) |
+| Mentor "full confirmation" filters on COMBO breakouts (VWAP, EMA50/200, 1H structure, strong candle) | VWAP/EMA/1H already agree on ~97-100% of COMBO breakouts; candle-strength filters helped on newest data but not on older | no change: the signal already has full confirmation |
