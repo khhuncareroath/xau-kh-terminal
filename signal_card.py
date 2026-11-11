@@ -1,6 +1,6 @@
 """XAU.KH signal card: one clean image per signal for the Signals section.
 
-Top: pair, BUY/SELL, tier (COMBO / PREMIUM / NORMAL) and status pills.
+Top: pair, BUY/SELL, tier (B+ / A+ / NORMAL) and status pills.
 Middle: 15m chart with market structure (HH / HL / LH / LL), the broken 4H level, and the trade drawn as
 zones with Entry / SL / TP1 / TP2 price tags on the right.
 Bottom: dark price box (Entry, SL, TP1, TP2 with pips; 1 pip = $0.10) and the tested win rate.
@@ -16,8 +16,8 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 BG, CARD, INK, MUT, GRID = "#F2F2F7", "#FFFFFF", "#1C1C1E", "#8E8E93", "#E5E5EA"
 UP, DN, BLUE, PURP, DARK = "#34C759", "#FF3B30", "#007AFF", "#AF52DE", "#1C1C1E"
-TIERS = {"premium": ("PREMIUM · intraday", PURP), "combo": ("COMBO", BLUE), "normal": ("NORMAL · half size", MUT),
-         "plan": ("PLAN · small size", "#FF9500"), "scalp": ("COMBO SCALP · small SL", "#FF9500")}
+TIERS = {"premium": ("A+ SETUP", PURP), "combo": ("B+ SETUP", BLUE), "normal": ("NORMAL · half size", MUT),
+         "plan": ("PLAN · small size", "#FF9500"), "scalp": ("SCALP · small SL", "#FF9500")}
 
 
 def _fonts():

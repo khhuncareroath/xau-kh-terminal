@@ -33,7 +33,7 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     tr_txt, tr_col = ("4H UP", UP) if trend > 0 else ("4H DOWN", DN) if trend < 0 else ("4H RANGE", MUT)
     x = _pill(fig, 0.30, 0.952, tr_txt, "white", tr_col, fs=11)
     if used is not None:
-        zt, zc = (("PREMIUM ZONE", "#AF52DE") if used >= 1.0 else ("COMBO ZONE", BLUE) if used >= 0.7 else ("QUIET DAY", MUT))
+        zt, zc = (("A+ ZONE", "#AF52DE") if used >= 1.0 else ("B+ ZONE", BLUE) if used >= 0.7 else ("QUIET DAY", MUT))
         _pill(fig, x, 0.952, zt, "white", zc, fs=10)
     fig.text(0.945, 0.952, "XAU.KH", color=BLUE, fontsize=14, fontweight="bold", va="center", ha="right")
     if liq:   # top-down row: D 4H 1H 30m 15m 5m

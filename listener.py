@@ -99,7 +99,7 @@ def check_answer():
     lean = F["lean"]
     trend = {"bull": "UP ↑ (buyers)", "bear": "DOWN ↓ (sellers)", None: "MIXED ↔"}[lean]
     km_trend = {"bull": "ឡើង", "bear": "ចុះ", None: "ចំហៀង"}[lean]
-    zone = ("🖕🖕 PREMIUM zone" if st["zone"] == 2 else "🖕 COMBO zone" if st["zone"] == 1 else "quiet day")
+    zone = ("💎 A+ zone" if st["zone"] == 2 else "⭐ B+ zone" if st["zone"] == 1 else "quiet day")
     nxt = session.local(lines[2].timestamp()) if hasattr(session, "local") else ""
     live = st.get("live")
     out = [f"🔎 <b>GOLD CHECK</b> · <b>{fmt(p)}</b> · {session.local(time.time())}",
@@ -149,7 +149,7 @@ def proof_answer():
     s = jl("results.json")
     if not s.get("traded"):
         return "No closed trades yet."
-    names = {"model": "🖕 4H breakout", "scalp": "🤬 COMBO scalp", "plan": "🤬 plan setups", "late": "⚠️ late plans",
+    names = {"model": "⭐ 4H breakout", "scalp": "🤬 scalp", "plan": "🤬 plan setups", "late": "⚠️ late plans",
              "post-news": "📰 after-news (stopped)", "setup": "old ICT ideas (stopped)", "watch": "old watch ideas (stopped)"}
     rows = []
     for k, v in (s.get("by_kind") or {}).items():
@@ -157,7 +157,7 @@ def proof_answer():
             rows.append(f"{names.get(k, k)}: {v['wins']}W / {v['losses']}L · {v.get('total_R', 0):+.1f}R")
     return ("🏆 <b>Live record since 3 Nov</b> (every result, wins and losses)\n"
             f"All: {s['wins']} wins · {s['losses']} losses · {s.get('total_R', 0):+.1f}R\n" + "\n".join(rows)
-            + "\n\nTested 2 years: 🖕 COMBO 65% win · 🖕🖕 PREMIUM 66% · 🤬 scalp 50% at 2R\n"
+            + "\n\nTested 2 years: 💎 A+ 72% win (+0.47R) · ⭐ B+ 72% (+0.42R) · 🤬 scalp 58% at 2R\n"
               "<i>A few weeks is a small sample: judge by months.</i>")
 
 

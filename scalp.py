@@ -1,7 +1,7 @@
-"""🤬 COMBO SCALP live detector: small-SL 5m entries after a 🖕 COMBO / 🖕🖕 PREMIUM 4H breakout.
+"""🤬 SCALP live detector: small-SL 5m entries after a ⭐ B+ / 💎 A+ 4H breakout.
 
 Same rule as research.combo_scalp (tested 2 years: 120 trades, 50% win, +0.28-0.33R, SL ~$7, TP 2R):
-  - only for 12 hours after a COMBO/PREMIUM breakout signal, only in its direction
+  - only for 12 hours after a B+/A+ breakout signal, only in its direction
   - the newest CLOSED 5m candle dipped into a fresh 15m fair value gap and closed back beyond the previous candle
     and the 5m EMA20
   - SL under the last 6 candles (- 0.1 ATR), $3-12; TP 2R; out after 3 hours; first one per trading day only
@@ -32,7 +32,7 @@ def jl(n, d):
 
 
 def active_breakout(now):
-    """The COMBO/PREMIUM breakout signal whose 12-hour scalp window is open, or None."""
+    """The B+/A+ breakout signal whose 12-hour scalp window is open, or None."""
     for a in reversed(jl("alerts_log.json", [])):
         if a.get("kind") != "model":
             continue
@@ -47,7 +47,7 @@ def main():
     now = time.time()
     br = active_breakout(now)
     if not br:
-        print("scalp: no COMBO breakout window open"); return
+        print("scalp: no B+ breakout window open"); return
     log = jl("alerts_log.json", [])
     if any(a.get("kind") == "scalp" and a["status"] in ("pending", "filled") for a in log):
         print("scalp: a scalp trade is still open"); return
@@ -98,7 +98,7 @@ def main():
     bt = (jl("backtest.json", {}).get("models", {}).get("combo_scalp") or {}).get("all") or {}
     side = "BUY" if bull else "SELL"
     caption = "\n".join(x for x in [
-        f"🤬 <b>XAU/USD — {side} | COMBO SCALP</b> (small SL)",
+        f"🤬 <b>XAU/USD — {side} | SCALP</b> (small SL)",
         f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}ឥឡូវ</b> · ចូល {fmt(entry)} · SL {fmt(sw)} · TP {fmt(tgt)} · lot តូច",
         f"📍 Entry: <b>{fmt(entry)}</b> (now)",
         f"🛑 SL: <b>{fmt(sw)}</b> ({risk * 10:,.0f} pips)",
@@ -106,7 +106,7 @@ def main():
         f"💰 0.01 lot: SL −${risk:,.1f} · TP +${risk * research.SCALP_RR:,.1f} · 0.01 lot per ${risk * 200:,.0f} of account (0.5% risk)",
         (f"📊 Tested 2 years: {bt.get('trades')} trades · {bt.get('win_rate_pct')}% win · small-size setup" if bt.get("trades") else
          "📊 Tested 2 years: 120 trades · 50% win · small-size setup"),
-        f"⏱ 5m entry in the direction of the 🖕 {fmt(br['entry'])} breakout · closes within 3 h",
+        f"⏱ 5m entry in the direction of the ⭐ {fmt(br['entry'])} breakout · closes within 3 h",
         "⚡ Fast setup: enter now or skip · ចូលឥឡូវ ឬរំលង · risk 0.25–0.5%",
     ] if x)
     mid = None
@@ -114,7 +114,7 @@ def main():
         import signal_card
         signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": sw, "tp1": None, "target": tgt},
                          "scalp_card.png", tier="scalp", status="LIVE", win_rate=bt.get("win_rate_pct") or 50,
-                         trades=bt.get("trades") or 120, stamp=local(now), tf_label="COMBO scalp · 5m entry",
+                         trades=bt.get("trades") or 120, stamp=local(now), tf_label="scalp · 5m entry",
                          bars=80, hold_note="closes within 3 h")
         mid = send_photo("scalp_card.png", caption, f"{side} scalp")
     except Exception as e:

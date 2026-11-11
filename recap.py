@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 from tg import fmt, local, msg_link, send
 
-KIND = {"scalp": "🤬 COMBO scalp", "model": "4H breakout", "plan": "Plan setup 🤬", "post-news": "After-news setup", "late": "Late plan"}
+KIND = {"scalp": "🤬 scalp", "model": "4H breakout", "plan": "Plan setup 🤬", "post-news": "After-news setup", "late": "Late plan"}
 
 
 def _pips(a, px):

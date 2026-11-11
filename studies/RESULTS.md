@@ -56,3 +56,14 @@ the 4H-breakout moment with the Day Meter filter and the scaled exit (the signal
 may react, where the next signal fires, when news hits), not a forecast. Bug found: the D pill was always blank
 (live 5m feed ~20 days < 30 daily candles): fixed with 6 months of daily candles.
 Scripts: scratchpad ana_bt.py, ana_dir.py, ana_dir2.py.
+
+## Strong signals only (11 Nov, owner's choice) · renamed A+ / B+
+
+| Set (TP1 1R, 2 years) | Trades | Per month | Win | Avg R | Newest 30% |
+|---|---|---|---|---|---|
+| B+ = Day Meter >= 70% + clean trend (was COMBO) | 92 | ~4 | 72% | +0.42R | 67% win, +0.40R |
+| A+ = Day Meter >= 100% + clean trend (was PREMIUM) | 53 | ~2 | 72% | +0.47R | 80% win, +0.65R |
+| Scalp after an A+/B+ breakout | 81 | ~3 | 58% | +0.59R | 56% win, +0.59R |
+| (old COMBO, choppy included) | 137 | ~6 | 67% | +0.34R | 67%, +0.34R |
+
+Clean trend = 4H efficiency > CHOP_ER (0.255). Choppy breakouts are now skipped with a note in Setup Analysis.

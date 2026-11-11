@@ -576,7 +576,7 @@ def plan_line(p, price=None):
     if p.get("skip_used"):
         return (f"🟡 <b>ផែនការ (Plan): រំលង</b> · ថ្ងៃនេះមាសរត់ {p['skip_used'] * 100:.0f}% នៃថ្ងៃធម្មតាហើយ (Day Range)\n"
                 f"• POC {fmt(p['edge'])} · plans this late lost money in testing → <b>no plan trade</b>\n"
-                f"• រង់ចាំសញ្ញា ⚡ 4H (🖕 / 🖕🖕) វិញ · ⚠️ LATE PLAN warning only if the 15m confirms")
+                f"• រង់ចាំសញ្ញា ⚡ 4H (⭐ / 💎) វិញ · ⚠️ LATE PLAN warning only if the 15m confirms")
     if not p.get("side"):
         return f"🟡 <b>ផែនការ (Plan): គ្មាន</b> · អ្នកទិញ និងអ្នកលក់ស្មើគ្នា (D-shape)។ រង់ចាំ។"
     s = p["side"] == "SELL"
@@ -607,8 +607,8 @@ def analysis_chart(df, lv, conf, lines, path, title):
         else:
             u = st.get("used")
             todo = ("No signal yet: wait for a 4H candle to close beyond a signal line. "
-                    + (f"Day Meter {u * 100:.0f}%: " + ("strong day, a breakout would be PREMIUM." if u >= 1 else
-                       "a breakout now would be COMBO." if u >= 0.7 else "quiet so far (COMBO needs 70%).") if u is not None else ""))
+                    + (f"Day Meter {u * 100:.0f}%: " + ("strong day, a breakout would be A+." if u >= 1 else
+                       "a breakout now would be B+." if u >= 0.7 else "quiet so far (B+ needs 70%).") if u is not None else ""))
         scen = []
         try:   # bull path to the nearest stops above, bear path to the nearest stops below (from the desk facts)
             import desk
@@ -1329,7 +1329,7 @@ def briefing_text(name, ict, conf, lv, news, df, lines, start_utc, macro=None):
     except Exception:
         du = None
     dm = (None if du is None else f"📏 Day Meter <b>{du * 100:.0f}%</b> · " +
-          ("ថ្ងៃខ្លាំង → 🖕🖕 PREMIUM" if du >= 1 else "ល្មម → 🖕 COMBO" if du >= 0.7 else "ស្ងាត់ (🖕 ត្រូវការ 70%)"))
+          ("ថ្ងៃខ្លាំង → 💎 A+" if du >= 1 else "ល្មម → ⭐ B+" if du >= 0.7 else "ស្ងាត់ (⭐ ត្រូវការ 70%)"))
     out = [f"{head} <b>{name.upper()} · មាស {fmt(price)}</b>", "",
            (f"🚨 <b>Next signal (4H close)</b>: BUY &gt; <b>{fmt(upper)}</b> · SELL &lt; <b>{fmt(lower)}</b>" if not busy else None),
            dm,
@@ -1541,8 +1541,8 @@ RADAR_QUIET_MIN = 90     # 4H-close radar only when the channel has been quiet t
 
 
 def radar_post(df, lines, state):
-    """Strategy Radar (radar.py): live picture of where our strategy stands, posted when the day enters the 🖕 COMBO
-    zone (70%) or the 🖕🖕 PREMIUM zone (100%), once each per day, and after a 4H candle closes if the channel has
+    """Strategy Radar (radar.py): live picture of where our strategy stands, posted when the day enters the ⭐ B+
+    zone (70%) or the 💎 A+ zone (100%), once each per day, and after a 4H candle closes if the channel has
     been quiet for 90+ minutes (08:00-24:00 local). Never right after another post (10 min)."""
     import radar
     rs = state.setdefault("radar", {})

@@ -162,7 +162,7 @@ def model_alert(lm, state, now):
     if key in state.get("model_keys", []):
         return False
     import research
-    # 🖕🖕 PREMIUM = the same INTRADAY breakout on a 100%+ day (no swing since 11 Nov 2026: owner's choice, and the
+    # 💎 A+ = the same INTRADAY breakout on a 100%+ day (no swing since 11 Nov 2026: owner's choice, and the
     # intraday version tested 86 trades, 70% win, +0.28R, newest 80% win). Everything closes within 12 h.
     models_bt = jl("backtest.json").get("models", {})
     premium = s["model"] in research.TREND_PREFERENCE and (s.get("day_used") or 0) >= research.PREMIUM_USED
@@ -171,7 +171,7 @@ def model_alert(lm, state, now):
         if key in state.get("model_keys", []):
             return False
     bull = s["dir"] == "bull"
-    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 86, "win_rate_pct": 66, "avg_R": 0.37}) \
+    b = ((models_bt.get("trend_premium_intraday") or {}).get("all") or {"trades": 53, "win_rate_pct": 72, "avg_R": 0.47}) \
         if premium else (s.get("backtest") or {})
     side = ((jl("backtest.json").get("models", {}).get(s["model"], {}).get("by_direction") or {}).get("long" if bull else "short") or {})
     hold_h = research.MAX_HOLD_H.get(s["model"], 24)
@@ -183,29 +183,39 @@ def model_alert(lm, state, now):
     strong = du is not None and du >= research.COMBO_USED
     eff = s.get("efficiency")
     if not premium and du is not None and not strong:
-        # COMBO only (owner's choice, 11 Nov 2026): quiet-day breakouts were ~50/50 (+0.02R) → skip and say why
+        # B+ only (owner's choice, 11 Nov 2026): quiet-day breakouts were ~50/50 (+0.02R) → skip and say why
         state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
         json.dump(state, open("notify_state.json", "w"))
         send(f"⏭ <b>4H {'BUY' if bull else 'SELL'} breakout skipped</b> at {fmt(s['entry'])}\n"
-             f"Quiet day: only {du * 100:.0f}% of a normal day has moved (COMBO needs 70%). "
-             f"Quiet-day breakouts were about 50/50 in 2 years of testing, so we only send COMBO.\n"
-             f"<i>ថ្ងៃស្ងាត់ = មិនផ្ញើសញ្ញា · យើងផ្ញើតែ 🖕 COMBO</i>", "Setup skipped")
+             f"Quiet day: only {du * 100:.0f}% of a normal day has moved (B+ needs 70%). "
+             f"Quiet-day breakouts were about 50/50 in 2 years of testing, so we only send B+.\n"
+             f"<i>ថ្ងៃស្ងាត់ = មិនផ្ញើសញ្ញា · យើងផ្ញើតែ ⭐ B+</i>", "Setup skipped")
         print("model skipped: quiet day", key)
+        return False
+    if du is not None and eff is not None and eff <= research.CHOP_ER:
+        # strong signals only (owner's choice, 11 Nov 2026): choppy 4H market -> skip (B+ / A+ need a clean trend)
+        state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
+        json.dump(state, open("notify_state.json", "w"))
+        send(f"⏭ <b>4H {'BUY' if bull else 'SELL'} breakout skipped</b> at {fmt(s['entry'])}\n"
+             f"Choppy market (trend quality {eff:.2f}, needs above {research.CHOP_ER}). In 2 years of testing, breakouts in "
+             f"choppy markets were much weaker, so we only send clean-trend A+ / B+ setups.\n"
+             f"<i>ទីផ្សារច្របូកច្របល់ = មិនផ្ញើសញ្ញា · យើងផ្ញើតែ A+ / B+</i>", "Setup skipped")
+        print("model skipped: choppy", key)
         return False
     cb = (jl("backtest.json").get("models", {}).get("trend_combo") or {}).get("all") or {}
     combo_line = None
     if premium:
-        combo_line = (f"🖕🖕 <b>PREMIUM</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
+        combo_line = (f"💎 <b>A+ SETUP</b>: 4H breakout on a big day ({du * 100:.0f}% of a normal day already moved). "
                       f"Tested: {b.get('trades')} trades · {b.get('win_rate_pct')}% win · closes within 12 h · ឱកាសល្អបំផុត")
     elif du is not None:
-        combo_line = (f"🖕 <b>STRONG COMBO</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
+        combo_line = (f"⭐ <b>B+ SETUP</b>: 4H breakout + the day is already moving ({du * 100:.0f}% of a normal day)."
                       + (f" Tested: {cb['trades']} trades · {cb['win_rate_pct']}% win." if cb.get("trades") else "")
                       if strong else
                       f"◽ <b>Normal</b>: quiet day so far ({du * 100:.0f}% of a normal day). Quiet-day breakouts were about "
                       f"50/50 in testing → half size (0.5%) or skip · ថ្ងៃស្ងាត់ ប្រើ lot តូច")
     if LANG != "km":
         out += [f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  ✅ tested"
-                + ("  🖕🖕 PREMIUM" if premium else "  🖕 COMBO" if strong else ""), "",
+                + ("  💎 A+" if premium else "  ⭐ B+" if strong else ""), "",
                 f"Entry  <b>{fmt(s['entry'])}</b>",
                 f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
                 *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
@@ -237,7 +247,7 @@ def model_alert(lm, state, now):
     wr = st_.get("win_rate_pct")   # quiet-day (normal) breakouts were ~50/50: no win rate is promised
     caption = "\n".join(l for l in [
         f"{'🟢' if bull else '🔴'} <b>XAU/USD — {'BUY' if bull else 'SELL'}</b> | "
-        + ("🖕🖕 PREMIUM" if premium else "🖕 COMBO" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
+        + ("💎 A+" if premium else "⭐ B+" if strong else "◽ NORMAL · half size" if du is not None else "4H BREAKOUT"),
         f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}មាសឥឡូវ</b> · ចូល {fmt(s['entry'])} · SL {fmt(s['stop'])} · "
         + (f"TP1 {fmt(s['tp1'])} (បិទពាក់កណ្ដាល) · TP2 {fmt(s['target'])}" if s.get("tp1") else f"TP {fmt(s['target'])}"),
         f"📍 Entry: <b>{fmt(s['entry'])}</b>",
@@ -295,7 +305,7 @@ def model_alert(lm, state, now):
         link = msg_link(mid, ("BUY" if bull else "SELL") + " now")
         d = to_ny(load("5m", "20d")).iloc[:-1]
         lines_ = session.breakout_lines(d)
-        tested = (f"{st_.get('trades')} trades · {wr}% win" + (" (🖕🖕 PREMIUM)" if premium else " (🖕 COMBO)" if strong else "")) if wr else None
+        tested = (f"{st_.get('trades')} trades · {wr}% win" + (" (💎 A+)" if premium else " (⭐ B+)" if strong else "")) if wr else None
         text = desk.trade_note(jl("ict.json"), jl("confluence.json"), jl("levels.json"), d, lines_,
                                dict(s, level=up_ if bull else lo_) if "up_" in dir() else s, local(now), day_used=du, tested=tested)
         if link:

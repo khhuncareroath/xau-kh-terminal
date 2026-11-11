@@ -339,7 +339,15 @@ def trend_combo(df):
     """STRONG COMBO = the intraday 4H breakout (same trades) when today has already moved 70%+ of a normal day: the
     breakout has real momentum behind it. 2 years: 143 of the 218 breakouts, 68% win, +0.21R (all others ~0R).
     Smooth across thresholds 50-90% (all proven), found after looking at the data, so it is a label, not a new rule."""
-    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= COMBO_USED]
+    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= COMBO_USED and _clean(df, t[0])]
+
+
+def _clean(df, t):
+    """Strong signals only (owner's choice, 11 Nov 2026): skip breakouts in a choppy 4H market (efficiency <= CHOP_ER).
+    2 years with TP1 1R: COMBO 137 trades 67% win +0.34R -> COMBO + clean 92 trades 72% win +0.42R (newest +0.40R);
+    PREMIUM 79 trades +0.42R -> 53 trades 72% win +0.47R (newest 80% win +0.65R). About 4 signals a month."""
+    e = efficiency(df, t)
+    return e is None or e > CHOP_ER
 
 
 PREMIUM_USED = 1.0   # swing breakout on a day that already moved a full normal day = PREMIUM SWING
@@ -357,7 +365,7 @@ def trend_premium_intraday(df):
     """🖕🖕 PREMIUM, intraday (11 Nov 2026, owner: no swing): the intraday 4H breakout (SL 0.55%, TP1 0.75R + BE,
     TP2 3R, closed within 12 h) on a day that already moved 100%+ of a normal day.
     2 years: 86 trades, 70% win, +0.28R, newest 30%: 30 trades, 80% win, +0.34R."""
-    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= PREMIUM_USED]
+    return [t for t in trend_intraday(df) if (day_used(df, t[0]) or 0) >= PREMIUM_USED and _clean(df, t[0])]
 
 
 def trend_tight(df):

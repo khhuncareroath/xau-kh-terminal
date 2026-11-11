@@ -2,15 +2,15 @@
 members can follow the setup as it builds (the trade signal itself still waits for the closed 4H candle).
 
 The picture: 15m candles of the last ~20 hours, the 4H BUY / SELL lines, and the Day Meter on the right
-(how much of a normal day gold has moved: 70% = 🖕 COMBO zone, 100% = 🖕🖕 PREMIUM zone), with a status:
+(how much of a normal day gold has moved: 70% = ⭐ B+ zone, 100% = 💎 A+ zone), with a status:
   WAITING   price inside the lines, day quiet           -> no setup, follow the trend
-  🖕 READY  day in the COMBO zone: a 4H close beyond a line would be a COMBO signal
-  🖕🖕 READY day in the PREMIUM zone: a 4H close beyond a line would be a PREMIUM swing
+  ⭐ READY  day in the B+ zone: a 4H close beyond a line would be a B+ signal
+  💎 READY day in the A+ zone: a 4H close beyond a line would be a A+ setup
   🤬        smaller tested setups (🟡 Volume Plan / 🔷 Day Range Snap) on the candle where they entered, and the waiting
             Volume Plan zone at the right edge: trades members can take themselves with a small size
 
 Posted by session.py (radar_post) only at moments that matter:
-  1. the day crosses 70% (COMBO zone) or 100% (PREMIUM zone): once each per day
+  1. the day crosses 70% (B+ zone) or 100% (A+ zone): once each per day
   2. a 4H candle just closed and the channel has been quiet for 90+ minutes (08:00-24:00 local)
 No new rules: it only shows where our tested strategy stands right now."""
 import os
@@ -78,7 +78,7 @@ def status(df, lines):
         if not (live and (live.get("dir") == "bull") == (ref["sg"] > 0) and abs(live.get("entry", 0) - ref["entry"]) <= 5):
             live = {"dir": "bull" if ref["sg"] > 0 else "bear", "entry": ref["entry"], "stop": ref["stop"],
                     "tp1": ref.get("tp1"), "target": ref["tgt"], "status": "filled"}
-    swing_busy = any(t["model"] == "trend_tight" for t in op)   # a swing runs: a new breakout can only be the intraday 🖕
+    swing_busy = any(t["model"] == "trend_tight" for t in op)   # a swing runs: a new breakout can only be the intraday ⭐
     if swing_busy and zone == 2:
         zone = 1
     return {"busy": busy, "swing_busy": swing_busy, "open": op, "live": live, "price": price, "upper": upper, "lower": lower, "used": used, "zone": zone, "trend": tr,
@@ -86,9 +86,9 @@ def status(df, lines):
 
 
 def finger_marks(df, d15):
-    """(position in d15, 1 or 2) for the 15m candles where the trading day crossed 70% (🖕) / 100% (🖕🖕) of a normal
+    """(position in d15, 1 or 2) for the 15m candles where the trading day crossed 70% (⭐) / 100% (💎) of a normal
     day. Only real crossings on a candle in view (not a day that was already past the level when the chart starts);
-    if one candle jumps past both levels, only 🖕🖕 is shown."""
+    if one candle jumps past both levels, only 💎 is shown."""
     res = {}
     prev = research.day_used(df, d15.index[0]) or 0.0 if len(d15) else 0.0
     td = (d15.index - pd.Timedelta(hours=18)).date
@@ -142,7 +142,7 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
             yy = yhi - span * 0.04 if col == UP else ylo + span * 0.04
             ax.text(N + 8, yy, f"{word} {y:,.2f} {'↑' if col == UP else '↓'} {dist:,.0f} away", color=col, fontsize=8,
                     ha="right", va="top" if col == UP else "bottom", fontweight="bold")
-    # 🖕 on the 15m candle where the day crossed 70% (COMBO zone), 🖕🖕 where it crossed 100% (PREMIUM zone)
+    # ⭐ on the 15m candle where the day crossed 70% (B+ zone), 💎 where it crossed 100% (A+ zone)
     tser = _trend_series(df)
     tday_ = (df.index - pd.Timedelta(hours=18)).date
     last_i, last_y = -99, None
@@ -157,7 +157,7 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
         ax.plot([i, i], [float(d["High"].iloc[i]), y], color=PREM if f == 2 else GOLD, lw=0.7, alpha=0.6, zorder=3)
         for q in range(f):
             _finger(ax, i + (q - (f - 1) / 2) * 1.6, y, 0.12)
-        ax.text(i, y + span * 0.045, f"{'PREMIUM' if f == 2 else 'COMBO'} · {BUY_W if sg > 0 else SELL_W}",
+        ax.text(i, y + span * 0.045, f"{'A+' if f == 2 else 'B+'} · {BUY_W if sg > 0 else SELL_W}",
                 color=UP if sg > 0 else DN, fontsize=7, fontweight="bold", ha="center", va="bottom",
                 bbox=dict(boxstyle="round,pad=0.2", fc=PANEL, ec=PREM if f == 2 else GOLD, lw=0.8), zorder=9)
         yhi = max(yhi, y + span * 0.12); ax.set_ylim(ylo, yhi)
@@ -216,10 +216,10 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
         head, col, nf = (f"TRADE RUNNING · {'BUY' if o_['sg'] > 0 else 'SELL'} {o_['entry']:,.2f} still open: no new 4H signal until it closes",
                          INK, 0)
     elif st["zone"] == 2:
-        head, col, nf = "PREMIUM ZONE · a 4H close beyond a line = PREMIUM SWING", PREM, 2
+        head, col, nf = "A+ ZONE · a 4H close beyond a line = A+ SETUP", PREM, 2
     elif st["zone"] == 1:
-        head, col, nf = ("COMBO ZONE · swing already running: a 4H close beyond a line = COMBO intraday" if st.get("swing_busy")
-                         else "COMBO ZONE · a 4H close beyond a line = COMBO signal"), GOLD, 1
+        head, col, nf = ("B+ ZONE · swing already running: a 4H close beyond a line = B+" if st.get("swing_busy")
+                         else "B+ ZONE · a 4H close beyond a line = B+ signal"), GOLD, 1
     else:
         head, col, nf = "WAITING · day still quiet, no setup yet", MUT, 0
     stamp = local(time.time()) if local else ""
@@ -237,7 +237,7 @@ def chart(df, lines, path, local=None, title="Strategy Radar"):
     fig.text(0.05, 0.045, "A live read of our tested strategy, not a signal. The signal comes only when a 4H candle CLOSES beyond a line.",
              color=MUT, fontsize=7.5)
     lg = fig.add_axes([0.05, 0.0, 0.70, 0.022]); lg.set_xlim(0, 100); lg.set_ylim(0, 1); lg.axis("off"); lg.set_zorder(5)
-    for x_, nm, txt in ((1, "finger", "COMBO zone (day 70%+)"), (24, "finger", "x2 = PREMIUM zone (day 100%+)"),
+    for x_, nm, txt in ((1, "finger", "B+ zone (day 70%+)"), (24, "finger", "x2 = A+ zone (day 100%+)"),
                         (52, "angry", "smaller tested setup: you can take it yourself, small size")):
         _emoji(lg, x_, 0.55, 0.09, nm)
         lg.text(x_ + 1.6, 0.55, txt, color=MUT, fontsize=7, va="center")
@@ -254,14 +254,14 @@ def caption(st, why, next_close_local):
     o_ = (st.get("open") or [None])[-1]
     zone_line = (f"✅ A 4H {'BUY' if o_['sg'] > 0 else 'SELL'} from this move is still running (entry {o_['entry']:,.2f}): "
                  f"<b>no new 4H signal until it closes</b> · ទុកការជួញដូរមុនឲ្យរត់" if st.get("busy") else
-                 "🖕🖕 <b>PREMIUM zone</b>: a 4H close beyond a line now = PREMIUM SWING (77% in test)" if z == 2 else
-                 (f"🖕 <b>COMBO zone</b> (day {st['used'] * 100:.0f}%, but a swing is already running): a 4H close beyond a line "
-                  f"now = COMBO intraday signal (68% in test), not a new swing" if st.get("swing_busy") else
-                  "🖕 <b>COMBO zone</b>: a 4H close beyond a line now = COMBO signal (68% in test)") if z == 1 else
+                 "💎 <b>A+ zone</b>: a 4H close beyond a line now = A+ SETUP (72% in test)" if z == 2 else
+                 (f"⭐ <b>B+ zone</b> (day {st['used'] * 100:.0f}%, but a swing is already running): a 4H close beyond a line "
+                  f"now = B+ signal (72% in test), not a new swing" if st.get("swing_busy") else
+                  "⭐ <b>B+ zone</b>: a 4H close beyond a line now = B+ signal (72% in test)") if z == 1 else
                  "◽ Day still quiet: a breakout now would be a Normal signal (half size)")
     side = ("BUY" if st["to_buy"] < st["to_sell"] else "SELL")
     dist = min(st["to_buy"], st["to_sell"])
-    head = {"combo": "🖕 <b>COMBO ZONE OPEN</b>", "premium": "🖕🖕 <b>PREMIUM ZONE OPEN</b>", "4h": "📡 <b>STRATEGY RADAR</b>"}[why]
+    head = {"combo": "⭐ <b>B+ ZONE OPEN</b>", "premium": "💎 <b>A+ ZONE OPEN</b>", "4h": "📡 <b>STRATEGY RADAR</b>"}[why]
     lines = [f"{head} · Gold <b>{st['price']:,.2f}</b>",
              f"📏 Day Meter <b>{st['used'] * 100:.0f}%</b> of a normal day · {zone_line}",
              (f"🎯 Running: {'BUY' if L['dir'] == 'bull' else 'SELL'} {L['entry']:,.2f} · SL {L['stop']:,.2f}"

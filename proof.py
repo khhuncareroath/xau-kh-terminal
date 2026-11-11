@@ -15,7 +15,7 @@ import research
 from ict import resample
 
 TIERS = {   # model: (short name, tier, ring colour)
-    "trend_premium_intraday": ("Premium", "PREMIUM", "#FFD60A"),
+    "trend_premium_intraday": ("A+ setup", "A+", "#FFD60A"),
     "trend_intraday": ("4H Breakout", "TESTED", "#E3B04B"),
     "combo_scalp": ("Combo Scalp", "PLAN", "#FF9500"),
     "vp_shape": ("Volume Plan", "PLAN", "#5AC8FA"),
@@ -84,7 +84,7 @@ _EMOJI = {}
 
 def _emoji(ax, x, y, zoom, name="finger"):
     """Draws an XAU.KH mark from assets/<name>.png (Noto Color Emoji, OFL licence) at data point (x, y):
-    finger = 🖕 COMBO / 🖕🖕 PREMIUM, angry = 🤬 smaller tested setup you can trade yourself (small size)."""
+    finger = ⭐ B+ / 💎 A+, angry = 🤬 smaller tested setup you can trade yourself (small size)."""
     import os
     from matplotlib.offsetbox import AnnotationBbox, OffsetImage
     try:
@@ -180,10 +180,10 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
         if t["model"] in ("vp_shape", "range_extreme"):   # 🤬 = smaller tested setup (plan / experimental)
             _emoji(ax, x0 + 4.6, yb + fh / 2, 0.14, "angry")
         n_f = 2 if t["model"] == "trend_premium_intraday" else 1 if t.get("combo") else 0
-        if n_f:   # the XAU.KH mark: one finger = COMBO, two = PREMIUM
+        if n_f:   # the XAU.KH mark: one finger = B+, two = A+
             for q in range(n_f):
                 _finger(ax, x0 + 4.6 + q * 2.6, yb + fh / 2, 0.15)
-        tags = [("KE TV HX" if sg > 0 else "LUK MOA")] + (["PREMIUM"] if n_f == 2 else ["COMBO"] if n_f == 1 else []) + \
+        tags = [("KE TV HX" if sg > 0 else "LUK MOA")] + (["A+"] if n_f == 2 else ["B+"] if n_f == 1 else []) + \
             (["LIVE"] if t.get("live") else [])
         if tags:
             ax.text(x0, yb - rng * 0.012 if sg > 0 else yb + fh + rng * 0.012, " · ".join(tags), color=UP if sg > 0 else DN, fontsize=6.8,
@@ -220,8 +220,8 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
     fig.text(0.128, 0.955, f"SIGNAL PROOF  ·  last {days} days  ·  {stamp}", color=INK, fontsize=14, fontweight="bold")
     cards = [(f"{W}/{len(closed)}" if closed else "–", "signals won", INK, 0),
              (f"{tot:+.1f}R" if closed else "–", "total result", UP if tot > 0 else DN if tot < 0 else MUT, 0),
-             (f"{cb.get('win_rate_pct', '–')}%", f"COMBO intraday · 2 yrs · {cb.get('trades', '')} trades", GOLD, 1),
-             (f"{pr.get('win_rate_pct', '–')}%", f"PREMIUM swing · 2 yrs · {pr.get('trades', '')} trades", "#FFD60A", 2)]
+             (f"{cb.get('win_rate_pct', '–')}%", f"B+ · 2 yrs · {cb.get('trades', '')} trades", GOLD, 1),
+             (f"{pr.get('win_rate_pct', '–')}%", f"A+ setup · 2 yrs · {pr.get('trades', '')} trades", "#FFD60A", 2)]
     cw = 0.92 / len(cards)
     for k_, (big, small, col, nf) in enumerate(cards):
         cx = 0.05 + k_ * cw
@@ -239,7 +239,7 @@ def proof_chart(df, path="proof.png", days=10, bt=None, log=None, local=None):
         fig.patches.append(Polygon([(lx, 0.027), (lx, 0.047), (lx + 0.011, 0.037)], closed=True, transform=fig.transFigure, fc=ring))
         fig.text(lx + 0.015, 0.037, f"{name} ({tier.lower()})", color=INK, fontsize=7.5, va="center")
         lx += 0.16
-    fig.text(0.05, 0.012, "flag = entry · line = entry → exit · red dash = SL · 1 finger = COMBO · 2 fingers = PREMIUM · angry face = smaller setup (small size) · same rules as live, 15-min delay + costs", color=MUT, fontsize=7, va="center")
+    fig.text(0.05, 0.012, "flag = entry · line = entry → exit · red dash = SL · 1 finger = B+ · 2 fingers = A+ · angry face = smaller setup (small size) · same rules as live, 15-min delay + costs", color=MUT, fontsize=7, va="center")
     fig.savefig(path, facecolor=BG); plt.close(fig)
     return path, shown
 

@@ -8,21 +8,21 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11h"
+VERSION = "2026-11-11i"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 
 ✅ <b>BUY/SELL NOW</b>: tested 4H breakout. <b>Intraday only</b>: closes within 12 h. Risk 1% max.
-🖕 <b>COMBO</b>: breakout on a moving day (65% win in test, TP1 = 1R) · full size
-🖕🖕 <b>PREMIUM</b>: breakout on a big day (66% win in test) · intraday, full size
-⏭ Quiet-day breakouts are <b>not sent</b> (only 50/50 in testing)
-🤬 <b>COMBO SCALP</b>: after a 🖕 breakout, a fast 5m entry with a small SL (~$7), TP 2R. Enter at once or skip. Size 0.25–0.5%
+💎 <b>A+ SETUP</b>: breakout on a big day in a clean trend (72% win, best profit in test) · full size
+⭐ <b>B+ SETUP</b>: breakout on a moving day in a clean trend (72% win in test) · full size
+⏭ Quiet-day and choppy-market breakouts are <b>not sent</b> (weak in testing)
+🤬 <b>SCALP</b>: after an A+/B+ breakout, a fast 5m entry with a small SL (~$7), TP 2R (58% win in test). Enter at once or skip. Size 0.25–0.5%
 🤬 <b>Plan</b> 🟡: other smaller setups, small size 0.25–0.5%
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
 📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.
-📏 Day Meter: 70% = 🖕 zone · 100% = 🖕🖕 zone
+📏 Day Meter: 70% = B+ zone · 100% = A+ zone
 KE TV HX = buy · LUK MOA = sell (on the charts)
 🧾 <b>Signal proof</b> / 📊 Friday report: every result, wins AND losses.
 📰 News in 30 min: no new entries 15 min before and after.
@@ -34,7 +34,7 @@ KE TV HX = buy · LUK MOA = sell (on the charts)
 💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.5–1% of your account per trade.
 💰 Every signal shows the $ result per 0.01 lot: SL $22 = −$22 at 0.01 lot.
 
-🇰🇭 🖕🖕 = ល្អបំផុត · 🖕 = ល្អ · 🤬 = តូច ប្រើ lot តូច
+🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ · 🤬 Scalp = តូច ប្រើ lot តូច
 ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
@@ -53,7 +53,7 @@ if group_id():   # only in the sectioned group
     GUIDE = GUIDE.replace("\n\n", "\n" + SECTIONS_TEXT + "\n", 1)
 
 
-RULES_VERSION = "1"
+RULES_VERSION = "2026-11-11i"
 RULES = """❗ <b>RULES · ច្បាប់ក្រុម</b>
 
 1. Be respectful. No insults, no politics. · គោរពគ្នា

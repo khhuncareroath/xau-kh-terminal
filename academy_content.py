@@ -36,7 +36,7 @@ LESSONS = [
 • <b>Timeframe</b>: M1 M5 M15 M30 H1 H4 D1 · ទៀន 1 = រយៈពេល 1 timeframe
 • Setting ល្អ: ពណ៌ទៀន 2 ពណ៌ច្បាស់ · បិទ indicator ច្រើនពេក · ម៉ោង GMT+7
 
-💡 យើងប្រើ <b>4H</b> សម្រាប់សញ្ញា 🖕 និង <b>15m/5m</b> សម្រាប់ analysis/entry""",
+💡 យើងប្រើ <b>4H</b> សម្រាប់សញ្ញា ⭐ និង <b>15m/5m</b> សម្រាប់ analysis/entry""",
          quiz=("Platform មួយណាសម្រាប់បើក order ពិតជាមួយ broker?", ["TradingView", "MetaTrader 5", "Telegram", "Excel"], 1,
                "MT5 ភ្ជាប់ជាមួយ broker ដើម្បីបើក/បិទ order។ TradingView សម្រាប់វិភាគ។"), chart=None),
     dict(ch=4, part="PART 1 · Foundations", title="តម្លៃ: Bid Ask Spread Pip Lot · Understanding Price",
@@ -47,7 +47,7 @@ LESSONS = [
 • <b>Swap</b> = ថ្លៃកាន់ order ឆ្លងយប់ · <b>Commission</b> = ថ្លៃក្នុងមួយ lot (account ខ្លះ)
 
 <b>គណនា P/L:</b> ចម្ងាយ ($) × oz · ឧ. SL $22 × 0.01 lot (1 oz) = <b>−$22</b>
-👉 សញ្ញា 🖕 របស់យើងបង្ហាញ "💰 0.01 lot: SL −$22" ជានិច្ច""",
+👉 សញ្ញា ⭐ របស់យើងបង្ហាញ "💰 0.01 lot: SL −$22" ជានិច្ច""",
          quiz=("តម្លៃមាសរត់ពី 4,000 ទៅ 4,010 ជាមួយ 0.01 lot ចំណេញប៉ុន្មាន?", ["$1", "$10", "$100", "$0.10"], 1,
                "0.01 lot = 1 oz។ តម្លៃរត់ $10 × 1 oz = $10 (= 100 pips)។"), chart=None),
     dict(ch=5, part="PART 1 · Foundations", title="ទៀន Candlestick · Reading Candles",
@@ -110,7 +110,7 @@ LESSONS = [
 • <b>Breakout + Retest</b> = បែក level ហើយត្រឡប់មកប៉ះម្ដងទៀត មុនបន្ត
 • មើល <b>របៀប</b>ដែលតម្លៃមកដល់ level: លឿនខ្លាំង (impulse) ឬយឺត (correction)
 
-💡 សញ្ញា 🖕 4H របស់យើង = <b>expansion</b> បន្ទាប់ពី range 30 ទៀន 4H""",
+💡 សញ្ញា ⭐ 4H របស់យើង = <b>expansion</b> បន្ទាប់ពី range 30 ទៀន 4H""",
          quiz=("តម្លៃបិទទៀនជាច្រើនហួស level ហើយនៅទីនោះ ហៅថា...", ["Rejection", "Acceptance", "Correction", "Spread"], 1,
                "Acceptance = ទីផ្សារទទួលយកតម្លៃថ្មី (បិទទៀនហួស និងនៅបាន)។"), chart=None),
 ]
@@ -147,7 +147,7 @@ LESSONS += [
 • <b>Mitigated</b> = តម្លៃមកបំពេញ · <b>IFVG</b> = FVG ដែលបែក ក្លាយជាទិសផ្ទុយ
 • FVG ខ្សោយ: តូចពេក, ផ្ទុយ HTF, នៅកណ្ដាល range
 
-👉 Chart ថ្ងៃនេះ: ប្រអប់ពណ៌ <b>FVG</b> · សញ្ញា 🤬 COMBO SCALP ប្រើ 15m FVG""",
+👉 Chart ថ្ងៃនេះ: ប្រអប់ពណ៌ <b>FVG</b> · សញ្ញា 🤬 SCALP ប្រើ 15m FVG""",
          quiz=("FVG កើតឡើងពេល...", ["ទៀន 3 គ្រាប់ wick ទៀន 1 និង 3 មិនប៉ះគ្នា", "ទៀន doji", "តម្លៃនៅ POC", "Spread ធំ"], 0,
                "FVG = ចន្លោះដែលទៀនទី 1 និងទី 3 មិនត្រួតគ្នា ពេលតម្លៃរត់លឿន។"), chart="fvg"),
     dict(ch=14, part="PART 3 · ICT", title="Order Block · Breaker · Mitigation",
@@ -168,7 +168,7 @@ LESSONS += [
 • ច្បាប់: uptrend → ទិញក្នុង <b>discount</b> · downtrend → លក់ក្នុង <b>premium</b>
 • កុំទិញក្នុង premium ក្នុង range (ថ្លៃពេក) · ប្រើជាមួយ structure ជានិច្ច
 
-💡 ករណីលើកលែង: <b>breakout</b> (ដូចសញ្ញា 🖕) ចាកចេញពី range ដូច្នេះ premium/discount សំខាន់តិច
+💡 ករណីលើកលែង: <b>breakout</b> (ដូចសញ្ញា ⭐) ចាកចេញពី range ដូច្នេះ premium/discount សំខាន់តិច
 
 👉 Chart ថ្ងៃនេះ: បន្ទាត់ <b>EQ 50%</b>""",
          quiz=("ក្នុង uptrend គួររកទិញនៅតំបន់...", ["Premium (លើ EQ)", "Discount (ក្រោម EQ)", "នៅ high ចុងក្រោយ", "កន្លែងណាក៏បាន"], 1,
@@ -294,16 +294,16 @@ LESSONS += [
 • ល្អ: ICT (liquidity) + Structure + VP + Macro = 4 ប្រភពផ្សេង
 • <b>Double-counting</b> ❌: EMA 20 + EMA 50 + MACD + RSI = ប្រភពតែមួយ (momentum) រាប់ 4 ដង
 • FVG + OB នៅកន្លែងដូចគ្នា ច្រើនតែជា <b>ចលនាតែមួយ</b> មិនមែន 2 ហេតុផល
-• Confluence ច្រើន <b>មិនធានា</b> ឈ្នះ · យើងបានឃើញ: VWAP+EMA+1H ស្របគ្នាលើ 97% នៃសញ្ញា 🖕 រួចហើយ (មិនបន្ថែម edge)
+• Confluence ច្រើន <b>មិនធានា</b> ឈ្នះ · យើងបានឃើញ: VWAP+EMA+1H ស្របគ្នាលើ 97% នៃសញ្ញា ⭐ រួចហើយ (មិនបន្ថែម edge)
 
 💡 ច្បាប់: 2–3 ហេតុផល <b>ឯករាជ្យ</b> + risk ច្បាស់ = គ្រប់គ្រាន់""",
          quiz=("មួយណាជា double-counting?", ["Liquidity + Volume Profile", "EMA 20 + EMA 50 + RSI ទាំងអស់ momentum", "Structure + Macro", "HTF + session"], 1,
                "Indicator momentum ច្រើនវាស់រឿងតែមួយ។ វាមិនមែនជា confluence ពិតទេ។"), chart=None),
     dict(ch=28, part="PART 6 · Combining", title="Gold Setups + លទ្ធផលសាកល្បងពិត",
          body="""យើងបានសាកល្បង setup ល្បីៗលើមាស 2 ឆ្នាំ (រួមថ្លៃ spread):
-• ✅ <b>4H breakout + Day Meter ≥70%</b> (🖕 COMBO): ឈ្នះ ~68%
-• ✅ <b>ដូចគ្នា ≥100%</b> (🖕🖕 PREMIUM): ឈ្នះ ~70%
-• 🤬 <b>15m FVG pullback ក្រោយ COMBO</b> (SL ~$7): ឈ្នះ 50% ត្រង់ 2R
+• ✅ <b>4H breakout + Day Meter ≥70%</b> (⭐ B+): ឈ្នះ ~72%
+• ✅ <b>ដូចគ្នា ≥100%</b> (💎 A+): ឈ្នះ ~72% (+0.47R)
+• 🤬 <b>15m FVG pullback ក្រោយ B+</b> (SL ~$7): ឈ្នះ 58% ត្រង់ 2R
 • 🤬 <b>POC រាង P/b</b>: ~49% · +0.14R (មិនទាន់ proven)
 • ❌ Liquidity sweep reversal តែឯង · OB limit + SL តូច · VWAP fade · News spike · momentum candle
 • ❌ ច្រើនរបស់អ្នកដទៃ ល្អលើ screenshot តែខាតពេលសាកល្បង
@@ -316,7 +316,7 @@ LESSONS += [
 LESSONS += [
     # ---------------- PART 7 — EXECUTION
     dict(ch=29, part="PART 7 · Execution", title="Entry Techniques · វិធីចូល",
-         body="""• <b>Market entry</b> = ចូលភ្លាម (សញ្ញា 🖕 របស់យើង: ចូលក្នុង 15 នាទី)
+         body="""• <b>Market entry</b> = ចូលភ្លាម (សញ្ញា ⭐ របស់យើង: ចូលក្នុង 15 នាទី)
 • <b>Limit entry</b> = ដាក់ order រង់ចាំតម្លៃត្រឡប់មក (ប្រហែលមិនបាន fill)
 • <b>Stop entry</b> = ចូលពេលតម្លៃឆ្លង level (breakout)
 • <b>Confirmation entry</b> = រង់ចាំទៀនបិទ / CHOCH 5m មុនចូល (យឺតតែសុវត្ថិភាពជាង)
@@ -334,7 +334,7 @@ LESSONS += [
 • <b>Trailing stop</b> = SL ដើរតាមតម្លៃ
 • ❌ <b>កុំ</b> ផ្លាស់ SL ឆ្ងាយទៀតពេលតម្លៃមករក
 
-💡 សញ្ញា 🖕: SL 0.55% (~$22) · TP1 1R បិទពាក់កណ្ដាល + BE · TP2 3R · SL តូចជាងនេះ <b>ខាត</b>ពេលសាកល្បង""",
+💡 សញ្ញា ⭐: SL 0.55% (~$22) · TP1 1R បិទពាក់កណ្ដាល + BE · TP2 3R · SL តូចជាងនេះ <b>ខាត</b>ពេលសាកល្បង""",
          quiz=("ពេលតម្លៃជិតដល់ SL អ្នកគួរ...", ["ផ្លាស់ SL ឆ្ងាយទៀត", "ទុកឱ្យ SL ធ្វើការងារ", "បន្ថែម lot", "លុប SL"], 1,
                "SL គឺជាចំណុចដែល idea ខុស។ ផ្លាស់ឆ្ងាយ = ខាតធំ។"), chart=None),
     dict(ch=31, part="PART 7 · Execution", title="Sessions & News · ព័ត៌មានធំ",
@@ -360,7 +360,7 @@ LESSONS += [
          quiz=("Account $2,000 risk 1% SL $20។ Lot ប្រហែល...", ["0.01", "0.10", "1.00", "0.50"], 0,
                "$2,000 × 1% = $20 ÷ ($20 × 100) = 0.01 lot។"), chart=None),
     dict(ch=33, part="PART 8 · Risk", title="Risk Discipline · ខាតជាប់គ្នា",
-         body="""• ឈ្នះ 68% ក៏នៅតែមាន <b>ខាត 3–4 ដងជាប់គ្នា</b> ពីរបីដងក្នុងមួយឆ្នាំ: <b>ធម្មតា</b>
+         body="""• ឈ្នះ 72% ក៏នៅតែមាន <b>ខាត 3–4 ដងជាប់គ្នា</b> ពីរបីដងក្នុងមួយឆ្នាំ: <b>ធម្មតា</b>
 • <b>Overtrading</b> = trade ពេលគ្មាន setup · <b>Revenge trading</b> = trade ដើម្បីយកលុយវិញ ❌
 • <b>Overleverage</b> = lot ធំពេក → ខាតម្ដងបាត់ច្រើន
 • <b>Correlated risk</b> = បើក 3 order មាសទិសដូចគ្នា = risk 3 ដង
@@ -445,7 +445,7 @@ LESSONS += [
 • <b>Spread/commission</b> ស៊ីចំណេញ: SL $5 + spread $0.30 = ថ្លៃ 6% នៃ risk រាល់ trade
 • <b>Slippage</b> ពេលរត់លឿន · <b>Delay</b> សញ្ញា 10 នាទី = setup បាត់
 • យើងសាកល្បង scalping SL តូចច្រើនរយវិធី: <b>ភាគច្រើនខាត</b> លើមាស
-• Scalping ធ្វើការ <b>តែ</b>ក្នុង context ខ្លាំង: ឧ. 🤬 COMBO SCALP ក្រោយ 🖕 breakout (50% @ 2R)
+• Scalping ធ្វើការ <b>តែ</b>ក្នុង context ខ្លាំង: ឧ. 🤬 SCALP ក្រោយ ⭐ breakout (58% @ 2R)
 • មិនសមស្រប: ពេលព័ត៌មាន · ម៉ោងស្ងាត់ · ពេលខឹង · account តូចពេក
 
 💡 Scalp ត្រូវ <b>ចូលភ្លាម ឬរំលង</b>""",
@@ -461,7 +461,7 @@ LESSONS += [
 6. Review ប្រចាំសប្ដាហ៍ → កែលម្អបន្តិចម្ដងៗ
 • Data/technology: chart ល្អ · VPS (EA) · internet
 
-💡 ប្រព័ន្ធ XAU.KH = 🖕 COMBO · 🖕🖕 PREMIUM · 🤬 Scalp · risk 0.5–1% · Proof សាធារណៈ""",
+💡 ប្រព័ន្ធ XAU.KH = ⭐ B+ · 💎 A+ · 🤬 Scalp · risk 0.5–1% · Proof សាធារណៈ""",
          quiz=("Playbook ល្អគួរមាន setup ប៉ុន្មាន?", ["50+", "1–3 ដែលបានសាកល្បង", "គ្មាន", "រាល់ indicator"], 1,
                "Setup តិចដែលបានសាកល្បង ងាយធ្វើតាម និងវាស់បាន។"), chart=None),
     # ---------------- PART 11 — EXAMS

@@ -148,8 +148,8 @@ def _sections(F, breakout=False):
     du = F.get("day_used")
     if du is not None:
         q.append(f"• Day Meter <b>{du * 100:.0f}%</b> of a normal day: "
-                 + ("🖕🖕 PREMIUM zone (big day, breakouts tested 77% win)" if du >= 1.0 else
-                    "🖕 COMBO zone (breakouts tested 68% win)" if du >= 0.7 else
+                 + ("💎 A+ zone (big day, breakouts tested 72% win)" if du >= 1.0 else
+                    "⭐ B+ zone (breakouts tested 72% win)" if du >= 0.7 else
                     "quiet day (breakouts only ~50/50, smaller size)"))
     vw = F["lad"].get("VWAP")
     if vw:
@@ -221,7 +221,7 @@ def trade_note(ict, conf, lv, df, lines, sig, stamp, day_used=None, tested=None)
     ef = sig.get("efficiency")
     if ef is not None:
         (pro if ef > 0.255 else con).append(
-            f"Trend quality {ef:.2f}: " + ("clean trend. COMBO in a clean trend won about 70% in testing."
+            f"Trend quality {ef:.2f}: " + ("clean trend. B+ in a clean trend won about 72% in testing."
                                            if ef > 0.255 else "choppy market, breakouts were weaker in testing."))
     vw = F["lad"].get("VWAP")
     if vw:
