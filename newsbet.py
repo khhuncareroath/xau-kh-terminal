@@ -9,8 +9,8 @@ Fundamental read (each factor votes +1 gold up / -1 gold down / 0):
   4. Gold's 4H structure: the trend often carries through the release
 Lean = sign of the sum; 0 = "no bet: fundamentals mixed". Confidence: |sum| 1 = low, 2 = medium, 3-4 = high.
 Trade: entry = first price at the release, SL $15, TP $30 (2R), closed after 60 min. Result replied under the bet.
-⏰ FINAL CALL (python newsbet.py, first step of every loop cycle): in the last cycle before the release it waits until
-~1 minute before, re-reads the fundamentals with fresh data + gold's drift in the last 30 min, and posts BUY / SELL NOW
+⏰ FINAL CALL (python newsbet.py, first step of every loop cycle): 5-8 minutes before the release (owner: time to
+prepare), re-reads the fundamentals with fresh data + gold's drift in the last 30 min, and posts BUY / SELL NOW
 (or no bet). The FINAL lean is the one that is graded.
 
 HONEST LABEL: studies/RESULTS.md: "lean before the news" did not pass the 2-year test, and at the release the spread
@@ -217,7 +217,7 @@ def check(df, news, macro):
         lines += [f"{'✅' if (v > 0) == (lean == 'BUY') and v != 0 else '❌' if v != 0 else '▫️'} {en}" for v, en, _ in fac]
         if lean:
             lines += ["", f"📍 Entry: price at {local(t.timestamp())} · 🛑 SL ${SL:.0f} · 🎯 TP ${TP:.0f} · closed after {HOLD_MIN} min",
-                      "⏰ <b>Final call ~1 min before the news</b> (it can change) · ការសម្រេចចុងក្រោយ ១ នាទីមុន"]
+                      "⏰ <b>Final call ~5 min before the news</b> (it can change) · ការសម្រេចចុងក្រោយ ៥ នាទីមុន"]
         lines += [rec, "<i>Gamble on fundamentals, not a tested signal (betting before news lost in our 2-year test). "
                        "Spread widens at the release · tiny size or just watch · ការភ្នាល់ មិនមែនសញ្ញា</i>"]
         mid = send("\n".join(lines), "news soon")
@@ -275,9 +275,9 @@ def final_call(df, news, macro, now=None):
             continue
         t = datetime.fromisoformat(b["key"])
         secs = (t - now).total_seconds()
-        if not 0 < secs <= 6.5 * 60:
+        if not 0 < secs <= 10.5 * 60:
             continue
-        wait = min(max(secs - 60, 0), 170)       # the loop step has 240 s
+        wait = min(max(secs - 300, 0), 170)      # aim for ~5 min before (time to prepare); the loop step has 240 s
         time.sleep(wait)
         group = [(t, e, None) for e in news.get("events", []) if e.get("impact") == "High"
                  and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) == t]
@@ -317,7 +317,7 @@ def main():
         return
     st = jl(STATE, {})
     now = datetime.now(timezone.utc)
-    if not any(not b.get("final") and 0 < (datetime.fromisoformat(b["key"]) - now).total_seconds() <= 6.5 * 60
+    if not any(not b.get("final") and 0 < (datetime.fromisoformat(b["key"]) - now).total_seconds() <= 10.5 * 60
                for b in st.get("bets", [])):
         return                                   # nothing due: stay fast
     from engine import load

@@ -68,7 +68,7 @@ def cycle(n):
     print(f"cycle {n} at {datetime.now(ZoneInfo('Asia/Phnom_Penh')):%a %H:%M} Phnom Penh", flush=True)
     if n > 1:   # pick up backtest.json and other changes made by the daily backtest job
         git("pull", "--rebase", "-X", "theirs", "origin", BRANCH)
-    run("newsbet.py")   # 🎲 news bet FINAL CALL ~1 min before a release (does nothing otherwise)
+    run("newsbet.py")   # 🎲 news bet FINAL CALL ~5 min before a release (does nothing otherwise)
     run("splus.py")   # 🎯 S+ limit orders: soon after the 15m MSS candle closes
     run("scalp.py")   # first: the COMBO scalp needs the just-closed candle within ~1 minute
     core_ok = all([run(s) for s in CORE])
