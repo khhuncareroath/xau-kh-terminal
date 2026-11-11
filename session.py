@@ -1192,73 +1192,92 @@ EVENT_DIR = [   # (keywords, what "higher than forecast" usually means for gold)
 
 
 def macro_card(macro, news, path, cot=None):
-    """Picture: one tile per fundamental (value, arrow, effect on gold), the next big news with its two outcomes,
-    and which setups the fundamentals favour. Returns (path, short caption) or None without data."""
+    """Picture in the analysis-card style (light, white cards): one card per fundamental (value, change, effect on gold),
+    the next big news with its two outcomes, and the overall lean. Returns (path, short caption) or None without data."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyBboxPatch
-    plt.rcParams["font.family"] = "DejaVu Sans"
-    BG, CARD, INK, MUT, UP, DN, FLAT, GOLD = "#0B0B0D", "#1C1C1E", "#F5F5F7", "#8E8E93", "#30D158", "#FF453A", "#8E8E93", "#E3B04B"
-    tiles = []   # (title, value, change text, change dir, effect on gold +1/-1/0)
-    d, y, vx, spx = (macro.get(k) or {} for k in ("dxy", "us10y", "vix", "spx"))
+    from signal_card import BG, CARD, INK, MUT, UP, DN, BLUE, DARK, _pill, _fonts
+    plt.rcParams["font.family"] = _fonts()
+    tiles = []   # (code, name, value, change text, change dir, effect on gold +1/-1/0, why in plain words)
+    d, y, vx = (macro.get(k) or {} for k in ("dxy", "us10y", "vix"))
     if d.get("last") is not None:
         ch = d.get("chg_pct", 0); dr = 1 if ch > 0.05 else -1 if ch < -0.05 else 0
-        tiles.append(("DXY", "US dollar", f"{d['last']}", f"{ch:+.2f}%", dr, -dr))
+        tiles.append(("DXY", "US dollar", f"{d['last']}", f"{ch:+.2f}%", dr, -dr, "strong dollar = gold down"))
     if y.get("last") is not None:
         ch = y.get("chg_bp", 0); dr = 1 if ch > 2 else -1 if ch < -2 else 0
-        tiles.append(("US10Y", "bond yield", f"{y['last']:.2f}%", f"{ch:+.0f} bp", dr, -dr))
+        tiles.append(("US10Y", "bond yield", f"{y['last']:.2f}%", f"{ch:+.0f} bp", dr, -dr, "higher yield = gold down"))
     if vx.get("last") is not None:
         ch = vx.get("chg_pct", 0); dr = 1 if ch >= 5 else -1 if ch <= -5 else 0
         eff = 1 if vx["last"] >= 25 or ch >= 10 else -1 if vx["last"] < 16 and ch <= 0 else 0
-        tiles.append(("VIX", "fear index", f"{vx['last']}", f"{ch:+.0f}%", dr, eff))
+        tiles.append(("VIX", "fear index", f"{vx['last']}", f"{ch:+.0f}%", dr, eff, "more fear = gold up"))
     if cot and cot.get("net_change") is not None:
         ch = cot["net_change"]; dr = 1 if ch > 0 else -1 if ch < 0 else 0
-        tiles.append(("COT", "big funds", f"{'long' if cot['net'] > 0 else 'short'} {abs(cot['net']) / 1000:,.0f}k", f"{ch / 1000:+,.0f}k", dr, dr))
+        tiles.append(("COT", "big funds", f"{'long' if cot['net'] > 0 else 'short'} {abs(cot['net']) / 1000:,.0f}k",
+                      f"{ch / 1000:+,.0f}k", dr, dr, "funds buying = gold up"))
     if not tiles:
         return None
     now = datetime.now(timezone.utc)
     nxt = sorted([(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e) for e in news.get("events", [])
                   if e.get("impact") == "High" and datetime.fromisoformat(e["time"].replace("Z", "+00:00")) > now], key=lambda x: x[0])[:1]
-    fig = plt.figure(figsize=(10, 5.6), dpi=150); fig.patch.set_facecolor(BG)
-    ax = fig.add_axes([0, 0, 1, 1]); ax.axis("off"); ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    ax.text(0.04, 0.93, "What moves gold today", color=INK, fontsize=17, fontweight="bold", va="center")
-    ax.text(0.96, 0.93, local(time.time()), color=MUT, fontsize=10, va="center", ha="right")
-    w = 0.92 / len(tiles)
-    for k, (code, name, val, chg, dr, eff) in enumerate(tiles):
-        x = 0.04 + k * w
-        ax.add_patch(FancyBboxPatch((x + 0.006, 0.47), w - 0.012, 0.37, boxstyle="round,pad=0,rounding_size=0.02", fc=CARD, ec="none"))
-        cx = x + w / 2
-        ax.text(cx, 0.80, code, color=INK, fontsize=13, fontweight="bold", ha="center")
-        ax.text(cx, 0.755, name, color=MUT, fontsize=8.5, ha="center")
-        ax.text(cx, 0.68, val, color=INK, fontsize=14, fontweight="bold", ha="center")
-        ax.text(cx, 0.625, f"{'▲' if dr > 0 else '▼' if dr < 0 else '■'} {chg}", color=MUT,
-                fontsize=10, ha="center")
-        ec = UP if eff > 0 else DN if eff < 0 else FLAT
-        ax.add_patch(FancyBboxPatch((x + 0.02, 0.495), w - 0.04, 0.075, boxstyle="round,pad=0,rounding_size=0.015", fc=ec, alpha=0.18, ec="none"))
-        ax.text(cx, 0.532, f"Gold {'↑' if eff > 0 else '↓' if eff < 0 else '–'}", color=ec, fontsize=12, fontweight="bold", ha="center", va="center")
-    # next big news with both outcomes
+    tally = sum(t_[5] for t_ in tiles)
+    lean_col = UP if tally > 0 else DN if tally < 0 else MUT
+    fig = plt.figure(figsize=(7.2, 8.4), dpi=150, facecolor=BG)
+    box = lambda x, y_, w, h, fc, r=0.022, **k: fig.patches.append(FancyBboxPatch(
+        (x, y_), w, h, boxstyle=f"round,pad=0,rounding_size={r}", transform=fig.transFigure, fc=fc, ec="none", **k))
+    fig.text(0.055, 0.952, "Fundamentals", color=INK, fontsize=21, fontweight="bold", va="center")
+    _pill(fig, 0.43, 0.952, f"GOLD {'↑ UP' if tally > 0 else '↓ DOWN' if tally < 0 else '↔ MIXED'}", "white", lean_col, fs=11)
+    fig.text(0.945, 0.952, "XAU.KH", color=BLUE, fontsize=14, fontweight="bold", va="center", ha="right")
+    fig.text(0.055, 0.912, f"What moves gold today · {local(time.time())}", color=MUT, fontsize=9.5, va="center")
+    # 2 x 2 white cards
+    cw, chh, gx, gy = 0.43, 0.165, 0.03, 0.022
+    for k, (code, name, val, chg, dr, eff, why) in enumerate(tiles[:4]):
+        x = 0.055 + (k % 2) * (cw + gx)
+        y_ = 0.71 - (k // 2) * (chh + gy)
+        box(x, y_, cw, chh, CARD)
+        fig.text(x + 0.03, y_ + chh - 0.035, code, color=INK, fontsize=13, fontweight="bold", va="center")
+        fig.text(x + 0.03, y_ + chh - 0.065, name, color=MUT, fontsize=8.5, va="center")
+        fig.text(x + cw - 0.03, y_ + chh - 0.045, val, color=INK, fontsize=15, fontweight="bold", va="center", ha="right")
+        fig.text(x + cw - 0.03, y_ + chh - 0.08, f"{'▲' if dr > 0 else '▼' if dr < 0 else '■'} {chg}",
+                 color=(UP if dr > 0 else DN if dr < 0 else MUT) if code != "DXY" and code != "US10Y" else MUT, fontsize=9.5, va="center", ha="right")
+        ec = UP if eff > 0 else DN if eff < 0 else MUT
+        _pill(fig, x + 0.03, y_ + 0.035, f"Gold {'↑' if eff > 0 else '↓' if eff < 0 else '–'}", "white", ec, fs=9.5, h=0.03)
+        fig.text(x + cw - 0.03, y_ + 0.035, why, color=MUT, fontsize=7.2, va="center", ha="right")
+    # next big news
+    ny_ = 0.30
+    box(0.055, ny_, 0.89, 0.20, CARD)
     if nxt:
         t, e = nxt[0]
         sgn = next((v for keys, v in EVENT_DIR if any(kw in e["title"].lower() for kw in keys)), None)
-        ax.text(0.04, 0.40, f"Next big news · {local(t.timestamp())} {t.astimezone(local_tz()):%a}", color=MUT, fontsize=9.5)
-        ax.text(0.04, 0.355, esc(e["title"]) + (f"   (forecast {e['forecast']})" if e.get("forecast") else ""), color=INK, fontsize=12, fontweight="bold")
+        fig.text(0.085, ny_ + 0.165, f"NEXT BIG NEWS · {t.astimezone(local_tz()):%a} {local(t.timestamp())}", color=MUT, fontsize=8.5,
+                 fontweight="bold", va="center")
+        fig.text(0.085, ny_ + 0.125, e["title"] + (f"  ·  forecast {e['forecast']}" if e.get("forecast") else ""),
+                 color=INK, fontsize=12.5, fontweight="bold", va="center")
         if sgn:
-            for j, (lab, g) in enumerate((("Higher than forecast", sgn), ("Lower than forecast", -sgn))):
-                x = 0.04 + j * 0.465
+            for j, (lab, g) in enumerate((("If higher than forecast", sgn), ("If lower than forecast", -sgn))):
+                x = 0.085 + j * 0.425
                 c = UP if g > 0 else DN
-                ax.add_patch(FancyBboxPatch((x, 0.17), 0.445, 0.13, boxstyle="round,pad=0,rounding_size=0.02", fc=c, alpha=0.14, ec="none"))
-                ax.text(x + 0.02, 0.235, lab, color=INK, fontsize=10.5, va="center")
-                ax.text(x + 0.425, 0.235, f"Gold {'↑' if g > 0 else '↓'}  ·  {'BUY' if g > 0 else 'SELL'} setups", color=c, fontsize=11,
-                        fontweight="bold", va="center", ha="right")
-    tally = sum(t_[5] for t_ in tiles)
+                box(x, ny_ + 0.02, 0.405, 0.075, c, r=0.016, alpha=0.12)
+                fig.text(x + 0.02, ny_ + 0.074, lab, color=MUT, fontsize=8.5, va="center")
+                fig.text(x + 0.02, ny_ + 0.040, f"Gold {'↑ · BUY side' if g > 0 else '↓ · SELL side'}", color=c, fontsize=11.5,
+                         fontweight="bold", va="center")
+    else:
+        fig.text(0.085, ny_ + 0.10, "No high-impact US news in the next days", color=MUT, fontsize=11, va="center")
+    # dark box: what it means
+    box(0.035, 0.03, 0.93, 0.235, DARK, r=0.025)
     side = "BUY" if tally > 0 else "SELL" if tally < 0 else None
     msg = (f"Fundamentals lean gold {'UP' if tally > 0 else 'DOWN'}: {side} setups have the wind behind them" if side
            else "Fundamentals are mixed: trade the chart setups only")
-    ax.text(0.04, 0.075, msg, color=(UP if tally > 0 else DN if tally < 0 else GOLD), fontsize=12, fontweight="bold", va="center")
-    ax.text(0.96, 0.075, "usual effect, not a promise", color=MUT, fontsize=8, va="center", ha="right")
+    fig.text(0.075, 0.228, "What it means", color="#AEAEB2", fontsize=9.5, va="center")
+    import textwrap
+    fig.text(0.075, 0.195, "\n".join(textwrap.wrap(msg, 50)[:2]), color="white", fontsize=13, fontweight="bold", va="top", linespacing=1.4)
+    fig.text(0.075, 0.095, f"{sum(1 for t_ in tiles if t_[5] < 0)} down · {sum(1 for t_ in tiles if t_[5] > 0)} up · "
+             f"{sum(1 for t_ in tiles if t_[5] == 0)} neutral", color=lean_col if side else "#AEAEB2", fontsize=10.5, fontweight="bold", va="center")
+    fig.text(0.075, 0.055, "Usual effect, not a promise · signals still need the chart to agree", color="#636366", fontsize=7.8, va="center")
     fig.savefig(path, facecolor=BG); plt.close(fig)
-    return path, f"🏛 <b>Fundamentals</b>: {msg}."
+    km = "មាសទំនងឡើង" if tally > 0 else "មាសទំនងចុះ" if tally < 0 else "ចម្រុះ"
+    return path, f"🏛 <b>Fundamentals · gold {'UP ↑' if tally > 0 else 'DOWN ↓' if tally < 0 else 'mixed ↔'}</b> · {km}"
 
 
 def macro_lean(macro):
@@ -1300,7 +1319,7 @@ def macro_shift(macro, news, state):
     if not why or all(w.startswith("VIX") for w in why) or not (7 <= datetime.now(local_tz()).hour < 23):
         return   # fear index alone is noise for gold; and never in the middle of the night
     mc = macro_card(macro, news, "macro_card.png", jl("cot.json"))
-    if mc and (send_photo(mc[0], f"🔄 <b>Fundamentals changed</b>: {esc(', '.join(why))}.\n{mc[1]}", "Fundamentals") or not os.environ.get("TELEGRAM_TOKEN")):
+    if mc and (send_photo(mc[0], f"{mc[1]}\n🔄 {esc(', '.join(why))}", "Fundamentals") or not os.environ.get("TELEGRAM_TOKEN")):
         state["macro_alerts"] = sent + [datetime.now(local_tz()).strftime("%Y-%m-%d %H:%M")]
         state["macro_snap"] = macro_snapshot(macro)
         print("macro shift sent:", why)
