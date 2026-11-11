@@ -77,30 +77,20 @@ def build(df):
 
 
 def caption(idea, name, signal_line=None, day_meter=None):
-    from tg import fmt, local
-    sw, it, lt = (BW[idea[k]] for k in ("swing", "internal", "ltf"))
+    """Mentor format, short: bias, swing high/low, TARGET BUY / SELL. SL, TP and everything else are on the picture."""
+    W = {"bull": ("Bullish", "លំហូរទីផ្សារឡើង"), "bear": ("Bearish", "លំហូរទីផ្សារធ្លាក់"), None: ("Range", "ទីផ្សារចំហៀង")}
+    n = lambda x: f"{x:.0f}"
     b, s = idea["BUY"], idea["SELL"]
-    wt = idea["with_trend"]
-    tag = lambda side: " ✅ with trend" if side == wt else " ⚠️ counter-trend" if wt else ""
     head = {"Asia": "🌏", "London": "🇬🇧", "New York": "🇺🇸"}.get(name, "📐")
-    out = [f"{head} <b>{name.upper()} · SETUP IDEA</b> · Gold <b>{fmt(idea['price'])}</b>", "",
-           f"Swing (4H): <b>{sw[0]}</b> (លំហូរធំ{sw[1]})",
-           f"Internal (15m): <b>{it[0]}</b> · LTF (5m): <b>{lt[0]}</b>",
-           f"Swing High: <b>{fmt(idea['rh'])}</b> · Swing Low: <b>{fmt(idea['rl'])}</b>", "",
-           f"🟢 <b>TARGET BUY</b>{tag('BUY')}",
-           f"រង់ចាំទៀន 15m បិទលើ <b>{fmt(b['trig'])}</b> ទើបទិញ",
-           f"Wait for a 15m close above {fmt(b['trig'])} → BUY",
-           f"SL {fmt(b['stop'])} · TP1 {fmt(b['tp1'])} · TP2 {fmt(b['tp2'])}", "",
-           f"🔴 <b>TARGET SELL</b>{tag('SELL')}",
-           f"រង់ចាំទៀន 15m បិទក្រោម <b>{fmt(s['trig'])}</b> ទើបលក់",
-           f"Wait for a 15m close below {fmt(s['trig'])} → SELL",
-           f"SL {fmt(s['stop'])} · TP1 {fmt(s['tp1'])} · TP2 {fmt(s['tp2'])}", "",
-           f"⏰ Valid until {local(idea['valid_until'])} · price between the lines = wait (រង់ចាំ)",
-           "🔔 When a 15m candle confirms, the bot sends 📐 SETUP in 📈 Signals" if TOPIC == "signals" else
-           "🔔 When a 15m candle confirms, the bot sends 📐 SETUP in 🔎 Setup Analysis",
-           *([signal_line] if signal_line else []), *([day_meter] if day_meter else []),
-           "<i>Setup idea, not a tested A+/B+ signal · lot តូច 0.25–0.5%</i>"]
-    return "\n".join(out)
+    return "\n".join([
+        f"{head} <b>XAU/USD · {name}</b>", "",
+        f"Swing : <b>{W[idea['swing']][0]}</b> ({W[idea['swing']][1]})",
+        f"Internal : <b>{W[idea['internal']][0]}</b>",
+        f"LTF Structure : <b>{W[idea['ltf']][0]}</b>",
+        f"Swing Low Price: <b>{n(idea['rl'])}</b>",
+        f"Swing High Price: <b>{n(idea['rh'])}</b>", "",
+        f"🟢 <b>TARGET BUY</b> : រង់ចាំតម្លៃទីផ្សារបិទលើតម្លៃ <b>{n(b['trig'])}</b> (ទិញជាលក្ខណៈ Pullback នៃ Structure · Target Zone High: <b>{n(b['tp1'])}</b>)",
+        f"🔻 <b>TARGET SELL</b> : រង់ចាំតម្លៃទីផ្សារបិទក្រោមតម្លៃ <b>{n(s['trig'])}</b> (Target Zone Low: <b>{n(s['tp1'])}</b>)"])
 
 
 # ------------------------------------------------------------------ picture
