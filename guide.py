@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-11n"
+VERSION = "2026-11-11p"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -25,7 +25,8 @@ It is sent only when ALL of these are true:
 🎯 <b>TP1 hit</b>: close half, move SL to entry.
 
 📐 <b>SETUP IDEA</b> (📊 Analysis, every session): Swing / Internal bias, Swing High / Low, 🟢 TARGET BUY and 🔴 TARGET SELL lines.
-When a 15m candle <b>closes</b> beyond a line, the bot sends 📐 <b>SETUP</b> in 📈 Signals (entry, SL, TP1, TP2). Max 2 a day.
+When a 15m candle <b>closes</b> beyond a line (or rejects a demand / supply zone) AND at least 4 of 7 confirmations agree,
+the bot sends 📐 <b>SETUP</b> in 📈 Signals, with the reasons ✅/❌ in 🔎 Setup Analysis. Max 2 a day.
 Setup ideas are analysis, not tested like A+/B+: <b>small size 0.25–0.5%</b>. Every result is shown, wins AND losses.
 
 📡 <b>Strategy Radar</b>: live chart between signals. Not an entry.

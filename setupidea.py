@@ -31,6 +31,7 @@ SL_MIN, SL_MAX = 5.0, 15.0        # $ stop range: below 4 the spread decides, ab
 ZONE_MAX = 20.0                   # $: wider zones are areas, not levels
 VALID_H = 8                       # an idea lives one session
 MAX_PER_DAY = 2
+MIN_CONF = int(os.environ.get("SETUP_MIN_CONF", 4))   # confirmations needed (of 7) before a setup becomes a signal
 ON = os.environ.get("SETUP_IDEAS", "on") != "off"
 TOPIC = os.environ.get("SETUP_TOPIC", "signals")
 BW = {"bull": ("Bullish ↑", "ឡើង"), "bear": ("Bearish ↓", "ធ្លាក់"), None: ("Range ↔", "ចំហៀង")}
@@ -414,6 +415,11 @@ def watch(df):
                  f"but price is already {abs(entry - p['trig']):,.1f} away (too late, do not chase).\n"
                  f"<i>តម្លៃទៅឆ្ងាយហើយ កុំដេញតាម</i>", "Setup skipped")
             return False
+        if not _gate(idea, side, sg, d5, d15, entry, f"15m close {'above' if sg > 0 else 'below'} {p['trig']:,.2f}",
+                     clear=not p.get("before")):
+            idea["done"][side] = "weak"
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            return False
         sent = _send(idea, side, sg, entry, stop, tp1, tp2, last_t, p)
         if sent:
             idea["done"][side] = "sent"
@@ -423,6 +429,48 @@ def watch(df):
             st["count"] = dict(list(st["count"].items())[-10:])
         json.dump(st, open(STATE, "w"), indent=1, default=str)
         return bool(sent)
+    return False
+
+
+def checks(idea, sg, d5, d15, entry, reaction=False, clear=True):
+    """The confirmation checklist, from closed candles at the moment of the setup. Returns [(ok, English, Khmer)]."""
+    import liqmap
+    want = "bull" if sg > 0 else "bear"
+    a15 = float(atr(d15).iloc[-1])
+    o, c = float(d15["Open"].iloc[-1]), float(d15["Close"].iloc[-1])
+    b15, b5 = liqmap._bias(d15.tail(400)), liqmap._bias(d5.tail(600))
+    lo8, hi8 = float(d15["Low"].iloc[-8:].min()), float(d15["High"].iloc[-8:].max())
+    lo_prev, hi_prev = float(d15["Low"].iloc[-28:-8].min()), float(d15["High"].iloc[-28:-8].max())
+    swept = (lo8 < lo_prev) if sg > 0 else (hi8 > hi_prev)
+    disc = (entry < idea["eq"]) if sg > 0 else (entry > idea["eq"])
+    news = _news_near(time.time() + 45 * 60) or _news_near(time.time())
+    side = "BUY" if sg > 0 else "SELL"
+    return [
+        (idea.get("swing") == want, f"4H swing trend {'up' if sg > 0 else 'down'}", "និន្នាការ 4H ត្រូវទិស"),
+        (idea.get("h1") == want, f"1H structure {'up' if sg > 0 else 'down'}", "Structure 1H ត្រូវទិស"),
+        (b15 == want, f"15m structure turned {'up' if sg > 0 else 'down'} (BOS / CHOCH)", "15m BOS/CHOCH ត្រូវទិស"),
+        (b5 == want, f"5m confirmation {'up' if sg > 0 else 'down'}", "5m បញ្ជាក់"),
+        (abs(c - o) >= 0.6 * a15 and (c - o) * sg > 0, "strong 15m candle (displacement)", "ទៀន 15m ខ្លាំង"),
+        (swept, f"liquidity swept {'below' if sg > 0 else 'above'} first ($$)", "បោស liquidity មុន"),
+        ((disc, f"entry from {'discount' if sg > 0 else 'premium'} (good price)", f"ចូលពី {'discount' if sg > 0 else 'premium'}")
+         if reaction else
+         (clear, f"clear path: no {'supply' if sg > 0 else 'demand'} before TP1", f"គ្មាន {'Supply' if sg > 0 else 'Demand'} រាំងមុន TP1")),
+    ] + ([(False, "big news soon: wait", "ព័ត៌មានធំជិតមកដល់")] if news else [])
+
+
+def _gate(idea, side, sg, d5, d15, entry, kind, reaction=False, clear=True):
+    """True = enough confirmations: send the signal. False = post a short 'not enough' note in 🔎 Setup Analysis."""
+    ck = checks(idea, sg, d5, d15, entry, reaction, clear)
+    score = sum(1 for ok, *_ in ck if ok)
+    idea.setdefault("checks", {})[side] = {"score": score, "of": len(ck), "list": [[bool(a), b, c] for a, b, c in ck]}
+    if score >= MIN_CONF and not any(not ok and "news" in en for ok, en, _ in ck):
+        return True
+    from tg import fmt, send
+    send(f"🔎 <b>{side} setup seen, NOT sent</b> · {kind} at {fmt(entry)}\n"
+         f"Confirmations <b>{score}/{len(ck)}</b> (needs {MIN_CONF}):\n"
+         + "\n".join(f"{'✅' if ok else '❌'} {en}" for ok, en, _ in ck)
+         + f"\n<i>មិនទាន់គ្រប់ការបញ្ជាក់ · មិនផ្ញើសញ្ញា</i>", "Setup not sent")
+    print("setup: not enough confirmations", side, score)
     return False
 
 
@@ -466,6 +514,10 @@ def _watch_zones(idea, st, d5, d15, cl, now, dk):
         tp1, tp2 = _levels(entry, stop, sg, None)
         why = (f"Price came into the {'demand' if sg > 0 else 'supply'} {z['lo']:,.2f}–{z['hi']:,.2f} ({z['tf']}) and a 15m candle "
                f"closed back {'above' if sg > 0 else 'below'} it")
+        if not _gate(idea, side, sg, d5, d15, entry, f"{'demand' if sg > 0 else 'supply'} {z['lo']:,.0f}–{z['hi']:,.0f} reaction", reaction=True):
+            idea["done"][key] = "weak"
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            continue
         if _send(idea, side, sg, entry, stop, tp1, tp2, last_t, {"trig": p["edge"]}, why=why):
             idea["done"][key] = "sent"
             st.setdefault("count", {})[dk] = st.get("count", {}).get(dk, 0) + 1
@@ -490,6 +542,8 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
         f"🎯 TP1: <b>{fmt(tp1)}</b> (+{pp(tp1)}) → close half, SL to entry",
         f"🎯 TP2: <b>{fmt(tp2)}</b> (+{pp(tp2)})",
         f"💰 0.01 lot: SL −${risk:,.1f} · 0.01 lot per ${risk * 200:,.0f} of account (0.5% risk)",
+        (f"🧩 Confirmations <b>{idea['checks'][side]['score']}/{idea['checks'][side]['of']}</b> · reasons in 🔎 Setup Analysis"
+         if idea.get("checks", {}).get(side) else None),
         ("✅ With the 4H trend" if side == wt else "⚠️ Against the 4H trend: smaller size or skip" if wt else None),
         "⏱ Closes within 8 h · enter now or skip",
         "<i>Setup idea from analysis, not a tested A+/B+ signal · risk 0.25–0.5% · result shown in 🏆 Proof</i>",
@@ -519,4 +573,20 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
                "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": 8 * 3600, "tier": "setup",
                "zone": f"TARGET {side} {p['trig']}"})
     print("setup sent", side, entry, stop, tp1, tp2)
+    try:   # 🔎 the reason recap, separate from the clean signal feed
+        ck = idea.get("checks", {}).get(side)
+        sl = msg_link(mid if isinstance(mid, int) else None, title)
+        recap = "\n".join(x for x in [
+            f"🔎 <b>WHY THIS {side} · {fmt(entry)}</b> ({idea.get('session', '')} setup idea)", "",
+            f"📍 {why or ('15m candle closed ' + ('above' if bull else 'below') + ' the TARGET ' + side + ' line ' + fmt(p['trig']))}",
+            f"🗺 Swing 4H {BW[idea.get('swing')][0]} · 1H {BW[idea.get('h1')][0]} · 15m {BW[idea.get('internal')][0]} · Swing range "
+            f"{fmt(idea['rl'])}–{fmt(idea['rh'])}",
+            *([f"🧩 <b>Confirmations {ck['score']}/{ck['of']}</b>"] + [f"{'✅' if ok else '❌'} {en} · {km}" for ok, en, km in ck["list"]]
+              if ck else []),
+            f"🛑 Wrong if price closes {'below' if bull else 'above'} {fmt(stop)} · 🎯 TP1 {fmt(tp1)} → TP2 {fmt(tp2)}",
+            (f"<a href=\"{sl}\">📈 Signal</a>" if sl else None) and ((f"<a href=\"{sl}\">📈 Signal</a>") + (f" · <a href=\"{link}\">📊 Analysis</a>" if link else "")),
+        ] if x)
+        send(recap, "Setup reason")
+    except Exception as e:
+        print("setup recap failed:", e)
     return mid
