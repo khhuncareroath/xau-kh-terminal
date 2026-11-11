@@ -371,3 +371,146 @@ LESSONS += [
          quiz=("ខាត 2 ដងជាប់ ហើយខឹង។ អ្វីល្អ?", ["បើក lot ធំដើម្បីយកវិញ", "ឈប់សម្រាប់ថ្ងៃនោះ ពិនិត្យ journal", "Trade រាល់ setup", "លុប SL"], 1,
                "Revenge trading ជាមូលហេតុធំនៃការបាត់គណនី។ ឈប់ ហើយពិនិត្យ។"), chart=None),
 ]
+
+LESSONS += [
+    # ---------------- PART 9 — STRATEGY & TESTING
+    dict(ch=34, part="PART 9 · Strategy", title="Building a Strategy · សរសេរច្បាប់",
+         body="""Strategy ល្អ = <b>ច្បាប់ច្បាស់</b> ដែលមនុស្ស 2 នាក់អនុវត្តបានដូចគ្នា
+• <b>Entry</b>: លក្ខខណ្ឌអ្វីខ្លះ? (ឧ. 4H បិទលើ high 30 ទៀន + Day Meter ≥70%)
+• <b>Exit</b>: SL ណា? TP ណា? បិទពេលណា? (ឧ. 12 ម៉ោង)
+• <b>Filter</b>: ពេលណាមិន trade? (ព័ត៌មាន, ថ្ងៃស្ងាត់, ចុងសប្ដាហ៍)
+• <b>Invalidation</b>: អ្វីធ្វើឱ្យ idea ខុស?
+• <b>No-trade conditions</b>: សរសេរពួកវាផងដែរ!
+• <b>Trading plan</b> = strategy + risk + ម៉ោង + journal
+
+❌ "ទិញពេលមើលទៅល្អ" មិនមែនជាច្បាប់ទេ""",
+         quiz=("មួយណាជាច្បាប់ strategy ល្អ?", ["ទិញពេលមើលទៅឡើង", "ទិញពេល 4H បិទលើ high 30 ទៀន និង Day Meter ≥70%", "ទិញពេលគ្រូនិយាយ", "ទិញពេលបាត់បង់"], 1,
+               "ច្បាប់ល្អវាស់បាន និងអនុវត្តដូចគ្នាគ្រប់ពេល។"), chart=None),
+    dict(ch=35, part="PART 9 · Strategy", title="Backtesting · សាកល្បងលើអតីតកាល",
+         body="""• <b>Backtest</b> = អនុវត្តច្បាប់លើទិន្នន័យចាស់ គ្រប់ trade (មិនជ្រើសតែល្អ)
+• <b>Sample size</b>: យ៉ាងតិច 30, ល្អ 100+ trade
+• <b>Win rate</b> · <b>Average R</b> · <b>Expectancy</b> = ចំណេញមធ្យមក្នុងមួយ trade (R)
+• <b>Profit factor</b> = ចំណេញសរុប ÷ ខាតសរុប (&gt;1.3 ល្អ) · <b>Max drawdown</b>
+• <b>Look-ahead bias</b> ❌ = ប្រើទិន្នន័យដែលមិនទាន់ដឹងនៅពេលនោះ
+• ដាក់ <b>spread + commission + slippage</b> ជានិច្ច
+• ចែក <b>70% ចាស់ / 30% ថ្មី</b>: ជ្រើសច្បាប់លើចាស់ សាកលើថ្មី
+
+💡 យើងធ្វើបែបនេះគ្រប់សញ្ញា · លទ្ធផលពេញនៅក្នុង studies/RESULTS.md""",
+         quiz=("Look-ahead bias គឺ...", ["Trade ច្រើនពេក", "ប្រើទិន្នន័យអនាគតដែលមិនទាន់ដឹងនៅពេលនោះ", "Spread", "ខាតជាប់"], 1,
+               "Backtest ត្រឹមត្រូវប្រើតែព័ត៌មានដែលមាននៅពេលសម្រេចចិត្ត។"), chart=None),
+    dict(ch=36, part="PART 9 · Strategy", title="Forward Testing · Demo",
+         body="""• <b>Forward test</b> = អនុវត្តច្បាប់លើទីផ្សារពិត (demo ឬ lot តូច) ក្រោយ backtest
+• កត់ត្រា: entry ពិត vs រំពឹង · slippage · spread · អារម្មណ៍
+• ប្រៀបធៀប: live win rate ជិត backtest ទេ? (ត្រូវការ 30+ trade មុនសន្និដ្ឋាន)
+• <b>Consistency</b> = លទ្ធផលស្រដៀងគ្នារាល់ខែ
+• <b>កុំកែច្បាប់</b> ក្រោយខាត 2–3 ដង · កែតែពេលមានភស្តុតាងច្រើន
+
+💡 🏆 Proof របស់យើង = forward test ជាសាធារណៈ (ឈ្នះ និងខាតទាំងអស់)""",
+         quiz=("ក្រោយខាត 3 ដងជាប់ក្នុង forward test គួរ...", ["ប្ដូរច្បាប់ភ្លាម", "បន្តតាមច្បាប់ ពិនិត្យក្រោយ 30+ trade", "ឈប់ trade ជារៀងរហូត", "បង្កើន lot"], 1,
+               "3 trade ជា sample តូចពេក។ ខាត 3 ជាប់កើតឡើងធម្មតា ទោះ strategy ល្អក៏ដោយ។"), chart=None),
+    dict(ch=37, part="PART 9 · Strategy", title="Trading Journal · កំណត់ហេតុ",
+         body="""<b>កត់ត្រាគ្រប់ trade:</b> ថ្ងៃ · setup · entry/SL/TP · lot · លទ្ធផល (R) · រូប chart មុន/ក្រោយ · អារម្មណ៍
+• <b>Trade grade</b>: A (តាមច្បាប់ទាំងអស់) · B · C (បំពានច្បាប់)
+• <b>Weekly review</b>: setup ណាល្អ? កំហុសអ្វីដដែលៗ?
+• <b>Monthly review</b>: win rate · avg R · drawdown · ប្រៀបធៀបខែមុន
+• Trade ខាតតាមច្បាប់ = <b>ល្អ</b> · Trade ឈ្នះបំពានច្បាប់ = <b>អាក្រក់</b>
+
+💡 ប្រើ <b>Journal</b> លើ website XAU.KH (ឥតគិតថ្លៃ)""",
+         quiz=("Trade ឈ្នះ ប៉ុន្តែបំពានច្បាប់ (គ្មាន SL) គឺ...", ["Trade ល្អ", "Trade អាក្រក់ (grade C) ទោះឈ្នះ", "មិនសំខាន់", "ធ្វើម្ដងទៀត"], 1,
+               "លទ្ធផលមួយដងជាសំណាង។ ការធ្វើតាមច្បាប់ទើបនាំចំណេញយូរ។"), chart=None),
+    # ---------------- PART 10 — PROFESSIONAL
+    dict(ch=38, part="PART 10 · Professional", title="Trading Psychology · ចិត្តសាស្ត្រ",
+         body="""• <b>Fear</b> → មិនហ៊ានចូល / បិទលឿនពេក · <b>Greed</b> → lot ធំ / មិនយក TP
+• <b>Patience</b>: ថ្ងៃខ្លះគ្មាន setup = ថ្ងៃល្អ (មិនខាត)
+• <b>Discipline</b> = ធ្វើតាមច្បាប់ ទោះអារម្មណ៍និយាយផ្សេង
+• <b>Confidence ≠ Overconfidence</b>: ក្រោយឈ្នះ 5 ដង កុំបង្កើន lot ភ្លាម
+• <b>ទទួលយកការខាត</b>: ខាត 1R ជាថ្លៃធ្វើជំនួញ មិនមែនបរាជ័យ
+• <b>Routine</b>: ព្រឹកអាន Outlook → កំណត់ bias → រង់ចាំសញ្ញា → journal
+
+💡 <i>No setup = no risk. Waiting is a position too.</i>""",
+         quiz=("ឈ្នះ 5 ដងជាប់ ហើយមានទំនុកចិត្តខ្លាំង។ គួរ...", ["បង្កើន lot 5 ដង", "បន្ត risk ដដែល តាមច្បាប់", "Trade គ្មាន SL", "Trade ច្រើនជាងមុន"], 1,
+               "Overconfidence ក្រោយឈ្នះជាប់ ធ្វើឱ្យខាតធំ។ Risk ដដែលជានិច្ច។"), chart=None),
+    dict(ch=39, part="PART 10 · Professional", title="Professional Analysis · Scenario",
+         body="""• <b>Pre-market</b>: Outlook (macro + news) → HTF bias → key levels → liquidity
+• <b>Scenario planning</b>: "<b>ប្រសិនបើ</b> បិទលើ X → ទិញ ទៅ Y · <b>ប្រសិនបើ</b> បិទក្រោម Z → លក់"
+• មាន <b>2 scenario</b> ជានិច្ច · ទីផ្សារជ្រើស មិនមែនយើង
+• <b>Regime</b>: Trend (ធ្វើតាម breakout) · Range (ទិញបាត លក់កំពូល) · Volatile (lot តូច ឬឈប់)
+• <b>Post-market review</b>: scenario ណាកើតឡើង? ហេតុអ្វី?
+
+👉 Analysis របស់យើង = TARGET BUY / TARGET SELL ពីរ scenario រាល់ session""",
+         quiz=("អ្នកជំនាញរៀបចំ...", ["Scenario តែមួយដែលខ្លួនជឿ", "Scenario ពីរ (ប្រសិនបើ... នោះ...)", "គ្មានផែនការ", "ទាយទិស"], 1,
+               "ពីរ scenario ធ្វើឱ្យអ្នកត្រៀមខ្លួនទោះទីផ្សារទៅទិសណាក៏ដោយ។"), chart="structure"),
+    dict(ch=40, part="PART 10 · Professional", title="Gold Scalping · ការពិត",
+         body="""• Scalping = trade M1–M5 · ចំណេញតូច ច្រើនដង
+• <b>Spread/commission</b> ស៊ីចំណេញ: SL $5 + spread $0.30 = ថ្លៃ 6% នៃ risk រាល់ trade
+• <b>Slippage</b> ពេលរត់លឿន · <b>Delay</b> សញ្ញា 10 នាទី = setup បាត់
+• យើងសាកល្បង scalping SL តូចច្រើនរយវិធី: <b>ភាគច្រើនខាត</b> លើមាស
+• Scalping ធ្វើការ <b>តែ</b>ក្នុង context ខ្លាំង: ឧ. 🤬 COMBO SCALP ក្រោយ 🖕 breakout (50% @ 2R)
+• មិនសមស្រប: ពេលព័ត៌មាន · ម៉ោងស្ងាត់ · ពេលខឹង · account តូចពេក
+
+💡 Scalp ត្រូវ <b>ចូលភ្លាម ឬរំលង</b>""",
+         quiz=("ហេតុអ្វី scalping SL តូចពិបាកចំណេញលើមាស?", ["មាសមិនរត់", "Spread/noise ធម្មតាប៉ះ SL តូចញឹកញាប់", "គ្មាន broker", "ច្បាប់ហាម"], 1,
+               "Noise ធម្មតារបស់មាស និងថ្លៃ spread ធ្វើឱ្យ SL តូចត្រូវប៉ះញឹកញាប់។"), chart=None),
+    dict(ch=41, part="PART 10 · Professional", title="Your Trading System · Playbook",
+         body="""<b>Playbook</b> = សៀវភៅច្បាប់ផ្ទាល់ខ្លួន:
+1. Setup 1–3 ដែលបាន <b>សាកល្បង</b> (មិនច្រើនពេក)
+2. Risk framework: % ក្នុង trade · max ថ្ងៃ/សប្ដាហ៍
+3. ម៉ោង trade និងម៉ោងមិន trade
+4. Benchmark: win rate/avg R ដែលរំពឹង (ពី backtest)
+5. Checklist មុនចូល
+6. Review ប្រចាំសប្ដាហ៍ → កែលម្អបន្តិចម្ដងៗ
+• Data/technology: chart ល្អ · VPS (EA) · internet
+
+💡 ប្រព័ន្ធ XAU.KH = 🖕 COMBO · 🖕🖕 PREMIUM · 🤬 Scalp · risk 0.5–1% · Proof សាធារណៈ""",
+         quiz=("Playbook ល្អគួរមាន setup ប៉ុន្មាន?", ["50+", "1–3 ដែលបានសាកល្បង", "គ្មាន", "រាល់ indicator"], 1,
+               "Setup តិចដែលបានសាកល្បង ងាយធ្វើតាម និងវាស់បាន។"), chart=None),
+    # ---------------- PART 11 — EXAMS
+    dict(ch=42, part="PART 11 · Exams", title="Exam 1: Chart Reading",
+         body="""<b>លំហាត់:</b> មើលរូប chart ថ្ងៃនេះខាងក្រោម ហើយឆ្លើយក្នុងចិត្ត (ឬ comment ក្នុង 💬 General):
+1. Structure 15m: ឡើង ចុះ ឬ range? CHOCH/BOS ចុងក្រោយនៅណា?
+2. BSL / SSL (ELQ) នៅណា? មាន $$ sweep ទេ?
+3. FVG និង OB ណាដែលនៅមិនទាន់បំពេញ?
+4. POC នៅណា? តម្លៃនៅលើ ឬក្រោម?
+5. Premium ឬ Discount?
+6. Top-down D → 5m ស្របគ្នាទេ?
+
+✅ ផ្ទៀងផ្ទាត់ចម្លើយ: វាយ <b>/check</b>""",
+         quiz=("ពេលតម្លៃនៅលើ EQ 50% នៃ dealing range វាស្ថិតក្នុង...", ["Discount", "Premium", "POC", "FVG"], 1,
+               "លើ EQ = premium (ថ្លៃ)។ ក្រោម EQ = discount (ថោក)។"), chart="liquidity"),
+    dict(ch=43, part="PART 11 · Exams", title="Exam 2: Trade Planning",
+         body="""<b>លំហាត់ (account $1,000 · risk 1%):</b>
+1. សរសេរ scenario <b>BUY</b> និង <b>SELL</b> ពី chart ថ្ងៃនេះ (ប្រើ TARGET BUY/SELL)
+2. Entry condition: ទៀនអ្វីបិទឆ្លងអ្វី?
+3. SL នៅណា (structure)? ចម្ងាយ $ ប៉ុន្មាន?
+4. Lot = $10 ÷ (SL $ × 100) = ?
+5. TP1 / TP2 · RR ប៉ុន្មាន?
+6. Invalidation: អ្វីធ្វើឱ្យ idea ខុស?
+
+💡 ប្រៀបធៀបជាមួយ session analysis ក្នុង 📊 Analysis""",
+         quiz=("Account $1,000 risk 1% SL $10។ Lot ត្រឹមត្រូវ?", ["0.01", "0.10", "1.00", "0.05"], 0,
+               "$1,000 × 1% = $10 ÷ ($10 × 100) = 0.01 lot។"), chart=None),
+    dict(ch=44, part="PART 11 · Exams", title="Exam 3: Backtest Project",
+         body="""<b>Project:</b>
+1. ជ្រើស strategy មួយដែលមានច្បាប់ច្បាស់ (ពី Chapter 34)
+2. ប្រើ TradingView <b>Replay</b> លើមាស 3–6 ខែចុងក្រោយ
+3. កត់គ្រប់ trade ដែលត្រូវលក្ខខណ្ឌ (ទាំងល្អ ទាំងអាក្រក់) ក្នុង Journal
+4. គណនា: ចំនួន trade · win rate · avg R · max drawdown · ខាតជាប់វែងបំផុត
+5. សរសេរ: ចំណុចខ្សោយអ្វី? ពេលណាវាមិនដំណើរការ?
+
+💡 ច្បាប់មាស: 30+ trade មុនសន្និដ្ឋាន · ដាក់ spread ផង""",
+         quiz=("Backtest ត្រឹមត្រូវកត់ត្រា...", ["តែ trade ឈ្នះ", "គ្រប់ trade ដែលត្រូវលក្ខខណ្ឌ ទាំងឈ្នះ និងខាត", "តែ trade ធំៗ", "គ្មាន"], 1,
+               "ជ្រើសតែ trade ល្អ = cherry-picking។ លទ្ធផលនឹងបោកខ្លួនឯង។"), chart=None),
+    dict(ch=45, part="PART 11 · Exams", title="Final Capstone 🎓",
+         body="""<b>ការប្រឡងចុងក្រោយ:</b>
+1. ✍️ Market analysis ពេញលេញ (top-down + liquidity + VP + macro)
+2. 📋 Trading plan: setup · risk · ម៉ោង · no-trade rules
+3. 🧮 Risk calculation សម្រាប់ account របស់អ្នក
+4. 🧪 Demo 30 trade តាមច្បាប់
+5. 📓 Journal ពេញលេញ + review
+6. 📈 Performance: win rate · avg R · drawdown · អ្វីត្រូវកែ
+
+🎓 អបអរ! អ្នកបានបញ្ចប់ <b>XAU.KH Academy</b> 45 ជំពូក
+💬 Share លទ្ធផល demo របស់អ្នកក្នុង General · សញ្ញា និង analysis បន្តរាល់ថ្ងៃ""",
+         quiz=("មុនប្រើលុយពិតច្រើន អ្នកគួរ...", ["ប្រើ lot ធំភ្លាម", "Demo/lot តូច 30+ trade តាមច្បាប់ និង journal", "រង់ចាំសំណាង", "ចម្លងអ្នកដទៃ"], 1,
+               "Forward test តាមច្បាប់ និង journal បង្ហាញថាអ្នកអនុវត្តបានពិត មុន risk លុយច្រើន។"), chart=None),
+]
