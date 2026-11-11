@@ -1891,6 +1891,11 @@ def main():
         if send(msg, "Weekly proof") or not os.environ.get("TELEGRAM_TOKEN"):
             state.setdefault("weekly_report", {})[wkey] = time.time()
             print("weekly report sent")
+            try:   # ⚖️ live vs test: is each signal type doing what its test promised?
+                import livecheck
+                send(livecheck.text(jl("alerts_log.json", [])), "Proof: live vs test", silent=True)
+            except Exception as e:
+                print("live vs test failed:", e)
     wk = datetime.now(NY).strftime("%G-W%V")
     if due and due[0] == "Asia" and datetime.now(NY).weekday() == 6 and wk not in state.get("weekly", {}):
         ev = [(datetime.fromisoformat(e["time"].replace("Z", "+00:00")), e["title"]) for e in news.get("events", []) if e.get("impact") == "High"]
