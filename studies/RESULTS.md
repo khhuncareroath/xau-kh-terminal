@@ -92,3 +92,11 @@ Script: scratchpad owner_ict.py / owner_rob.py.
 overlapping trades were taken. With the live code (splus.py, time order): 96 trades, 42% win, +0.29R, newest +0.34R,
 t 1.67, 6 of 7 quarters positive; every setting tried stayed positive (+0.12 to +0.38R) but none reached t 2.
 Decision (owner): live as 🎯 S+ SETUP at small size (0.25-0.5%) until the live record proves it.
+
+## One model: A+/B+ breakout + ICT OB entry (11 Nov, owner's request)
+
+After each A+/B+ breakout (92), within 12 h: 15m sweep + MSS in the breakout direction -> limit at the OB (top / middle /
+volume-profile POC-VAL inside the OB), SL a bit under the OB or under the sweep, TP 2R/3R (71 setups).
+SL under the OB (~$5-8): -0.12 to -0.63R in every version (the OB gets run through). SL under the sweep (~$10): only
+21-23 fills, older +0.5 to +1.3R but newest -0.25 to -0.57R: not reliable. The volume-profile entry did not help.
+Current A+/B+ market entry: 92 trades, 72% win, +0.42R (newest +0.40R). Decision: no combined model; the breakout entry stays.
