@@ -281,3 +281,12 @@ LIVE 24h·2/day 230 trades +0.35R (total ~+80R) · 3/day 300 +0.25R (~+75R) · 4
 +0.27R (~+74R) · 36h·3/day 359 +0.21R (~+76R) · 48h·3/day 380 +0.22R (~+84R). All still proven, but the EXTRA trades
 earn ~0 (3rd a day: about −0.07R each; 3rd+4th: about +0.03R). More signals, same money, more losing days.
 Decision: no change, stay at 2 a day / 24 h.
+
+## 🐢 Owner's TikTok ideas · 12 Nov 2026
+**Turtle Soup at 8:30 (TWS wick / TBS body sweep, studies/turtle_soup.py).** 72 versions on 2 years of 5m (no 1m history):
+8:30 New York or 8:30 Cambodia, 1h or night range, TWS/TBS/both, TP 1.2R / 2R / other side of range, with or without the
+4H. The video's own version (TP ~1.2R): about 47-49% win, −0.02 to −0.06R (NY), −0.16R (Cambodia morning). Best of all 72:
++0.12R, t 1.1 (NY, 1h range, TP the other side, with the 4H), which is what luck gives the best of 72. None proven. No signal.
+**Volume profile LVN + FVG / VAL (AIZEN video):** already tested as vp_shape (+0.15R, t 2.0, not proven), value_80 (+0.09R),
+vp_late (−0.09R).
+**Band touches on 1m (MM Trader video):** already tested as vwap_fade (2-sigma band, close back inside): −0.15R, 618 trades.
