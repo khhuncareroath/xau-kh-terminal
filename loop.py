@@ -93,7 +93,9 @@ def main():
         if (nxt - start) / 60 > LOOP_MIN:
             break
         try:   # answer member commands (/check ...) while waiting for the next cycle
+            import importlib
             import listener
+            importlib.reload(listener)   # pick up new commands after each git pull, no restart needed
             listener.serve(nxt)
         except Exception as e:
             print("listener stopped:", e, flush=True)

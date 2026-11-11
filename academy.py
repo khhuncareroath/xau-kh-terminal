@@ -33,9 +33,33 @@ def jl(n, d):
         return d
 
 
+def header(L):
+    done = round(10 * L["ch"] / TOTAL)
+    return (f"📚 <b>XAU.KH ACADEMY</b> · {L['part']}\n{'▰' * done}{'▱' * (10 - done)} Chapter {L['ch']}/{TOTAL}\n\n"
+            f"<b>{L['title']}</b>\n\n")
+
+
+def text(L):
+    """The lesson as one message (used by /lesson N)."""
+    q, opts, ok, why = L["quiz"]
+    return (header(L) + L["body"] + f"\n\n🧠 <b>Quiz</b>: {q}\n" + "\n".join(f"{'ABCD'[i]}. {o}" for i, o in enumerate(opts))
+            + f"\n<tg-spoiler>✅ {'ABCD'[ok]}: {why}</tg-spoiler>\n\n<i>/academy = all chapters · /lesson {L['ch'] + 1} = next</i>")
+
+
+def contents():
+    out = ["📚 <b>XAU.KH ACADEMY · 45 Chapters</b>", "Type <b>/lesson N</b> to open a chapter · វាយ /lesson លេខ", ""]
+    part = None
+    for L in LESSONS:
+        if L["part"] != part:
+            part = L["part"]
+            out.append(f"\n<b>{part}</b>")
+        out.append(f"{L['ch']}. {L['title'].split(' · ')[0]}")
+    return "\n".join(out)
+
+
 def post(k):
     L = LESSONS[k]
-    head = f"📚 <b>XAU.KH ACADEMY · Chapter {L['ch']}/{TOTAL}</b> · {L['part']}\n<b>{L['title']}</b>\n\n"
+    head = header(L)
     mid = send(head + L["body"] + "\n\n<i>Quiz below ↓ · មេរៀនបន្ទាប់ថ្ងៃស្អែក · /check ដើម្បីអនុវត្ត</i>", "Lesson")
     if not mid:
         return False

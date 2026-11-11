@@ -142,14 +142,25 @@ def proof_answer():
               "<i>A few weeks is a small sample: judge by months.</i>")
 
 
-def lesson_answer():
-    import lessons
-    t, body = random.choice(lessons.LESSONS)
-    return f"📚 <b>{html.escape(t)}</b>\n{html.escape(body)}"
+def lesson_answer(arg=None):
+    import academy
+    from academy_content import LESSONS
+    if arg and arg.isdigit():
+        L = next((x for x in LESSONS if x["ch"] == int(arg)), None)
+        if not L:
+            return f"Chapter 1–{len(LESSONS)} · វាយ /lesson 1"
+        return academy.text(L)
+    k = min(jl("academy_state.json", {"next": 1}).get("next", 1), len(LESSONS)) - 1   # today's (latest posted) chapter
+    return academy.text(LESSONS[max(k, 0)])
+
+
+def academy_answer():
+    import academy
+    return academy.contents()
 
 
 HELP = ("🤖 <b>XAU.KH bot</b>\n/check: gold right now + what to do · មើលមាសឥឡូវ\n/signal: latest signal · សញ្ញាចុងក្រោយ\n"
-        "/proof: live record · លទ្ធផល\n/lesson: a short lesson · មេរៀន")
+        "/proof: live record · លទ្ធផល\n/academy: all 45 lessons · មេរៀនទាំងអស់\n/lesson 5: open chapter 5 · បើកមេរៀនទី 5")
 
 
 # ---------------------------------------------------------------- loop
@@ -160,7 +171,7 @@ def handle(msg):
     if time.time() - msg.get("date", 0) > 600:   # old command (bot was offline): don't answer late
         return
     cmd = text.split()[0].split("@")[0].lower()
-    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/help", "/start"):
+    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/academy", "/help", "/start"):
         return
     user = (msg.get("from") or {}).get("id")
     if user and time.time() - _last_user.get((user, cmd), 0) < COOLDOWN_S and cmd != "/help":
@@ -179,7 +190,9 @@ def handle(msg):
                 return
             api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))
             return
-        text = {"/signal": signal_answer, "/proof": proof_answer, "/lesson": lesson_answer}.get(cmd, lambda: HELP)()
+        arg = text.split()[1] if len(text.split()) > 1 else None
+        text = {"/signal": signal_answer, "/proof": proof_answer, "/lesson": lambda: lesson_answer(arg),
+                "/academy": academy_answer}.get(cmd, lambda: HELP)()
         api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))
     except Exception as e:
         print("listener reply failed:", cmd, e)
@@ -197,7 +210,8 @@ def serve(until):
                 {"command": "check", "description": "Gold right now + what to do · មើលមាសឥឡូវ"},
                 {"command": "signal", "description": "Latest signal · សញ្ញាចុងក្រោយ"},
                 {"command": "proof", "description": "Live record, wins and losses · លទ្ធផល"},
-                {"command": "lesson", "description": "A short lesson · មេរៀន"}], ensure_ascii=False)})
+                {"command": "academy", "description": "All 45 lessons · មេរៀនទាំងអស់"},
+                {"command": "lesson", "description": "Today's lesson, or /lesson 5 · មេរៀន"}], ensure_ascii=False)})
             _menu = True
         except Exception as e:
             print("setMyCommands failed:", e)
