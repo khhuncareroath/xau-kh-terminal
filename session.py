@@ -632,8 +632,8 @@ def analysis_chart(df, lv, conf, lines, path, title, setup=None):
             print("liquidity map failed:", e)
         if setup:   # 📐 setup idea: the instruction line says exactly what to wait for
             wt = setup.get("with_trend")
-            todo = ((f"4H is {'up' if wt == 'BUY' else 'down'}: {wt} is the with-trend side. " if wt else "4H is ranging. ")
-                    + "Wait for a 15m CLOSE beyond a TARGET line.")
+            todo = ((f"4H {'up' if wt == 'BUY' else 'down'}: {wt} is with-trend. " if wt else "4H ranging: no trend side. ")
+                    + "Wait for the 15m close.")
         return analysis_card.make(df, jl("ict.json"), lv, lines, path, title, used=st["used"],
                                   plan=None, todo=todo, trend=st["trend"], scenarios=scen, liq=liq, setup=setup)
     except Exception as e:

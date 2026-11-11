@@ -240,7 +240,8 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     # dark box: what to do + key numbers
     fig.patches.append(FancyBboxPatch((0.035, 0.03), 0.93, 0.25, boxstyle="round,pad=0,rounding_size=0.025",
                                       transform=fig.transFigure, fc=DARK, ec="none", zorder=0))
-    fig.text(0.075, 0.245, "What to do · the map shows both paths, it does not predict", color="#AEAEB2", fontsize=9.5, va="center")
+    fig.text(0.075, 0.245, "What to do · setup ideas, not tested signals · small size 0.25–0.5%" if setup else
+             "What to do · the map shows both paths, it does not predict", color="#AEAEB2", fontsize=9.5, va="center")
     import textwrap
     fig.text(0.075, 0.212, "\n".join(textwrap.wrap(todo or "Wait for a signal.", 62)[:2]), color="white", fontsize=11.5,
              fontweight="bold", va="top", linespacing=1.4)
@@ -257,6 +258,11 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
                 brk = (" supply" if side == "BUY" else " demand") if p_.get("broke") else ""
                 rows.append((f"TARGET {side}: 15m close {'above' if side == 'BUY' else 'below'}{brk}{wt}",
                              f"{p_['trig']:,.2f} · SL {p_['stop']:,.0f} · TP {p_['tp1']:,.0f} / {p_['tp2']:,.0f}", col))
+        for key, side, col, word in (("BUY_DZ", "BUY", UP, "demand"), ("SELL_SZ", "SELL", DN, "supply")):
+            q = setup.get(key)
+            if q:
+                rows.append((f"{side} at {word} {q['zone']['lo']:,.0f}–{q['zone']['hi']:,.0f}: 15m close back {'above' if side == 'BUY' else 'below'}",
+                             f"{q['edge']:,.2f} · SL {q['stop']:,.0f} · TP {q['tp1']:,.0f} / {q['tp2']:,.0f}", col))
         liq = dict(liq or {}, trig_buy=None, trig_sell=None)
     if liq:
         if liq.get("trig_buy"):
@@ -266,12 +272,12 @@ def make(df, ict, lv, lines, path, title, used=None, plan=None, todo="", trend=0
     rows = [("NEXT SIGNAL · 4H close: BUY above / SELL below", f"{upper:,.0f} / {lower:,.0f}", "#FFD60A")] + rows
     if plan and plan.get("side") and plan.get("edge"):
         rows.append((f"Plan {plan['side']} at POC", f"{plan['edge']:,.2f}", "#FF9500"))
-    y = 0.135
+    y, dy, fa, fb = (0.152, 0.027, 8.8, 9.8) if len(rows) > 3 else (0.135, 0.034, 10, 11)
     for a_, b_, col in rows:
-        fig.text(0.075, y, a_, color="#AEAEB2", fontsize=10, va="center")
-        fig.text(0.925, y, b_, color=col, fontsize=11, fontweight="bold", va="center", ha="right")
-        y -= 0.034
-    fig.text(0.075, 0.045, "Setup idea, not a tested A+/B+ signal · small size 0.25–0.5%" if setup else
+        fig.text(0.075, y, a_, color="#AEAEB2", fontsize=fa, va="center")
+        fig.text(0.925, y, b_, color=col, fontsize=fb, fontweight="bold", va="center", ha="right")
+        y -= dy
+    fig.text(0.075, 0.045, ("" if len(rows) > 3 else "Setup idea, not a tested A+/B+ signal · small size 0.25–0.5%") if setup else
              "Analysis, not a signal · entries come only in 📈 Signals".replace("📈 ", ""), color="#636366",
              fontsize=7.5, va="center")
     fig.savefig(path, facecolor=BG)

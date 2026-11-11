@@ -123,6 +123,19 @@ def _room(p, sg, opp, a15=3.0):
     return p
 
 
+def _reaction(z, sg, a15, price):
+    """Mentor setup at a key zone: price trades INTO the demand, then a 15m candle closes back ABOVE it (buyers
+    defended it) -> BUY, SL under the zone. Mirror for supply. Only zones within $40 of price."""
+    edge, far = (z["hi"], z["lo"]) if sg > 0 else (z["lo"], z["hi"])
+    if abs(price - edge) > 40:
+        return None
+    r = min(max(abs(edge - far) + 0.1 * a15, SL_MIN), SL_MAX)
+    stop = edge - sg * r
+    tp1, tp2 = _levels(edge, stop, sg, None)
+    return {"edge": round(edge, 2), "stop": round(stop, 2), "tp1": tp1, "tp2": tp2,
+            "zone": {"tf": z["tf"], "lo": round(z["lo"], 2), "hi": round(z["hi"], 2)}}
+
+
 def build(df):
     import liqmap
     m = liqmap.build(df)
@@ -138,6 +151,12 @@ def build(df):
     for side in ("BUY", "SELL"):
         if idea[side].get("blocked"):
             idea["done"][side] = "blocked"
+    # the SAME zone gives both outcomes: a close below the demand = SELL (broken), a tap + close back above = BUY
+    pick = lambda side, zs, sg: (idea[side].get("broke") or
+                                 next((z for z in zs if abs(m["price"] - (z["hi"] if sg > 0 else z["lo"])) >= max(5.0, a15)), None))
+    dz, sz = pick("SELL", dem, 1), pick("BUY", sup, -1)
+    idea["BUY_DZ"] = _reaction(dz, 1, a15, m["price"]) if dz else None     # buy the demand, with confirmation
+    idea["SELL_SZ"] = _reaction(sz, -1, a15, m["price"]) if sz else None   # sell the supply, with confirmation
     sw = idea["swing"]
     idea["with_trend"] = "BUY" if sw == "bull" else "SELL" if sw == "bear" else None
     return idea, m
@@ -161,7 +180,11 @@ def caption(idea, name, signal_line=None, day_meter=None):
         + f"Target Zone High: <b>{n(b['tp1'])}</b>)",
         f"🔻 <b>TARGET SELL</b> : រង់ចាំតម្លៃទីផ្សារបិទក្រោមតម្លៃ <b>{n(s['trig'])}</b> ("
         + (f"បំបែក Demand {n(s['broke']['lo'])}–{n(s['broke']['hi'])} · " if s.get("broke") else "")
-        + f"Target Zone Low: <b>{n(s['tp1'])}</b>)"])
+        + f"Target Zone Low: <b>{n(s['tp1'])}</b>)",
+        *([f"🟢 <b>BUY at Demand</b> : បើតម្លៃចូល Demand <b>{n(idea['BUY_DZ']['zone']['lo'])}–{n(idea['BUY_DZ']['zone']['hi'])}</b> "
+           f"ហើយទៀន 15m បិទត្រឡប់លើ <b>{n(idea['BUY_DZ']['edge'])}</b> ទើបទិញ (SL ក្រោម Demand)"] if idea.get("BUY_DZ") else []),
+        *([f"🔻 <b>SELL at Supply</b> : បើតម្លៃចូល Supply <b>{n(idea['SELL_SZ']['zone']['lo'])}–{n(idea['SELL_SZ']['zone']['hi'])}</b> "
+           f"ហើយទៀន 15m បិទត្រឡប់ក្រោម <b>{n(idea['SELL_SZ']['edge'])}</b> ទើបលក់ (SL លើ Supply)"] if idea.get("SELL_SZ") else [])])
 
 
 # ------------------------------------------------------------------ picture
@@ -349,6 +372,8 @@ def watch(df):
     if st.get("count", {}).get(dk, 0) >= MAX_PER_DAY:
         return False
     cl = float(d15["Close"].iloc[-1])
+    if _watch_zones(idea, st, d5, d15, cl, now, dk):
+        return True
     for side, sg in (("BUY", 1), ("SELL", -1)):
         p = idea[side]
         if side in idea.get("done", {}) or (cl - p["trig"]) * sg <= 0:   # blocked / skipped sides stay off
@@ -401,7 +426,55 @@ def watch(df):
     return False
 
 
-def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p):
+def _watch_zones(idea, st, d5, d15, cl, now, dk):
+    """Demand / supply reaction: the zone was tapped (a closed 15m candle traded into it, within the last hour) and the
+    newest closed 15m candle closed back beyond it. A close through the far side cancels it (zone broken)."""
+    last_t = d15.index[-1]
+    since = d15[(d15.index + pd.Timedelta(minutes=15)).map(lambda t: t.timestamp()) >= idea["t"]]
+    for key, side, sg in (("BUY_DZ", "BUY", 1), ("SELL_SZ", "SELL", -1)):
+        p = idea.get(key)
+        if not p or key in idea.get("done", {}):
+            continue
+        z = p["zone"]
+        tap = since[since["Low"] <= z["hi"]] if sg > 0 else since[since["High"] >= z["lo"]]
+        if not len(tap):
+            continue
+        after = since[since.index >= tap.index[0]]
+        if ((after["Close"] < z["lo"]) if sg > 0 else (after["Close"] > z["hi"])).any():
+            idea["done"][key] = "zone broken"
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            continue
+        if (cl - p["edge"]) * sg <= 0 or tap.index[-1] < d15.index[-5]:
+            continue
+        k_ = f"{key}|{last_t}"
+        if st.get("last_key") == k_:
+            return False
+        st["last_key"] = k_
+        if _news_near(now):
+            idea["done"][key] = "news"
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            return False
+        a15 = float(atr(d15).iloc[-1])
+        entry = float(d5["Close"].iloc[-1])
+        far = z["lo"] if sg > 0 else z["hi"]
+        risk = min(max((entry - (far - sg * 0.1 * a15)) * sg, SL_MIN), SL_MAX)
+        if (entry - p["edge"]) * sg > 0.8 * risk:
+            idea["done"][key] = "chased"
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            continue
+        stop = round(entry - sg * risk, 2)
+        tp1, tp2 = _levels(entry, stop, sg, None)
+        why = (f"Price came into the {'demand' if sg > 0 else 'supply'} {z['lo']:,.2f}–{z['hi']:,.2f} ({z['tf']}) and a 15m candle "
+               f"closed back {'above' if sg > 0 else 'below'} it")
+        if _send(idea, side, sg, entry, stop, tp1, tp2, last_t, {"trig": p["edge"]}, why=why):
+            idea["done"][key] = "sent"
+            st.setdefault("count", {})[dk] = st.get("count", {}).get(dk, 0) + 1
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            return True
+    return False
+
+
+def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
     from tg import fmt, local, log_alert, msg_link, send, send_photo
     bull = sg > 0
     risk = abs(entry - stop)
@@ -411,9 +484,9 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p):
     cap = "\n".join(x for x in [
         f"📐 <b>XAU/USD — {side} | SETUP</b> (from the {idea.get('session', '')} analysis)",
         f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}</b> · ចូល {fmt(entry)} · SL {fmt(stop)} · TP1 {fmt(tp1)} (បិទពាក់កណ្ដាល) · TP2 {fmt(tp2)} · lot តូច",
-        f"✅ 15m candle closed {'above' if bull else 'below'} <b>{fmt(p['trig'])}</b> (TARGET {side})",
+        f"✅ {why}" if why else f"✅ 15m candle closed {'above' if bull else 'below'} <b>{fmt(p['trig'])}</b> (TARGET {side})",
         f"📍 Entry: <b>{fmt(entry)}</b>",
-        f"🛑 SL: <b>{fmt(stop)}</b> ({pp(stop)} pips) · under the {'pullback low' if bull else 'pullback high'}",
+        f"🛑 SL: <b>{fmt(stop)}</b> ({pp(stop)} pips) · {('under the demand' if bull else 'above the supply') if why else ('under the pullback low' if bull else 'above the pullback high')}",
         f"🎯 TP1: <b>{fmt(tp1)}</b> (+{pp(tp1)}) → close half, SL to entry",
         f"🎯 TP2: <b>{fmt(tp2)}</b> (+{pp(tp2)})",
         f"💰 0.01 lot: SL −${risk:,.1f} · 0.01 lot per ${risk * 200:,.0f} of account (0.5% risk)",
@@ -440,7 +513,7 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p):
     if not mid:
         return None
     now = time.time()
-    log_alert({"id": f"setup|{side}|{t15}", "kind": "setup", "model": "setup_idea", "dir": "bull" if bull else "bear",
+    log_alert({"id": f"setup|{side}|{'zone' if why else 'break'}|{t15}", "kind": "setup", "model": "setup_idea", "dir": "bull" if bull else "bear",
                "entry": entry, "stop": stop, "target": tp2, "tp1": tp1, "part": 0.5, "rr": round(abs(tp2 - entry) / risk, 2),
                "created": now, "valid_until": now + 900, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
                "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": 8 * 3600, "tier": "setup",
