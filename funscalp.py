@@ -22,7 +22,8 @@ from levels import to_ny
 from tg import fmt, local, log_alert, send, send_photo
 
 STATE = "funscalp_state.json"
-PER_DAY = int(os.environ.get("FUN_PER_DAY", 2))
+PER_DAY = int(os.environ.get("FUN_PER_DAY", 3))
+CLEAN = os.environ.get("FUN_CLEAN", "on") != "off"   # studies/fun_filters.py: clean 4H trend only -> +0.17R (proven) vs 0R
 MAX_LATE_S = 180
 
 
@@ -50,6 +51,7 @@ def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid):
               if lo == lo and hi == hi else "2️⃣ Price dipped into a fresh 15m gap (FVG)"),
              f"3️⃣ The 5m candle closed back {'above' if bull else 'below'} the previous candle and EMA20 {fmt(float(e20[i]))} "
              f"→ {'buyers' if bull else 'sellers'} are back · ទៀន 5m បិទត្រឡប់",
+             "4️⃣ The 4H trend is clean (not choppy) · ទីផ្សារមិនរញ៉េរញ៉ៃ",
              f"🛑 SL {fmt(sl)} = {'under' if bull else 'above'} the last 6 candles · 🎯 TP1/2/3 = 1R / 1.5R / 2R",
              *([f"📏 Day Meter {du * 100:.0f}%"] if du is not None else []),
              "<i>🎰 Gamble for fun · cent account</i>"]
@@ -65,6 +67,8 @@ def main():
     log = jl("alerts_log.json", [])
     if any(a.get("kind") == "fun" and a["status"] in ("pending", "filled") for a in log):
         print("fun scalp: one is still open"); return
+    if any(a.get("kind") == "scalp" and a["status"] in ("pending", "filled") for a in log):
+        print("fun scalp: the ⚡ Scalp already has this trade"); return   # never the same trade in two topics
     try:
         from notify import news_soon
         if news_soon(jl("news.json", {}), mins=15, now=now):
@@ -95,6 +99,10 @@ def main():
     sw = research.scalp_trigger(o, h, l, c, e20, a, fd, flo, fhi, i, sg)
     if sw is None:
         print("fun scalp: no trigger"); return
+    if CLEAN:
+        er = research.efficiency(df, df.index[i] + pd.Timedelta(minutes=5))
+        if er is not None and er <= research.CHOP_ER:
+            print(f"fun scalp: choppy 4H (efficiency {er:.2f}), skipped"); return
     entry = float(c[i])
     risk = (entry - sw) * sg
     if not research.SCALP_RISK[0] <= risk <= research.SCALP_RISK[1]:

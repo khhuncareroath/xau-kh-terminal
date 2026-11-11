@@ -247,3 +247,18 @@ best others, more wins felt, and each TP is a real action for members).
 Owner follow-up (same day): drop the 3R target, split 1R→2R into three: ⅓ at 1R / 1.5R / 2R, SL to entry after TP1:
 −0.004R (52% end in profit; TP1 50%, TP2 34%, TP3 24%), trailing the SL to TP1 −0.005R, 0.7/1.3/2R −0.02R. All within
 luck of the 1/2/3R version (+0.02R, t 0.6): no real difference, all break-even. LIVE now: 1R / 1.5R / 2R (owner's choice).
+
+## 🎰 Fun Scalp filters (studies/fun_filters.py) · 11 Nov 2026
+Live entries + live exits (⅓ at 1R / 1.5R / 2R). Filters (8 tried, the first chosen in advance from scalp_filters.py):
+no filter 40/mo −0.00R · **clean 4H trend (efficiency > 0.30) 14/mo, 60% in profit, +0.20R, t 3.3, older +0.16 /
+newest +0.31, 7 of 9 quarters: PROVEN** · same with 3 a day 19/mo +0.17R t 3.3 PROVEN · + 1H agrees 11/mo +0.26R PROVEN
+· London/NY hours only −0.04R · skipping dead hours +0.01R · 1H agrees alone +0.02R.
+Overlap: 209 of the 230 ⚡ wide scalps are the same candle; the 237 fun-only trades still +0.14R.
+LIVE: clean trend only, 3 a day, and no fun scalp while a ⚡ Scalp is open (never the same trade in two topics).
+FUN_CLEAN=off goes back to the unfiltered version.
+
+## ⏱ Live timing check · 11 Nov 2026
+The loop runs back to back (no gaps between jobs), each cycle 20 s after the 5-min mark, all steps in ~8 s.
+Bug found: session.py and setupidea.watch each dropped the last 5m row, and the feed sometimes has not opened the new
+candle yet, so M15 signals came 5-10 min after the 15m close (11 Nov SELL: close 07:15 NY, sent 07:25).
+Fixed with engine.closed() (cut by the clock), now used everywhere. ⚡ Scalp and 🎰 Fun Scalp already cut by the clock.
