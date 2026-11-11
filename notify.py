@@ -387,7 +387,7 @@ def setup_message(mode, st, ict, fs, valid_until, summ, ai):
     return out
 
 
-PLAN_MODELS = ("vp_shape", "vp_late")   # range_extreme removed 11 Nov: counter-trend, not proven (t 1.95), 0/2 live          # promising but not yet proven: sent as "plan trade", small risk, results posted
+PLAN_MODELS = ("vp_shape",)   # vp_late removed 11 Nov: -0.07R in 2y (-0.22R newest), 3/3 live was luck   # range_extreme removed 11 Nov: counter-trend, not proven (t 1.95), 0/2 live          # promising but not yet proven: sent as "plan trade", small risk, results posted
 WATCH_ALERTS = os.environ.get("WATCH_ALERTS", "off") == "on"   # old ICT watch ideas lost money in testing: off
 
 
@@ -433,21 +433,41 @@ def plan_alert(lm, state, now):
     else:
       reason = {"bull": "P-shape volume profile (buyers in control). Price pulled back to the POC (busiest price) and a 15m candle closed above it.",
                 "bear": "b-shape volume profile (sellers in control). Price pulled back to the POC (busiest price) and a 15m candle closed below it."}
-    msg = "\n".join([
-        f"{'🟢' if bull else '🔴'} <b>GOLD {'BUY' if bull else 'SELL'} NOW · {'ទិញ' if bull else 'លក់'}ឥឡូវ</b>  "
-        + ("🤬 🔷 <i>EXPERIMENTAL</i>" if exp else "🤬 🟡 <i>plan trade · small size</i>"), "",
-        f"Entry  <b>{fmt(s['entry'])}</b>",
-        f"SL       <b>{fmt(s['stop'])}</b>  ({pips(s['stop'])})",
-        *([f"TP1    <b>{fmt(s['tp1'])}</b>  ({pips(s['tp1'])}) · close half, SL to entry",
-           f"TP2    <b>{fmt(s['target'])}</b>  ({pips(s['target'])}) · the day open"] if s.get("tp1") else
-          [f"TP       <b>{fmt(s['target'])}</b>  ({pips(s['target'])})"]), "",
-        reason["bull" if bull else "bear"],
-        ((lambda a: f"Tested 2 years: {a.get('trades')} trades, {a.get('win_rate_pct')}% win, {a.get('avg_R', 0):+.2f}R · "
-                    f"not proven yet · closes by noon New York")((jl("backtest.json").get("models", {}).get("range_extreme") or {}).get("all") or {})
-         if exp else
-         "Tested 2 years: 50% win, +0.18R per trade · Day Range < 70% used · closes within 8 h"),
-        "", ("<i>Experimental: risk 0.25% max · ហានិភ័យ 0.25% ប៉ុណ្ណោះ</i>" if exp else "<i>Plan trade: risk 0.5% max · ហានិភ័យ 0.5% ប៉ុណ្ណោះ</i>")])
-    mid = send(msg, ("BUY" if bull else "SELL") + " plan")
+    # one clean post like the main signal: card image + short caption (Khmer action line, $ per 0.01 lot)
+    vb = (jl("backtest.json").get("models", {}).get(s["model"]) or {}).get("all") or {}
+    pp = lambda px: f"{abs(px - s['entry']) * 10:,.0f}"
+    risk_d = abs(s["entry"] - s["stop"])
+    caption = "\n".join(x for x in [
+        f"🤬 <b>XAU/USD — {'BUY' if bull else 'SELL'} | PLAN</b> (small size)",
+        f"🇰🇭 <b>{'ទិញ' if bull else 'លក់'}ឥឡូវ</b> · ចូល {fmt(s['entry'])} · SL {fmt(s['stop'])} · "
+        + (f"TP1 {fmt(s['tp1'])} · TP2 {fmt(s['target'])}" if s.get("tp1") else f"TP {fmt(s['target'])}") + " · lot តូច",
+        f"📍 Entry: <b>{fmt(s['entry'])}</b>",
+        f"🛑 SL: <b>{fmt(s['stop'])}</b> ({pp(s['stop'])} pips)",
+        *([f"🎯 TP1: <b>{fmt(s['tp1'])}</b> (+{pp(s['tp1'])}) → close half, SL to entry",
+           f"🎯 TP2: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"] if s.get("tp1") else
+          [f"🎯 TP: <b>{fmt(s['target'])}</b> (+{pp(s['target'])})"]),
+        f"💰 0.01 lot: SL −${risk_d:,.0f} · 0.01 lot per ${risk_d * 200:,.0f} of account (0.5% risk)",
+        f"🧭 {reason['bull' if bull else 'bear']}",
+        (f"📊 Tested 2 years: {vb.get('trades')} trades · {vb.get('win_rate_pct')}% win · {vb.get('avg_R', 0):+.2f}R · not proven yet"
+         if vb.get("trades") else None),
+        "⏱ Closes within 8 h · risk 0.25–0.5% · ហានិភ័យតូច",
+    ] if x)
+    mid = None
+    try:
+        import signal_card
+        from engine import load
+        from levels import to_ny
+        from tg import send_photo
+        d5 = to_ny(load("5m", "20d")).iloc[:-1]
+        signal_card.make(d5, {"dir": s["dir"], "entry": s["entry"], "stop": s["stop"], "tp1": s.get("tp1"),
+                              "target": s["target"]}, "plan_card.png", tier="plan", status="LIVE",
+                         win_rate=vb.get("win_rate_pct"), trades=vb.get("trades"), stamp=local(now),
+                         tf_label="Volume profile plan", hold_note="closes within 8 h")
+        mid = send_photo("plan_card.png", caption, ("BUY" if bull else "SELL") + " plan")
+    except Exception as e:
+        print("plan card failed:", e)
+    if not mid:
+        mid = send(caption, ("BUY" if bull else "SELL") + " plan")
     if not mid:
         return False
     state["model_keys"] = (state.get("model_keys", []) + [key])[-50:]
@@ -455,19 +475,9 @@ def plan_alert(lm, state, now):
     log_alert({"id": key, "kind": "plan", "model": s["model"], "dir": s["dir"], "entry": s["entry"], "stop": s["stop"],
                "target": s["target"], "rr": s.get("rr"), "created": now, "valid_until": now + 900, "price_at_alert": s["entry"],
                "msg_id": mid if isinstance(mid, int) else None, "status": "filled", "filled_at": now, "fill": s["entry"],
-               "max_hold_s": (12 if exp else 8) * 3600, **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
+               "max_hold_s": (12 if exp else 8) * 3600, "tier": "plan",
+               **({"tp1": s["tp1"], "part": s.get("part", 0.5)} if s.get("tp1") else {})})
     print("plan sent", key)
-    try:   # the trade on a chart with support / resistance, as a reply
-        import session
-        from engine import load
-        from levels import to_ny
-        from tg import send_photo
-        d = to_ny(load("5m", "20d")).iloc[:-1]
-        session.trade_chart(d, jl("levels.json"), s, "plan_chart.png")
-        send_photo("plan_chart.png", "Where to enter, where your risk is (SL) and the support / resistance around it.",
-                   "Plan chart", reply_to=mid if isinstance(mid, int) else None)
-    except Exception as e:
-        print("plan chart failed:", e)
     return True
 
 

@@ -84,7 +84,9 @@ def section_for(title):
         return "analysis"
     if any(k in t for k in ("setup", "radar", "zone", "heads up", "near", "area", "level failed", "watch", "signal chart")):
         return "setups"     # the thinking behind trades: separate from the clean signal feed
-    if any(k in t for k in ("buy", "sell", "plan", "idea", "retest", "result", "tp1")):
+    if any(k in t for k in ("update", "retest", "expired")):
+        return "analysis"   # updates about a plan are not entries: 📈 Signals only gets entries and their results
+    if any(k in t for k in ("buy", "sell", "plan", "idea", "result", "tp1")):
         return "signals"
     return "analysis"
 
