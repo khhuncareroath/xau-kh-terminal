@@ -1,42 +1,38 @@
 {
  "idea": {
-  "t": 1794436229.9609013,
-  "valid_until": 1794465029.960902,
-  "price": 3987.8,
+  "t": 1794467130.7545724,
+  "valid_until": 1794495930.7545729,
+  "price": 3970.88,
   "swing": "bear",
   "internal": "bear",
-  "ltf": "bull",
+  "ltf": "bear",
   "daily": "bull",
   "h1": "bear",
-  "rh": 4056.46,
-  "rl": 3982.7,
-  "eq": 4019.58,
+  "rh": 4000.94,
+  "rl": 3962.13,
+  "eq": 3981.53,
   "zone": "discount",
   "BUY": {
-   "trig": 3988.04,
-   "stop": 3982.61,
-   "zone": 4056.46,
-   "tp1": 3994.2,
-   "tp2": 3998.9,
-   "before": {
+   "trig": 3999.68,
+   "stop": 3993.54,
+   "zone": 4000.94,
+   "tp1": 4005.82,
+   "tp2": 4011.96,
+   "broke": {
     "tf": "15m FVG",
     "lo": 3994.2,
     "hi": 3999.68
    }
   },
   "SELL": {
-   "trig": 3982.95,
-   "stop": 3988.37,
-   "zone": 3964.51,
-   "tp1": 3972.11,
-   "tp2": 3969.4
+   "trig": 3962.13,
+   "stop": 3977.13,
+   "zone": 3952.42,
+   "tp1": 3947.13,
+   "tp2": 3932.13
   },
-  "done": {
-   "SELL_SZ": "note only",
-   "SELL": "sent",
-   "BUY": "cancelled"
-  },
-  "atr15": 3.388507142857082,
+  "done": {},
+  "atr15": 6.660742857142915,
   "demand": [
    {
     "lo": 3917.42,
@@ -51,23 +47,33 @@
   ],
   "supply": [
    {
-    "lo": 3994.2,
-    "hi": 3999.68,
+    "lo": 3973.65,
+    "hi": 3977.25,
     "tf": "15m FVG"
    },
    {
-    "lo": 4010.81,
-    "hi": 4012.79,
+    "lo": 3990.78,
+    "hi": 3993.45,
     "tf": "15m FVG"
    }
   ],
   "zone_signals": false,
-  "BUY_DZ": null,
+  "BUY_DZ": {
+   "edge": 3934.84,
+   "stop": 3919.84,
+   "tp1": 3949.84,
+   "tp2": 3964.84,
+   "zone": {
+    "tf": "4H",
+    "lo": 3917.42,
+    "hi": 3934.84
+   }
+  },
   "SELL_SZ": {
    "edge": 3994.2,
-   "stop": 4000.02,
-   "tp1": 3988.39,
-   "tp2": 3982.57,
+   "stop": 4000.35,
+   "tp1": 3988.05,
+   "tp2": 3981.91,
    "zone": {
     "tf": "15m FVG",
     "lo": 3994.2,
@@ -75,53 +81,8 @@
    }
   },
   "with_trend": "SELL",
-  "msg_id": 52,
-  "session": "Asia",
-  "checks": {
-   "SELL": {
-    "score": 6,
-    "of": 7,
-    "list": [
-     [
-      true,
-      "4H swing trend down",
-      "\u1793\u17b7\u1793\u17d2\u1793\u17b6\u1780\u17b6\u179a 4H \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
-     ],
-     [
-      true,
-      "1H structure down",
-      "Structure 1H \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
-     ],
-     [
-      true,
-      "15m structure turned down (BOS / CHOCH)",
-      "15m BOS/CHOCH \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
-     ],
-     [
-      true,
-      "5m confirmation down",
-      "5m \u1794\u1789\u17d2\u1787\u17b6\u1780\u17cb"
-     ],
-     [
-      true,
-      "strong 15m candle (displacement)",
-      "\u1791\u17c0\u1793 15m \u1781\u17d2\u179b\u17b6\u17c6\u1784"
-     ],
-     [
-      false,
-      "liquidity swept above first ($$)",
-      "\u1794\u17c4\u179f liquidity \u1798\u17bb\u1793"
-     ],
-     [
-      true,
-      "clear path: no demand before TP1",
-      "\u1782\u17d2\u1798\u17b6\u1793 Demand \u179a\u17b6\u17c6\u1784\u1798\u17bb\u1793 TP1"
-     ]
-    ],
-    "tier": "A+",
-    "htf_break": null
-   }
-  }
+  "msg_id": 76,
+  "session": "London"
  },
  "last_key": "SELL|2026-11-11 18:15:00-05:00",
  "count": {
