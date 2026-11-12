@@ -426,3 +426,19 @@ On the 369 M15 signals the flow agrees with 94% (347, +0.16R) vs against 22 (+0.
 Decision: flow/CVD only as "info" on any indicator. Next to test: P/b profile (new side vs 4H) + sweep -> 5m MSS as
 the confirmation instead of the 15m close at the POC (vp_turn). Pine brief for the private "XAU.KH FLOW" indicator
 was given to the owner (built in another chat; check its rules match second.py / research.vp_shape when it comes back).
+
+## 📊 Volume Turn entry: 15m close at the POC vs sweep -> 5m MSS (studies/vp_mss.py) · 12 Nov 2026
+Same setup (P/b profile, 4H not agreeing, day < 70%), same exits (2R, 8 h, by 24:00 KH, no entry 00-06), 1-candle latency.
+LIVE 15m close at the POC: 122 (5/mo), 46% win, +0.24R, older +0.27 / newest +0.15 (1.5R / 2.5R: +0.23 / +0.28R).
+4 MSS versions chosen before running (sweep of the hour's low/high or of VAL/VAH x market or 30-min retest limit):
+-0.14 to +0.07R, none positive on both halves, 15 robustness variants -0.21 to +0.07R. The MSS fires in ~200 extra
+sessions where the live rule does not trade, and those lose (-0.04 to -0.14R). Rejected: the 15m close stays.
+
+## 📰 Missed breaking news: Trump "we don't need a deal with Iran" (12 Nov 2026, ~20:10 KH, gold -$40)
+Why nothing was posted: (1) the daily cap (2) was already used by 14:40 Fed and 19:10 Gaza; (2) no Trump / Iran query or
+keyword, so the headline never reached the filter; (3) free rules mode (no AI key) had no rule for "no deal / talks off";
+(4) the 19:10 "Israel strikes Gaza hospital despite ceasefire" was tagged as a ceasefire (BEARISH): wrong.
+Fix (breaking.py): Trump / Iran / Israel / Russia / China queries and keywords; new "talks_off" rule (direction MIXED);
+"despite / violates / breach ceasefire" no longer counts as peace, "strikes" counts as war; ⚡ BIG MOVE post when gold
+moves 3x its normal hourly range in an hour ($20+, ~2.6 a week in 2 years) with the likely headlines; after a big move a
+big-power headline may go past the 2-a-day cap (max 5).
