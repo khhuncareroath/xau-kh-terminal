@@ -1,6 +1,23 @@
 {
- "time": "2026-11-12 09:15 UTC",
- "last_bar": "2026-11-12 04:10:00-05:00",
- "price": 3931.99,
- "signals": []
+ "time": "2026-11-12 09:25 UTC",
+ "last_bar": "2026-11-12 04:20:00-05:00",
+ "price": 3930.2,
+ "signals": [
+  {
+   "entry": 3930.2,
+   "dir": "bull",
+   "stop": 3925.91,
+   "target": 3969.37,
+   "trigger_time": "2026-11-12 04:30:00-05:00",
+   "model": "vwap_fade",
+   "rr": 9.13,
+   "proven": false,
+   "backtest": {
+    "trades": 618,
+    "win_rate_pct": 31,
+    "avg_R": -0.151
+   },
+   "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP"
+  }
+ ]
 }
