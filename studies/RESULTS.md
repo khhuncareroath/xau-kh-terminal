@@ -399,3 +399,22 @@ the sweep + 0.1 ATR (max $25), the signal's own TP1/TP2, 8 h, $0.40. 369 replaye
 Decision (owner, 12 Nov 2026): LIVE as "⏳ SECOND CHANCE · testing" in 📈 Signals for 📈 M15 (setup_idea) signals only:
 limit at the MSS level (valid 30 min), SL beyond the sweep, the signal's TP1/TP2, small size 0.25-0.5%, counted apart
 (kind "second") and in the Friday live-vs-test post (test: +0.47R / 54%). SECOND_CHANCE=off stops it.
+
+## 🧱 Signal INSIDE an opposite zone (studies/inside_zone.py) · 12 Nov 2026
+Owner, after the 12:15 🎲 CRAZY SELL (inside a big demand / HTF bull array) hit its SL: arrays.opposite() reports
+`inside` but nothing used it (the 0.5R rule only looks at edges in FRONT of the entry).
+- 📈 M15 (369): inside an opposite 15m-D zone 122, 56% win, +0.07R (older +0.03 / newest +0.13) vs not inside 247,
+  60%, +0.19R (+0.18 / +0.23): weaker in both halves but still positive. Skipping them: +0.19R a trade but total
+  +47R vs +55R (10 instead of 15 a month). Inside 4H/D only: 90, +0.08R; skipping leaves 279, +0.17R, +47R.
+- 🎰 🔥 QUALITY: inside is NOT worse (inside 4H/D 48, +0.33R). No rule.
+- 🎰 🎲 CRAZY (choppy 4H, other-side check, 4 a day): 927 trades, 49% in profit, **-0.11R, t -3.3: reliably losing**
+  (~ -4R a month), inside or not (inside -0.14R, not inside -0.08R). The card's "~break-even in testing" is wrong for
+  the choppy-only tier: the -0.03R figure was for ANY trend.
+- 🔄 FLIP (owner: inside a bull array, wait for a 5m sweep + MSS up, BUY to the next bear key level; studies/flip_zone.py):
+  on the 122 inside signals, 62-72 flips (~3/mo), 47-50% win, -0.03 to -0.07R in all 4 versions, newest -0.10 to -0.20R. Rejected.
+- Live-code replay of the M15 signal with the inside block (studies/m15_replay.py): 272 signals (11/mo), +0.17R, older
+  +0.18 / newest +0.14, total +45R; with "retry on the next 15m close": 279, +0.15R, newest +0.14, total +43R. Baseline
+  369, +0.15R, newest +0.19, total +55R. The study's gain did not survive the full replay (worse on the newest data,
+  less total) -> INSIDE_CHECK is OFF by default (code kept, INSIDE_CHECK=on).
+Decision (owner, 12 Nov 2026): 🎲 CRAZY fun scalps OFF (FUN_CRAZY=on brings them back); its texts now say it lost
+(-0.11R). M15 inside-zone block: not live, failed the replay.

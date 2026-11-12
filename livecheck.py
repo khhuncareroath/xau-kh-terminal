@@ -16,7 +16,7 @@ EXPECT = [
     ("second", "📈 ⏳ Second chance (testing)", lambda a: a.get("kind") == "second", 0.47, 54, 0),
     ("vol", "📈 Signal A+ · 📊 Volume", lambda a: a.get("model") == "vp_turn", 0.26, 48, 0),
     ("scalp", "⚡ Scalp", lambda a: a.get("kind") == "scalp", 0.35, 51, 0),
-    ("crazy", "🎰 Fun Scalp 🎲 crazy", lambda a: a.get("kind") == "fun" and a.get("tier") == "crazy", -0.03, 50, 0),
+    ("crazy", "🎰 Fun Scalp 🎲 crazy", lambda a: a.get("kind") == "fun" and a.get("tier") == "crazy", -0.11, 49, 0),
     ("fun", "🎰 Fun Scalp 🔥 quality", lambda a: a.get("kind") == "fun" and a.get("tier") != "crazy", 0.19, 60, 1794450895),   # clean trend + other-side check, from 12 Nov 2026
 ]
 TRADED = ("win", "tp1", "loss", "timed out")
@@ -35,6 +35,8 @@ def rows(log):
     import os
     for key, name, match, exp_r, exp_w, since in EXPECT:
         if key == "m15b" and os.environ.get("BPLUS_SIGNALS", "on") != "on":
+            continue
+        if key == "crazy" and os.environ.get("FUN_CRAZY", "off") != "on":   # 🎲 off since 12 Nov 2026 (lost -0.11R in testing)
             continue
         rs = [a["R"] for a in log if a.get("status") in TRADED and a.get("R") is not None
               and a.get("created", 0) >= since and match(a)]

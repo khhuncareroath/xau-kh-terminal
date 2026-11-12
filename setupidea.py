@@ -434,7 +434,24 @@ def watch(df):
                   f"<i>មាន {'Supply' if sg > 0 else 'Demand'} {htf['tf']} នៅជិតពេក មិនផ្ញើ</i>", "Setup not sent")
             print("setup: opposite array too close", side, htf)
             return False
-        if htf and (tp1 - htf["edge"]) * sg > 0:
+        # 🧱 INSIDE an opposite zone (owner, 12 Nov 2026; studies/inside_zone.py): a SELL inside a bull array made +0.07R
+        # vs +0.19R for the rest. BUT the full replay of this code (studies/m15_replay.py) did not hold up: 279 signals
+        # +0.15R, newest 30% +0.14R (was +0.19R), total +43R (was +55R). Not better on the newest data -> OFF by default.
+        # The "flip" (buy the bull array after a 5m MSS) lost too (-0.03 to -0.07R). INSIDE_CHECK=on turns the block on.
+        if htf and htf.get("inside") and os.environ.get("INSIDE_CHECK", "off") == "on":
+            # not marked done: a later 15m close (price out of the zone) may still send it. The note goes out once.
+            from tg import fmt
+            lo, hi = htf["in_zone"]
+            if idea.setdefault("inside_noted", {}).get(side):
+                print("setup: still inside an opposite zone", side); return False
+            idea["inside_noted"][side] = True
+            json.dump(st, open(STATE, "w"), indent=1, default=str)
+            _note(f"🔎 <b>{side} not sent</b>: the entry {fmt(entry)} is INSIDE a {htf['inside']} "
+                  f"{'supply' if sg > 0 else 'demand'} {fmt(lo)}–{fmt(hi)}. Price often respects that zone first.\n"
+                  f"<i>ចំណុចចូលនៅក្នុង {'Supply' if sg > 0 else 'Demand'} {htf['inside']} មិនផ្ញើ</i>", "Setup not sent")
+            print("setup: entry inside an opposite zone", side, htf)
+            return False
+        if htf and htf.get("edge") is not None and (tp1 - htf["edge"]) * sg > 0:
             tp1 = round(entry + sg * max(abs(htf["edge"] - entry) - 0.1 * risk, 0.3 * risk), 2)
             p["htf_edge"] = htf
         if (entry - p["trig"]) * sg > 0.8 * risk:                  # already ran away: do not chase

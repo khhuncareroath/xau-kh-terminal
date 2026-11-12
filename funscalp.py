@@ -23,7 +23,7 @@ from tg import fmt, local, log_alert, send, send_photo
 
 STATE = "funscalp_state.json"
 PER_DAY = int(os.environ.get("FUN_PER_DAY", 4))   # owner, 12 Nov 2026: "go crazy fire" -> two tiers, 4 a day in total
-CRAZY = os.environ.get("FUN_CRAZY", "on") != "off"   # 🎲 choppy-trend scalps too, labelled CRAZY (test: about −0.03R, a gamble)
+CRAZY = os.environ.get("FUN_CRAZY", "off") == "on"   # 🎲 choppy-trend scalps too, labelled CRAZY OFF by default: choppy-only tier lost −0.11R, t −3.3 (studies/inside_zone.py). FUN_CRAZY=on brings it back
 CLEAN = os.environ.get("FUN_CLEAN", "on") != "off"   # studies/fun_filters.py: clean 4H trend only -> +0.17R (proven) vs 0R
 MAX_LATE_S = 180
 
@@ -53,7 +53,7 @@ def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid, quality=True)
              f"3️⃣ The 5m candle closed back {'above' if bull else 'below'} the previous candle and EMA20 {fmt(float(e20[i]))} "
              f"→ {'buyers' if bull else 'sellers'} are back · ទៀន 5m បិទត្រឡប់",
              ("4️⃣ The 4H trend is clean (not choppy) · ទីផ្សារមិនរញ៉េរញ៉ៃ" if quality else
-              "4️⃣ 🎲 CRAZY: the 4H trend is choppy, so this is a pure gamble (about break-even in testing) · ភ្នាល់សុទ្ធ"),
+              "4️⃣ 🎲 CRAZY: the 4H trend is choppy, so this is a pure gamble that LOST in testing (−0.11R a trade) · ភ្នាល់សុទ្ធ"),
              "5️⃣ Other side checked: no demand / supply (15m-Daily) right in front · គ្មាន Demand/Supply រាំងនៅជិត",
              f"🛑 SL {fmt(sl)} = {'under' if bull else 'above'} the last 6 candles · 🎯 TP1/2/3 = 1R / 1.5R / 2R",
              *([f"📏 Day Meter {du * 100:.0f}%"] if du is not None else []),

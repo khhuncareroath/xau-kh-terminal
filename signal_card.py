@@ -196,7 +196,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
     foot = ("Setup idea from analysis · not a tested signal" if tier == "setup" else
             "M15 setup graded by the 4H · live record in Proof" if tier in ("setup_a", "setup_b") else
             "Fun scalp · cent account · 2-yr test +0.19R, 60% in profit" if tier == "fun" else
-            "Crazy fun scalp · pure gamble · ~break-even in testing · cent account" if tier == "fun_crazy" else
+            "Crazy fun scalp · LOST −0.11R a trade in testing · cent account" if tier == "fun_crazy" else
             "Re-entry after a sweep · 2-yr test +0.47R, testing" if tier == "second" else
             f"Tested 2 years: {win_rate}% win · {trades} trades" if win_rate else "Tested rules only") + f"  ·  {hold_note}"
     fig.text(0.075, 0.068, foot, color="#AEAEB2", fontsize=9, va="center")

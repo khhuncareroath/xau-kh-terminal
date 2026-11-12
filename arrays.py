@@ -51,7 +51,7 @@ def opposite(df, entry, sg, risk, now=None, tfs=("15m", "30m", "1H", "4H", "D"))
     below the entry). Returns {dist_r, edge, tf, lo, hi, inside} or None. inside = the entry sits in such a zone."""
     now = now if now is not None else df.index[-1] + pd.Timedelta(minutes=5)
     want = "bear" if sg > 0 else "bull"
-    best, inside = None, None
+    best, inside, in_zone = None, None, None
     for tf in tfs:
         try:
             zs = zones(df, tf)
@@ -62,11 +62,15 @@ def opposite(df, entry, sg, risk, now=None, tfs=("15m", "30m", "1H", "4H", "D"))
             if z["dir"] != want or not (z["t0"] <= now < z["t1"]):
                 continue
             if z["lo"] <= entry <= z["hi"]:
-                inside = inside or tf
+                if inside is None:
+                    inside, in_zone = tf, (round(z["lo"], 2), round(z["hi"], 2))
             for lv in (z["lo"], z["hi"]):
                 d = (lv - entry) * sg / risk
                 if d > 0.05 and (best is None or d < best["dist_r"]):
                     best = {"dist_r": round(d, 2), "edge": round(lv, 2), "tf": tf, "lo": round(z["lo"], 2), "hi": round(z["hi"], 2)}
+    if best is None and inside:   # inside an opposite zone with no edge ahead (the far edge is behind)
+        best = {"dist_r": 99.0, "edge": None, "tf": inside, "lo": in_zone[0], "hi": in_zone[1]}
     if best:
         best["inside"] = inside
+        best["in_zone"] = in_zone
     return best
