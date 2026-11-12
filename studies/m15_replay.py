@@ -56,7 +56,11 @@ def grade(e, j0):
     return got + left * (C[jend] - en) * sg / risk - 0.4 / risk, hit1
 
 
-SES = [(17, 30, (6, 0, 1, 2, 3)), (2, 5, (0, 1, 2, 3, 4)), (7, 0, (0, 1, 2, 3, 4))]
+# 12 Nov 2026 fix: the 5m data has NO candles 17:00-18:00 New York (daily break), so a 17:30 start never matched and the
+# first replay had no Asia sessions at all. Asia now starts at 18:00 (the first candle after the break).
+SES = [(18, 0, (6, 0, 1, 2, 3)), (2, 5, (0, 1, 2, 3, 4)), (7, 0, (0, 1, 2, 3, 4))]
+if os.environ.get("ASIA_ONLY"):
+    SES = SES[:1]
 starts = []
 for i in range(max(start, 6100), min(end, len(full) - 100)):
     t = IDX[i]

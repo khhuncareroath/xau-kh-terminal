@@ -316,3 +316,14 @@ Owner: "combo volume with the low-timeframe entry, no separate signal, more sign
 - The volume entry itself (research.vp_turn: profile shows a new side, 4H not agreeing, 15m close back at the POC) is
   added to 📈 Signals as "💎 A+ · 📊 Volume", same format: 122 trades, +0.27R (t 2.1, proven); with the 24:00 close rule
   +0.26R, still proven. Max 1 a day, never while another M15 signal is open, no 00-06 KH, news pause. ~5 a month.
+
+## 📈 Lesson from the 12 Nov 06:30 A+ SELL (went near SL) · 12 Nov 2026
+**Bug found in the M15 replay:** the 5m data has no candles 17:00-18:00 New York (daily break), so the Asia session
+(start 17:30) never ran: the 2-year replay had NO Asia signals, but live sends them (today's SELL was 06:30 Cambodia).
+Fixed (Asia starts 18:00 NY) and replayed Asia alone (ASIA_ONLY=1): 114 A+ in 2 years (~5 a month), 53% win, +0.10R,
+TP1 hit 51%; older +0.20 / newest −0.13. 06-08 Cambodia +0.07R (70), 08-14 +0.14R (44). Same average as London/NY A+
+(+0.10R), weaker lately. All A+ together: 363, +0.10R. Kept; the Friday live-vs-test check watches it.
+**Owner's idea (old low / demand between entry and TP1 pushes price back):** old 12h low/high before TP1 +0.09R (316)
+vs path clear +0.19R (47); with 24h: +0.10 vs +0.10. Not consistent in both halves (clear path: older +0.38 / newest
+−0.19). Not a rule. The setup already puts TP1 before the next 15m/1H/4H zone. Today's trade looks like normal variance:
+~45% of A+ trades lose, many after going in profit first.
