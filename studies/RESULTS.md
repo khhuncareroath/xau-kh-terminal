@@ -358,3 +358,9 @@ Opposite zones on 15m-D (and 5m-D tried). Live clean-trend fun scalp: 446, 18.6/
 - "Fire more": choppy-trend trades lose even with a clear path (242, −0.06R); 4 a day dilutes (+0.07R). No way found to
   fire more AND keep quality: every extra fun scalp found was break-even or worse.
 LIVE: clean trend + skip when a 15m-Daily opposite array is within 0.5R (same rule as M15). FUN_OPPOSITE=off undoes it.
+
+## 🎲 Fun Scalp "crazy fire" (studies/fun_opposite.py, CRAZY block) · 12 Nov 2026
+Any trend + other-side check, 4 a day: 54/mo, 52% in profit, −0.025R (−33R in 2 years) · 6 a day: 61/mo, −0.03R ·
+no filter at all, 4-10 a day: 71-93/mo, −0.02 to −0.04R. More fun scalps = a slow loss (cost $0.40 a trade).
+Owner chose TWO TIERS: 🔥 QUALITY (clean trend + other side clear, tested +0.19R) and 🎲 CRAZY (choppy trend, a labelled
+gamble), 4 a day in total, counted apart in the live-vs-test post. FUN_CRAZY=off goes back to quality only.

@@ -22,7 +22,8 @@ from levels import to_ny
 from tg import fmt, local, log_alert, send, send_photo
 
 STATE = "funscalp_state.json"
-PER_DAY = int(os.environ.get("FUN_PER_DAY", 3))
+PER_DAY = int(os.environ.get("FUN_PER_DAY", 4))   # owner, 12 Nov 2026: "go crazy fire" -> two tiers, 4 a day in total
+CRAZY = os.environ.get("FUN_CRAZY", "on") != "off"   # 🎲 choppy-trend scalps too, labelled CRAZY (test: about −0.03R, a gamble)
 CLEAN = os.environ.get("FUN_CLEAN", "on") != "off"   # studies/fun_filters.py: clean 4H trend only -> +0.17R (proven) vs 0R
 MAX_LATE_S = 180
 
@@ -34,7 +35,7 @@ def jl(n, d):
         return d
 
 
-def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid):
+def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid, quality=True):
     from tg import msg_link
     bull = sg > 0
     side = "BUY" if bull else "SELL"
@@ -45,13 +46,14 @@ def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid):
     except Exception:
         pass
     link = msg_link(mid if isinstance(mid, int) else None, f"{side} fun scalp")
-    lines = [f"🔎 <b>WHY THIS FUN SCALP · {side} {fmt(entry)}</b>", "",
+    lines = [f"🔎 <b>WHY THIS FUN SCALP · {side} {fmt(entry)}</b> · {'🔥 QUALITY' if quality else '🎲 CRAZY'}", "",
              f"1️⃣ 4H trend is {'UP ↑' if bull else 'DOWN ↓'} → only {side}s · និន្នាការ 4H {'ឡើង' if bull else 'ចុះ'}",
              (f"2️⃣ Price dipped into a 15m gap (FVG) {fmt(min(lo, hi))}–{fmt(max(lo, hi))} · តម្លៃ{'ធ្លាក់' if bull else 'ឡើង'}ចូល FVG 15m"
               if lo == lo and hi == hi else "2️⃣ Price dipped into a fresh 15m gap (FVG)"),
              f"3️⃣ The 5m candle closed back {'above' if bull else 'below'} the previous candle and EMA20 {fmt(float(e20[i]))} "
              f"→ {'buyers' if bull else 'sellers'} are back · ទៀន 5m បិទត្រឡប់",
-             "4️⃣ The 4H trend is clean (not choppy) · ទីផ្សារមិនរញ៉េរញ៉ៃ",
+             ("4️⃣ The 4H trend is clean (not choppy) · ទីផ្សារមិនរញ៉េរញ៉ៃ" if quality else
+              "4️⃣ 🎲 CRAZY: the 4H trend is choppy, so this is a pure gamble (about break-even in testing) · ភ្នាល់សុទ្ធ"),
              "5️⃣ Other side checked: no demand / supply (15m-Daily) right in front · គ្មាន Demand/Supply រាំងនៅជិត",
              f"🛑 SL {fmt(sl)} = {'under' if bull else 'above'} the last 6 candles · 🎯 TP1/2/3 = 1R / 1.5R / 2R",
              *([f"📏 Day Meter {du * 100:.0f}%"] if du is not None else []),
@@ -100,10 +102,13 @@ def main():
     sw = research.scalp_trigger(o, h, l, c, e20, a, fd, flo, fhi, i, sg)
     if sw is None:
         print("fun scalp: no trigger"); return
+    quality = True   # 🔥 QUALITY = clean 4H trend + other side clear (tested +0.19R); 🎲 CRAZY = choppy trend (about −0.03R)
     if CLEAN:
         er = research.efficiency(df, df.index[i] + pd.Timedelta(minutes=5))
         if er is not None and er <= research.CHOP_ER:
-            print(f"fun scalp: choppy 4H (efficiency {er:.2f}), skipped"); return
+            if not CRAZY:
+                print(f"fun scalp: choppy 4H (efficiency {er:.2f}), skipped"); return
+            quality = False
     entry = float(c[i])
     risk = (entry - sw) * sg
     if not research.SCALP_RISK[0] <= risk <= research.SCALP_RISK[1]:
@@ -121,7 +126,7 @@ def main():
     bull = sg > 0
     side = "BUY" if bull else "SELL"
     caption = "\n".join([
-        f"🎰 <b>FUN SCALP — {side}</b>",
+        f"🎰 <b>FUN SCALP — {side}</b> · " + ("🔥 QUALITY" if quality else "🎲 CRAZY"),
         f"📍 Entry: <b>{fmt(entry)}</b>",
         f"🛑 SL: <b>{fmt(sw)}</b>",
         f"🎯 TP1: <b>{fmt(tp1)}</b>",
@@ -133,7 +138,7 @@ def main():
     try:
         import signal_card
         signal_card.make(df, {"dir": "bull" if bull else "bear", "entry": entry, "stop": float(sw), "tp1": tp1, "tp_mid": tp2, "target": tp3},
-                         "fun_card.png", tier="fun", status="LIVE", stamp=local(now), tf_label="fun scalp · 5m",
+                         "fun_card.png", tier="fun" if quality else "fun_crazy", status="LIVE", stamp=local(now), tf_label="fun scalp · 5m",
                          bars=80, hold_note="closes within 3 h")
         mid = send_photo("fun_card.png", caption, title)
     except Exception as e:
@@ -146,10 +151,10 @@ def main():
     log_alert({"id": f"fun|{df.index[i]}", "kind": "fun", "model": "fun_scalp", "dir": "bull" if bull else "bear",
                "entry": entry, "stop": float(sw), "target": tp3, "tp1": tp1, "tp_mid": tp2, "part": 1 / 3, "rr": 2.0, "created": now,
                "valid_until": now + 300, "price_at_alert": entry, "msg_id": mid if isinstance(mid, int) else None,
-               "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": research.SCALP_HOLD * 300, "tier": "fun"})
+               "status": "filled", "filled_at": now, "fill": entry, "max_hold_s": research.SCALP_HOLD * 300, "tier": "quality" if quality else "crazy"})
     print("fun scalp sent", side, entry, sw, tp1, tp2, tp3)
     try:   # 🔎 why the bot sent it, in Setup Analysis (the signal itself stays numbers only)
-        why_post(df, i, sg, entry, float(sw), (tp1, tp2, tp3), fd, flo, fhi, a, e20, mid)
+        why_post(df, i, sg, entry, float(sw), (tp1, tp2, tp3), fd, flo, fhi, a, e20, mid, quality)
     except Exception as e:
         print("fun scalp why failed:", e)
 

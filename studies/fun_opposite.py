@@ -123,11 +123,7 @@ if 0:
         rep("clean, OR choppy with edge > 1.5R, skip 0.8R", sim(lambda c, s=s: (c["clean"] or c["ed"][s] > 1.5) and c["ed"][s] > 0.8))
         rep("clean + skip 0.8R, 4 a day", sim(lambda c, s=s: c["clean"] and c["ed"][s] > 0.8, per_day=4))
         rep("clean + skip 0.8R + squeeze, 4 a day", sim(lambda c, s=s: c["clean"] and c["ed"][s] > 0.8, squeeze=s, per_day=4))
-print("== combos (fire more with quality)")
-rep("clean & 15m-D edge>0.5R  OR  choppy & 5m-D edge>2R",
-    sim(lambda c: (c["clean"] and c["ed"]["15m-D"] > 0.5) or (not c["clean"] and c["ed"]["5m-D"] > 2)))
-rep("clean & 15m-D edge>0.5R  OR  choppy & 5m-D edge>2.5R",
-    sim(lambda c: (c["clean"] and c["ed"]["15m-D"] > 0.5) or (not c["clean"] and c["ed"]["5m-D"] > 2.5)))
-rep("same, 4 a day",
-    sim(lambda c: (c["clean"] and c["ed"]["15m-D"] > 0.5) or (not c["clean"] and c["ed"]["5m-D"] > 2), per_day=4))
-rep("  (only the choppy-but-clear-path ones)", sim(lambda c: (not c["clean"]) and c["ed"]["5m-D"] > 2))
+print("== CRAZY mode (owner, 12 Nov: 'fun scalp go crazy fire')")
+for pdy in (4, 6, 10):
+    rep(f"any trend + 15m-D check 0.5R, {pdy} a day", sim(lambda c: c["ed"]["15m-D"] > 0.5, per_day=pdy))
+    rep(f"no filter at all, {pdy} a day", sim(lambda c: True, per_day=pdy))

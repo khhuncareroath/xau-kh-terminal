@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-12d"
+VERSION = "2026-11-12e"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -26,7 +26,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 🎯 <b>TP1 hit</b>: close half, move SL to entry. Max 2 signals a day, all closed by 24:00 (no trades while you sleep).
 ⚡ <b>SCALP</b>: a quick 5m entry on a small dip after a 4H breakout, TP 2R, closes within 3 h. Only in a clean 4H trend. Tested 2 years: ~2–3 a week, 51% win (wins are 2× losses). 💎 = strong breakout.
 
-🎰 <b>Fun Scalp</b> (own topic): fast 5m scalps with the 4H trend, only when the trend is clean and no demand / supply (15m-Daily) sits right in front, up to 3 a day, any hour, TP1/TP2/TP3 (close ⅓ at each; the reason goes in 🧠 Setup Analysis). Tested 2 years: ~15 a month, 60% end in profit, +0.19R a trade. Still fast and risky: <b>cent account</b>, small size. Counted apart from 📈 Signals.
+🎰 <b>Fun Scalp</b> (own topic): fast 5m scalps with the 4H, up to 4 a day, any hour, TP1/TP2/TP3 (close ⅓ at each). Two kinds: <b>🔥 QUALITY</b> = clean trend + other side clear, tested ~15 a month, 60% in profit, +0.19R. <b>🎲 CRAZY</b> = choppy market, pure gamble (about break-even or a small loss in testing). Reasons in 🧠 Setup Analysis. <b>Cent account only</b>, counted apart from 📈 Signals.
 🔎 <b>Setup Analysis</b>: why each signal, ✅/❌ checklist.
 🏆 <b>Proof</b> / 📊 Friday report: every result, wins AND losses.
 📰 News in 30 min: no new entries 15 min before and after.
