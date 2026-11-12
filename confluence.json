@@ -1,7 +1,7 @@
 {
-  "time": "2026-11-12 18:15 UTC",
-  "price": 3883.78,
-  "atr_5m": 3.48,
+  "time": "2026-11-12 18:25 UTC",
+  "price": 3879.42,
+  "atr_5m": 3.59,
   "zones": [
     {
       "low": 3933.29,
@@ -23,7 +23,7 @@
         }
       ],
       "role": "resistance",
-      "distance": 51.54,
+      "distance": 55.9,
       "location": "discount",
       "reasons": [
         "2 level(s) agree across 1 source type(s): 15m bear FVG 3933.79, 15m bear OB 3936.85",
@@ -33,9 +33,9 @@
       ]
     },
     {
-      "low": 3915.79,
+      "low": 3915.3,
       "high": 3922.89,
-      "mid": 3919.34,
+      "mid": 3919.1,
       "score": 9.0,
       "rating": "B",
       "families": [
@@ -45,7 +45,7 @@
       "sources": [
         {
           "name": "VWAP",
-          "price": 3916.29
+          "price": 3915.8
         },
         {
           "name": "1H bear FVG",
@@ -57,10 +57,10 @@
         }
       ],
       "role": "resistance",
-      "distance": 35.56,
+      "distance": 39.68,
       "location": "discount",
       "reasons": [
-        "3 level(s) agree across 2 source type(s): VWAP 3916.29, 1H bear FVG 3919.01, 15m bear FVG 3922.39",
+        "3 level(s) agree across 2 source type(s): VWAP 3915.8, 1H bear FVG 3919.01, 15m bear FVG 3922.39",
         "Zone sits in the discount half of yesterday's range.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
@@ -85,7 +85,7 @@
         }
       ],
       "role": "resistance",
-      "distance": 10.96,
+      "distance": 15.32,
       "location": "discount",
       "reasons": [
         "2 level(s) agree across 1 source type(s): 5m bear FVG 3891.63, 15m bear OB 3897.86",
@@ -111,7 +111,7 @@
         },
         {
           "name": "VWAP -1s",
-          "price": 3874.53
+          "price": 3874.12
         },
         {
           "name": "5m bull FVG",
@@ -126,11 +126,11 @@
           "price": 3879.41
         }
       ],
-      "role": "support",
-      "distance": -7.14,
+      "role": "price inside zone",
+      "distance": -2.78,
       "location": "discount",
       "reasons": [
-        "5 level(s) agree across 2 source type(s): 5m bull OB 3873.87, VWAP -1s 3874.53, 5m bull FVG 3877.96, 1H bear FVG 3878.98, 15m bear FVG 3879.41",
+        "5 level(s) agree across 2 source type(s): 5m bull OB 3873.87, VWAP -1s 3874.12, 5m bull FVG 3877.96, 1H bear FVG 3878.98, 15m bear FVG 3879.41",
         "Zone sits in the discount half of yesterday's range.",
         "Order block: the last opposite candle before a move that broke structure; price often reacts when it returns.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
@@ -161,7 +161,7 @@
         }
       ],
       "role": "support",
-      "distance": -19.74,
+      "distance": -15.38,
       "location": "discount",
       "reasons": [
         "3 level(s) agree across 2 source type(s): 5m bull FVG 3860.6, New York low 3864.58, 5m bull OB 3867.49",
@@ -205,15 +205,9 @@
   ],
   "playbooks": [
     {
-      "zone": "3873.37-3879.91",
+      "zone": "3915.3-3922.89",
       "rating": "B",
-      "text": "IF price trades into 3873.37-3879.91 and rejects it (a sweep below that closes back above), look for longs toward 3919.34. Idea is invalid on a 5m close below 3869.89.",
-      "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
-    },
-    {
-      "zone": "3915.79-3922.89",
-      "rating": "B",
-      "text": "IF price trades into 3915.79-3922.89 and rejects it (a sweep above that closes back below), look for shorts toward 3876.64. Idea is invalid on a 5m close above 3926.37.",
+      "text": "IF price trades into 3915.3-3922.89 and rejects it (a sweep above that closes back below), look for shorts toward 3876.64. Idea is invalid on a 5m close above 3926.48.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     }
   ],
