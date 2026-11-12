@@ -155,7 +155,7 @@ def proof_answer():
     s = jl("results.json")
     if not s.get("traded"):
         return "No closed trades yet."
-    names = {"m15": "📐 M15 signals (A+)", "fun": "🎰 fun scalps (gamble)", "model": "⭐ 4H breakout (old)", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
+    names = {"m15": "📐 M15 signals (A+ / B+)", "fun": "🎰 fun scalps (gamble)", "model": "⭐ 4H breakout (old)", "scalp": "🤬 scalp", "splus": "🎯 S+ setup", "plan": "🤬 plan setups", "late": "⚠️ late plans",
              "post-news": "📰 after-news (stopped)", "setup": "old ICT ideas (stopped)", "watch": "old watch ideas (stopped)"}
     rows = []
     for k, v in (s.get("by_kind") or {}).items():

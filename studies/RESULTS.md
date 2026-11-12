@@ -338,3 +338,14 @@ Taking TP1 just before that edge (0.1R before it, at least 0.3R from entry): tho
 same (about 0R); all A+ 55% -> 58% win. Skipping them: +0.12R a trade but fewer signals.
 LIVE (owner wants more signals, not fewer): keep the signal, TP1 just before the big 4H/Daily array (setupidea._htf_edge),
 the reason post names the array. With this rule the 12 Nov SELL would have banked TP1 at ~3970 and moved SL to entry.
+
+## 👀 Check the other side before firing + B+ upgraded (studies/opposite_side.py) · 12 Nov 2026
+Owner: "check 15m/30m/1H/4H/Daily demand, supply, FVG, OB on the other side before firing; upgrade B+, don't remove it".
+583 replayed signals (London/NY + Asia, A+ 363 + B+ 220). Opposite zones on more timeframes = clearer effect:
+4H+D < 1H-D < 30m-D < 15m-D. Chosen rule (15m, 30m, 1H, 4H, D, any width): an opposite edge within 0.5R of the entry ->
+not sent; otherwise TP1 0.1R before it (min 0.3R).
+Study: A+ 281 +0.13R (proven), B+ 122 +0.15R (60% win), together 403, 59% win, +0.13R, t 2.6, proven, +54R in 2 years
+vs A+ only as it was this morning 363, +0.10R, +35R. Signals in the way of the entry are the losers' common factor.
+**Full replay of the live code (arrays.py + setupidea.py): 369 signals (15/mo), 58% win, +0.15R, t 2.7, older +0.13 /
+newest +0.19, TP1 56%, +55R, PROVEN. A+ 249 +0.16R (proven), B+ 120 +0.14R.** B+ back on (BPLUS_SIGNALS default on).
+OPPOSITE_CHECK=off turns the check off.

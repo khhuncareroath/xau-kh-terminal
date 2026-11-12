@@ -302,8 +302,8 @@ LESSONS += [
     dict(ch=28, part="PART 6 · Combining", title="Gold Setups + លទ្ធផលសាកល្បងពិត",
          body="""យើងបានសាកល្បង setup ល្បីៗលើមាស 2 ឆ្នាំ (រួមថ្លៃ spread):
 • ✅ <b>4H breakout + ទៀនបិទខ្លាំង + trend ស្អាត + Day Meter ≥70%</b>: ឈ្នះ ~78% (+0.56R) · proven
-• 📐 <b>សញ្ញា XAU.KH ឥឡូវ</b>: 15m បិទហួសខ្សែ TARGET + 4H វិនិច្ឆ័យ (ផ្ញើតែ 💎 A+):
-  💎 A+ ឈ្នះ ~55% (+0.10R) · ~10 ដង/ខែ · ⭐ B+ ស្មើ ដូច្នេះមិនផ្ញើ · មិនទាន់ proven (live record សម្រេច)
+• 📐 <b>សញ្ញា XAU.KH ឥឡូវ</b>: 15m បិទហួសខ្សែ TARGET + 4H វិនិច្ឆ័យ (💎 A+ / ⭐ B+) + ពិនិត្យទិសផ្ទុយ:
+  ឈ្នះ ~58% (+0.15R) · ~15 ដង/ខែ · មិនទាន់ proven (live record សម្រេច)
 • ❌ <b>ទិញ Demand / លក់ Supply ពេលទៀនត្រឡប់</b>: −0.15R (ខាត) → យើងប្រើតែជា key level
 • ❌ OB limit + SL ក្រោម OB · ICT 15m/5m 1–2 ដង/ថ្ងៃ · VWAP fade · News spike · momentum candle
 • ❌ ច្រើនរបស់អ្នកដទៃ ល្អលើ screenshot តែខាតពេលសាកល្បង

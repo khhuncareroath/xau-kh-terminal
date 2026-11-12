@@ -8,7 +8,7 @@ import urllib.request
 
 from tg import group_id, send, setup_sections
 
-VERSION = "2026-11-12b"
+VERSION = "2026-11-12c"
 STATE = "guide_state.json"
 
 GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
@@ -17,10 +17,12 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 🟢 TARGET BUY / 🔻 TARGET SELL lines · Demand / Supply zones = key levels.
 
 ✅ <b>SIGNAL</b> (📈 Signals): sent only when a <b>15m candle closes</b> beyond a TARGET line AND the 4H agrees.
-💎 <b>A+ only</b>: with the 4H trend + 6 of 7 confirmations, or a fresh 4H breakout the same way
-📊 2-year replay of these exact rules: 💎 A+ 55% win, +0.10R a trade, ~10 a month. ⭐ B+ broke even, so B+ is <b>not sent</b> any more (quality over quantity).
+💎 <b>A+</b>: with the 4H trend + 6 of 7 confirmations, or a fresh 4H breakout the same way
+⭐ <b>B+</b>: with the 4H trend + at least 4 of 7 confirmations
+👀 <b>Other side checked</b>: demand / supply / FVG / OB on 15m, 30m, 1H, 4H and Daily. One right in front of the entry = <b>not sent</b>; otherwise TP1 sits just before it.
+📊 2-year replay of these exact rules: ~15 a month, 58% win, +0.15R a trade (A+ and B+ alike)
 📊 <b>A+ · Volume</b>: last session's volume profile shows a new side in control, price pulls back to its POC and a 15m candle closes back. TP 2R. Tested 2 years: ~5 a month, 48% win, +0.26R a trade.
-⏭ B+, against the 4H trend or too few confirmations: <b>not sent</b> (a short note in 🔎 Setup Analysis)
+⏭ Against the 4H trend, too few confirmations or an array in the way: <b>not sent</b> (a short note in 🔎 Setup Analysis)
 🎯 <b>TP1 hit</b>: close half, move SL to entry. Max 2 signals a day, all closed by 24:00 (no trades while you sleep).
 ⚡ <b>SCALP</b>: a quick 5m entry on a small dip after a 4H breakout, TP 2R, closes within 3 h. Only in a clean 4H trend. Tested 2 years: ~2–3 a week, 51% win (wins are 2× losses). 💎 = strong breakout.
 
@@ -37,7 +39,7 @@ GUIDE = """📌 <b>HOW TO USE XAU.KH · របៀបប្រើ</b>
 💡 <b>Small loss = small lot, not a small SL.</b> Risk 0.25–0.5% of your account per trade.
 💰 Every signal shows the $ at SL per 0.01 lot.
 
-🇰🇭 ផ្ញើតែ 💎 A+ (ល្អបំផុត) · 4H ជាអ្នកវិនិច្ឆ័យ M15
+🇰🇭 💎 A+ = ល្អបំផុត · ⭐ B+ = ល្អ · ពិនិត្យ Demand/Supply ទិសផ្ទុយ មុនផ្ញើ
 រង់ចាំទៀន 15m បិទ ទើបចូល។ ដល់ TP1 បិទពាក់កណ្ដាល ហើយប្ដូរ SL មកចំណុចចូល។
 កុំចូលមុនព័ត៌មានធំ 15 នាទី។ មិនមែនដំបូន្មានហិរញ្ញវត្ថុទេ។"""
 
