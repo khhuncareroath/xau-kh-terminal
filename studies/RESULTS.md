@@ -418,3 +418,11 @@ Owner, after the 12:15 🎲 CRAZY SELL (inside a big demand / HTF bull array) hi
   less total) -> INSIDE_CHECK is OFF by default (code kept, INSIDE_CHECK=on).
 Decision (owner, 12 Nov 2026): 🎲 CRAZY fun scalps OFF (FUN_CRAZY=on brings them back); its texts now say it lost
 (-0.11R). M15 inside-zone block: not live, failed the replay.
+
+## 📊 Flow verdict for a TradingView panel (studies/flow_verdict.py) · 12 Nov 2026
+Owner wants a free TradingView order-flow panel. Verdict = 1h delta, last 30 min delta, price vs session VWAP (2-3 of 3).
+At every 5m candle: 3 of 3 agree -> went $10 that way first 51.7% (older 51.9 / newest 51.2), 2 of 3: 50.5% = coin flip.
+On the 369 M15 signals the flow agrees with 94% (347, +0.16R) vs against 22 (+0.02R): cannot separate entries.
+Decision: flow/CVD only as "info" on any indicator. Next to test: P/b profile (new side vs 4H) + sweep -> 5m MSS as
+the confirmation instead of the 15m close at the POC (vp_turn). Pine brief for the private "XAU.KH FLOW" indicator
+was given to the owner (built in another chat; check its rules match second.py / research.vp_shape when it comes back).
