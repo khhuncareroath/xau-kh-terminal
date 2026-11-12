@@ -327,3 +327,14 @@ TP1 hit 51%; older +0.20 / newest −0.13. 06-08 Cambodia +0.07R (70), 08-14 +0.
 vs path clear +0.19R (47); with 24h: +0.10 vs +0.10. Not consistent in both halves (clear path: older +0.38 / newest
 −0.19). Not a rule. The setup already puts TP1 before the next 15m/1H/4H zone. Today's trade looks like normal variance:
 ~45% of A+ trades lose, many after going in profit first.
+
+## 🧱 Big 4H / Daily arrays before TP1 (studies/htf_arrays.py) · 12 Nov 2026
+Owner was right about the 06:30 SELL: it sold INSIDE a 4H bull FVG (3964-3995) and a 1H bull FVG (3957-3995), and price
+turned at 3969.04 = the top of a DAILY bull order block (3896-3969.2), $5 before TP1. The bot's zone list only uses zones
+up to $20 wide and no Daily ones, so it did not see them.
+All 363 replayed A+ (London/NY + Asia): an opposite 4H/Daily zone edge before TP1 in 63 of them: +0.02R (older +0.05 /
+newest −0.04) vs clear path +0.12R (+0.13 / +0.08), the same way in both halves. Daily alone: no harm; it is mostly 4H.
+Taking TP1 just before that edge (0.1R before it, at least 0.3R from entry): those 63 go from 51% to 71% win, money the
+same (about 0R); all A+ 55% -> 58% win. Skipping them: +0.12R a trade but fewer signals.
+LIVE (owner wants more signals, not fewer): keep the signal, TP1 just before the big 4H/Daily array (setupidea._htf_edge),
+the reason post names the array. With this rule the 12 Nov SELL would have banked TP1 at ~3970 and moved SL to entry.

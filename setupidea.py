@@ -127,6 +127,32 @@ def _room(p, sg, opp, a15=3.0):
     return p
 
 
+def _htf_edge(d5, entry, sg, risk):
+    """Nearest edge of an active 4H or Daily zone of the OTHER side ahead of the entry (for a SELL: the top or bottom of
+    a 4H/Daily bull FVG or order block below the entry), any width. The $20 zone list misses these big arrays.
+    studies/htf_arrays.py: A+ with such an edge before TP1 broke even (63 of 363, about +0.0R); taking TP1 just before
+    the edge lifts their win rate from 51% to 71% (same money, fewer full losses). 12 Nov 06:30 SELL turned exactly at
+    the Daily bull OB top 3969.2, 5 dollars before TP1."""
+    import splus
+    now = d5.index[-1]
+    want = "bear" if sg > 0 else "bull"
+    best = None
+    for tf, life in (("4H", 15), ("D", 40)):
+        try:
+            zs, _ = splus._zones(d5, tf, life)
+        except Exception as e:
+            print("htf edge", tf, "failed:", e)
+            continue
+        for z in zs:
+            if z["dir"] != want or not (z["t0"] <= now <= z["t1"]):
+                continue
+            for lv in (z["lo"], z["hi"]):
+                d = (lv - entry) * sg
+                if d > 0.05 * risk and (best is None or d < best["dist"]):
+                    best = {"dist": d, "edge": round(float(lv), 2), "tf": tf, "lo": round(z["lo"], 2), "hi": round(z["hi"], 2)}
+    return best
+
+
 def _reaction(z, sg, a15, price):
     """Mentor setup at a key zone: price trades INTO the demand, then a 15m candle closes back ABOVE it (buyers
     defended it) -> BUY, SL under the zone. Mirror for supply. Only zones within $40 of price."""
@@ -415,6 +441,10 @@ def watch(df):
                 json.dump(st, open(STATE, "w"), indent=1, default=str)
                 print("setup: no room before the", "demand" if sg < 0 else "supply", "zone")
                 return False
+        htf = _htf_edge(d5, entry, sg, risk)   # 🧱 big 4H / Daily demand or supply ahead (owner, 12 Nov 2026)
+        if htf and (tp1 - htf["edge"]) * sg > 0:
+            tp1 = round(entry + sg * max(abs(htf["edge"] - entry) - 0.1 * risk, 0.3 * risk), 2)
+            p["htf_edge"] = htf
         if (entry - p["trig"]) * sg > 0.8 * risk:                  # already ran away: do not chase
             idea["done"][side] = "chased"
             json.dump(st, open(STATE, "w"), indent=1, default=str)
@@ -653,6 +683,8 @@ def _send(idea, side, sg, entry, stop, tp1, tp2, t15, p, why=None):
              + (" + 6/7 confirmations" if ck["score"] >= 6 else "") if ck else None),
             *([f"🧩 <b>Confirmations {ck['score']}/{ck['of']}</b>"] + [f"{'✅' if ok else '❌'} {en} · {km}" for ok, en, km in ck["list"]]
               if ck else []),
+            (f"🧱 TP1 sits just before the {p['htf_edge']['tf']} {'supply' if bull else 'demand'} {fmt(p['htf_edge']['lo'])}–{fmt(p['htf_edge']['hi'])} "
+             f"(big arrays push price back) · TP1 មុនតំបន់ {p['htf_edge']['tf']}" if p.get("htf_edge") else None),
             f"🛑 Wrong if price closes {'below' if bull else 'above'} {fmt(stop)} · 🎯 TP1 {fmt(tp1)} → TP2 {fmt(tp2)}",
             (f"<a href=\"{sl}\">📈 Signal</a>" if sl else None) and ((f"<a href=\"{sl}\">📈 Signal</a>") + (f" · <a href=\"{link}\">📊 Analysis</a>" if link else "")),
         ] if x)
