@@ -47,7 +47,8 @@ def step(a, bars):
                     a.update(status="loss", closed=t, exit=a["stop"], R=-1.0)
                     return
                 continue
-            if (h >= a["target"]) if sg > 0 else (l <= a["target"]):
+            miss = a["tp1"] if a.get("miss_at") == "tp1" else a["target"]   # ⏳ second chance: gone once TP1 trades
+            if (h >= miss) if sg > 0 else (l <= miss):
                 a.update(status="missed", closed=t, R=0.0)
                 return
         elif a["status"] == "filled" and a.get("tp1"):
@@ -114,7 +115,7 @@ def _reply_text(a):
 
 def summary(log):
     out = _summary([a for a in log if a.get("kind") not in ("late", "fun")])   # late warnings and 🎰 fun gambles: shown apart
-    for kind in ("m15", "fun", "setup", "watch", "post-news", "model", "plan", "late", "scalp", "splus"):
+    for kind in ("m15", "second", "fun", "setup", "watch", "post-news", "model", "plan", "late", "scalp", "splus"):
         sub = [a for a in log if a.get("kind") == kind]
         if sub:
             out["by_kind"] = out.get("by_kind", {})

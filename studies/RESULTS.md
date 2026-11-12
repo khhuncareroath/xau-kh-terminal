@@ -364,3 +364,38 @@ Any trend + other-side check, 4 a day: 54/mo, 52% in profit, −0.025R (−33R i
 no filter at all, 4-10 a day: 71-93/mo, −0.02 to −0.04R. More fun scalps = a slow loss (cost $0.40 a trade).
 Owner chose TWO TIERS: 🔥 QUALITY (clean trend + other side clear, tested +0.19R) and 🎲 CRAZY (choppy trend, a labelled
 gamble), 4 a day in total, counted apart in the live-vs-test post. FUN_CRAZY=off goes back to quality only.
+
+## 📉 CVD divergence as a helper (cvd.py, studies/cvd_confirm.py) · 12 Nov 2026
+Owner's idea (CVD Divergence, Exhaustion & Absorption, a TradingView script): our own build from the public description
+(delta = volume of up-closing candles minus down-closing ones, CVD reset weekly / daily, swings 5 left / 2 right, EXH and
+ABS labels with ATR and CVD-range filters). Kept separate: it never decides a signal.
+- On its own: 1,933 labels on 15m in 2 years (~80/month); price went $10 the label's way first 49% (EXH 51%, ABS 48%): coin flip.
+- As a helper on the 369 replayed live M15 signals (+0.15R): 16 versions (5m/15m labels, weekly/daily reset, last 2-12 h).
+  "Against" (a label the other way) did NOT hurt consistently on 15m; on 5m slightly worse in both halves but tags 30-85%
+  of signals, so skipping them would gut the signal.
+  Best: 15m, weekly reset, label the same way in the last 2 h: 43 signals, 67% win, +0.33R (older +0.33 / newest +0.35)
+  vs +0.15R for all. But it is the best of 16 tries, luck test p = 0.12 vs random picks of 43, quarters mixed: NOT proven.
+Decision: no change to any signal. Limitation: delta built from 5m candles (1m not stored); live volume would be COMEX futures.
+
+## ⏳ Wait for 5m confirmation / second chance (studies/m15_ltf_confirm.py) · 12 Nov 2026
+Owner, after a morning SELL swept the high, hit the SL, then fell: wait on 5m for a liquidity sweep against the signal
+(5m high/low of the last 30-120 min), then a confirmation back the signal's way (MSS = close beyond the last 5m swing
+before the sweep extreme; CISD = close beyond the open of the run into the extreme), enter (market or retest), SL beyond
+the sweep + 0.1 ATR (max $25), the signal's own TP1/TP2, 8 h, $0.40. 369 replayed live signals (+0.149R, total +55R).
+- WAIT on every signal instead of entering: worse (best total ~+25R vs +55R): most winners never come back for a sweep.
+- CISD confirmation: mostly negative (14-32% win). MSS: positive in every version.
+- The 37 signals that later swept + MSS'd back (60 min liquidity, 4 h): normal entry -0.78R on them, re-entry +0.51R.
+- SECOND CHANCE = keep the normal signal AND add a re-entry after sweep + MSS: all 24 versions positive (+0.22 to +1.0R),
+  total +55R -> +64 to +88R, ~1-3 a month. But strong on older data (+0.25 to +1.2R) and thin / weaker on the newest 30%
+  (3-17 trades, -0.13 to +0.38R). research.judge: only 1 of 6 candidates passes (60 min liq, 6 h, retest: 57 trades, 54%
+  win, +0.57R, t 2.35, 6/7 quarters, newest 14 trades +0.07R), and it was picked from 24. Candidate, not proven.
+- Same rule on the other signals (studies/second_chance.py, the live functions in second.py): ⚡ Scalp 34 re-entries
+  -0.16R (older -0.42), 🎰 🔥 QUALITY 53 -0.06R (older -0.18), 🎲 CRAZY 178 +0.08R / 3 h window 63 +0.21R (t 1.6): not
+  proven anywhere. Scalp stops are tight, so their "sweeps" are mostly the move continuing. M15 only.
+- Live code replay (studies/second_replay.py: second.main + track.step, clock every 5 min, closed by 24:00 Cambodia,
+  no new trade 00-06): 52 re-entries traded (2.2/mo), 54% win, +0.47R, t 2.05, older +0.62 (38) / newest +0.07 (14),
+  5 of 7 quarters, judge PROVEN (just), total +24.6R on top of the signal's +55R. 8 expired, 6 missed (TP1 first).
+  Bug found while replaying: candle times came in microseconds, not nanoseconds; second.py now converts safely.
+Decision (owner, 12 Nov 2026): LIVE as "⏳ SECOND CHANCE · testing" in 📈 Signals for 📈 M15 (setup_idea) signals only:
+limit at the MSS level (valid 30 min), SL beyond the sweep, the signal's TP1/TP2, small size 0.25-0.5%, counted apart
+(kind "second") and in the Friday live-vs-test post (test: +0.47R / 54%). SECOND_CHANCE=off stops it.

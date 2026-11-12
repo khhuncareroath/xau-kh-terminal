@@ -13,6 +13,7 @@ EXPECT = [
     ("m15a", "📈 Signal A+", lambda a: a.get("model") == "setup_idea" and a.get("tier") == "A+", 0.15, 58, 0),
     # B+ is no longer sent (12 Nov 2026); its row only appears if BPLUS_SIGNALS is turned back on
     ("m15b", "📈 Signal B+", lambda a: a.get("model") == "setup_idea" and a.get("tier") == "B+", 0.14, 58, 1794470400),
+    ("second", "📈 ⏳ Second chance (testing)", lambda a: a.get("kind") == "second", 0.47, 54, 0),
     ("vol", "📈 Signal A+ · 📊 Volume", lambda a: a.get("model") == "vp_turn", 0.26, 48, 0),
     ("scalp", "⚡ Scalp", lambda a: a.get("kind") == "scalp", 0.35, 51, 0),
     ("crazy", "🎰 Fun Scalp 🎲 crazy", lambda a: a.get("kind") == "fun" and a.get("tier") == "crazy", -0.03, 50, 0),

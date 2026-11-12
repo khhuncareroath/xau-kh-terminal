@@ -21,7 +21,8 @@ TIERS = {"premium": ("A+ SETUP", PURP), "combo": ("B+ SETUP", BLUE), "normal": (
          "splus": ("S+ SETUP · small size", "#30B0C7"), "setup": ("SETUP · from analysis", "#FF9500"),
          "setup_a": ("A+ · M15 SETUP", PURP), "setup_b": ("B+ · M15 SETUP", BLUE),
          "fun": ("FUN SCALP · 🔥 quality", "#FF2D55"),
-         "fun_crazy": ("FUN SCALP · crazy gamble", "#AF52DE")}
+         "fun_crazy": ("FUN SCALP · crazy gamble", "#AF52DE"),
+         "second": ("SECOND CHANCE · testing", "#FF9500")}
 
 
 def _fonts():
@@ -196,9 +197,10 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
             "M15 setup graded by the 4H · live record in Proof" if tier in ("setup_a", "setup_b") else
             "Fun scalp · cent account · 2-yr test +0.19R, 60% in profit" if tier == "fun" else
             "Crazy fun scalp · pure gamble · ~break-even in testing · cent account" if tier == "fun_crazy" else
+            "Re-entry after a sweep · 2-yr test +0.47R, testing" if tier == "second" else
             f"Tested 2 years: {win_rate}% win · {trades} trades" if win_rate else "Tested rules only") + f"  ·  {hold_note}"
     fig.text(0.075, 0.068, foot, color="#AEAEB2", fontsize=9, va="center")
-    fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan", "splus", "setup", "setup_b", "fun", "fun_crazy") else "Risk 0.5–1% per trade")
+    fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan", "splus", "setup", "setup_b", "fun", "fun_crazy", "second") else "Risk 0.5–1% per trade")
              + " · pips: 1 pip = $0.10 · not financial advice", color="#636366",
              fontsize=7.5, va="center")
     fig.savefig(path, facecolor=BG)
