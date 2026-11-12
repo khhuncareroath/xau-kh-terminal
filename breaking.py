@@ -19,6 +19,7 @@ import os
 import re
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -82,7 +83,9 @@ def fetch():
     return items
 
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL") or "gemini-3.5-flash-lite"
+# free-tier models in Oct 2026 (2.5 Flash is no longer free; Plus / Advanced app subscriptions do NOT include the API)
+GEMINI_FALLBACK = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"]
 
 
 def ask_ai(cands, gold, key):
@@ -98,11 +101,24 @@ def ask_ai(cands, gold, key):
         txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
     else:
         body = {"systemInstruction": {"parts": [{"text": SYSTEM}]}, "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1500, "responseMimeType": "application/json"}}
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={urllib.parse.quote(k)}"
-        req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"content-type": "application/json"})
-        r = json.load(urllib.request.urlopen(req, timeout=40))
-        txt = "".join(p_.get("text", "") for c in r.get("candidates", []) for p_ in c.get("content", {}).get("parts", []))
+                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 4000, "responseMimeType": "application/json"}}
+        txt, errs = "", []
+        for mdl in dict.fromkeys([GEMINI_MODEL] + GEMINI_FALLBACK):   # old ids get retired from the free tier: try the next
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{mdl}:generateContent?key={urllib.parse.quote(k)}"
+            req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"content-type": "application/json"})
+            try:
+                r = json.load(urllib.request.urlopen(req, timeout=40))
+            except urllib.error.HTTPError as e:
+                errs.append(f"{mdl}: HTTP {e.code} {e.read()[:160]!r}")
+                if e.code in (400, 403, 404, 429):
+                    continue
+                raise
+            txt = "".join(p_.get("text", "") for c in r.get("candidates", []) for p_ in c.get("content", {}).get("parts", [])
+                          if not p_.get("thought"))
+            print("breaking AI model:", mdl)
+            break
+        if not txt and errs:
+            raise RuntimeError("Gemini failed: " + " | ".join(errs))
     m = re.search(r"\[.*\]", txt, re.S)
     return json.loads(m.group(0)) if m else []
 

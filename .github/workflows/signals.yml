@@ -28,7 +28,7 @@ env:
   SPLUS: ${{ vars.SPLUS || 'off' }}                     # 'on' brings back the S+ ICT setup
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}         # optional, free tier: breaking news in Khmer
-  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
+  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || '' }}
   AI_LANG: ${{ vars.AI_LANG || 'en' }}                  # 'km' adds a Khmer version
   BOT_LANG: ${{ vars.BOT_LANG || 'en' }}                # Telegram alerts: en, km or both
   TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}         # optional: spot XAUUSD offset in alerts

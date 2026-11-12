@@ -166,7 +166,7 @@ def _ai_context(group, macro):
             txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
         else:
             body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.2, "maxOutputTokens": 600}}
-            url = (f"https://generativelanguage.googleapis.com/v1beta/models/{os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')}"
+            url = (f"https://generativelanguage.googleapis.com/v1beta/models/{(os.environ.get('GEMINI_MODEL') or 'gemini-3.5-flash-lite')}"
                    f":generateContent?key={urllib.parse.quote(key[1])}")
             r = json.load(urllib.request.urlopen(urllib.request.Request(url, data=json.dumps(body).encode(),
                                                                         headers={"content-type": "application/json"}), timeout=40))
