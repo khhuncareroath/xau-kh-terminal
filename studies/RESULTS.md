@@ -349,3 +349,12 @@ vs A+ only as it was this morning 363, +0.10R, +35R. Signals in the way of the e
 **Full replay of the live code (arrays.py + setupidea.py): 369 signals (15/mo), 58% win, +0.15R, t 2.7, older +0.13 /
 newest +0.19, TP1 56%, +55R, PROVEN. A+ 249 +0.16R (proven), B+ 120 +0.14R.** B+ back on (BPLUS_SIGNALS default on).
 OPPOSITE_CHECK=off turns the check off.
+
+## 🎰 Fun Scalp + other-side check (studies/fun_opposite.py) · 12 Nov 2026
+Opposite zones on 15m-D (and 5m-D tried). Live clean-trend fun scalp: 446, 18.6/mo, 59% in profit, +0.17R, +75R total.
+- skip if an opposite edge is within 0.5R (15m-D): 369, 15.4/mo, 60%, +0.19R, t 3.4, older +0.10 / newest +0.46, +72R.
+- within 0.8R: 13.5/mo, 61%, +0.21R (proven), +67R · within 1R: 12.4/mo +0.20R.
+- targets squeezed before the edge: 66% in profit but +0.12R (smaller wins). Adding 5m zones: fewer trades, no better.
+- "Fire more": choppy-trend trades lose even with a clear path (242, −0.06R); 4 a day dilutes (+0.07R). No way found to
+  fire more AND keep quality: every extra fun scalp found was break-even or worse.
+LIVE: clean trend + skip when a 15m-Daily opposite array is within 0.5R (same rule as M15). FUN_OPPOSITE=off undoes it.

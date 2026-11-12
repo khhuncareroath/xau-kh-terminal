@@ -193,7 +193,7 @@ def make(df, sig, path, tier="combo", status="LIVE", win_rate=None, trades=None,
         y -= step
     foot = ("Setup idea from analysis · not a tested signal" if tier == "setup" else
             "M15 setup graded by the 4H · live record in Proof" if tier in ("setup_a", "setup_b") else
-            "Fun scalp · cent account · 2-yr test +0.17R, 59% in profit" if tier == "fun" else
+            "Fun scalp · cent account · 2-yr test +0.19R, 60% in profit" if tier == "fun" else
             f"Tested 2 years: {win_rate}% win · {trades} trades" if win_rate else "Tested rules only") + f"  ·  {hold_note}"
     fig.text(0.075, 0.068, foot, color="#AEAEB2", fontsize=9, va="center")
     fig.text(0.075, 0.045, ("Small size: risk 0.25–0.5%" if tier in ("scalp", "plan", "splus", "setup", "setup_b", "fun") else "Risk 0.5–1% per trade")

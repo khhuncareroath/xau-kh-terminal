@@ -52,6 +52,7 @@ def why_post(df, i, sg, entry, sl, tps, fd, flo, fhi, a, e20, mid):
              f"3️⃣ The 5m candle closed back {'above' if bull else 'below'} the previous candle and EMA20 {fmt(float(e20[i]))} "
              f"→ {'buyers' if bull else 'sellers'} are back · ទៀន 5m បិទត្រឡប់",
              "4️⃣ The 4H trend is clean (not choppy) · ទីផ្សារមិនរញ៉េរញ៉ៃ",
+             "5️⃣ Other side checked: no demand / supply (15m-Daily) right in front · គ្មាន Demand/Supply រាំងនៅជិត",
              f"🛑 SL {fmt(sl)} = {'under' if bull else 'above'} the last 6 candles · 🎯 TP1/2/3 = 1R / 1.5R / 2R",
              *([f"📏 Day Meter {du * 100:.0f}%"] if du is not None else []),
              "<i>🎰 Gamble for fun · cent account</i>"]
@@ -107,6 +108,15 @@ def main():
     risk = (entry - sw) * sg
     if not research.SCALP_RISK[0] <= risk <= research.SCALP_RISK[1]:
         print(f"fun scalp: stop ${risk:.1f} outside ${research.SCALP_RISK[0]:.0f}-{research.SCALP_RISK[1]:.0f}"); return
+    opp = None
+    if os.environ.get("FUN_OPPOSITE", "on") == "on":   # 👀 other side, 15m-Daily (studies/fun_opposite.py): +0.19R vs +0.17R
+        try:
+            import arrays
+            opp = arrays.opposite(df, entry, sg, risk, now=df.index[i] + pd.Timedelta(minutes=5))
+        except Exception as e:
+            print("fun scalp: other-side check failed:", e)
+        if opp and opp["dist_r"] <= 0.5:
+            print(f"fun scalp: {opp['tf']} {'supply' if sg > 0 else 'demand'} {opp['lo']}-{opp['hi']} right in front, skipped"); return
     tp1, tp2, tp3 = (round(entry + sg * k * risk, 2) for k in (1, 1.5, 2))   # owner: TP1→TP2 range split in three
     bull = sg > 0
     side = "BUY" if bull else "SELL"
