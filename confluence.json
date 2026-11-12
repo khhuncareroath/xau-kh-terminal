@@ -1,7 +1,7 @@
 {
-  "time": "2026-11-12 16:35 UTC",
-  "price": 3868.23,
-  "atr_5m": 5.81,
+  "time": "2026-11-12 16:45 UTC",
+  "price": 3871.02,
+  "atr_5m": 5.23,
   "zones": [
     {
       "low": 3918.51,
@@ -21,7 +21,7 @@
         },
         {
           "name": "VWAP",
-          "price": 3919.8
+          "price": 3919.26
         },
         {
           "name": "15m bear FVG",
@@ -33,24 +33,28 @@
         }
       ],
       "role": "resistance",
-      "distance": 53.28,
+      "distance": 50.49,
       "location": "discount",
       "reasons": [
-        "4 level(s) agree across 3 source type(s): 1H bear FVG 3919.01, VWAP 3919.8, 15m bear FVG 3922.39, London low 3924.01",
+        "4 level(s) agree across 3 source type(s): 1H bear FVG 3919.01, VWAP 3919.26, 15m bear FVG 3922.39, London low 3924.01",
         "Zone sits in the discount half of yesterday's range.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
     },
     {
-      "low": 3904.1,
+      "low": 3897.36,
       "high": 3906.98,
-      "mid": 3905.54,
-      "score": 4.0,
+      "mid": 3902.17,
+      "score": 4.5,
       "rating": "C",
       "families": [
         "ICT PD array"
       ],
       "sources": [
+        {
+          "name": "15m bear OB",
+          "price": 3897.86
+        },
         {
           "name": "5m bear OB",
           "price": 3904.6
@@ -61,41 +65,12 @@
         }
       ],
       "role": "resistance",
-      "distance": 37.31,
+      "distance": 31.15,
       "location": "discount",
       "reasons": [
-        "2 level(s) agree across 1 source type(s): 5m bear OB 3904.6, 5m bear OB 3906.48",
+        "3 level(s) agree across 1 source type(s): 15m bear OB 3897.86, 5m bear OB 3904.6, 5m bear OB 3906.48",
         "Zone sits in the discount half of yesterday's range.",
         "Order block: the last opposite candle before a move that broke structure; price often reacts when it returns."
-      ]
-    },
-    {
-      "low": 3891.13,
-      "high": 3898.36,
-      "mid": 3894.74,
-      "score": 4.0,
-      "rating": "C",
-      "families": [
-        "ICT PD array"
-      ],
-      "sources": [
-        {
-          "name": "5m bear FVG",
-          "price": 3891.63
-        },
-        {
-          "name": "15m bear OB",
-          "price": 3897.86
-        }
-      ],
-      "role": "resistance",
-      "distance": 26.51,
-      "location": "discount",
-      "reasons": [
-        "2 level(s) agree across 1 source type(s): 5m bear FVG 3891.63, 15m bear OB 3897.86",
-        "Zone sits in the discount half of yesterday's range.",
-        "Order block: the last opposite candle before a move that broke structure; price often reacts when it returns.",
-        "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
     },
     {
@@ -115,7 +90,7 @@
         },
         {
           "name": "VWAP -1s",
-          "price": 3878.11
+          "price": 3877.49
         },
         {
           "name": "1H bear FVG",
@@ -127,19 +102,19 @@
         }
       ],
       "role": "resistance",
-      "distance": 9.62,
+      "distance": 6.83,
       "location": "discount",
       "reasons": [
-        "4 level(s) agree across 2 source type(s): 5m bear FVG 3876.28, VWAP -1s 3878.11, 1H bear FVG 3878.98, 15m bear FVG 3879.41",
+        "4 level(s) agree across 2 source type(s): 5m bear FVG 3876.28, VWAP -1s 3877.49, 1H bear FVG 3878.98, 15m bear FVG 3879.41",
         "Zone sits in the discount half of yesterday's range.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
     },
     {
       "low": 3860.1,
-      "high": 3869.8,
-      "mid": 3864.95,
-      "score": 7.5,
+      "high": 3871.37,
+      "mid": 3865.73,
+      "score": 7.0,
       "rating": "C",
       "families": [
         "ICT PD array",
@@ -155,17 +130,16 @@
           "price": 3864.58
         },
         {
-          "name": "5m bull OB",
-          "price": 3869.3
+          "name": "5m bear FVG",
+          "price": 3870.87
         }
       ],
       "role": "price inside zone",
-      "distance": -3.28,
+      "distance": -5.29,
       "location": "discount",
       "reasons": [
-        "3 level(s) agree across 2 source type(s): 5m bull FVG 3860.6, New York low 3864.58, 5m bull OB 3869.3",
+        "3 level(s) agree across 2 source type(s): 5m bull FVG 3860.6, New York low 3864.58, 5m bear FVG 3870.87",
         "Zone sits in the discount half of yesterday's range.",
-        "Order block: the last opposite candle before a move that broke structure; price often reacts when it returns.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing.",
         "New York low was just swept (swept below, closed back above), which strengthens this zone."
       ]
@@ -212,13 +186,13 @@
     {
       "zone": "3918.51-3924.51",
       "rating": "A",
-      "text": "IF price trades into 3918.51-3924.51 and rejects it (a sweep above that closes back below), look for shorts toward the next zone. Idea is invalid on a 5m close above 3930.32.",
+      "text": "IF price trades into 3918.51-3924.51 and rejects it (a sweep above that closes back below), look for shorts toward the next zone. Idea is invalid on a 5m close above 3929.74.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     },
     {
       "zone": "3875.78-3879.91",
       "rating": "B",
-      "text": "IF price trades into 3875.78-3879.91 and rejects it (a sweep above that closes back below), look for shorts toward the next zone. Idea is invalid on a 5m close above 3885.72.",
+      "text": "IF price trades into 3875.78-3879.91 and rejects it (a sweep above that closes back below), look for shorts toward the next zone. Idea is invalid on a 5m close above 3885.14.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     }
   ],
