@@ -1,20 +1,13 @@
 {
-  "time": "2026-11-12 22:45 UTC",
-  "price": 3876.76,
-  "last_bar": "2026-11-12 17:40:00-05:00",
-  "atr_5m": 1.07,
+  "time": "2026-11-12 22:55 UTC",
+  "price": 3876.72,
+  "last_bar": "2026-11-12 17:50:00-05:00",
+  "atr_5m": 0.87,
   "rules": "current",
   "timeframes": {
     "5m": {
-      "bias": "bull",
+      "bias": "bear",
       "last_events": [
-        {
-          "type": "BOS",
-          "dir": "bull",
-          "level": 3885.4,
-          "time": "2026-11-12 15:10:00-05:00",
-          "displacement": false
-        },
         {
           "type": "MSS",
           "dir": "bear",
@@ -27,6 +20,13 @@
           "dir": "bull",
           "level": 3875.07,
           "time": "2026-11-12 16:40:00-05:00",
+          "displacement": false
+        },
+        {
+          "type": "MSS",
+          "dir": "bear",
+          "level": 3876.72,
+          "time": "2026-11-12 17:50:00-05:00",
           "displacement": false
         }
       ],
@@ -44,6 +44,13 @@
           "hi": 3874.78,
           "status": "tested",
           "time": "2026-11-12 16:30:00-05:00"
+        },
+        {
+          "dir": "bear",
+          "lo": 3876.72,
+          "hi": 3877.03,
+          "status": "tested",
+          "time": "2026-11-12 17:45:00-05:00"
         }
       ],
       "fvgs": [
@@ -305,10 +312,10 @@
   },
   "sweeps": [
     {
-      "side": "sell-side",
-      "level": 3871.19,
-      "name": "1H swing low",
-      "extreme": 3864.58494,
+      "side": "buy-side",
+      "level": 3875.54,
+      "name": "1H swing high",
+      "extreme": 3883.57084,
       "time": "2026-11-12 09:55:00-05:00"
     },
     {
@@ -321,7 +328,7 @@
     {
       "side": "buy-side",
       "level": 3887.27,
-      "name": "15m swing high",
+      "name": "1H swing high",
       "extreme": 3887.66544,
       "time": "2026-11-12 15:25:00-05:00"
     }
@@ -339,7 +346,7 @@
     "target": 3871.15,
     "rr": 1.59,
     "reasons": [
-      "15m swing high at 3887.27 was swept and price closed back inside (buy-side liquidity taken).",
+      "1H swing high at 3887.27 was swept and price closed back inside (buy-side liquidity taken).",
       "Price closed beyond 3880.78: a bear structure shift right after the sweep.",
       "Retest zone: order block 3880.81-3882.4.",
       "1H structure is bear: agrees."
@@ -347,16 +354,14 @@
     "sweep_time": "2026-11-12 15:25:00-05:00",
     "shift_time": "2026-11-12 15:45:00-05:00",
     "sweep_extreme": 3887.67,
-    "sweep_name": "15m swing high",
+    "sweep_name": "1H swing high",
     "displacement": false,
-    "risk_atr": 6.12,
+    "risk_atr": 7.58,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-12 12:45",
-      "11-12 12:50",
       "11-12 12:55",
       "11-12 13:00",
       "11-12 13:05",
@@ -414,11 +419,11 @@
       "11-12 17:25",
       "11-12 17:30",
       "11-12 17:35",
-      "11-12 17:40"
+      "11-12 17:40",
+      "11-12 17:45",
+      "11-12 17:50"
     ],
     "ts": [
-      1794505500,
-      1794505800,
       1794506100,
       1794506400,
       1794506700,
@@ -476,23 +481,11 @@
       1794522300,
       1794522600,
       1794522900,
-      1794523200
+      1794523200,
+      1794523500,
+      1794523800
     ],
     "candles": [
-      [
-        3873.94,
-        3874.98,
-        3870.65,
-        3874.66,
-        688.0
-      ],
-      [
-        3874.24,
-        3877.05,
-        3874.24,
-        3874.7,
-        490.0
-      ],
       [
         3875.1,
         3875.37,
@@ -898,11 +891,23 @@
         3876.72,
         3876.76,
         267.5
+      ],
+      [
+        3876.81,
+        3877.03,
+        3876.72,
+        3876.83,
+        267.5
+      ],
+      [
+        3876.86,
+        3876.98,
+        3876.71,
+        3876.72,
+        267.5
       ]
     ],
     "vwap": [
-      3917.01,
-      3916.9,
       3916.72,
       3916.51,
       3916.36,
@@ -960,11 +965,11 @@
       3912.21,
       3912.17,
       3912.12,
-      3912.08
+      3912.08,
+      3912.04,
+      3911.99
     ],
     "sd": [
-      41.79,
-      41.79,
       41.8,
       41.8,
       41.78,
@@ -1022,22 +1027,24 @@
       40.94,
       40.94,
       40.93,
-      40.92
+      40.92,
+      40.92,
+      40.91
     ],
     "marks": {
       "sweep": {
         "price": 3887.27,
-        "i": 32
+        "i": 30
       },
       "mss": {
         "level": 3880.78,
-        "i": 36
+        "i": 34
       },
       "zone": {
         "lo": 3880.81,
         "hi": 3882.4,
         "kind": "ob",
-        "i": 35
+        "i": 33
       }
     }
   },
