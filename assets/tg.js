@@ -16,6 +16,18 @@
     if (!localStorage.getItem("xau-lang") && code.toLowerCase().startsWith("km")) localStorage.setItem("xau-lang", "km");
   } catch (e) {}
 
+  // 1b. Open the part of the app the button asked for: t.me/<bot>/app?startapp=record (once per launch)
+  const home = /(^|\/)(index\.html)?$/.test(location.pathname);
+  try {
+    const sp = ((W.initDataUnsafe || {}).start_param || "").toLowerCase();
+    const pages = { scaleup: "scaleup.html", journal: "journal.html", challenge: "challenge.html" };
+    if (home && sp && !sessionStorage.getItem("xau-start-done")) {
+      sessionStorage.setItem("xau-start-done", "1");
+      if (pages[sp]) location.replace(pages[sp]);
+      else if (["today", "chart", "record", "guide"].includes(sp)) history.replaceState(null, "", location.pathname + location.search + "#" + sp);
+    }
+  } catch (e) {}
+
   // 2. Same light / dark as Telegram, and Telegram's top bar in the page colour
   const paint = () => {
     root.dataset.theme = W.colorScheme === "dark" ? "dark" : "light";
@@ -29,7 +41,6 @@
   W.onEvent("themeChanged", paint);
 
   // 3. Back button: on the home page it returns to "Today"; on other pages it goes back to the home page
-  const home = /(^|\/)(index\.html)?$/.test(location.pathname);
   const syncBack = () => {
     if (!ok("6.1")) return;
     const away = home ? !!document.querySelector(".view.on:not(#v-today)") : true;

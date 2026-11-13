@@ -185,7 +185,11 @@ def academy_answer():
 
 
 HELP = ("🤖 <b>XAU.KH bot</b>\n/check: gold right now + what to do · មើលមាសឥឡូវ\n/signal: latest signal · សញ្ញាចុងក្រោយ\n"
-        "/proof: live record · លទ្ធផល\n/academy: all 45 lessons · មេរៀនទាំងអស់\n/lesson 5: open chapter 5 · បើកមេរៀនទី 5")
+        "/proof: live record · លទ្ធផល\n/academy: all 45 lessons · មេរៀនទាំងអស់\n/lesson 5: open chapter 5 · បើកមេរៀនទី 5\n"
+        "/app: open the XAU.KH App · បើកកម្មវិធី")
+
+APP_TEXT = ("📲 <b>XAU.KH App · កម្មវិធី XAU.KH</b>\nPrice, direction, buy / sell areas, chart, news countdown, record.\n"
+            "តម្លៃ ទិសដៅ តំបន់ទិញ/លក់ ក្រាហ្វ ម៉ោងព័ត៌មាន លទ្ធផល។ ចុចខាងក្រោម 👇")
 
 
 # ---------------------------------------------------------------- loop
@@ -196,7 +200,7 @@ def handle(msg):
     if time.time() - msg.get("date", 0) > 600:   # old command (bot was offline): don't answer late
         return
     cmd = text.split()[0].split("@")[0].lower()
-    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/academy", "/help", "/start"):
+    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/academy", "/help", "/start", "/app"):
         return
     user = (msg.get("from") or {}).get("id")
     if user and time.time() - _last_user.get((user, cmd), 0) < COOLDOWN_S and cmd != "/help":
@@ -214,6 +218,11 @@ def handle(msg):
                 photo(dict(base, caption=text[:1024]), path)
                 return
             api("sendMessage", dict(base, text=text, disable_web_page_preview="true"))
+            return
+        if cmd in ("/app", "/start", "/help"):   # 📲 the XAU.KH App button (tg.APP_LINK) under the answer
+            import tg
+            api("sendMessage", dict(base, text=(APP_TEXT if cmd == "/app" else HELP), disable_web_page_preview="true",
+                                    reply_markup=tg.app_markup("today")))
             return
         arg = text.split()[1] if len(text.split()) > 1 else None
         if cmd == "/lesson":   # the full PDF when that chapter has one, else the text lesson
@@ -244,7 +253,8 @@ def serve(until):
                 {"command": "signal", "description": "Latest signal · សញ្ញាចុងក្រោយ"},
                 {"command": "proof", "description": "Live record, wins and losses · លទ្ធផល"},
                 {"command": "academy", "description": "All 45 lessons · មេរៀនទាំងអស់"},
-                {"command": "lesson", "description": "Today's lesson, or /lesson 5 · មេរៀន"}], ensure_ascii=False)})
+                {"command": "lesson", "description": "Today's lesson, or /lesson 5 · មេរៀន"},
+                {"command": "app", "description": "Open the XAU.KH App · បើកកម្មវិធី"}], ensure_ascii=False)})
             _menu = True
         except Exception as e:
             print("setMyCommands failed:", e)

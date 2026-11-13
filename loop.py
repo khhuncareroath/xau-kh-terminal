@@ -73,6 +73,7 @@ def cycle(n):
     run("scalp.py")   # first: the COMBO scalp needs the just-closed candle within ~1 minute
     run("funscalp.py")   # 🎰 fun scalps (cent accounts, own topic): also needs the just-closed candle
     run("indicator_post.py")   # 📈 one-time: Indicator topic posts + files (indicator_state.json stops repeats)
+    run("app_post.py")   # 📲 one-time: App topic welcome post + pin + announcement (app_state.json stops repeats)
     run("second.py")   # ⏳ second chance: re-entry limit after an M15 signal was swept (5m MSS back)
     core_ok = all([run(s) for s in CORE])
     if core_ok:
