@@ -125,6 +125,13 @@ def jl(n, d):
 
 
 def main():
+    # 📈 one-time Indicator topic posts: run from here too, because loop.py's own list only reloads when the runner
+    # restarts (up to 5.5 h). indicator_state.json makes it a no-op once everything is posted.
+    try:
+        import indicator_post
+        indicator_post.main()
+    except Exception as e:
+        print("indicator post failed:", e)
     if os.environ.get("SECOND_CHANCE", "on") == "off":
         print("second: off"); return
     now = time.time()
