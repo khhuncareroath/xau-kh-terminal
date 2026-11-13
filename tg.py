@@ -53,7 +53,31 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
     "learn":    ("Education · មេរៀន", 13338331, ["📚", "🎓", "💡"]),
     "fun":      ("Fun Scalp · លេងសើច", 16478047, ["🎰", "🎲", "🎯"]),
     "indicator": ("Indicator · ឧបករណ៍", 9367192, ["📈", "📊", "💡"]),
+    "app":      ("App · កម្មវិធី", 9367192, ["📱", "📲", "💻"]),
 }
+
+# ---------------------------------------------------------------- 📲 XAU.KH App (Telegram Mini App, 13 Nov 2026)
+# The website (index.html, GitHub Pages) opens inside Telegram from this link. "?startapp=record" opens the Record tab
+# (assets/tg.js reads it). Every new post in these sections gets an "📲 Open App" button under it, opening the tab
+# that fits. Replies (TP hit, results under a signal) get no button, so threads stay clean. APP_BUTTON=off removes it.
+APP_LINK = os.environ.get("APP_LINK", "https://t.me/XAUKH066566667_bot/app")
+APP_TABS = {"signals": "today", "fun": "today", "setups": "today", "analysis": "today", "news": "today",
+            "proof": "record"}
+
+
+def app_url(tab="today"):
+    return f"{APP_LINK}?startapp={tab}"
+
+
+def app_markup(tab="today", text="📲 Open App · បើកកម្មវិធី"):
+    return json.dumps({"inline_keyboard": [[{"text": text, "url": app_url(tab)}]]}, ensure_ascii=False)
+
+
+def _app_button(title, fields):
+    if os.environ.get("APP_BUTTON", "on") == "off" or "reply_markup" in fields or "reply_parameters" in fields:
+        return fields
+    tab = APP_TABS.get(section_for(title)) if group_id() else None
+    return dict(fields, reply_markup=app_markup(tab)) if tab else fields
 OPEN_SECTIONS = {"indicator"}   # members may post here (feedback, screenshots): the topic is not closed
 TOPICS_FILE = "topics.json"
 
@@ -79,6 +103,8 @@ def section_for(title):
         return "announce"
     if t == "indicator":
         return "indicator"     # 📈 XAU.KH FLOW TradingView indicator topic (indicator_post.py)
+    if t == "app":
+        return "app"           # 📲 XAU.KH App topic (app_post.py)
     if t in ("guide", "lesson"):
         return "learn"
     if "fun scalp" in t:
@@ -206,7 +232,10 @@ def target(title):
 def _send_tg(method, title, fields, files=None, timeout=20):
     """Sends with the right chat/topic. If a topic was deleted, it is made again once."""
     chat, th = target(title)
-    for attempt in range(2):
+    auto = method in ("sendMessage", "sendPhoto", "sendDocument") and "reply_markup" not in fields
+    if auto:
+        fields = _app_button(title, fields)
+    for attempt in range(3):
         f = dict(_clean(fields), chat_id=chat)
         if th:
             f["message_thread_id"] = th
@@ -228,6 +257,10 @@ def _send_tg(method, title, fields, files=None, timeout=20):
             msg = e.read().decode("utf-8", "ignore")
             if th and attempt == 0 and ("thread not found" in msg or "TOPIC_DELETED" in msg or "TOPIC_ID_INVALID" in msg):
                 th = thread_id(section_for(title), fresh=True)
+                continue
+            if auto and "reply_markup" in fields:   # never lose a post because of the 📲 App button: send it without
+                print("app button refused, sending without it:", msg[:120])
+                fields = {k: v for k, v in fields.items() if k != "reply_markup"}
                 continue
             raise RuntimeError(msg[:200])
 
