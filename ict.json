@@ -1,20 +1,13 @@
 {
-  "time": "2026-11-13 19:25 UTC",
-  "price": 3879.01,
-  "last_bar": "2026-11-13 14:20:00-05:00",
-  "atr_5m": 2.74,
+  "time": "2026-11-13 19:35 UTC",
+  "price": 3875.94,
+  "last_bar": "2026-11-13 14:30:00-05:00",
+  "atr_5m": 2.78,
   "rules": "current",
   "timeframes": {
     "5m": {
       "bias": "bear",
       "last_events": [
-        {
-          "type": "MSS",
-          "dir": "bull",
-          "level": 3882.14,
-          "time": "2026-11-13 11:25:00-05:00",
-          "displacement": false
-        },
         {
           "type": "BOS",
           "dir": "bull",
@@ -28,22 +21,29 @@
           "level": 3882.09,
           "time": "2026-11-13 13:30:00-05:00",
           "displacement": false
+        },
+        {
+          "type": "BOS",
+          "dir": "bear",
+          "level": 3877.53,
+          "time": "2026-11-13 14:30:00-05:00",
+          "displacement": false
         }
       ],
       "order_blocks": [
-        {
-          "dir": "bull",
-          "lo": 3876.87,
-          "hi": 3879.41,
-          "status": "tested",
-          "time": "2026-11-13 11:15:00-05:00"
-        },
         {
           "dir": "bear",
           "lo": 3882.89,
           "hi": 3887.39,
           "status": "tested",
           "time": "2026-11-13 13:25:00-05:00"
+        },
+        {
+          "dir": "bear",
+          "lo": 3878.83,
+          "hi": 3880.78,
+          "status": "tested",
+          "time": "2026-11-13 14:15:00-05:00"
         }
       ],
       "fvgs": [
@@ -71,15 +71,8 @@
       ]
     },
     "15m": {
-      "bias": "bull",
+      "bias": "bear",
       "last_events": [
-        {
-          "type": "BOS",
-          "dir": "bear",
-          "level": 3893.68,
-          "time": "2026-11-13 05:30:00-05:00",
-          "displacement": false
-        },
         {
           "type": "BOS",
           "dir": "bear",
@@ -93,15 +86,22 @@
           "level": 3886.36,
           "time": "2026-11-13 12:30:00-05:00",
           "displacement": false
+        },
+        {
+          "type": "MSS",
+          "dir": "bear",
+          "level": 3876.54,
+          "time": "2026-11-13 14:30:00-05:00",
+          "displacement": false
         }
       ],
       "order_blocks": [
         {
           "dir": "bear",
-          "lo": 3899.96,
-          "hi": 3905.03,
+          "lo": 3878.36,
+          "hi": 3881.54,
           "status": "tested",
-          "time": "2026-11-13 05:00:00-05:00"
+          "time": "2026-11-13 13:45:00-05:00"
         }
       ],
       "fvgs": [
@@ -287,13 +287,6 @@
       ],
       "fvgs": [
         {
-          "dir": "bull",
-          "lo": 3876.12,
-          "hi": 3896.21,
-          "status": "partial",
-          "time": "2026-11-01 18:00:00-05:00"
-        },
-        {
           "dir": "bear",
           "lo": 3923.92,
           "hi": 3982.17,
@@ -329,34 +322,32 @@
   "setup": {
     "stage": 3,
     "label": "Price is in the retest zone",
-    "dir": "bull",
+    "dir": "bear",
     "zone": [
-      3876.87,
-      3879.41
+      3875.78,
+      3882.14
     ],
-    "entry": 3878.14,
-    "stop": 3867.8,
-    "target": 3896.05,
-    "rr": 1.73,
+    "entry": 3878.96,
+    "stop": 3905.86,
+    "target": 3825.15,
+    "rr": 2.0,
     "reasons": [
-      "New York low at 3870.44 was swept and price closed back inside (sell-side liquidity taken).",
-      "Price closed beyond 3882.14: a bull structure shift right after the sweep.",
-      "Retest zone: order block 3876.87-3879.41.",
-      "1H structure is bear: this goes against it, so treat as lower quality."
+      "London high at 3904.27 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3873.72: a bear structure shift right after the sweep.",
+      "Retest zone: order block 3875.78-3882.14.",
+      "1H structure is bear: agrees."
     ],
-    "sweep_time": "2026-11-13 11:00:00-05:00",
-    "shift_time": "2026-11-13 11:25:00-05:00",
-    "sweep_extreme": 3868.62,
-    "sweep_name": "New York low",
+    "sweep_time": "2026-11-13 08:35:00-05:00",
+    "shift_time": "2026-11-13 11:00:00-05:00",
+    "sweep_extreme": 3905.03,
+    "sweep_name": "London high",
     "displacement": false,
-    "risk_atr": 3.77,
+    "risk_atr": 9.68,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-13 09:25",
-      "11-13 09:30",
       "11-13 09:35",
       "11-13 09:40",
       "11-13 09:45",
@@ -414,11 +405,11 @@
       "11-13 14:05",
       "11-13 14:10",
       "11-13 14:15",
-      "11-13 14:20"
+      "11-13 14:20",
+      "11-13 14:25",
+      "11-13 14:30"
     ],
     "ts": [
-      1794579900,
-      1794580200,
       1794580500,
       1794580800,
       1794581100,
@@ -476,23 +467,11 @@
       1794596700,
       1794597000,
       1794597300,
-      1794597600
+      1794597600,
+      1794597900,
+      1794598200
     ],
     "candles": [
-      [
-        3883.96,
-        3892.43,
-        3883.96,
-        3887.12,
-        1438.0
-      ],
-      [
-        3887.62,
-        3893.78,
-        3886.97,
-        3893.61,
-        905.0
-      ],
       [
         3893.3,
         3896.36,
@@ -890,19 +869,31 @@
         3880.78,
         3878.83,
         3880.76,
-        0.0
+        349.0
       ],
       [
         3880.68,
         3881.3,
         3878.52,
         3879.01,
-        605.0
+        191.0
+      ],
+      [
+        3879.04,
+        3879.14,
+        3877.62,
+        3877.78,
+        0.0
+      ],
+      [
+        3878.04,
+        3879.03,
+        3875.65,
+        3875.94,
+        554.0
       ]
     ],
     "vwap": [
-      3896.39,
-      3896.34,
       3896.3,
       3896.29,
       3896.3,
@@ -959,12 +950,12 @@
       3892.48,
       3892.46,
       3892.44,
-      3892.44,
-      3892.38
+      3892.4,
+      3892.39,
+      3892.39,
+      3892.33
     ],
     "sd": [
-      10.58,
-      10.54,
       10.43,
       10.38,
       10.34,
@@ -1022,22 +1013,20 @@
       11.09,
       11.09,
       11.09,
-      11.1
+      11.09,
+      11.09,
+      11.12
     ],
     "marks": {
-      "sweep": {
-        "price": 3870.44,
-        "i": 19
-      },
       "mss": {
-        "level": 3882.14,
-        "i": 24
+        "level": 3873.72,
+        "i": 17
       },
       "zone": {
-        "lo": 3876.87,
-        "hi": 3879.41,
+        "lo": 3875.78,
+        "hi": 3882.14,
         "kind": "ob",
-        "i": 22
+        "i": 14
       }
     }
   },
