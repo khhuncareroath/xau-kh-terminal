@@ -57,6 +57,8 @@ For each kept item return JSON fields:
  "km_impact" (1-2 short Khmer sentences: why it moves gold, e.g. safe-haven demand (Safe-Haven), weaker USD, rate-cut hopes),
  "km_short" (1 short Khmer sentence: short-term note, e.g. a quick dip first (Sell the news), or volatility),
  "en_short" (max 10 words, same short-term note in English).
+Khmer fields: Khmer script (U+1780-U+17FF) only, NEVER Thai letters; use these words: Treasury yields =
+ទិន្នផលសញ្ញាបណ្ណរដ្ឋាភិបាលអាមេរិក (Treasury Yields), interest rate = អត្រាការប្រាក់, US dollar = ប្រាក់ដុល្លារ (USD), gold = មាស.
 Facts only from the headline. Never invent numbers, never give a trade or price target. Answer with a JSON array only."""
 
 

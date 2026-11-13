@@ -94,7 +94,23 @@ def section_for(title):
     return "analysis"
 
 
+# Thai letters look like Khmer and AI models sometimes mix them in (13 Nov 2026: Thai "ั" inside a Khmer word).
+# Owner rule: never any Thai in posts. Look-alike Thai marks become the Khmer mark, every other Thai letter is removed.
+_THAI_TO_KHMER = {0x0E31: "\u17D0", 0x0E34: "\u17B7", 0x0E35: "\u17B8", 0x0E36: "\u17B9", 0x0E37: "\u17BA",
+                  0x0E38: "\u17BB", 0x0E39: "\u17BC", 0x0E48: "\u17CB", 0x0E4C: "\u17CD", 0x0E4D: "\u17C6", 0x0E47: "\u17CE"}
+_NO_THAI = {c: _THAI_TO_KHMER.get(c) for c in range(0x0E00, 0x0E80)}
+
+
+def no_thai(s):
+    return s.translate(_NO_THAI) if isinstance(s, str) else s
+
+
+def _clean(fields):
+    return {k: (no_thai(v) if k in ("text", "caption", "name", "question", "explanation", "options") else v) for k, v in fields.items()}
+
+
 def _api(method, fields, timeout=20):
+    fields = _clean(fields)
     tok = os.environ.get("TELEGRAM_TOKEN")
     r = urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{tok}/{method}",
                                                       data=urllib.parse.urlencode(fields).encode()), timeout=timeout)
@@ -183,7 +199,7 @@ def _send_tg(method, title, fields, files=None, timeout=20):
     """Sends with the right chat/topic. If a topic was deleted, it is made again once."""
     chat, th = target(title)
     for attempt in range(2):
-        f = dict(fields, chat_id=chat)
+        f = dict(_clean(fields), chat_id=chat)
         if th:
             f["message_thread_id"] = th
         try:
