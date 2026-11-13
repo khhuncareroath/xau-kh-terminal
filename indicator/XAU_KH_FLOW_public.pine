@@ -1,0 +1,1653 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © XAU.KH — free and open-source. Share it, learn from it; please keep this credit.
+// XAU.KH FLOW v1.0 (public) · built for XAUUSD (OANDA) · 5-minute chart
+// Order-flow readings are ESTIMATES from tick volume (no real bid/ask). Educational tool — not financial advice.
+// WHERE (zones) → WHEN (effort vs result) → GET OUT (other side takes it back)
+// Free-plan safe: no request.footprint(), no built-in volume profile. Everything is computed here from 1m data.
+// DATA REALITY: OANDA volume = tick count, not exchange volume. All flow readings are estimates.
+//@version=6
+indicator("XAU.KH FLOW", shorttitle = "XAU.KH FLOW", overlay = false, max_lines_count = 500, max_boxes_count = 500, max_labels_count = 500, max_bars_back = 1000)
+
+// ───────────────────────── Inputs ─────────────────────────
+grpP      = "1 · Where: session delta profile"
+binSize   = input.float(0.50, "Bin size ($)", minval = 0.01, group = grpP)
+vaPct     = input.float(70, "Value area %", minval = 10, maxval = 100, group = grpP) / 100.0
+pThr      = input.float(0.55, "P-shape if pos ≥", step = 0.01, group = grpP)
+bThr      = input.float(0.45, "b-shape if pos ≤", step = 0.01, group = grpP)
+showProf  = input.bool(true, "Profile bars (buy / sell split)", group = grpP)
+profWidth = input.float(0.25, "Profile width (× session length)", minval = 0.05, maxval = 1.0, step = 0.05, group = grpP)
+showMag   = input.bool(true, "MAGNET (previous session high/low)", group = grpP)
+showNP    = input.bool(true, "Naked POCs (untouched old POCs)", group = grpP)
+npKeep    = input.int(4, "Naked POCs kept", minval = 1, maxval = 10, group = grpP)
+showPD    = input.bool(true, "Previous day high / low", group = grpP)
+
+grpB      = "2 · Bias"
+pivLen    = input.int(3, "4H swing strength (bars each side)", minval = 1, group = grpB)
+reqNew    = input.bool(false, "Only watch NEW side (profile against 4H)", group = grpB)
+
+grpC      = "3 · When: sweep → FLIP"
+liqLen    = input.int(12, "Liquidity lookback (bars)", minval = 2, group = grpC)
+mssLen    = input.int(8, "FLIP lookback (bars before sweep extreme)", minval = 2, group = grpC)
+validBars = input.int(6, "Entry limit valid (bars)", minval = 1, group = grpC)
+slAtrMult = input.float(0.1, "SL buffer (× ATR14)", minval = 0, step = 0.05, group = grpC)
+maxRisk   = input.float(25, "Skip if risk > $", minval = 0.1, group = grpC)
+minGrade  = input.int(1, "Min flow ◆ for a plan (1 = all, as tested)", minval = 1, maxval = 3, group = grpC)
+exitMode  = input.string("Fixed 1R / 2R (tested)", "Exit mode", options = ["Fixed 1R / 2R (tested)", "Trail + Get out (order flow)"], group = grpC)
+planLen   = input.int(30, "Plan length (bars)", minval = 5, maxval = 200, group = grpC)
+keepPlans = input.int(6, "Past setups kept on chart", minval = 1, maxval = 40, group = grpC)
+
+grpZ      = "4 · Supply / demand zones (report card)"
+showSD    = input.bool(true, "Supply / demand zones", group = grpZ)
+sdDisp    = input.float(1.2, "Displacement candle body ≥ × ATR", minval = 0.5, step = 0.1, group = grpZ)
+sdBaseMax = input.int(4, "Max base candles", minval = 1, maxval = 8, group = grpZ)
+sdBaseBdy = input.float(0.6, "Base candle body < × ATR", minval = 0.1, step = 0.05, group = grpZ)
+sdOwner   = input.float(60, "Keep zone if one side owns ≥ %", minval = 50, maxval = 90, group = grpZ)
+sdMaxW    = input.float(1.5, "Max zone height (× ATR)", minval = 0.3, step = 0.1, group = grpZ)
+sdKeep    = input.int(4, "Zones kept", minval = 1, maxval = 12, group = grpZ)
+showFVG   = input.bool(true, "FVG zones (Strong / Bias only)", group = grpZ)
+fvgMinAtr = input.float(0.25, "FVG min size (× ATR)", minval = 0, step = 0.05, group = grpZ)
+fvgKeep   = input.int(2, "FVG zones kept", minval = 1, maxval = 10, group = grpZ)
+zoneLife  = input.int(150, "Zone max life (bars)", minval = 10, group = grpZ)
+
+grpR      = "6 · Range profile (you choose the start)"
+showRP    = input.bool(false, "Range profile: start → current price", group = grpR)
+rpMode    = input.string("Manual (click / drag on chart)", "Start from", options = ["Manual (click / drag on chart)", "Today (18:00 NY)", "This week"], group = grpR)
+rpStart   = input.time(timestamp("2026-11-12T00:00:00"), "Manual start (click a candle)", confirm = true, group = grpR)
+rpWidth   = input.float(0.35, "Range profile width (× range length)", minval = 0.05, maxval = 1.0, step = 0.05, group = grpR)
+
+grpF      = "5 · Order flow (estimates)"
+flowSym   = input.symbol("", "Flow source (blank = chart; COMEX:GC1! = futures volume, delayed on free plan)", group = grpF)
+ltf       = input.timeframe("1", "Lower timeframe for flow + profile", group = grpF)
+dMethod   = input.string("Close position (better)", "Delta method", options = ["Close position (better)", "Up/down candle (classic)"], tooltip = "Close position: a 1m candle that closes near its high counts mostly as buying, near its low mostly as selling, middle = split. More accurate than counting the whole candle as one side.", group = grpF)
+useMacro  = input.bool(true, "Macro read: US dollar (DXY) + US 10Y yield", group = grpF)
+
+grpX      = "8 · Extra free data"
+profSrc   = input.string("COMEX real volume (shifted to spot)", "Session profile volume", options = ["COMEX real volume (shifted to spot)", "OANDA ticks"], tooltip = "COMEX = real gold-futures volume. Free data is ~10 min delayed, which doesn't matter for a session that has already finished. Prices are shifted by the futures–spot gap so levels line up with your chart.", group = grpX)
+blendB    = input.bool(true, "Blend tick volume from 3 brokers", tooltip = "Averages buying/selling from OANDA + 2 other brokers (each scaled to its own normal activity) so one feed's quirks matter less", group = grpX)
+broker2   = input.symbol("PEPPERSTONE:XAUUSD", "Broker 2", group = grpX)
+broker3   = input.symbol("ICMARKETS:XAUUSD", "Broker 3", group = grpX)
+showNews  = input.bool(true, "Mark US data times (8:30 / 10:00 New York) and pause flow labels there", group = grpX)
+useCOT    = input.bool(true, "COT: big speculators' gold positioning (weekly)", group = grpX)
+flowAgree = input.float(55, "Δ agrees if ≥ % in direction", minval = 50, maxval = 90, group = grpF)
+effMin    = input.float(1.5, "Effort: |Δ| ≥ × avg(20)", minval = 1, step = 0.1, group = grpF)
+absBody   = input.float(0.35, "Absorbed: body < × ATR despite effort", minval = 0.05, step = 0.05, group = grpF)
+exhMax    = input.float(0.6, "Exhausted: new extreme with |Δ| ≤ × avg", minval = 0.1, step = 0.05, group = grpF)
+zoneTol   = input.float(0.3, "At a level if within × ATR", minval = 0, step = 0.05, group = grpF)
+showEff   = input.bool(true, "Absorbed / tired labels (at levels only)", group = grpF)
+showBub   = input.bool(true, "Effort bubbles (candles with 2×+ normal aggression)", group = grpF)
+showSurge = input.bool(true, "ឆុយ candles (surge)", group = grpF)
+surgeBody = input.float(1.5, "ឆុយ body ≥ × ATR", minval = 0.5, step = 0.1, group = grpF)
+surgeFlow = input.float(60, "ឆុយ flow ≥ % in direction", minval = 50, maxval = 95, group = grpF)
+surgeTick = input.float(1.5, "ឆុយ activity ≥ × avg(20)", minval = 1, step = 0.1, group = grpF)
+showDiv   = input.bool(true, "CVD divergences EXH / ABS", group = grpF)
+paneMode  = input.string("Flow line (simplest)", "Bottom pane", options = ["Flow line (simplest)", "Flow meter (bars)", "CVD candles (classic)"], group = grpF)
+divLen    = input.int(3, "Divergence swing strength", minval = 2, maxval = 10, group = grpF)
+divWin    = input.int(15, "Trap counts if within N bars of sweep", minval = 1, group = grpF)
+showVWB   = input.bool(false, "Session VWAP ±1σ / ±2σ bands", group = grpF)
+
+grpS      = "Style"
+showBg    = input.bool(true, "Shade sessions", group = grpS)
+showPanel = input.bool(true, "Status panel", group = grpS)
+panelWhere = input.string("Chart", "Panel location", options = ["Chart", "Flow pane"], group = grpS)
+panelPos  = input.string("Top right", "Panel position", options = ["Top right", "Top left", "Bottom right", "Bottom left"], group = grpS)
+panelMode = input.string("Compact", "Panel size", options = ["Compact", "Full"], group = grpS)
+lvlShort  = input.bool(true, "Level lines: short stubs at the right edge (off = full length)", group = grpS)
+lvlFar    = input.float(12, "Hide levels farther than × ATR from price", minval = 2, step = 1, group = grpS)
+showGuide = input.bool(true, "FRVP guide: mark A → B of the last leg", group = grpS)
+guideLen  = input.int(6, "FRVP guide swing strength", minval = 3, maxval = 20, group = grpS)
+tzIn      = input.string("GMT+7", "Time zone for panel times", group = grpS)
+useAlerts = input.bool(true, "Smart alerts (create ONE alert → condition: Any alert() function call)", group = grpS)
+lookMode  = input.string("Pro", "Look", options = ["Pro", "Clean"], tooltip = "Clean = lines + signals only: no flow labels, no ឆុយ tags, no session names or VWAP bands; level tags become plain text", group = grpS)
+
+grpV      = "7 · Value-area signals (info, untested)"
+showVA    = input.bool(true, "Value-area reject / back-in-value signals", group = grpV)
+showVAR   = input.bool(true, "Also on the range profile (live only)", group = grpV)
+
+// ───────────────────────── Theme-aware palette ─────────────────────────
+bgc     = chart.bg_color
+isLight = (color.r(bgc) + color.g(bgc) + color.b(bgc)) / 3 > 128
+C_FG    = chart.fg_color
+C_PANEL = isLight ? #FFFFFF : #1E222D
+C_EDGE  = isLight ? #E0E3EB : #2A2E39
+C_SUB   = #787B86
+C_GRN   = isLight ? #089981 : #26A69A
+C_RED   = isLight ? #F23645 : #EF5350
+C_BLUE  = #2962FF
+C_GOLD  = isLight ? #E0A800 : #F7C548
+C_AMB   = #FF9800
+C_INK   = #131722
+WHITE   = #FFFFFF
+
+trailMode = exitMode == "Trail + Get out (order flow)"
+
+f_px(float x) => str.tostring(x, "#.00")
+f_sign(float x) => (x >= 0 ? "+" : "") + str.tostring(x, format.volume)
+f_pct(float x) => str.tostring(x, "0") + "%"
+f_r(float x) => (x >= 0 ? "+" : "") + str.tostring(x, "0.0")
+clean = lookMode == "Clean"
+// level / zone tags (style_label_left) turn into plain coloured text in Clean mode; signals stay as pills
+f_pill(int x, float y, string txt, color bg, color tc, string stl, string tip) =>
+    isTag = clean and stl == label.style_label_left
+    label.new(x, y, txt, style = stl, color = isTag ? color.new(bg, 100) : bg, textcolor = isTag ? color.new(bg, 0) : tc, size = size.tiny, tooltip = tip, force_overlay = true)
+
+type Zone
+    box    bx
+    label  tag
+    float  top
+    float  bot
+    int    dir
+    int    born
+    int    kind          // 0 = FVG, 1 = supply / demand
+    float  own    = 50.0 // origin: % owned by the zone's side
+    float  act    = 0.0  // origin activity
+    int    tests  = 0
+    bool   inside = false
+    float  rb     = 0.0  // flow during current / last retest
+    float  rs     = 0.0
+    int    status = 0    // 0 fresh, 1 testing, 2 holding, 3 breaking, 4 held
+    int    holds  = 0
+
+// ───────────────────────── Sessions (New York time) ─────────────────────────
+f_sess(int t) =>
+    h = hour(t, "America/New_York")
+    h >= 18 or h < 2 ? 0 : h < 7 ? 1 : h < 12 ? 2 : -1
+
+f_name(int s) => s == 0 ? "ASIA" : s == 1 ? "LONDON" : s == 2 ? "NY" : "—"
+
+sess    = f_sess(time)
+newSess = sess >= 0 and sess != sess[1]
+
+bgT   = isLight ? 97 : 95
+bgCol = not showBg ? color(na) : sess == 0 ? color.new(C_SUB, bgT) : sess == 1 ? color.new(C_BLUE, bgT) : sess == 2 ? color.new(C_GOLD, bgT) : color(na)
+bgcolor(bgCol, title = "Sessions", force_overlay = true)
+nyH = hour(time, "America/New_York")
+nyM = minute(time, "America/New_York")
+nyD = dayofweek(time, "America/New_York")
+newsWin = showNews and nyD >= dayofweek.monday and nyD <= dayofweek.friday and ((nyH == 8 and nyM >= 25 and nyM < 50) or (nyH == 9 and nyM >= 55) or (nyH == 10 and nyM < 15))
+bgcolor(newsWin ? color.new(#9C27B0, 92) : na, title = "US data time", force_overlay = true)
+if newsWin and not newsWin[1]
+    label.new(bar_index, high, "US data", yloc = yloc.abovebar, style = label.style_none, textcolor = color.new(#9C27B0, 20), size = size.tiny, tooltip = "Typical US data release time (8:30 or 10:00 New York).\nSpikes here come from news, not real absorption — flow labels are paused in this window.\nCheck an economic calendar for what is due today.", force_overlay = true)
+if newSess and showBg and not clean
+    label.new(bar_index, high, f_name(sess), yloc = yloc.abovebar, style = label.style_none, textcolor = color.new(C_SUB, 30), size = size.tiny, force_overlay = true)
+
+// ───────────────────────── Global series ─────────────────────────
+atr14 = ta.atr(14)
+hhMss = ta.highest(high, mssLen)[1]
+llMss = ta.lowest(low, mssLen)[1]
+hhLiq = ta.highest(high, liqLen)[1]
+llLiq = ta.lowest(low, liqLen)[1]
+hh10  = ta.highest(high, 10)[1]
+ll10  = ta.lowest(low, 10)[1]
+gapY  = (ta.highest(high, 120) - ta.lowest(low, 120)) / 30
+[pdh, pdl] = request.security(syminfo.tickerid, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+var int pdBar = na
+if ta.change(pdh) != 0 or na(pdBar)
+    pdBar := bar_index
+gph = ta.pivothigh(high, guideLen, guideLen)
+gpl = ta.pivotlow(low, guideLen, guideLen)
+var float gH  = na
+var int   gHb = na
+var float gL  = na
+var int   gLb = na
+if not na(gph)
+    gH  := gph
+    gHb := bar_index - guideLen
+if not na(gpl)
+    gL  := gpl
+    gLb := bar_index - guideLen
+vol   = nz(volume)
+h2    = high[2]
+l2    = low[2]
+
+// ───────────────────────── 4H swing structure (non-repainting) ─────────────────────────
+f_trend(int len) =>
+    ph = ta.pivothigh(high, len, len)
+    pl = ta.pivotlow(low, len, len)
+    var float ph1 = na
+    var float ph2 = na
+    var float pl1 = na
+    var float pl2 = na
+    var int   tr  = 0
+    if not na(ph)
+        ph2 := ph1
+        ph1 := ph
+    if not na(pl)
+        pl2 := pl1
+        pl1 := pl
+    if not na(ph2) and not na(pl2)
+        if ph1 > ph2 and pl1 > pl2
+            tr := 1
+        else if ph1 < ph2 and pl1 < pl2
+            tr := -1
+    tr
+
+t4 = request.security(syminfo.tickerid, "240", f_trend(pivLen)[1], lookahead = barmerge.lookahead_on)
+
+// ───────────────────────── Lower-timeframe data ─────────────────────────
+// flow (can come from futures) and profile (always the chart symbol, so prices line up)
+fSym = flowSym == "" ? syminfo.tickerid : flowSym
+// buy share of one lower-timeframe candle: by where it closed in its range (or classic up/down)
+clv = dMethod == "Close position (better)"
+f_bShare() => clv ? (high > low ? (close - low) / (high - low) : 0.5) : (close > open ? 1.0 : close < open ? 0.0 : 0.5)
+[bArr, sArr] = request.security_lower_tf(fSym, ltf, [nz(volume) * f_bShare(), nz(volume) * (1 - f_bShare())])
+[pxArr, pvArr, pbArr, psArr] = request.security_lower_tf(syminfo.tickerid, ltf, [hlc3, nz(volume), nz(volume) * f_bShare(), nz(volume) * (1 - f_bShare())])
+
+// macro (free data): gold usually rises when the US dollar and US yields fall
+[dxyC, dxyP] = request.security("TVC:DXY", "60", [close, close[4]], ignore_invalid_symbol = true)
+[ylC, ylP]   = request.security("TVC:US10Y", "60", [close, close[4]], ignore_invalid_symbol = true)
+dxyCh = nz(dxyP) > 0 ? (dxyC / dxyP - 1) * 100 : 0.0
+ylCh  = nz(ylC - ylP)
+// ── COMEX real volume (for finished-session profiles) + futures–spot gap
+useGC = profSrc == "COMEX real volume (shifted to spot)"
+[gxArr, gvArr, gbArr, gsArr] = request.security_lower_tf("COMEX:GC1!", ltf, [hlc3, nz(volume), nz(volume) * f_bShare(), nz(volume) * (1 - f_bShare())], ignore_invalid_symbol = true)
+gcC = request.security("COMEX:GC1!", timeframe.period, close, ignore_invalid_symbol = true)
+var float basis = na
+bRaw = gcC - close
+if not na(bRaw) and barstate.isconfirmed
+    basis := na(basis) ? bRaw : basis * 0.9 + bRaw * 0.1
+
+// ── COT (weekly, free): large speculators ("non-commercial") long vs short gold futures
+[cotL, cotL1] = request.security("COT:088691_F_NC_L", "1W", [close, close[1]], ignore_invalid_symbol = true)
+[cotS, cotS1] = request.security("COT:088691_F_NC_S", "1W", [close, close[1]], ignore_invalid_symbol = true)
+cotNet  = cotL - cotS
+cotPrev = cotL1 - cotS1
+
+macroS = not useMacro ? 0 : (dxyCh <= -0.1 ? 1 : dxyCh >= 0.1 ? -1 : 0) + (ylCh <= -0.03 ? 1 : ylCh >= 0.03 ? -1 : 0)
+
+float buyV  = 0.0
+float sellV = 0.0
+float runD  = 0.0
+float runHi = 0.0
+float runLo = 0.0
+nLtf = math.min(bArr.size(), sArr.size())
+if nLtf > 0
+    for i = 0 to nLtf - 1
+        bv  = bArr.get(i)
+        sv  = sArr.get(i)
+        buyV  += bv
+        sellV += sv
+        runD  += bv - sv
+        runHi := math.max(runHi, runD)
+        runLo := math.min(runLo, runD)
+// ── broker blend: same buy/sell estimate from 2 more brokers, each scaled to its own normal activity
+[b2Arr, s2Arr] = request.security_lower_tf(broker2, ltf, [nz(volume) * f_bShare(), nz(volume) * (1 - f_bShare())], ignore_invalid_symbol = true)
+[b3Arr, s3Arr] = request.security_lower_tf(broker3, ltf, [nz(volume) * f_bShare(), nz(volume) * (1 - f_bShare())], ignore_invalid_symbol = true)
+f_sumA(array<float> a) => na(a) ? 0.0 : a.size() > 0 ? a.sum() : 0.0
+b2v = f_sumA(b2Arr)
+s2v = f_sumA(s2Arr)
+b3v = f_sumA(b3Arr)
+s3v = f_sumA(s3Arr)
+av1 = ta.sma(buyV + sellV, 100)[1]
+av2 = ta.sma(b2v + s2v, 100)[1]
+av3 = ta.sma(b3v + s3v, 100)[1]
+nBrokers = 1
+if blendB and flowSym == "" and nz(av1) > 0
+    w1 = buyV + sellV > 0 ? 1.0 / av1 : 0.0
+    w2 = b2v + s2v > 0 and nz(av2) > 0 ? 1.0 / av2 : 0.0
+    w3 = b3v + s3v > 0 and nz(av3) > 0 ? 1.0 / av3 : 0.0
+    kB = (w1 > 0 ? 1 : 0) + (w2 > 0 ? 1 : 0) + (w3 > 0 ? 1 : 0)
+    if kB > 1
+        nBrokers := kB
+        bB = (buyV * w1 + b2v * w2 + b3v * w3) / kB * av1
+        sB = (sellV * w1 + s2v * w2 + s3v * w3) / kB * av1
+        buyV  := bB
+        sellV := sB
+barDelta = buyV - sellV
+flowTot  = buyV + sellV
+buyPct   = flowTot > 0 ? buyV / flowTot * 100 : 50.0
+bph      = math.max(1, int(3600 / timeframe.in_seconds()))
+delta1h  = math.sum(barDelta, bph)
+
+// CVD candles (weekly reset) in this script's pane
+var float cvd    = 0.0
+var int   wStart = 0
+newW = timeframe.change("W")
+if newW
+    wStart := bar_index
+cvdO = newW ? 0.0 : cvd
+cvd := cvdO + barDelta
+cvdH = cvdO + runHi
+cvdL = cvdO + runLo
+var int dayStart  = na
+var int weekStart = na
+if newSess and sess == 0
+    dayStart := time
+if newW
+    weekStart := time
+anchorT = rpMode == "Today (18:00 NY)" ? dayStart : rpMode == "This week" ? weekStart : rpStart
+cvdCol = cvd >= cvdO ? C_GRN : C_RED
+meter    = paneMode == "Flow meter (bars)"
+lineMode = paneMode == "Flow line (simplest)"
+classic = not (meter or lineMode)
+plotcandle(classic ? cvdO : na, classic ? cvdH : na, classic ? cvdL : na, classic ? cvd : na, title = "CVD candles (weekly · est.)", color = cvdCol, wickcolor = cvdCol, bordercolor = cvdCol, display = display.pane)
+
+// session VWAP + bands
+[vw, vwU1, vwL1] = ta.vwap(hlc3, newSess, 1.0)
+[vw2, vwU2, vwL2] = ta.vwap(hlc3, newSess, 2.0)
+inS = sess >= 0
+plot(inS ? vw : na, "Session VWAP", color.new(C_SUB, 35), 1, plot.style_linebr, force_overlay = true)
+plot(inS and showVWB and not clean ? vwU1 : na, "VWAP +1σ", color.new(C_SUB, 75), 1, plot.style_linebr, force_overlay = true)
+plot(inS and showVWB and not clean ? vwL1 : na, "VWAP −1σ", color.new(C_SUB, 75), 1, plot.style_linebr, force_overlay = true)
+plot(inS and showVWB and not clean ? vwU2 : na, "VWAP +2σ", color.new(C_RED, 70), 1, plot.style_linebr, force_overlay = true)
+plot(inS and showVWB and not clean ? vwL2 : na, "VWAP −2σ", color.new(C_GRN, 70), 1, plot.style_linebr, force_overlay = true)
+
+// ───────────────────────── Effort vs result ─────────────────────────
+absD   = math.abs(barDelta)
+dAvg   = ta.sma(absD, 20)[1]
+effX   = nz(dAvg) > 0 ? absD / dAvg : 0.0
+tAvg   = ta.sma(flowTot, 20)[1]
+tickX  = nz(tAvg) > 0 ? flowTot / tAvg : 0.0
+bodyX  = atr14 > 0 ? math.abs(close - open) / atr14 : 0.0
+newHi  = high > hh10
+newLo  = low < ll10
+
+surgeUp = showSurge and close > open and bodyX >= surgeBody and buyPct >= surgeFlow and tickX >= surgeTick
+surgeDn = showSurge and close < open and bodyX >= surgeBody and 100 - buyPct >= surgeFlow and tickX >= surgeTick
+ctrlUp  = surgeUp or (effX >= effMin and barDelta > 0 and close > open and bodyX >= 0.8)
+ctrlDn  = surgeDn or (effX >= effMin and barDelta < 0 and close < open and bodyX >= 0.8)
+absSell = effX >= effMin and barDelta < 0 and (close >= open or bodyX < absBody)
+absBuy  = effX >= effMin and barDelta > 0 and (close <= open or bodyX < absBody)
+exhSell = newLo and effX <= exhMax and not absSell
+exhBuy  = newHi and effX <= exhMax and not absBuy
+
+paintS = (surgeUp or surgeDn) and barstate.isconfirmed
+// effort bubbles: bigger circle = more aggression than normal (green = buyers, red = sellers)
+bubOk = showBub and barstate.isconfirmed and effX >= 2.0
+bubC  = barDelta >= 0 ? color.new(C_GRN, 20) : color.new(C_RED, 20)
+plotchar(bubOk and effX < 3.0 ? close : na, "Effort bubble 2-3×", "◯", location.absolute, bubC, size = size.tiny, force_overlay = true)
+plotchar(bubOk and effX >= 3.0 and effX < 4.5 ? close : na, "Effort bubble 3-4.5×", "◯", location.absolute, bubC, size = size.small, force_overlay = true)
+plotchar(bubOk and effX >= 4.5 ? close : na, "Effort bubble 4.5×+", "◯", location.absolute, bubC, size = size.normal, force_overlay = true)
+
+// live read: last 30 minutes — who is aggressive, and is it working?
+n30   = math.max(1, int(1800 / timeframe.in_seconds()))
+b30   = math.sum(buyV, n30)
+s30   = math.sum(sellV, n30)
+f30   = b30 + s30
+d30   = b30 - s30
+buy30 = f30 > 0 ? b30 / f30 * 100 : 50.0
+act30 = nz(tAvg) > 0 ? f30 / (tAvg * n30) : 1.0
+mv30  = close - close[n30]
+mvA   = atr14 > 0 ? mv30 / atr14 : 0.0
+hd    = buy30 >= 55 ? (mvA >= 0.5 ? 1 : mvA <= 0.15 ? 2 : 4) : buy30 <= 45 ? (mvA <= -0.5 ? -1 : mvA >= -0.15 ? -2 : -4) : (mvA >= 1.0 ? 3 : mvA <= -1.0 ? -3 : 0)
+
+// bigger picture: same read over the last 1 hour and 4 hours (move threshold scales with time)
+f_read(int n) =>
+    b  = math.sum(buyV, n)
+    sv = math.sum(sellV, n)
+    t  = b + sv
+    pc = t > 0 ? b / t * 100 : 50.0
+    k  = math.sqrt(n / 6.0)
+    m  = atr14 > 0 ? (close - close[n]) / (atr14 * k) : 0.0
+    pc >= 55 ? (m >= 0.5 ? 1 : m <= 0.15 ? 2 : 4) : pc <= 45 ? (m <= -0.5 ? -1 : m >= -0.15 ? -2 : -4) : (m >= 1.0 ? 3 : m <= -1.0 ? -3 : 0)
+n1h = math.max(1, int(3600 / timeframe.in_seconds()))
+n4h = math.max(1, int(14400 / timeframe.in_seconds()))
+hd1 = f_read(n1h)
+hd4 = f_read(n4h)
+f_side(int c) => c == 1 or c == 4 ? 1 : c == -1 or c == -4 ? -1 : 0
+
+// ───────────────────────── Bottom pane: FLOW METER ─────────────────────────
+// bars  = who won each candle (buy % − 50): up = buyers, down = sellers; solid = big effort, faded = normal, gold = ឆុយ
+// line  = who is winning the last 30 min (colour = panel headline); amber background = blocked (absorption)
+pBarV = flowTot > 0 ? buyPct - 50 : 0.0
+colB  = surgeUp or surgeDn ? C_GOLD : pBarV >= 0 ? color.new(C_GRN, effX >= effMin ? 0 : 70) : color.new(C_RED, effX >= effMin ? 0 : 70)
+c30   = hd == 1 or hd == 4 ? C_GRN : hd == -1 or hd == -4 ? C_RED : math.abs(hd) == 2 ? C_AMB : C_SUB
+plot(meter ? pBarV : na, "Candle: buy % − 50", colB, style = plot.style_columns, display = display.pane)
+plot(meter ? buy30 - 50 : na, "Last 30 min", c30, 3, display = display.pane)
+plot(meter ? 15.0 : na, "Buyers strong", color.new(C_GRN, 70), 1, plot.style_circles, display = display.pane)
+plot(meter ? -15.0 : na, "Sellers strong", color.new(C_RED, 70), 1, plot.style_circles, display = display.pane)
+plot(meter ? 50.0 : na, "Scale top", color.new(C_SUB, 100), display = display.pane)
+plot(meter ? -50.0 : na, "Scale bottom", color.new(C_SUB, 100), display = display.pane)
+hline(0, "Zero", color.new(C_SUB, 40), hline.style_solid)
+bgcolor((meter or lineMode) and math.abs(hd) == 2 and barstate.isconfirmed ? color.new(C_AMB, 82) : na, title = "Blocked (absorption)")
+var label mTop = na
+var label mBot = na
+if barstate.islast and meter
+    label.delete(mTop)
+    label.delete(mBot)
+    mTop := label.new(bar_index + 2, 42, "BUYERS winning ↑", style = label.style_label_left, color = color.new(C_PANEL, 100), textcolor = color.new(C_GRN, 20), size = size.small, tooltip = "Bars above 0 = more buying than selling in that candle\nThick line = last 30 minutes\nSolid bar = big effort (" + str.tostring(effMin) + "× normal or more)\nGold bar = ឆុយ surge\nAmber background = one side pushing but price not moving (absorption)")
+    mBot := label.new(bar_index + 2, -42, "SELLERS winning ↓", style = label.style_label_left, color = color.new(C_PANEL, 100), textcolor = color.new(C_RED, 20), size = size.small, tooltip = "Bars below 0 = more selling than buying in that candle\nThick line = last 30 minutes\nIf price makes a new low but bars get smaller → sellers are tired")
+
+// ───────────────────────── Bottom pane: FLOW LINE (simplest) ─────────────────────────
+// one line = buying minus selling since this session started (starts at 0 every session)
+// above 0 / green area = buyers ahead · below 0 / red area = sellers ahead
+var float sCvd = 0.0
+sReset = sess != sess[1]
+sCvd := sReset ? barDelta : sCvd + barDelta
+sSlope = sCvd - nz(sCvd[3])
+lnCol  = sSlope > 0 ? C_GRN : sSlope < 0 ? C_RED : C_SUB
+pFlow  = plot(lineMode and not sReset ? sCvd : na, "Session flow", lnCol, 3, plot.style_linebr, display = display.pane)
+pZero  = plot(lineMode ? 0.0 : na, "Zero", color.new(C_SUB, 40), 1, display = display.pane)
+fill(pFlow, pZero, lineMode ? (sCvd >= 0 ? color.new(C_GRN, 82) : color.new(C_RED, 82)) : na, "Flow area")
+sCvdAt = sCvd[divLen]
+var label fTxt = na
+if barstate.islast and lineMode
+    label.delete(fTxt)
+    pUp  = mv30 > 0.3 * atr14
+    pDn  = mv30 < -0.3 * atr14
+    fUp  = d30 > 0
+    warn = (pUp and not fUp) or (pDn and fUp)
+    msg  = pUp and fUp ? "Price ↑ + buying = healthy rise" : pUp ? "Price ↑ but selling = buyers tired ⚠" : pDn and not fUp ? "Price ↓ + selling = healthy drop" : pDn ? "Price ↓ but buying = sellers absorbed ⚠" : (fUp ? "Price flat · buying building up" : "Price flat · selling building up")
+    head = (sCvd >= 0 ? "BUYERS ahead " : "SELLERS ahead ") + f_sign(sCvd)
+    fTxt := label.new(bar_index + 2, sCvd, head + "\n" + msg, style = label.style_label_left, color = color.new(C_PANEL, 100), textcolor = warn ? C_AMB : (sCvd >= 0 ? C_GRN : C_RED), size = size.normal)
+plotcandle(paintS ? open : na, high, low, close, title = "ឆុយ candle", color = C_GOLD, wickcolor = C_GOLD, bordercolor = C_GOLD, force_overlay = true)
+
+prevBuyPct = buyPct[1]
+prevBodyX  = bodyX[1]
+bullGap = low > h2 and (low - h2) >= fvgMinAtr * atr14
+bearGap = high < l2 and (l2 - high) >= fvgMinAtr * atr14
+f_grade(float pct, float bx) => pct >= 65 and bx >= 1.0 ? 3 : pct >= 55 ? 2 : pct >= 45 ? 1 : 0
+f_gname(int g) => g == 3 ? "Strong" : g == 2 ? "Bias" : g == 1 ? "Neutral" : "Weak"
+
+dpl    = ta.pivotlow(low, divLen, divLen)
+dph    = ta.pivothigh(high, divLen, divLen)
+cvdLAt = cvdL[divLen]
+cvdHAt = cvdH[divLen]
+tpl    = ta.pivotlow(low, 2, 2)
+tph    = ta.pivothigh(high, 2, 2)
+
+// ───────────────────────── Zone helpers ─────────────────────────
+f_zoneHit(array<Zone> zs, int d) =>
+    bool hit = false
+    for z in zs
+        if (d == 0 or z.dir == d) and z.status != 3 and high >= z.bot and low <= z.top
+            hit := true
+    hit
+
+f_sdWord(Zone z) =>
+    z.status == 0 ? "fresh" : z.status == 1 ? "testing" : z.status == 2 ? "holding" : z.status == 3 ? "breaking" : "held ×" + str.tostring(z.holds)
+
+f_sdPaint(Zone z) =>
+    side   = z.dir == 1 ? "buyers" : "sellers"
+    zCol   = z.dir == 1 ? C_GRN : C_RED
+    rt     = z.rb + z.rs
+    rPct   = rt > 0 ? (z.dir == 1 ? z.rb : z.rs) / rt * 100 : z.own
+    word   = f_sdWord(z)
+    txt    = (z.dir == 1 ? "DEMAND · " : "SUPPLY · ") + word + " · " + f_pct(z.tests > 0 ? rPct : z.own)
+    why    = z.status == 0 ? "untested — first test is usually the strongest" : z.status == 1 ? "price is inside — watching who wins" : z.status == 2 ? (z.dir == 1 ? "sellers absorbed / exhausted inside → buyers defending" : "buyers absorbed / exhausted inside → sellers defending") : z.status == 3 ? "the other side is pushing through with effort → don't fade" : "price reacted away " + str.tostring(z.holds) + "× — still valid, but each test weakens it"
+    tip    = (z.dir == 1 ? "Demand zone" : "Supply zone") + " · base before a strong move\nOrigin: " + side + " " + f_pct(z.own) + " · activity " + str.tostring(z.act, format.volume) + "\nTests: " + str.tostring(z.tests) + (z.tests > 0 ? " · last test " + side + " " + f_pct(rPct) : "") + "\nStatus: " + word + " — " + why + "\nBroken if a 5m candle closes " + (z.dir == 1 ? "below " + f_px(z.bot) : "above " + f_px(z.top))
+    pillC  = z.status == 1 ? color.new(zCol, 45) : z.status == 3 ? C_SUB : color.new(zCol, z.status == 2 ? 0 : 25)
+    fillT  = z.status == 2 ? (isLight ? 84 : 80) : z.status == 3 ? 95 : (isLight ? 90 : 86)
+    label.set_text(z.tag, txt)
+    label.set_tooltip(z.tag, tip)
+    label.set_color(z.tag, clean ? color.new(pillC, 100) : pillC)
+    label.set_textcolor(z.tag, clean ? color.new(pillC, 0) : WHITE)
+    box.set_bgcolor(z.bx, color.new(z.status == 3 ? C_SUB : zCol, fillT))
+    box.set_border_color(z.bx, z.status == 3 ? color.new(C_SUB, 40) : color.new(zCol, 100))
+    box.set_border_style(z.bx, line.style_dashed)
+    true
+
+f_zoneUpd(array<Zone> zs) =>
+    int i = zs.size() - 1
+    while i >= 0
+        z = zs.get(i)
+        dead = z.kind == 0 ? (z.dir == 1 ? low <= z.bot : high >= z.top) : (z.dir == 1 ? close < z.bot : close > z.top)
+        if bar_index > z.born and (dead or bar_index - z.born > zoneLife)
+            box.delete(z.bx)
+            label.delete(z.tag)
+            zs.remove(i)
+        else
+            if z.kind == 1 and bar_index > z.born + 1
+                touching = high >= z.bot and low <= z.top
+                if touching
+                    if not z.inside
+                        z.tests := z.tests + 1
+                        z.rb := 0.0
+                        z.rs := 0.0
+                        z.inside := true
+                    z.rb := z.rb + buyV
+                    z.rs := z.rs + sellV
+                    held = z.dir == 1 ? (absSell or exhSell) : (absBuy or exhBuy)
+                    brk  = z.dir == 1 ? ctrlDn : ctrlUp
+                    if held
+                        z.status := 2
+                    else if brk
+                        z.status := 3
+                    else if z.status != 2 and z.status != 3
+                        z.status := 1
+                else if z.inside
+                    z.inside := false
+                    away = z.dir == 1 ? low > z.top : high < z.bot
+                    if away
+                        z.holds := z.holds + 1
+                        z.status := 4
+                f_sdPaint(z)
+            box.set_right(z.bx, bar_index + 3)
+            label.set_x(z.tag, bar_index + 3)
+        i -= 1
+    zs.size()
+
+f_zoneTrim(array<Zone> zs, int keep) =>
+    while zs.size() > keep
+        z = zs.shift()
+        box.delete(z.bx)
+        label.delete(z.tag)
+    zs.size()
+
+// ───────────────────────── State ─────────────────────────
+var map<int, float> vmap = map.new<int, float>()
+var map<int, float> bmap = map.new<int, float>()
+var map<int, float> smap = map.new<int, float>()
+var int   cSess  = -1
+var float cHi    = na
+var float cLo    = na
+var int   cStart = na
+
+var bool   hasProf = false
+var float  pPOC    = na
+var float  pVAH    = na
+var float  pVAL    = na
+var float  pPos    = na
+var float  pHi     = na
+var float  pLo     = na
+var float  pDelta  = 0.0
+var float  pPocBuy = 50.0
+var int    pShape  = 0
+var string pName   = ""
+var int    pEnd    = na
+var array<float> pocHist = array.new<float>()
+
+var array<box> profBoxes = array.new<box>()
+var line  pocLn = na
+var line  vahLn = na
+var line  valLn = na
+var label pocLb = na
+var label vahLb = na
+var label valLb = na
+var box   magBx = na
+var label magLb = na
+var float magY  = na
+
+var int   dir         = 0
+var int   st          = 0   // 0 WAIT, 1 SWEPT, 2 CONFIRMED, 3 SKIPPED
+var float liq         = na
+var float swExt       = na
+var int   swBar       = na
+var float swBuy       = 0.0
+var float swSell      = 0.0
+var bool  swInZone    = false
+var float mssLvl      = na
+var label swLb        = na
+var bool  noTradeD    = false
+var bool  blockedSame = false
+var int    lastGrade  = 0
+var string lastPass   = ""
+var string lastTip    = ""
+var string skipWhy    = ""
+
+var int   tDir    = 0
+var int   tSt     = 0       // 0 none, 1 pending, 2 filled, 3 expired, 4 TP2, 5 SL, 6 Get out, 7 Trail stop
+var bool  tp1Hit  = false
+var float pE      = na
+var float pSL     = na
+var float pT1     = na
+var float pT2     = na
+var float pR      = na
+var int   pBar    = na
+var int   fillBar = na
+var float trail   = na
+var float exitR   = na
+var line  trLn    = na
+var box   liveTP  = na
+var array<box>   planBoxes = array.new<box>()
+var array<line>  planLines = array.new<line>()
+var array<label> planLbs   = array.new<label>()
+var array<line>  trailLns  = array.new<line>()
+
+// range profile state
+var map<int, float> rvmap = map.new<int, float>()
+var map<int, float> rbmap = map.new<int, float>()
+var map<int, float> rsmap = map.new<int, float>()
+var int    rpAnchor = na
+var int    rpBar    = na
+var int    rpN      = 0
+var float  rpHi     = na
+var float  rpLo     = na
+var float  rpPOC    = na
+var float  rpVAH    = na
+var float  rpVAL    = na
+var string rpShape  = ""
+var string rpTip    = ""
+var array<box> rpBoxes = array.new<box>()
+var line  rpPocLn = na
+var line  rpVahLn = na
+var line  rpValLn = na
+var label rpPocLb = na
+var label rpVahLb = na
+var label rpValLb = na
+
+type NPoc
+    float  y
+    line   ln
+    label  lb
+    string nm
+    int    bar
+
+var array<NPoc> nPocs = array.new<NPoc>()
+var bool  pocTouched = false
+var line  pdhLn = na
+var line  pdlLn = na
+var label pdhLb = na
+var label pdlLb = na
+var array<label> vaLbs = array.new<label>()
+
+// stats: closed trades on this chart, by flow grade (index 1..3)
+var array<int>   gCnt = array.new<int>(4, 0)
+var array<int>   gWin = array.new<int>(4, 0)
+var array<float> gSum = array.new<float>(4, 0.0)
+var int tGrade = 0
+var int tStPrev = 0
+
+var array<Zone>  fvgZ = array.new<Zone>()
+var array<Zone>  sdZ  = array.new<Zone>()
+var int lastBullFvgBar = na
+var int lastBearFvgBar = na
+
+var array<label> surgeLbs = array.new<label>()
+var array<label> effLbs   = array.new<label>()
+var int lastEffBar = na
+
+var int    lastBullTrapBar = na
+var int    lastBearTrapBar = na
+var string lastBullTrapTxt = ""
+var string lastBearTrapTxt = ""
+var int    lastBullCtrlBar = na
+var int    lastBearCtrlBar = na
+var string lastBullCtrlTxt = ""
+var string lastBearCtrlTxt = ""
+
+var float prevPL    = na
+var float prevPLcvd = na
+var int   prevPLBar = na
+var float prevPH    = na
+var float prevPHcvd = na
+var int   prevPHBar = na
+var array<label> divLbs = array.new<label>()
+var array<line>  divLns = array.new<line>()
+
+bool sweptEvt = false
+bool confEvt  = false
+bool conf3Evt = false
+bool outEvt   = false
+bool vaEvt    = false
+var string lastEvt = ""
+var int   lastPillBar = na
+var int   lastSoftBar = na
+var label lastSoftLb  = na
+var array<label> flipLbs = array.new<label>()
+softOk() => na(lastPillBar) or bar_index - lastPillBar >= 3
+f_fadePlans() =>
+    for b in planBoxes
+        box.set_bgcolor(b, color.new(C_SUB, 96))
+    for l in planLines
+        line.set_color(l, color.new(C_SUB, 85))
+    for lb in planLbs
+        label.delete(lb)
+    planLbs.clear()
+    true
+f_evt(string t, float y) => str.format_time(time, "HH:mm", tzIn) + "  " + t + " at " + f_px(y)
+
+f_npHit(float tl) =>
+    bool hit = false
+    for x in nPocs
+        if high >= x.y - tl and low <= x.y + tl
+            hit := true
+    hit
+
+// value-area acceptance → retest → reject, or back into value (80%-rule idea)
+f_vaWatch(float vah, float val, bool resetOnChange) =>
+    var int   below  = 0
+    var int   above  = 0
+    var int   inside = 0
+    var bool  armDn  = false
+    var bool  armUp  = false
+    var bool  awayDn = false
+    var bool  awayUp = false
+    var float refV   = na
+    int sig = 0
+    if not na(vah) and not na(val)
+        if resetOnChange and vah != refV
+            below  := 0
+            above  := 0
+            inside := 0
+            armDn  := false
+            armUp  := false
+            awayDn := false
+            awayUp := false
+        refV := vah
+        tolV = zoneTol * atr14
+        if armDn and awayDn and high >= val - tolV and close < val and (close < open or barDelta < 0)
+            sig    := -1
+            armDn  := false
+            awayDn := false
+        else if armUp and awayUp and low <= vah + tolV and close > vah and (close > open or barDelta > 0)
+            sig    := 1
+            armUp  := false
+            awayUp := false
+        below  := close < val ? below + 1 : 0
+        above  := close > vah ? above + 1 : 0
+        inside := close >= val and close <= vah ? inside + 1 : 0
+        if below >= 2
+            armDn := true
+        if above >= 2
+            armUp := true
+        if armDn and low < val - 0.5 * atr14
+            awayDn := true
+        if armUp and high > vah + 0.5 * atr14
+            awayUp := true
+        if inside >= 2 and (armDn or armUp) and sig == 0
+            sig    := armDn ? 2 : -2
+            armDn  := false
+            armUp  := false
+            awayDn := false
+            awayUp := false
+    sig
+
+vaS = f_vaWatch(pVAH, pVAL, true)
+vaR = f_vaWatch(rpVAH, rpVAL, false)
+
+// ───────────────────────── Engine (closed candles only → no repaint) ─────────────────────────
+if barstate.isconfirmed
+    // ── session change: finalize previous profile, start new watch
+    if sess != cSess
+        if cSess >= 0 and vmap.size() > 0
+            keys  = vmap.keys()
+            kMin  = int(array.min(keys))
+            kMax  = int(array.max(keys))
+            n     = kMax - kMin + 1
+            vols  = array.new<float>(n, 0.0)
+            buys  = array.new<float>(n, 0.0)
+            sells = array.new<float>(n, 0.0)
+            for i = 0 to n - 1
+                vols.set(i, nz(vmap.get(kMin + i)))
+                buys.set(i, nz(bmap.get(kMin + i)))
+                sells.set(i, nz(smap.get(kMin + i)))
+            total = vols.sum()
+            if total > 0
+                pocI = vols.indexof(vols.max())
+                lo   = pocI
+                hi   = pocI
+                acc  = vols.get(pocI)
+                while acc < total * vaPct and (lo > 0 or hi < n - 1)
+                    up = hi < n - 1 ? vols.get(hi + 1) : -1.0
+                    dn = lo > 0     ? vols.get(lo - 1) : -1.0
+                    if up >= dn
+                        hi  += 1
+                        acc += up
+                    else
+                        lo  -= 1
+                        acc += dn
+                if showNP and hasProf and not pocTouched and not na(pPOC)
+                    nPocs.push(NPoc.new(pPOC, na, na, pName, pEnd))
+                    while nPocs.size() > npKeep
+                        old = nPocs.shift()
+                        line.delete(old.ln)
+                        label.delete(old.lb)
+                pPOC    := (kMin + pocI) * binSize + binSize / 2
+                pVAH    := (kMin + hi + 1) * binSize
+                pVAL    := (kMin + lo) * binSize
+                pHi     := cHi
+                pLo     := cLo
+                rng      = cHi - cLo
+                pPos    := rng > 0 ? (pPOC - cLo) / rng : 0.5
+                pShape  := pPos >= pThr ? 1 : pPos <= bThr ? -1 : 0
+                pName   := f_name(cSess)
+                pEnd    := bar_index - 1
+                pDelta  := buys.sum() - sells.sum()
+                pbs      = buys.get(pocI) + sells.get(pocI)
+                pPocBuy := pbs > 0 ? buys.get(pocI) / pbs * 100 : 50.0
+                hasProf := true
+                pocTouched := false
+                pocHist.push(pPOC)
+                if pocHist.size() > 6
+                    pocHist.shift()
+
+                for b in profBoxes
+                    box.delete(b)
+                profBoxes.clear()
+                if showProf
+                    sessLen = pEnd - cStart + 1
+                    maxW    = math.max(3.0, sessLen * profWidth)
+                    grp     = math.max(1, int(math.ceil(n / 80.0)))
+                    gArr    = array.new<float>()
+                    gBuy    = array.new<float>()
+                    gSel    = array.new<float>()
+                    gMax    = 0.0
+                    for gi = 0 to n - 1 by grp
+                        s  = 0.0
+                        sb = 0.0
+                        ss = 0.0
+                        for j = gi to math.min(gi + grp, n) - 1
+                            s  += vols.get(j)
+                            sb += buys.get(j)
+                            ss += sells.get(j)
+                        gArr.push(s)
+                        gBuy.push(sb)
+                        gSel.push(ss)
+                        gMax := math.max(gMax, s)
+                    for g = 0 to gArr.size() - 1
+                        gv = gArr.get(g)
+                        if gv > 0 and gMax > 0
+                            b0    = g * grp
+                            b1    = math.min(b0 + grp, n) - 1
+                            bot   = (kMin + b0) * binSize
+                            top   = (kMin + b1 + 1) * binSize
+                            w     = math.max(1, math.round(gv / gMax * maxW))
+                            isPoc = pocI >= b0 and pocI <= b1
+                            inVA  = b1 >= lo and b0 <= hi
+                            if isPoc
+                                profBoxes.push(box.new(pEnd - w, top, pEnd, bot, border_color = color.new(C_PANEL, 100), bgcolor = color.new(C_GOLD, 55), force_overlay = true))
+                            else
+                                bs2 = gBuy.get(g) + gSel.get(g)
+                                wb  = bs2 > 0 ? math.round(w * gBuy.get(g) / bs2) : 0
+                                tB  = inVA ? (isLight ? 72 : 64) : 94
+                                if wb > 0
+                                    profBoxes.push(box.new(pEnd - w, top, pEnd - w + wb, bot, border_color = color.new(C_PANEL, 100), bgcolor = color.new(C_GRN, tB), force_overlay = true))
+                                if wb < w
+                                    profBoxes.push(box.new(pEnd - w + wb, top, pEnd, bot, border_color = color.new(C_PANEL, 100), bgcolor = color.new(C_RED, tB), force_overlay = true))
+
+
+        vmap.clear()
+        bmap.clear()
+        smap.clear()
+        cHi    := na
+        cLo    := na
+        cStart := bar_index
+        cSess  := sess
+
+        dir         := 0
+        st          := 0
+        liq         := na
+        swExt       := na
+        swBar       := na
+        swInZone    := false
+        mssLvl      := na
+        swLb        := na
+        noTradeD    := false
+        blockedSame := false
+        lastGrade   := 0
+        lastPass    := ""
+        lastTip     := ""
+        skipWhy     := ""
+        box.delete(magBx)
+        label.delete(magLb)
+        magBx := na
+        magLb := na
+        magY  := na
+        if sess >= 0 and hasProf
+            if pShape == 0
+                noTradeD := true
+            else
+                against = (pShape == 1 and t4 == -1) or (pShape == -1 and t4 == 1)
+                if reqNew and not against
+                    blockedSame := true
+                else
+                    dir := pShape
+                    liq := dir == 1 ? llLiq : hhLiq
+                    magLvl = dir == 1 ? pHi : pLo
+                    if showMag and ((dir == 1 and magLvl > close) or (dir == -1 and magLvl < close))
+                        magY  := magLvl
+
+    // ── accumulate this bar into the session delta profile (1m detail; 5m fallback)
+    if sess >= 0
+        nG = useGC and not na(basis) and not na(gxArr) ? math.min(gxArr.size(), math.min(gvArr.size(), math.min(gbArr.size(), gsArr.size()))) : 0
+        nP = math.min(pxArr.size(), math.min(pvArr.size(), math.min(pbArr.size(), psArr.size())))
+        if nG > 0
+            for i = 0 to nG - 1
+                k = int(math.floor((gxArr.get(i) - basis) / binSize))
+                vmap.put(k, nz(vmap.get(k)) + gvArr.get(i))
+                bmap.put(k, nz(bmap.get(k)) + gbArr.get(i))
+                smap.put(k, nz(smap.get(k)) + gsArr.get(i))
+        else if nP > 0
+            for i = 0 to nP - 1
+                k = int(math.floor(pxArr.get(i) / binSize))
+                vmap.put(k, nz(vmap.get(k)) + pvArr.get(i))
+                bmap.put(k, nz(bmap.get(k)) + pbArr.get(i))
+                smap.put(k, nz(smap.get(k)) + psArr.get(i))
+        else
+            k = int(math.floor(hlc3 / binSize))
+            vmap.put(k, nz(vmap.get(k)) + vol)
+            bmap.put(k, nz(bmap.get(k)) + (close > open ? vol : 0.0))
+            smap.put(k, nz(smap.get(k)) + (close < open ? vol : 0.0))
+        cHi := na(cHi) ? high : math.max(cHi, high)
+        cLo := na(cLo) ? low  : math.min(cLo, low)
+
+    // ── range profile: accumulate from the chosen start to now
+    if showRP and not na(anchorT) and time >= anchorT
+        if anchorT != rpAnchor
+            rvmap.clear()
+            rbmap.clear()
+            rsmap.clear()
+            rpAnchor := anchorT
+            rpBar    := bar_index
+            rpN      := 0
+            rpHi     := na
+            rpLo     := na
+        nR = math.min(pxArr.size(), math.min(pvArr.size(), math.min(pbArr.size(), psArr.size())))
+        if nR > 0
+            for i = 0 to nR - 1
+                k = int(math.floor(pxArr.get(i) / binSize))
+                rvmap.put(k, nz(rvmap.get(k)) + pvArr.get(i))
+                rbmap.put(k, nz(rbmap.get(k)) + pbArr.get(i))
+                rsmap.put(k, nz(rsmap.get(k)) + psArr.get(i))
+        else
+            k = int(math.floor(hlc3 / binSize))
+            rvmap.put(k, nz(rvmap.get(k)) + vol)
+            rbmap.put(k, nz(rbmap.get(k)) + (close > open ? vol : 0.0))
+            rsmap.put(k, nz(rsmap.get(k)) + (close < open ? vol : 0.0))
+        rpN  += 1
+        rpHi := na(rpHi) ? high : math.max(rpHi, high)
+        rpLo := na(rpLo) ? low  : math.min(rpLo, low)
+
+    // ── range profile: redraw once per closed candle at the live edge
+    if showRP and rvmap.size() > 0 and (barstate.islastconfirmedhistory or barstate.isrealtime)
+        for b in rpBoxes
+            box.delete(b)
+        rpBoxes.clear()
+        keys  = rvmap.keys()
+        kMin  = int(array.min(keys))
+        kMax  = int(array.max(keys))
+        n     = kMax - kMin + 1
+        vols  = array.new<float>(n, 0.0)
+        buys  = array.new<float>(n, 0.0)
+        sells = array.new<float>(n, 0.0)
+        for i = 0 to n - 1
+            vols.set(i, nz(rvmap.get(kMin + i)))
+            buys.set(i, nz(rbmap.get(kMin + i)))
+            sells.set(i, nz(rsmap.get(kMin + i)))
+        total = vols.sum()
+        if total > 0
+            pocI = vols.indexof(vols.max())
+            lo   = pocI
+            hi   = pocI
+            acc  = vols.get(pocI)
+            while acc < total * vaPct and (lo > 0 or hi < n - 1)
+                up = hi < n - 1 ? vols.get(hi + 1) : -1.0
+                dn = lo > 0     ? vols.get(lo - 1) : -1.0
+                if up >= dn
+                    hi  += 1
+                    acc += up
+                else
+                    lo  -= 1
+                    acc += dn
+            rpPOC := (kMin + pocI) * binSize + binSize / 2
+            rpVAH := (kMin + hi + 1) * binSize
+            rpVAL := (kMin + lo) * binSize
+            rr     = rpHi - rpLo
+            rPos   = rr > 0 ? (rpPOC - rpLo) / rr : 0.5
+            rpShape := rPos >= pThr ? "P · buyers in control" : rPos <= bThr ? "b · sellers in control" : "D · balance"
+            rDelta = buys.sum() - sells.sum()
+            maxW   = math.max(5.0, (bar_index - rpBar) * rpWidth)
+            grp    = math.max(1, int(math.ceil(n / 60.0)))
+            gArr   = array.new<float>()
+            gBuy   = array.new<float>()
+            gSel   = array.new<float>()
+            gMax   = 0.0
+            for gi = 0 to n - 1 by grp
+                s  = 0.0
+                sb = 0.0
+                ss = 0.0
+                for j = gi to math.min(gi + grp, n) - 1
+                    s  += vols.get(j)
+                    sb += buys.get(j)
+                    ss += sells.get(j)
+                gArr.push(s)
+                gBuy.push(sb)
+                gSel.push(ss)
+                gMax := math.max(gMax, s)
+            for g = 0 to gArr.size() - 1
+                gv = gArr.get(g)
+                if gv > 0 and gMax > 0
+                    b0    = g * grp
+                    b1    = math.min(b0 + grp, n) - 1
+                    bot   = (kMin + b0) * binSize
+                    top   = (kMin + b1 + 1) * binSize
+                    w     = math.max(1, math.round(gv / gMax * maxW))
+                    isPoc = pocI >= b0 and pocI <= b1
+                    inVA  = b1 >= lo and b0 <= hi
+                    if isPoc
+                        rpBoxes.push(box.new(rpBar, top, rpBar + w, bot, border_color = color.new(C_PANEL, 100), bgcolor = color.new(C_RED, 45), force_overlay = true))
+                    else
+                        bs2 = gBuy.get(g) + gSel.get(g)
+                        wb  = bs2 > 0 ? math.round(w * gBuy.get(g) / bs2) : 0
+                        tB  = inVA ? (isLight ? 66 : 58) : 92
+                        if wb > 0
+                            rpBoxes.push(box.new(rpBar, top, rpBar + wb, bot, border_color = color.new(C_PANEL, 100), bgcolor = color.new(C_GRN, tB), force_overlay = true))
+                        if wb < w
+                            rpBoxes.push(box.new(rpBar + wb, top, rpBar + w, bot, border_color = color.new(C_PANEL, 100), bgcolor = color.new(C_RED, tB), force_overlay = true))
+            rpTip := "Range profile: from your start candle to now (" + str.tostring(bar_index - rpBar + 1) + " candles)\nShape " + rpShape + "\nΔ in range " + f_sign(rDelta) + "\nPrice now " + (close > rpVAH ? "above value → buyers accepted higher" : close < rpVAL ? "below value → sellers accepted lower" : "inside value → wait for the edges")
+
+    // ── POC touch tracking and naked POC clean-up
+    if hasProf and bar_index > pEnd + 1 and high >= pPOC and low <= pPOC
+        pocTouched := true
+    int iN = nPocs.size() - 1
+    while iN >= 0
+        xN = nPocs.get(iN)
+        if high >= xN.y and low <= xN.y
+            line.delete(xN.ln)
+            label.delete(xN.lb)
+            nPocs.remove(iN)
+        iN -= 1
+
+    // ── value-area signals (info only)
+    if showVA and sess >= 0
+        for q = 0 to 1
+            sg  = q == 0 ? vaS : vaR
+            pre = q == 0 ? "" : "r"
+            if sg != 0 and (q == 0 or showVAR) and softOk()
+                vaEvt := vaEvt or sg == 1 or sg == -1
+                txtV = sg == -1 ? pre + "VAL reject ▼" : sg == 1 ? pre + "VAH reject ▲" : sg == 2 ? pre + "Back in value ▲" : pre + "Back in value ▼"
+                tipV = sg == -1 ? "Price was accepted BELOW value (2+ closes under " + pre + "VAL), came back to test it from below and got rejected\n→ sellers now defend the old edge; moves usually continue lower" : sg == 1 ? "Price was accepted ABOVE value (2+ closes over " + pre + "VAH), came back to test it from above and held\n→ buyers now defend the old edge; moves usually continue higher" : sg == 2 ? "Price was below value but closed back inside for 2 candles\n→ often travels to the other edge (" + pre + "VAH)" : "Price was above value but closed back inside for 2 candles\n→ often travels to the other edge (" + pre + "VAL)"
+                tipV += "\nInfo signal — not part of the tested setup"
+                up = sg == 1 or sg == 2
+                vaLbs.push(f_pill(bar_index, up ? low : high, txtV, math.abs(sg) == 2 ? color.new(C_SUB, 20) : (up ? C_GRN : C_RED), WHITE, up ? label.style_label_up : label.style_label_down, tipV))
+                lastPillBar := bar_index
+                lastSoftBar := bar_index
+                lastSoftLb  := vaLbs.last()
+                lastEvt     := f_evt(txtV, close)
+        while vaLbs.size() > 6
+            label.delete(vaLbs.shift())
+
+    // ── zones: report card update (filled / broken ones disappear)
+    f_zoneUpd(fvgZ)
+    f_zoneUpd(sdZ)
+
+    // ── new FVG (only Strong / Bias; overlapping ones merge)
+    if showFVG and (bullGap or bearGap)
+        gd   = bullGap ? 1 : -1
+        gTop = bullGap ? low : l2
+        gBot = bullGap ? h2 : high
+        gPct = bullGap ? prevBuyPct : 100 - prevBuyPct
+        g    = f_grade(gPct, prevBodyX)
+        if g >= 2
+            if gd == 1
+                lastBullFvgBar := bar_index
+            else
+                lastBearFvgBar := bar_index
+            tagTxt = "FVG " + (gd == 1 ? "▲ " : "▼ ") + f_pct(gPct)
+            tip    = "Fair value gap · " + f_gname(g) + "\n" + f_pct(gPct) + (gd == 1 ? " buying" : " selling") + " in the move that left it\n" + f_px(gBot) + " – " + f_px(gTop) + "\nDisappears once price fills it"
+            merged = false
+            if fvgZ.size() > 0
+                lastZ = fvgZ.last()
+                if lastZ.dir == gd and gBot <= lastZ.top and gTop >= lastZ.bot
+                    lastZ.top := math.max(lastZ.top, gTop)
+                    lastZ.bot := math.min(lastZ.bot, gBot)
+                    box.set_top(lastZ.bx, lastZ.top)
+                    box.set_bottom(lastZ.bx, lastZ.bot)
+                    label.set_y(lastZ.tag, (lastZ.top + lastZ.bot) / 2)
+                    label.set_text(lastZ.tag, tagTxt)
+                    label.set_tooltip(lastZ.tag, tip)
+                    merged := true
+            if not merged
+                bx = box.new(bar_index - 2, gTop, bar_index + 3, gBot, border_color = color.new(C_BLUE, 100), bgcolor = color.new(C_SUB, isLight ? 92 : 88), force_overlay = true)
+                tg = f_pill(bar_index + 3, (gTop + gBot) / 2, tagTxt, color.new(C_SUB, 25), WHITE, label.style_label_left, tip)
+                fvgZ.push(Zone.new(bx, tg, gTop, gBot, gd, bar_index, 0))
+                f_zoneTrim(fvgZ, fvgKeep)
+
+    // ── new supply / demand zone: base (or last opposite candle) before a displacement candle
+    if showSD and (ctrlUp or ctrlDn) and bodyX >= sdDisp
+        dd = ctrlUp ? 1 : -1
+        int be = 0
+        for j = 1 to sdBaseMax
+            if be == j - 1 and bodyX[j] < sdBaseBdy
+                be := j
+        int bs = 1
+        if be == 0
+            for j = 1 to 3
+                if be == 0 and (dd == 1 ? close[j] < open[j] : close[j] > open[j])
+                    be := j
+            bs := be
+        if be > 0
+            zTop = high[bs]
+            zBot = low[bs]
+            for j = bs to be
+                zTop := math.max(zTop, high[j])
+                zBot := math.min(zBot, low[j])
+            bSum = 0.0
+            sSum = 0.0
+            for j = 0 to be
+                bSum += buyV[j]
+                sSum += sellV[j]
+            tot = bSum + sSum
+            own = tot > 0 ? (dd == 1 ? bSum : sSum) / tot * 100 : 50.0
+            dup = false
+            for z in sdZ
+                if z.dir == dd and zBot <= z.top and zTop >= z.bot
+                    dup := true
+            if own >= sdOwner and zTop - zBot <= sdMaxW * atr14 and zTop > zBot and not dup
+                zCol = dd == 1 ? C_GRN : C_RED
+                bx = box.new(bar_index - be, zTop, bar_index + 3, zBot, border_color = color.new(zCol, 100), bgcolor = color.new(zCol, isLight ? 90 : 86), force_overlay = true)
+                tg = f_pill(bar_index + 3, (zTop + zBot) / 2, "", zCol, WHITE, label.style_label_left, "")
+                nz0 = Zone.new(bx, tg, zTop, zBot, dd, bar_index, 1, own, tot)
+                f_sdPaint(nz0)
+                sdZ.push(nz0)
+                f_zoneTrim(sdZ, sdKeep)
+
+    // ── where are we? (flow only matters at levels / zones)
+    tol    = zoneTol * atr14
+    nearP  = not na(pPOC) and high >= pPOC - tol and low <= pPOC + tol
+    nearH  = not na(pVAH) and high >= pVAH - tol and low <= pVAH + tol
+    nearL  = not na(pVAL) and high >= pVAL - tol and low <= pVAL + tol
+    nearX  = (not na(pHi) and high >= pHi - tol and low <= pHi + tol) or (not na(pLo) and high >= pLo - tol and low <= pLo + tol)
+    nearQ  = not na(liq) and high >= liq - tol and low <= liq + tol
+    nearB  = inS and (high >= vwU2 or low <= vwL2)
+    nearD  = showPD and ((not na(pdh) and high >= pdh - tol and low <= pdh + tol) or (not na(pdl) and high >= pdl - tol and low <= pdl + tol))
+    atZone = nearP or nearH or nearL or nearX or nearQ or nearB or nearD or f_npHit(tol) or f_zoneHit(fvgZ, 0) or f_zoneHit(sdZ, 0)
+
+    // ── control (anywhere) and traps (at zones)
+    if ctrlUp
+        lastBullCtrlBar := bar_index
+        lastBullCtrlTxt := surgeUp ? "ឆុយ" : "CTRL"
+    if ctrlDn
+        lastBearCtrlBar := bar_index
+        lastBearCtrlTxt := surgeDn ? "ឆុយ" : "CTRL"
+    if atZone and (absSell or exhSell)
+        lastBullTrapBar := bar_index
+        lastBullTrapTxt := absSell ? "ABS" : "EXH"
+    if atZone and (absBuy or exhBuy)
+        lastBearTrapBar := bar_index
+        lastBearTrapTxt := absBuy ? "ABS" : "EXH"
+
+    // ── effort vs result labels: traps at zones; "In control" only right after a sweep or in a trade
+    watchCtrl = (st == 1 and ((dir == 1 and ctrlUp) or (dir == -1 and ctrlDn))) or (tSt == 2 and ((tDir == 1 and ctrlUp) or (tDir == -1 and ctrlDn)))
+    if showEff and not clean and not newsWin and softOk() and (na(lastEffBar) or bar_index - lastEffBar >= 5)
+        effTxt = "Δ " + f_sign(barDelta) + " = " + str.tostring(effX, "0.0") + "× normal effort\nBody " + str.tostring(bodyX, "0.00") + "× ATR"
+        if atZone and (absSell or exhSell)
+            tipE = absSell ? "SELLERS ABSORBED (bullish sign)\nSellers hit hard: " + effTxt + "\n…but price did NOT go down.\nSomeone is buying everything they sell → buyers defending this level." : "SELLERS TIRED (bullish sign)\nPrice made a new low, but selling effort is only " + str.tostring(effX, "0.0") + "× normal.\nNobody wants to push lower any more → the drop is running out."
+            effLbs.push(f_pill(bar_index, low, (absSell ? "Sellers absorbed" : "Sellers tired"), color.new(C_GRN, 15), WHITE, label.style_label_up, tipE))
+            lastEvt := f_evt(absSell ? "Sellers absorbed" : "Sellers tired", low)
+            lastEffBar := bar_index
+        else if atZone and (absBuy or exhBuy)
+            tipE = absBuy ? "BUYERS ABSORBED (bearish sign)\nBuyers hit hard: " + effTxt + "\n…but price did NOT go up.\nSomeone is selling into every buy → sellers defending this level." : "BUYERS TIRED (bearish sign)\nPrice made a new high, but buying effort is only " + str.tostring(effX, "0.0") + "× normal.\nNobody wants to push higher any more → the rally is running out."
+            effLbs.push(f_pill(bar_index, high, (absBuy ? "Buyers absorbed" : "Buyers tired"), color.new(C_RED, 15), WHITE, label.style_label_down, tipE))
+            lastEvt := f_evt(absBuy ? "Buyers absorbed" : "Buyers tired", high)
+            lastEffBar := bar_index
+        else if watchCtrl and not (surgeUp or surgeDn)
+            tipE = (ctrlUp ? "BUYERS" : "SELLERS") + " IN CONTROL\n" + effTxt + "\nBig effort AND price moved with it → this side is winning"
+            effLbs.push(f_pill(bar_index, ctrlUp ? low : high, (ctrlUp ? "Buyers" : "Sellers") + " in control", color.new(ctrlUp ? C_GRN : C_RED, 40), WHITE, ctrlUp ? label.style_label_up : label.style_label_down, tipE))
+            lastEvt := f_evt((ctrlUp ? "Buyers" : "Sellers") + " in control", close)
+            lastEffBar := bar_index
+    if lastEffBar == bar_index and effLbs.size() > 0
+        lastPillBar := bar_index
+        lastSoftBar := bar_index
+        lastSoftLb  := effLbs.last()
+    while effLbs.size() > 8
+        label.delete(effLbs.shift())
+
+    // ── ឆុយ tag (only where it matters: at a zone, after a sweep or in a trade)
+    if (surgeUp or surgeDn) and not clean and not newsWin and softOk() and (atZone or st == 1 or tSt == 2)
+        sd   = surgeUp ? 1 : -1
+        sPct = sd == 1 ? buyPct : 100 - buyPct
+        tipS = "ឆុយ " + (sd == 1 ? "▲ buyers" : "▼ sellers") + " · health check\nBody      " + str.tostring(bodyX, "0.0") + "× ATR   (need " + str.tostring(surgeBody, "0.0") + ") ✓\nFlow      " + f_pct(sPct) + "   (need " + f_pct(surgeFlow) + ") ✓\nActivity  " + str.tostring(tickX, "0.0") + "× avg   (need " + str.tostring(surgeTick, "0.0") + ") ✓\nΔ " + f_sign(barDelta) + " = " + str.tostring(effX, "0.0") + "× normal\nAt a zone: " + (atZone ? "yes ✓" : "no")
+        surgeLbs.push(f_pill(bar_index, sd == 1 ? low : high, "ឆុយ", C_GOLD, C_INK, sd == 1 ? label.style_label_up : label.style_label_down, tipS))
+        lastPillBar := bar_index
+        lastSoftBar := bar_index
+        lastSoftLb  := surgeLbs.last()
+        while surgeLbs.size() > 6
+            label.delete(surgeLbs.shift())
+
+    // ── CVD divergences (same week only) → also count as traps
+    if showDiv and not na(dpl)
+        pb = bar_index - divLen
+        if prevPLBar >= wStart and pb >= wStart
+            dTxt = dpl < prevPL and cvdLAt >= prevPLcvd ? "EXH" : dpl >= prevPL and cvdLAt < prevPLcvd ? "ABS" : ""
+            if dTxt != ""
+                tipD = dTxt == "EXH" ? "Selling exhaustion\nPrice lower low, CVD higher low → sellers losing steam" : "Selling absorption\nCVD lower low, price higher low → sellers being absorbed"
+                divLbs.push(label.new(pb, lineMode ? sCvdAt : meter ? -46.0 : cvdLAt, meter or lineMode ? (dTxt == "EXH" ? "Sellers tired" : "Sellers absorbed") : dTxt, style = label.style_label_up, color = C_GRN, textcolor = WHITE, size = size.tiny, tooltip = tipD))
+                if not meter
+                    divLns.push(line.new(prevPLBar, prevPLcvd, pb, cvdLAt, color = color.new(C_GRN, 30), style = line.style_dotted))
+                lastBullTrapBar := pb
+                lastBullTrapTxt := dTxt
+        prevPL    := dpl
+        prevPLcvd := cvdLAt
+        prevPLBar := pb
+    if showDiv and not na(dph)
+        pb = bar_index - divLen
+        if prevPHBar >= wStart and pb >= wStart
+            dTxt = dph > prevPH and cvdHAt <= prevPHcvd ? "EXH" : dph <= prevPH and cvdHAt > prevPHcvd ? "ABS" : ""
+            if dTxt != ""
+                tipD = dTxt == "EXH" ? "Buying exhaustion\nPrice higher high, CVD lower high → buyers losing steam" : "Buying absorption\nCVD higher high, price lower high → buyers being absorbed"
+                divLbs.push(label.new(pb, lineMode ? sCvdAt : meter ? 46.0 : cvdHAt, meter or lineMode ? (dTxt == "EXH" ? "Buyers tired" : "Buyers absorbed") : dTxt, style = label.style_label_down, color = C_RED, textcolor = WHITE, size = size.tiny, tooltip = tipD))
+                if not meter
+                    divLns.push(line.new(prevPHBar, prevPHcvd, pb, cvdHAt, color = color.new(C_RED, 30), style = line.style_dotted))
+                lastBearTrapBar := pb
+                lastBearTrapTxt := dTxt
+        prevPH    := dph
+        prevPHcvd := cvdHAt
+        prevPHBar := pb
+    while divLbs.size() > 16
+        label.delete(divLbs.shift())
+    while divLns.size() > 16
+        line.delete(divLns.shift())
+
+    // ── WAIT → SWEEP → FLIP
+    if dir != 0 and sess >= 0 and st < 2
+        if st == 0
+            if (dir == 1 and low < liq) or (dir == -1 and high > liq)
+                st       := 1
+                swExt    := dir == 1 ? low : high
+                swBar    := bar_index
+                swBuy    := buyV
+                swSell   := sellV
+                swInZone := f_zoneHit(sdZ, dir)
+                mssLvl   := dir == 1 ? hhMss : llMss
+                sweptEvt := true
+                lastEvt  := f_evt("Liquidity sweep " + (dir == 1 ? "below " : "above ") + f_px(liq), swExt)
+                if not na(lastSoftBar) and bar_index - lastSoftBar <= 2
+                    label.delete(lastSoftLb)
+                lastPillBar := bar_index
+                swLb     := f_pill(bar_index, swExt, "Sweep", color.new(C_SUB, 5), WHITE, dir == 1 ? label.style_label_up : label.style_label_down, "Liquidity taken " + (dir == 1 ? "below " : "above ") + f_px(liq) + "\nBreak and back in = fakeout → watch for FLIP at " + f_px(mssLvl))
+        else if st == 1
+            if (dir == 1 and low < swExt) or (dir == -1 and high > swExt)
+                swExt    := dir == 1 ? low : high
+                swBar    := bar_index
+                swBuy    := buyV
+                swSell   := sellV
+                swInZone := swInZone or f_zoneHit(sdZ, dir)
+                mssLvl   := dir == 1 ? hhMss : llMss
+                label.set_xy(swLb, bar_index, swExt)
+                label.set_tooltip(swLb, "Liquidity taken " + (dir == 1 ? "below " : "above ") + f_px(liq) + "\nBreak and back in = fakeout → watch for FLIP at " + f_px(mssLvl))
+            else
+                swBuy  += buyV
+                swSell += sellV
+
+        if st == 1 and ((dir == 1 and close > mssLvl) or (dir == -1 and close < mssLvl))
+            fTot    = swBuy + swSell
+            fPct    = fTot > 0 ? (dir == 1 ? swBuy : swSell) / fTot * 100 : 50.0
+            okTrap  = (dir == 1 ? lastBullTrapBar : lastBearTrapBar) >= swBar - divWin
+            trapTxt = dir == 1 ? lastBullTrapTxt : lastBearTrapTxt
+            okCtrl  = (dir == 1 ? lastBullCtrlBar : lastBearCtrlBar) >= swBar
+            ctrlTxt = dir == 1 ? lastBullCtrlTxt : lastBearCtrlTxt
+            okD     = fPct >= flowAgree
+            okZone  = swInZone or (dir == 1 ? lastBullFvgBar : lastBearFvgBar) >= swBar
+            nOk     = (okTrap ? 1 : 0) + (okCtrl ? 1 : 0) + (okD ? 1 : 0) + (okZone ? 1 : 0)
+            grade   = nOk >= 3 ? 3 : nOk == 2 ? 2 : 1
+            other   = dir == 1 ? "sellers" : "buyers"
+            mine    = dir == 1 ? "buyers" : "sellers"
+            passArr = array.new<string>()
+            if okTrap
+                passArr.push(trapTxt)
+            if okCtrl
+                passArr.push(ctrlTxt)
+            if okD
+                passArr.push("Δ" + f_pct(fPct))
+            if okZone
+                passArr.push(swInZone ? (dir == 1 ? "DEMAND" : "SUPPLY") : "FVG")
+            passTxt = passArr.join(" · ")
+            tipF = "FLIP " + (dir == 1 ? "▲ " : "▼ ") + str.repeat("◆", grade) + "  (" + str.tostring(nOk) + " of 4 flow checks)\n" + (okTrap ? "✓ " : "✗ ") + other + " trapped at the sweep" + (okTrap ? " (" + trapTxt + ")" : "") + "\n" + (okCtrl ? "✓ " : "✗ ") + mine + " took control" + (okCtrl ? " (" + ctrlTxt + ")" : "") + "\n" + (okD ? "✓ " : "✗ ") + "Δ since sweep " + f_pct(fPct) + " " + mine + "\n" + (okZone ? "✓ " : "✗ ") + "sweep into a " + (dir == 1 ? "demand" : "supply") + " zone / FVG"
+            lastGrade := grade
+            lastPass  := passTxt
+            lastTip   := tipF
+            flipTxt   = (dir == 1 ? "▲ FLIP " : "▼ FLIP ") + str.repeat("◆", grade) + (passTxt != "" ? "\n" + passTxt : "")
+
+            entry = mssLvl
+            sl    = dir == 1 ? swExt - slAtrMult * atr14 : swExt + slAtrMult * atr14
+            risk  = math.abs(entry - sl)
+            if grade < minGrade or risk > maxRisk or risk <= 0
+                st      := 3
+                skipWhy := grade < minGrade ? "flow ◆ below min" : "risk > $" + str.tostring(maxRisk)
+                f_pill(bar_index, dir == 1 ? high : low, flipTxt + "\nskip · " + skipWhy, color.new(C_SUB, 20), WHITE, dir == 1 ? label.style_label_down : label.style_label_up, tipF)
+            else
+                st       := 2
+                confEvt  := true
+                conf3Evt := grade == 3
+                tDir     := dir
+                tGrade   := grade
+                tSt      := 1
+                tp1Hit   := false
+                exitR    := na
+                trLn     := na
+                pE       := entry
+                pSL      := sl
+                pR       := risk
+                pT1      := entry + dir * risk
+                pT2      := entry + dir * 2 * risk
+                pBar     := bar_index
+                fCol     = dir == 1 ? C_GRN : C_RED
+                lastEvt := f_evt("FLIP " + (dir == 1 ? "▲ " : "▼ ") + str.repeat("◆", grade), close)
+                if not na(lastSoftBar) and bar_index - lastSoftBar <= 2
+                    label.delete(lastSoftLb)
+                lastPillBar := bar_index
+                for fl in flipLbs
+                    label.set_color(fl, color.new(C_SUB, 45))
+                flipLbs.push(label.new(bar_index, dir == 1 ? high : low, flipTxt, style = dir == 1 ? label.style_label_down : label.style_label_up, color = fCol, textcolor = WHITE, size = size.small, tooltip = tipF, force_overlay = true))
+                while flipLbs.size() > keepPlans
+                    flipLbs.shift()
+
+                f_fadePlans()
+                xR = bar_index + planLen
+                planBoxes.push(box.new(bar_index, math.max(pE, pSL), xR, math.min(pE, pSL), border_color = color.new(C_RED, 100), bgcolor = color.new(C_RED, 91), force_overlay = true))
+                liveTP := box.new(bar_index, math.max(pE, pT2), xR, math.min(pE, pT2), border_color = color.new(C_GRN, 100), bgcolor = color.new(C_GRN, 91), force_overlay = true)
+                planBoxes.push(liveTP)
+                planLines.push(line.new(bar_index, pE, xR, pE, color = color.new(C_FG, 30), width = 1, force_overlay = true))
+                planLines.push(line.new(bar_index, pT1, xR, pT1, color = color.new(C_GRN, 40), style = line.style_dotted, force_overlay = true))
+                while planBoxes.size() > keepPlans * 2
+                    box.delete(planBoxes.shift())
+                while planLines.size() > keepPlans * 2
+                    line.delete(planLines.shift())
+
+                for lb in planLbs
+                    label.delete(lb)
+                planLbs.clear()
+                tgtNote = trailMode ? "\nTrail mode: re-check order flow here, don't auto-exit" : ""
+                planLbs.push(f_pill(xR, pT2, "TP2 " + f_px(pT2), C_GRN, WHITE, label.style_label_left, "2R target" + tgtNote))
+                planLbs.push(f_pill(xR, pT1, "TP1 " + f_px(pT1), color.new(C_GRN, 35), WHITE, label.style_label_left, "1R target" + tgtNote))
+                planLbs.push(f_pill(xR, pE, "E " + f_px(pE), C_SUB, WHITE, label.style_label_left, "Limit entry on retest of the FLIP level\nValid " + str.tostring(validBars) + " bars"))
+                planLbs.push(f_pill(xR, pSL, "SL " + f_px(pSL), C_RED, WHITE, label.style_label_left, "Behind the sweep extreme " + f_px(swExt) + " (+" + str.tostring(slAtrMult) + "× ATR)\nRisk $" + str.tostring(risk, "0.00")))
+
+    // ── trade management
+    if tSt == 1 and bar_index > pBar
+        if bar_index - pBar <= validBars
+            if (tDir == 1 and low <= pE) or (tDir == -1 and high >= pE)
+                tSt     := 2
+                fillBar := bar_index
+                trail   := pSL
+                box.set_bgcolor(liveTP, color.new(C_GRN, 91))
+                if trailMode
+                    trLn := line.new(bar_index, trail, bar_index + 1, trail, color = color.new(C_FG, 20), style = line.style_dashed, width = 1, force_overlay = true)
+                    trailLns.push(trLn)
+                if (tDir == 1 and low <= pSL) or (tDir == -1 and high >= pSL)
+                    tSt   := 5
+                    exitR := -1.0
+        else
+            tSt := 3
+            box.set_bgcolor(liveTP, color.new(C_GRN, 96))
+    else if tSt == 2 and not trailMode
+        if (tDir == 1 and low <= pSL) or (tDir == -1 and high >= pSL)
+            tSt   := 5
+            exitR := -1.0
+        else if (tDir == 1 and high >= pT2) or (tDir == -1 and low <= pT2)
+            tSt   := 4
+            exitR := 2.0
+        else if (tDir == 1 and high >= pT1) or (tDir == -1 and low <= pT1)
+            tp1Hit := true
+    else if tSt == 2 and trailMode
+        openR   = (close - pE) * tDir / pR
+        against = tDir == 1 ? (absBuy or exhBuy or lastBearTrapBar == bar_index - divLen) : (absSell or exhSell or lastBullTrapBar == bar_index - divLen)
+        if (tDir == 1 and low <= trail) or (tDir == -1 and high >= trail)
+            tSt   := 7
+            exitR := (trail - pE) * tDir / pR
+            line.set_x2(trLn, bar_index)
+            f_pill(bar_index, trail, "Stopped " + f_r(exitR) + "R", C_SUB, WHITE, tDir == 1 ? label.style_label_up : label.style_label_down, "Trail stop hit at " + f_px(trail))
+        else if against and atZone and openR > 0
+            tSt    := 6
+            exitR  := openR
+            outEvt := true
+            line.set_x2(trLn, bar_index)
+            f_pill(bar_index, tDir == 1 ? high : low, "Get out " + f_r(openR) + "R", C_RED, WHITE, tDir == 1 ? label.style_label_down : label.style_label_up, "The other side took it back\n" + (tDir == 1 ? "Buyers" : "Sellers") + " absorbed or exhausted at a zone\nExit at close " + f_px(close))
+        else
+            if (tDir == 1 and high >= pT1) or (tDir == -1 and low <= pT1)
+                tp1Hit := true
+            pivot = tDir == 1 ? tpl : tph
+            if not na(pivot) and bar_index - 2 > fillBar
+                newT = tDir == 1 ? pivot - slAtrMult * atr14 : pivot + slAtrMult * atr14
+                if (tDir == 1 and newT > trail and close > pivot) or (tDir == -1 and newT < trail and close < pivot)
+                    line.set_x2(trLn, bar_index)
+                    trailLns.push(line.new(bar_index, trail, bar_index, newT, color = color.new(C_FG, 20), style = line.style_dashed, force_overlay = true))
+                    trail := newT
+                    trLn  := line.new(bar_index, trail, bar_index + 1, trail, color = color.new(C_FG, 20), style = line.style_dashed, width = 1, force_overlay = true)
+                    trailLns.push(trLn)
+            line.set_x2(trLn, bar_index + 1)
+    while trailLns.size() > 60
+        line.delete(trailLns.shift())
+    if tSt != tStPrev and tSt >= 3
+        f_fadePlans()
+    if tSt != tStPrev and (tSt == 4 or tSt == 5 or tSt == 6 or tSt == 7) and tGrade > 0 and not na(exitR)
+        gCnt.set(tGrade, gCnt.get(tGrade) + 1)
+        gSum.set(tGrade, gSum.get(tGrade) + exitR)
+        if exitR > 0
+            gWin.set(tGrade, gWin.get(tGrade) + 1)
+    tStPrev := tSt
+
+// ───────────────────────── Alerts (TradingView alerts only) ─────────────────────────
+alertcondition(sweptEvt, "XAU.KH · SWEPT", "XAU.KH FLOW: liquidity SWEPT on {{ticker}} @ {{close}} — wait for FLIP")
+alertcondition(confEvt, "XAU.KH · CONFIRMED", "XAU.KH FLOW: SWEEP → FLIP CONFIRMED on {{ticker}} @ {{close}} — check entry/SL on chart")
+alertcondition(conf3Evt, "XAU.KH · CONFIRMED ◆◆◆", "XAU.KH FLOW: FLIP ◆◆◆ (order flow agrees) on {{ticker}} @ {{close}}")
+alertcondition(vaEvt, "XAU.KH · VALUE-AREA REJECT", "XAU.KH FLOW: value-area edge rejected on {{ticker}} @ {{close}} (info signal)")
+f_nearName(float tl) =>
+    string nm = ""
+    if hasProf and math.abs(close - pPOC) <= tl
+        nm := "POC " + f_px(pPOC)
+    else if hasProf and math.abs(close - pVAH) <= tl
+        nm := "VAH " + f_px(pVAH)
+    else if hasProf and math.abs(close - pVAL) <= tl
+        nm := "VAL " + f_px(pVAL)
+    else if showPD and not na(pdh) and math.abs(close - pdh) <= tl
+        nm := "PDH " + f_px(pdh)
+    else if showPD and not na(pdl) and math.abs(close - pdl) <= tl
+        nm := "PDL " + f_px(pdl)
+    else if inS and math.abs(close - vw) <= tl
+        nm := "VWAP " + f_px(vw)
+    if nm == ""
+        for z in sdZ
+            if nm == "" and high >= z.bot - tl and low <= z.top + tl
+                nm := (z.dir == 1 ? "demand " : "supply ") + f_px(z.bot) + "–" + f_px(z.top)
+    nm
+
+hdName = hd == 1 ? "Buyers in control" : hd == -1 ? "Sellers in control" : hd == 2 ? "Buyers blocked" : hd == -2 ? "Sellers blocked" : hd == 4 ? "Buyers leaning" : hd == -4 ? "Sellers leaning" : hd == 3 ? "Drifting up" : hd == -3 ? "Drifting down" : "Two-way"
+if useAlerts and barstate.isconfirmed
+    if lastEvt != lastEvt[1] and lastEvt != ""
+        alert("XAU.KH · " + lastEvt + " · now: " + hdName, alert.freq_once_per_bar_close)
+    else if hd != hd[1] and (math.abs(hd) == 1 or math.abs(hd) == 2) and not newsWin
+        nearNm = f_nearName(zoneTol * atr14 * 2)
+        if nearNm != ""
+            alert("XAU.KH · " + hdName + " at " + nearNm + " · 30m Δ " + f_sign(d30), alert.freq_once_per_bar_close)
+
+alertcondition(outEvt, "XAU.KH · GET OUT", "XAU.KH FLOW: other side took it back — GET OUT on {{ticker}} @ {{close}}")
+
+// ───────────────────────── Right-edge tags: keep them in one tidy column, no overlaps ─────────────────────────
+varip int tick = 0
+if barstate.isrealtime
+    tick += 1
+blinkOn = tick % 2 == 0
+
+var array<line>  lvLn = array.new<line>()
+var array<label> lvLb = array.new<label>()
+var label gA  = na
+var label gB  = na
+var line  gAB = na
+
+f_lv(array<float> ys, array<string> ts, array<color> cs, array<color> tcs, array<string> tps, array<int> x0s, array<int> ws, float y, string t, color c, color tc, string tp, int x0, int w) =>
+    if not na(y)
+        ys.push(y)
+        ts.push(t)
+        cs.push(c)
+        tcs.push(tc)
+        tps.push(tp)
+        x0s.push(x0)
+        ws.push(w)
+    true
+
+if barstate.islast
+    xr = bar_index + 3
+    for l in lvLn
+        line.delete(l)
+    for l in lvLb
+        label.delete(l)
+    lvLn.clear()
+    lvLb.clear()
+    ys  = array.new<float>()
+    ts  = array.new<string>()
+    cs  = array.new<color>()
+    tcs = array.new<color>()
+    tps = array.new<string>()
+    x0s = array.new<int>()
+    ws  = array.new<int>()
+    if hasProf
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, pPOC, "POC " + f_px(pPOC), C_GOLD, C_INK, "Point of control of " + pName + "\nMost traded price → magnet / support-resistance\nAt this price: buyers " + f_pct(pPocBuy) + " · sellers " + f_pct(100 - pPocBuy) + "\nSession Δ " + f_sign(pDelta), pEnd, 2)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, pVAH, "VAH " + f_px(pVAH), C_BLUE, WHITE, "Value area high of " + pName + "\nAbove value = buyers accepted higher prices", pEnd, 1)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, pVAL, "VAL " + f_px(pVAL), C_BLUE, WHITE, "Value area low of " + pName + "\nBelow value = sellers accepted lower prices", pEnd, 1)
+    if showMag and not na(magY) and dir != 0
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, magY, dir == 1 ? "MAGNET ▲" : "MAGNET ▼", color.new(dir == 1 ? C_GRN : C_RED, 20), WHITE, "Liquidity resting at the " + pName + (dir == 1 ? " high " : " low ") + f_px(magY) + "\nA natural target for this session", cStart, 1)
+    for x in nPocs
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, x.y, "nPOC " + f_px(x.y), color.new(C_GOLD, 30), C_INK, "Naked POC from " + x.nm + "\nPrice hasn't traded back here yet → magnet / target\nDisappears once touched", x.bar, 1)
+    if showPD and not na(pdh)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, pdh, "PDH " + f_px(pdh), C_SUB, WHITE, "Previous day high — key liquidity / reaction zone", pdBar, 1)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, pdl, "PDL " + f_px(pdl), C_SUB, WHITE, "Previous day low — key liquidity / reaction zone", pdBar, 1)
+    if showRP and not na(rpPOC)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, rpPOC, "rPOC " + f_px(rpPOC), C_RED, WHITE, rpTip, rpBar, 2)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, rpVAH, "rVAH " + f_px(rpVAH), color.new(C_FG, 35), C_PANEL, rpTip, rpBar, 1)
+        f_lv(ys, ts, cs, tcs, tps, x0s, ws, rpVAL, "rVAL " + f_px(rpVAL), color.new(C_FG, 35), C_PANEL, rpTip, rpBar, 1)
+    // one ordered column: levels (near price only) + zone tags, no overlaps
+    farD = lvlFar * atr14
+    allY = array.new<float>()
+    allI = array.new<int>()
+    if ys.size() > 0
+        for i = 0 to ys.size() - 1
+            if math.abs(ys.get(i) - close) <= farD
+                allY.push(ys.get(i))
+                allI.push(i)
+    zl = array.new<label>()
+    for z in fvgZ
+        zl.push(z.tag)
+        allY.push((z.top + z.bot) / 2)
+        allI.push(-zl.size())
+    for z in sdZ
+        zl.push(z.tag)
+        allY.push((z.top + z.bot) / 2)
+        allI.push(-zl.size())
+    if allY.size() > 0
+        idx = allY.sort_indices()
+        float prevY = na
+        for k = 0 to idx.size() - 1
+            ii = idx.get(k)
+            yT = allY.get(ii)
+            if not na(prevY) and yT < prevY + gapY
+                yT := prevY + gapY
+            prevY := yT
+            ref = allI.get(ii)
+            if ref < 0
+                label.set_xy(zl.get(-ref - 1), xr, yT)
+            else
+                yL = ys.get(ref)
+                wL = ws.get(ref)
+                cL = cs.get(ref)
+                x1 = lvlShort ? bar_index - 12 : x0s.get(ref)
+                lvLn.push(line.new(x1, yL, xr, yL, color = wL == 2 ? cL : color.new(cL, 35), width = wL, style = wL == 2 ? line.style_solid : line.style_dotted, force_overlay = true))
+                lvLb.push(f_pill(xr, yT, ts.get(ref), cL, tcs.get(ref), label.style_label_left, tps.get(ref)))
+    // FRVP guide: where to draw TradingView's Fixed Range Volume Profile
+    label.delete(gA)
+    label.delete(gB)
+    line.delete(gAB)
+    if showGuide and not na(gHb) and not na(gLb)
+        aIsHigh = gHb < gLb
+        aBar = aIsHigh ? gHb : gLb
+        bBar = aIsHigh ? gLb : gHb
+        aY   = aIsHigh ? gH : gL
+        bY   = aIsHigh ? gL : gH
+        legT = aIsHigh ? "down leg" : "up leg"
+        tipG = "FRVP guide · last " + legT + "\nDraw TradingView's Fixed Range Volume Profile from A to B\n→ its POC / value area = where this leg did business\n→ pullbacks into that value often react; price accepted back through it = the leg is failing"
+        gA  := label.new(aBar, aY, "A", style = aIsHigh ? label.style_label_down : label.style_label_up, color = color.new(C_BLUE, 15), textcolor = WHITE, size = size.tiny, tooltip = tipG, force_overlay = true)
+        gB  := label.new(bBar, bY, "B", style = aIsHigh ? label.style_label_up : label.style_label_down, color = color.new(C_BLUE, 15), textcolor = WHITE, size = size.tiny, tooltip = tipG, force_overlay = true)
+        gAB := line.new(aBar, aY, bBar, bY, color = color.new(C_BLUE, 60), style = line.style_dotted, force_overlay = true)
+    if tSt == 1 and not na(liveTP)
+        box.set_bgcolor(liveTP, color.new(C_GRN, blinkOn ? 82 : 91))
+
+// ───────────────────────── Status panel: what is order flow doing NOW ─────────────────────────
+compact = panelMode == "Compact"
+nRows   = compact ? 2 : 8
+tPos    = panelPos == "Top right" ? position.top_right : panelPos == "Top left" ? position.top_left : panelPos == "Bottom right" ? position.bottom_right : position.bottom_left
+var table panel = panelWhere == "Chart" ? table.new(tPos, 5, nRows, border_color = color.new(C_PANEL, 100), border_width = 2, force_overlay = true) : table.new(tPos, 5, nRows, border_color = color.new(C_PANEL, 100), border_width = 2)
+if barstate.isfirst and not compact
+    for r = 2 to 6
+        table.merge_cells(panel, 1, r, 3, r)
+    table.merge_cells(panel, 0, 7, 3, 7)
+
+f_arrow(int c) => c == 1 ? "▲ in control" : c == 4 ? "▲ leaning" : c == -1 ? "▼ in control" : c == -4 ? "▼ leaning" : c == 2 ? "⚠ buyers blocked" : c == -2 ? "⚠ sellers blocked" : "– no edge"
+f_tf(int col, string nm, int c, string tip) =>
+    cc = c == 1 or c == 4 ? C_GRN : c == -1 or c == -4 ? C_RED : math.abs(c) == 2 ? C_AMB : C_SUB
+    table.cell(panel, col, 1, nm + (c == 1 or c == 4 ? " ▲" : c == -1 or c == -4 ? " ▼" : math.abs(c) == 2 ? " ⚠" : " –"), text_color = WHITE, bgcolor = color.new(cc, math.abs(c) == 1 or math.abs(c) == 2 ? 0 : 35), text_size = size.small, tooltip = tip)
+
+f_kv(int r, string k, string v, color vc) =>
+    table.cell(panel, 0, r, k, text_color = C_SUB, bgcolor = C_PANEL, text_size = size.small, text_halign = text.align_left)
+    table.cell(panel, 1, r, v, text_color = vc, bgcolor = C_PANEL, text_size = size.small, text_halign = text.align_left)
+
+if barstate.islast and showPanel
+    sideW   = dir == 1 ? "BUY" : "SELL"
+    arrow   = dir == 1 ? "▲ " : "▼ "
+    openR   = tSt == 2 ? (close - pE) * tDir / pR : na
+
+    // 1 · headline: who is aggressive and is it working
+    hdTxt = hd == 1 ? "Buyers in control" : hd == -1 ? "Sellers in control" : hd == 2 ? "Buyers blocked" : hd == -2 ? "Sellers blocked" : hd == 4 ? "Buyers leaning" : hd == -4 ? "Sellers leaning" : hd == 3 ? "Drifting up · low effort" : hd == -3 ? "Drifting down · low effort" : "Two-way · no edge"
+    hdBg  = hd == 1 ? C_GRN : hd == -1 ? C_RED : math.abs(hd) == 2 ? C_AMB : hd == 4 ? color.new(C_GRN, 40) : hd == -4 ? color.new(C_RED, 40) : C_SUB
+    aggT  = "Aggression: " + (buy30 >= 50 ? "buyers " + f_pct(buy30) : "sellers " + f_pct(100 - buy30)) + " · Δ " + f_sign(d30) + " · activity " + str.tostring(act30, "0.0") + "× normal"
+    resT  = "Result: price " + (mv30 >= 0 ? "+" : "") + str.tostring(mv30, "0.00") + " (" + f_r(mvA) + " ATR) → " + (math.abs(hd) == 1 ? "effort is working" : math.abs(hd) == 2 ? "effort is NOT working (absorption)" : math.abs(hd) == 4 ? "some progress" : math.abs(hd) == 3 ? "moving without effort (weak move)" : "nobody winning")
+
+    // 2 · where: nearest levels above / below
+    lvN = array.new<string>()
+    lvV = array.new<float>()
+    if hasProf
+        lvN.push("POC")
+        lvV.push(pPOC)
+        lvN.push("VAH")
+        lvV.push(pVAH)
+        lvN.push("VAL")
+        lvV.push(pVAL)
+    if showPD and not na(pdh)
+        lvN.push("PDH")
+        lvV.push(pdh)
+        lvN.push("PDL")
+        lvV.push(pdl)
+    if inS
+        lvN.push("VWAP")
+        lvV.push(vw)
+    for x in nPocs
+        lvN.push("naked POC")
+        lvV.push(x.y)
+    for z in sdZ
+        lvN.push(z.dir == 1 ? "demand" : "supply")
+        lvV.push(z.dir == 1 ? z.top : z.bot)
+    string upN = ""
+    float  upV = na
+    string dnN = ""
+    float  dnV = na
+    if lvV.size() > 0
+        for i = 0 to lvV.size() - 1
+            v = lvV.get(i)
+            if not na(v) and v > close and (na(upV) or v < upV)
+                upV := v
+                upN := lvN.get(i)
+            if not na(v) and v < close and (na(dnV) or v > dnV)
+                dnV := v
+                dnN := lvN.get(i)
+    locT  = not hasProf ? "" : close > pVAH ? "above value" : close < pVAL ? "below value" : "inside value"
+    vwT   = not inS ? "" : close >= vw ? "above VWAP" : "below VWAP"
+    whereT = "Where: " + vwT + (locT != "" ? " · " + locT : "") + (not na(upV) ? " · above: " + upN + " " + f_px(upV) : "") + (not na(dnV) ? " · below: " + dnN + " " + f_px(dnV) : "")
+
+    // 3 · what to watch next
+    watchT = hd == 1 ? "Buyers winning. Next test: " + (not na(upV) ? upN + " " + f_px(upV) : "new highs") + ". If buyers push there and price stalls → absorption, careful." : hd == -1 ? "Sellers winning. Next test: " + (not na(dnV) ? dnN + " " + f_px(dnV) : "new lows") + ". If sellers push there and price stalls → absorption, careful." : hd == 2 ? "Buyers are hitting a wall — sellers absorbing. A break of the recent low would hand control to sellers." : hd == -2 ? "Sellers are hitting a wall — buyers absorbing. A break of the recent high would hand control to buyers." : math.abs(hd) == 3 ? "Price moving without real effort → weak, easy to reverse at the next level." : "No side in control. Wait for price to reach a level (" + (not na(upV) ? upN + " " + f_px(upV) : "") + (not na(upV) and not na(dnV) ? " / " : "") + (not na(dnV) ? dnN + " " + f_px(dnV) : "") + ") and see who wins there."
+
+    // 4 · setup (short)
+    stTxt = sess < 0 ? "off-session" : tSt == 2 ? (tDir == 1 ? "▲ " : "▼ ") + "in trade " + f_r(openR) + "R" : noTradeD ? "D · no setup" : blockedSame ? "wait · same side" : dir == 0 ? (hasProf ? "wait" : "building…") : st == 2 ? arrow + sideW + " confirmed " + str.repeat("◆", lastGrade) : st == 1 ? arrow + "swept · wait FLIP" : st == 3 ? "setup skipped" : arrow + sideW + " watch"
+    stCol = tSt == 2 ? (openR >= 0 ? C_GRN : C_RED) : st == 2 ? (dir == 1 ? C_GRN : C_RED) : st == 1 ? C_AMB : C_SUB
+    setupT = "Setup: " + (not hasProf ? "profile building…" : pName + " " + (pShape == 1 ? "P → look BUY" : pShape == -1 ? "b → look SELL" : "D → no trade")) + " · 4H " + (t4 == 1 ? "UP" : t4 == -1 ? "DOWN" : "FLAT") + " · " + stTxt + (tSt == 1 ? " · limit " + f_px(pE) + " SL " + f_px(pSL) : "")
+    dotC  = blinkOn ? hdBg : color.new(hdBg, 70)
+
+    sN = f_side(hd)
+    s1 = f_side(hd1)
+    s4 = f_side(hd4)
+    alignT = sN != 0 and sN == s1 and s1 == s4 ? "ALL AGREE: " + (sN == 1 ? "buyers" : "sellers") + " on 30m, 1H and 4H → strongest flow" : sN != 0 and s4 != 0 and sN != s4 ? "30m " + (sN == 1 ? "buyers" : "sellers") + " vs 4H " + (s4 == 1 ? "buyers" : "sellers") + " → fighting the bigger flow, be careful" : "Mixed — bigger flow not clear"
+    tfT = "30m " + f_arrow(hd) + " · 1H " + f_arrow(hd1) + " · 4H " + f_arrow(hd4)
+    cotT = not useCOT ? "" : na(cotNet) ? "\nCOT: data not available for this symbol" : "\nCOT (weekly): big speculators net " + (cotNet >= 0 ? "LONG " : "SHORT ") + str.tostring(math.abs(cotNet), format.volume) + " contracts (" + (cotNet - nz(cotPrev) >= 0 ? "+" : "") + str.tostring(cotNet - nz(cotPrev), format.volume) + " vs last week) → funds " + (cotNet - nz(cotPrev) >= 0 ? "adding longs" : "cutting longs / adding shorts")
+    dataT = "\nData: profile = " + (useGC and not na(basis) ? "COMEX real volume (gap " + str.tostring(basis, "0.00") + ")" : "OANDA ticks") + " · flow = " + str.tostring(nBrokers) + " broker" + (nBrokers > 1 ? "s blended" : "") + (newsWin ? " · ⚠ US data window now" : "")
+    macroT = not useMacro ? "" : "\nMacro (last 4h): US dollar " + (dxyCh >= 0 ? "+" : "") + str.tostring(dxyCh, "0.00") + "% · US 10Y " + (ylCh >= 0 ? "+" : "") + str.tostring(ylCh, "0.000") + " → " + (macroS >= 1 ? "tailwind for gold ▲" : macroS <= -1 ? "headwind for gold ▼" : "neutral")
+    tipAll = "BIGGER PICTURE\n" + tfT + "\n" + alignT + macroT + cotT + dataT + "\n\nNOW · last 30 min\n" + aggT + "\n" + resT + "\n" + whereT + "\nLast event: " + (lastEvt != "" ? lastEvt : "—") + "\n\nWatch: " + watchT + "\n\n" + setupT + "\nFlow = estimate from tick volume (" + (clv ? "close-position split" : "up/down candles") + ") · not financial advice"
+
+    table.cell(panel, 0, 0, " XAU.KH ", text_color = C_FG, bgcolor = C_PANEL, text_size = size.small, text_halign = text.align_left, tooltip = tipAll)
+    table.cell(panel, 1, 0, "●", text_color = dotC, bgcolor = C_PANEL, text_size = size.small, tooltip = tipAll)
+    table.cell(panel, 2, 0, " " + hdTxt + " ", text_color = WHITE, bgcolor = hdBg, text_size = size.small, tooltip = tipAll)
+    table.cell(panel, 3, 0, " " + stTxt + " ", text_color = stCol, bgcolor = C_PANEL, text_size = size.small, tooltip = tipAll)
+    if panelPos == "Top right" or panelPos == "Bottom right"
+        table.cell(panel, 4, 0, "          ", text_size = size.small)
+    table.cell(panel, 0, 1, sN != 0 and sN == s1 and s1 == s4 ? " aligned ✓ " : sN != 0 and s4 != 0 and sN != s4 ? " vs 4H ⚠ " : " mixed ", text_color = sN != 0 and sN == s1 and s1 == s4 ? C_GRN : sN != 0 and s4 != 0 and sN != s4 ? C_AMB : C_SUB, bgcolor = C_PANEL, text_size = size.small, tooltip = tipAll)
+    f_tf(1, "30m", hd, tipAll)
+    f_tf(2, "1H", hd1, tipAll)
+    f_tf(3, "4H", hd4, tipAll)
+    if useMacro
+        table.cell(panel, 4, 1, macroS >= 1 ? "USD ▼ gold ▲" : macroS <= -1 ? "USD ▲ gold ▼" : "macro –", text_color = WHITE, bgcolor = macroS >= 1 ? color.new(C_GRN, 35) : macroS <= -1 ? color.new(C_RED, 35) : color.new(C_SUB, 35), text_size = size.small, tooltip = tipAll)
+    if not compact
+        f_kv(2, "Now", aggT + "\n" + resT, hdBg)
+        f_kv(3, "Where", whereT, C_FG)
+        f_kv(4, "Last", lastEvt != "" ? lastEvt : "—", C_FG)
+        f_kv(5, "Watch", watchT, C_FG)
+        f_kv(6, "Setup", setupT, stCol)
+        table.cell(panel, 0, 7, "Flow = estimate from OANDA tick volume · not financial advice", text_color = C_SUB, bgcolor = C_PANEL, text_size = size.tiny, text_halign = text.align_left)

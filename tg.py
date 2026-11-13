@@ -52,7 +52,9 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
     "proof":    ("Proof · លទ្ធផល", 16766590, ["🏆", "✅", "💎"]),
     "learn":    ("Education · មេរៀន", 13338331, ["📚", "🎓", "💡"]),
     "fun":      ("Fun Scalp · លេងសើច", 16478047, ["🎰", "🎲", "🎯"]),
+    "indicator": ("Indicator · ឧបករណ៍", 9367192, ["📈", "📊", "💡"]),
 }
+OPEN_SECTIONS = {"indicator"}   # members may post here (feedback, screenshots): the topic is not closed
 TOPICS_FILE = "topics.json"
 
 
@@ -75,6 +77,8 @@ def section_for(title):
         return "rules"
     if t == "announcement":
         return "announce"
+    if t == "indicator":
+        return "indicator"     # 📈 XAU.KH FLOW TradingView indicator topic (indicator_post.py)
     if t in ("guide", "lesson"):
         return "learn"
     if "fun scalp" in t:
@@ -142,7 +146,11 @@ def thread_id(key, fresh=False):
             res = _api("createForumTopic", fields)
             d["topics"][key] = res["message_thread_id"]
             try:   # closed topic = only admins (the bot) can post, members read and react
+                if key in OPEN_SECTIONS:
+                    raise StopIteration
                 _api("closeForumTopic", {"chat_id": d["chat"], "message_thread_id": res["message_thread_id"]})
+            except StopIteration:
+                pass
             except Exception as e:
                 print("could not close topic (give the bot 'Manage topics'):", e)
             json.dump(d, open(TOPICS_FILE, "w"), indent=1, ensure_ascii=False)
@@ -210,7 +218,7 @@ def _send_tg(method, title, fields, files=None, timeout=20):
             parts = [f'--{b}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k, v in f.items()]
             for k, (fname, data) in files.items():
                 parts.append(f'--{b}\r\nContent-Disposition: form-data; name="{k}"; filename="{fname}"\r\n'
-                             f'Content-Type: {"application/pdf" if fname.endswith(".pdf") else "image/png"}\r\n\r\n'.encode() + data + b"\r\n")
+                             f'Content-Type: {"application/pdf" if fname.endswith(".pdf") else "image/png" if fname.endswith(".png") else "text/plain"}\r\n\r\n'.encode() + data + b"\r\n")
             parts.append(f"--{b}--\r\n".encode())
             tok = os.environ.get("TELEGRAM_TOKEN")
             req = urllib.request.Request(f"https://api.telegram.org/bot{tok}/{method}", data=b"".join(parts),
