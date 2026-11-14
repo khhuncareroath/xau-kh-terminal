@@ -1,0 +1,47 @@
+name: Crypto research
+# Downloads free BTC/ETH perpetual history (Binance public archive) and tests the gold rules on it.
+# Runs when the crypto study files change on the crypto-research branch, or by hand. Never posts to Telegram.
+on:
+  push:
+    branches: [crypto-research]
+    paths:
+      - "studies/crypto_*.py"
+      - ".github/workflows/crypto_research.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: crypto-research
+  cancel-in-progress: true
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Which live feeds answer from a GitHub runner
+        run: python studies/crypto_data.py probe
+        continue-on-error: true
+      - uses: actions/cache@v4
+        with:
+          path: data/crypto
+          key: crypto-hist-${{ github.run_id }}
+          restore-keys: crypto-hist-
+      - name: Download history (BTC, ETH)
+        run: python studies/crypto_data.py BTCUSDT ETHUSDT
+      - name: Test the rules
+        run: python studies/crypto_rules.py BTCUSDT ETHUSDT
+      - name: Save results to this branch
+        if: always()
+        run: |
+          git config --global user.name "analysis-bot"
+          git config --global user.email "bot@users.noreply.github.com"
+          git add -f studies/crypto_probe.json studies/crypto_results.json studies/CRYPTO_RESULTS.md 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "Crypto research results"
+          for i in 1 2 3; do git pull --rebase -X theirs origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 10; done
