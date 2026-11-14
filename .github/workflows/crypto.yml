@@ -1,0 +1,43 @@
+name: Crypto
+# ₿ BTC daily map, weekly data card and the Friday crypto record (crypto.py). Runs every day (crypto never closes),
+# separate from the gold runner. CRYPTO=off (repository variable) stops it. No crypto trade signals until one is proven.
+on:
+  schedule:
+    - cron: "8,23,38,53 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: crypto-bot
+  cancel-in-progress: false
+env:
+  CRYPTO: ${{ vars.CRYPTO || 'on' }}
+  CRYPTO_UPD_WEEK: ${{ vars.CRYPTO_UPD_WEEK || '3' }}     # 📍 updates a week (max 1 a day)
+  CRYPTO_MAP_EVERY: ${{ vars.CRYPTO_MAP_EVERY || '1' }}   # daily map every N days
+  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
+  TELEGRAM_GROUP_ID: ${{ vars.TELEGRAM_GROUP_ID || secrets.TELEGRAM_GROUP_ID }}
+  SITE_URL: ${{ vars.SITE_URL }}
+  PYTHONWARNINGS: ignore
+jobs:
+  crypto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python crypto.py
+      - name: Save state
+        run: |
+          git config --global user.name "analysis-bot"
+          git config --global user.email "bot@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git add crypto_state.json topics.json 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "Crypto state"
+          for i in 1 2 3; do git pull --rebase -X theirs origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 10; done

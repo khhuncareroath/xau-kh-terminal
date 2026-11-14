@@ -483,3 +483,63 @@ BOTH halves with >= 10 newest trades and judge proven:
 - ⚡ Scalp (live first + 1H: 104, 55%, +0.437R): + Daily 86, +0.449R but older worse; + London/NY worse. Nothing passes.
 - 🎰 Fun (live 1 a day + 1H: 69%): + Daily 70% on 98 trades = the same within noise. Not changed.
 The rules are now at the limit of what 2 years of data can prove; stricter = luck, not quality.
+
+## ₿ Crypto: do the gold rules work on BTC? (studies/crypto_rules.py, crypto_robust.py) · 14 Nov 2026
+Data: Binance USDT-M perpetual 5m (with taker-buy volume), funding and open interest, Jan 2020 - Nov 2026 (~7 years),
+free archive data.binance.vision, downloaded in GitHub Actions (.github/workflows/crypto_research.yml). Costs 0.12% of
+price per round trip (taker 0.05% x 2 + 0.02% slippage) + the real funding while open. Chosen on BTC, ETH run unchanged.
+Gold $ settings converted with the 20-day median daily range. Full tables: studies/CRYPTO_RESULTS.md, CRYPTO_ROBUST.md.
+
+| Test (BTC) | Trades | Avg R | Older / newest | t | Proven | ETH |
+|---|---|---|---|---|---|---|
+| 💎 4H breakout A+/B+ (gold live rule, intraday) | 300 | +0.01 | +0.06 / -0.11 | 0.2 | no | +0.05, no |
+| ⚡ Scalp (gold live rule) | 408 | **-0.38** | -0.30 / -0.60 | -5.8 | no (reliably losing) | -0.17 |
+| 📊 Volume turn (gold live rule) | 680 | **-0.39** | -0.38 / -0.41 | -3.7 | no (reliably losing) | -0.22 |
+| Breakout + real delta agrees | 285 | +0.03 | +0.09 / -0.12 | 0.4 | no | +0.08, no |
+| Funding top 5% -> fade short | 161 | +0.24 | +0.27 / +0.18 | 2.2 | YES | **-0.03; 0 of 81 nearby versions positive on ETH** |
+| 🧪 Swing: 4H breakout, clean trend, held 3-7 days | 247 | +0.19 | +0.24 / +0.06 | 1.8 | no | +0.20, t 2.0 |
+
+Why the gold rules fail: crypto fees are ~10x gold's in R. A scalp with a 0.2-0.7% stop pays 0.2-0.6R in fees alone
+(gold: $0.40 on a $6 stop = 0.07R). Tight-stop ideas cannot survive taker fees on crypto.
+Round 2 (robustness, written before running): swing 72 of 81 nearby settings positive on BTC on both halves (median
++0.16R), 81 of 81 on ETH (+0.21R); with maker fees 79/81 and 81/81. But on BTC: t 1.8-1.9, newest 30% only +0.06R,
+2021 and 2025 negative, 15 of 27 quarters positive (judge needs 60%), and most of the profit is longs (+0.29R vs shorts
++0.04R: maybe crypto's long rise). Funding fade: 0 of 81 versions positive on ETH -> rejected as luck (1 pass in 16 tries).
+Live feeds from a GitHub runner (studies/crypto_probe.json): Binance futures 451 and Bybit 403 (US block); Bitget, OKX
+(funding, open interest, taker volume), Hyperliquid, Coinbase, Deribit, DefiLlama answer.
+Decision: NO crypto signal. crypto.py posts a daily BTC map (levels, not forecast) and a Sunday data card in
+"Crypto · គ្រីបតូ"; the swing (ER > 0.35, SL 2 x 4H ATR, TP 4R, 5 days, picked on BTC's older 70%) is a silent paper
+trade (owner note only, Friday record in Proof) until the live record and a re-test prove it. CRYPTO=off stops it all.
+
+## ₿ ANAJAK lesson rules (RANGES / MARKET STRUCTURE / BOOTCAMP PDFs) · studies/crypto_anajak.py · 14 Nov 2026
+Their written rules turned into exact rules before running (their checklist: reward:risk at least 1:2). BTC / ETH,
+2020-2026, 0.12% + funding, half at the range middle (eQ) then the other edge.
+
+| Rule | BTC trades | BTC avg R (older / newest) | ETH avg R | Verdict |
+|---|---|---|---|---|
+| Range deviation, 30 x 4H range (sweep the edge, close back inside) | 866 | -0.17 (-0.12 / -0.27) | -0.03 | loses |
+| same + OI did not rise on the sweep ("fakeout") | 324 | -0.14 (-0.13 / -0.16) | +0.05 | no edge |
+| Range deviation, 20-day range | 214 | -0.03 (+0.02 / -0.14) | -0.35 (t -2.5) | loses |
+| Monday range deviation (Monday high/low, mid as TP1) | 322 | -0.09 (-0.09 / -0.10) | -0.08 | loses |
+| Swing breakout WITH volume + delta + OI up | 120 | +0.26 (+0.32 / +0.14) | +0.06 | not proven |
+| Swing breakout WITHOUT all three (same years) | 117 | +0.23 (+0.32 / -0.05) | +0.36 | not proven |
+
+Lessons: fading range edges loses on crypto after fees (the breaks are real more often than traps on 4H/1D). The
+"volume + delta + OI" confirmation does not separate good breakouts from bad ones (BTC same, ETH the opposite way).
+The swing breakout itself stays positive (again), still not proven on BTC. Caveat: these are mechanical versions;
+ANAJAK traders add discretion (context, AVWAP bands, fundamentals) that a rule cannot copy. No change: no crypto signal.
+
+## ₿ Trendlines (ANAJAK's main tool) · studies/crypto_trendline.py · 14 Nov 2026
+Automatic trendlines without hindsight (last two confirmed rising swing lows / falling swing highs, valid until a close
+beyond). Bounce = touch + close back, SL 0.5 ATR past the line; break = first close beyond. TP 3R, 5 / 10 days.
+
+| Rule | BTC trades | BTC avg R (older / newest) | t | ETH avg R (older / newest) |
+|---|---|---|---|---|
+| 4H trendline bounce | 383 | -0.28 (-0.29 / -0.26) | -3.3 | -0.09 |
+| 4H trendline break | 534 | -0.20 (-0.22 / -0.14) | -2.9 | -0.16 |
+| Daily trendline bounce | 108 | -0.08 (+0.10 / -0.47) | -0.6 | +0.12 (+0.23 / -0.11) |
+| Daily trendline break | 143 | +0.13 (+0.14 / +0.11) | 1.0 | +0.28 (+0.38 / +0.05), t 2.1 |
+
+Same lesson as every crypto test so far: short-timeframe lines and fades lose after fees; slow, higher-timeframe
+breaks held for days are positive on both coins but not proven on BTC. No signal. Trendlines are drawn on the map and
+can trigger a 📍 update (where price is + if/then), which is information, not a trade.
