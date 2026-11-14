@@ -22,7 +22,8 @@ from levels import to_ny
 from tg import fmt, local, log_alert, send, send_photo
 
 STATE = "funscalp_state.json"
-PER_DAY = int(os.environ.get("FUN_PER_DAY", 4))   # owner, 12 Nov 2026: "go crazy fire" -> two tiers, 4 a day in total
+PER_DAY = int(os.environ.get("FUN_PER_DAY", 1))   # owner, 14 Nov 2026: "fewer is fine, only quality" -> the day's first setup only
+ONE_H = os.environ.get("FUN_1H", "on") == "on"     # ...and only when the 1H structure agrees (studies/fun_quality.py)
 CRAZY = os.environ.get("FUN_CRAZY", "off") == "on"   # 🎲 choppy-trend scalps too, labelled CRAZY OFF by default: choppy-only tier lost −0.11R, t −3.3 (studies/inside_zone.py). FUN_CRAZY=on brings it back
 CLEAN = os.environ.get("FUN_CLEAN", "on") != "off"   # studies/fun_filters.py: clean 4H trend only -> +0.17R (proven) vs 0R
 MAX_LATE_S = 180
@@ -122,6 +123,11 @@ def main():
             print("fun scalp: other-side check failed:", e)
         if opp and opp["dist_r"] <= 0.5:
             print(f"fun scalp: {opp['tf']} {'supply' if sg > 0 else 'demand'} {opp['lo']}-{opp['hi']} right in front, skipped"); return
+    # 💎 the day's first valid setup is the one (studies/fun_quality.py, 2 yrs: max 1 a day + 1H agrees = 127 trades,
+    # 69% win, +0.38R, both halves better, judge proven). If its 1H disagrees, the day is done: no later setup is taken.
+    if ONE_H and research._bias(df, "1H", pd.Timedelta(hours=1))[i] != ("bull" if sg > 0 else "bear"):
+        json.dump({"day": day, "count": PER_DAY, "t": now, "skipped": "1H disagrees"}, open(STATE, "w"))
+        print("fun scalp: first setup of the day, 1H disagrees -> no fun scalp today"); return
     tp1, tp2, tp3 = (round(entry + sg * k * risk, 2) for k in (1, 1.5, 2))   # owner: TP1→TP2 range split in three
     bull = sg > 0
     side = "BUY" if bull else "SELL"

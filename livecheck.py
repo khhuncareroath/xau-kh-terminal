@@ -17,7 +17,7 @@ EXPECT = [
     ("vol", "📈 Signal A+ · 📊 Volume", lambda a: a.get("model") == "vp_turn", 0.26, 48, 0),
     ("scalp", "⚡ Scalp", lambda a: a.get("kind") == "scalp", 0.35, 51, 0),
     ("crazy", "🎰 Fun Scalp 🎲 crazy", lambda a: a.get("kind") == "fun" and a.get("tier") == "crazy", -0.11, 49, 0),
-    ("fun", "🎰 Fun Scalp 🔥 quality", lambda a: a.get("kind") == "fun" and a.get("tier") != "crazy", 0.19, 60, 1794450895),   # clean trend + other-side check, from 12 Nov 2026
+    ("fun", "🎰 Fun Scalp 🔥 quality", lambda a: a.get("kind") == "fun" and a.get("tier") != "crazy", 0.38, 69, 1794652090),   # 1 a day + 1H agrees, from 14 Nov 2026
 ]
 TRADED = ("win", "tp1", "loss", "timed out")
 MIN_N = 15

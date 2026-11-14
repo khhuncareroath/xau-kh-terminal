@@ -456,3 +456,14 @@ Pre-set filters, must beat the base on BOTH halves: 1H agrees · Daily agrees ·
   +55R vs +80R. Exits: half 1R + BE cuts full SL 44% -> 39% but halves the profit (+0.18R). Nothing worth changing.
 Decision (14 Nov 2026): M15 other-side rule 0.5R -> 1.0R (OPP_R=0.5 brings back the old rule). Scalp unchanged.
 Honest note: no tested filter turns 57% into 70%+; SL hits stay normal (about 4 in 10 trades).
+
+## 💎 Fun Scalp quality-only (studies/fun_quality.py) · 14 Nov 2026
+Owner: "fewer signals is fine, only quality". 🔥 QUALITY live entries (clean 4H, FVG dip, other side 0.5R), CRAZY off.
+- 4 a day (as live): 421 trades (17.5/mo), 58% win, +0.154R, older +0.09 / newest +0.33, total +65R, full SL 40%.
+- The day's FIRST setup is the best: max 2 a day 288, 62% win, +0.245R, +71R (judge proven, 8/9 q); max 1 a day 173,
+  65% win, +0.311R, +54R, full SL 32% (proven).
+- Filters on top (both halves): 1H agrees and Daily agrees help; London/NY only and small stop hurt; 1.0R other side ~0.
+- Chosen: max 1 a day + 1H agrees: 127 trades (5.3/mo), 69% win, +0.376R, t 4.04, older +0.31 / newest +0.60 (28),
+  7 of 9 quarters, total +48R, PROVEN. (1H + Daily: 98, 70%, +0.42R, 4/mo: almost the same, fewer trades.)
+  As tested: if the day's first valid setup has the 1H against it, no fun scalp that day.
+Decision (14 Nov 2026): FUN_PER_DAY 4 -> 1, FUN_1H=on. Friday post compares from 14 Nov with +0.38R / 69%.
