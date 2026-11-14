@@ -442,3 +442,17 @@ Fix (breaking.py): Trump / Iran / Israel / Russia / China queries and keywords; 
 "despite / violates / breach ceasefire" no longer counts as peace, "strikes" counts as war; ⚡ BIG MOVE post when gold
 moves 3x its normal hourly range in an hour ($20+, ~2.6 a week in 2 years) with the likely headlines; after a big move a
 big-power headline may go past the 2-a-day cap (max 5).
+
+## 💎 Quality-only signals (studies/quality_filters.py, studies/scalp_exits_quality.py) · 14 Nov 2026
+Owner: "when it hits SL the group looks bad quality, I want only the very quality signals; analysis stays as it is".
+Pre-set filters, must beat the base on BOTH halves: 1H agrees · Daily agrees · London/NY only · no opposite zone within
+1.0R · small stop · A+ only (+ all pairs).
+- 📈 M15 (369, 58% win, +0.149R): only "no opposite zone within 1.0R" (and pairs containing it) beat both halves.
+  None raised the win rate (all 52-59%). A+ only: newest worse (+0.07). 1H/Daily/session/small stop: worse.
+- Live-code replay with OPP_R=1.0 (the live rule was 0.5R): 307 signals (12.8/mo), 57% win, +0.171R, t 2.70,
+  older +0.156 / newest +0.215 (both better), 8 of 9 quarters positive (was 6 of 9), total +52.6R vs +55R,
+  ~0.8 fewer SL hits a month. PROVEN.
+- ⚡ Scalp (230, +0.349R, 44% full SL): no filter cut the SL rate; "no opposite <1R" 144 trades +0.384R but total
+  +55R vs +80R. Exits: half 1R + BE cuts full SL 44% -> 39% but halves the profit (+0.18R). Nothing worth changing.
+Decision (14 Nov 2026): M15 other-side rule 0.5R -> 1.0R (OPP_R=0.5 brings back the old rule). Scalp unchanged.
+Honest note: no tested filter turns 57% into 70%+; SL hits stay normal (about 4 in 10 trades).

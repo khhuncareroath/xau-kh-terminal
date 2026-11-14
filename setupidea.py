@@ -416,7 +416,7 @@ def watch(df):
                 print("setup: no room before the", "demand" if sg < 0 else "supply", "zone")
                 return False
         # 👀 the OTHER side (owner, 12 Nov 2026): demand / supply / FVG / OB on 15m, 30m, 1H, 4H, Daily, any width.
-        # studies/opposite_side.py: one within 0.5R of the entry -> not sent; otherwise TP1 just before it.
+        # studies/opposite_side.py: one within 1.0R of the entry -> not sent (0.5R until 14 Nov 2026); otherwise TP1 just before it.
         # A+ and B+ together: 403 trades (17/mo), 59% win, +0.13R, t 2.6, proven (A+ only before: +0.10R).
         htf = None
         if os.environ.get("OPPOSITE_CHECK", "on") == "on":
@@ -425,7 +425,7 @@ def watch(df):
                 htf = arrays.opposite(d5, entry, sg, risk)
             except Exception as e:
                 print("opposite side check failed:", e)
-        if htf and htf["dist_r"] <= 0.5:
+        if htf and htf["dist_r"] <= float(os.environ.get("OPP_R", "1.0")):   # 1.0R since 14 Nov 2026 (studies/quality_filters.py)
             idea["done"][side] = "blocked"
             json.dump(st, open(STATE, "w"), indent=1, default=str)
             from tg import fmt
