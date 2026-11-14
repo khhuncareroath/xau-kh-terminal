@@ -51,7 +51,7 @@ jobs:
         run: |
           git config --global user.name "analysis-bot"
           git config --global user.email "bot@users.noreply.github.com"
-          git add -f studies/crypto_probe.json studies/crypto_results.json studies/CRYPTO_RESULTS.md studies/crypto_robust.json studies/CRYPTO_ROBUST.md crypto_preview/*.png 2>/dev/null || true
+          git add -f studies/crypto_probe.json studies/crypto_results.json studies/CRYPTO_RESULTS.md studies/crypto_robust.json studies/CRYPTO_ROBUST.md 2>/dev/null || true
           git diff --staged --quiet && exit 0
           git commit -m "Crypto research results"
           for i in 1 2 3; do git pull --rebase -X theirs origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 10; done

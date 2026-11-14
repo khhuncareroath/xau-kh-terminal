@@ -141,17 +141,19 @@ def levels(d4, d1, h1):
 
 NAMES = [("brk_up", "4H breakout ↑", PURP, "-"), ("brk_dn", "4H breakout ↓", PURP, "-"),
          ("pwh", "Week high", BLUE, "--"), ("pwl", "Week low", BLUE, "--"),
-         ("pdh", "Yesterday high", ORANGE, ":"), ("pdl", "Yesterday low", ORANGE, ":"),
+         ("pdh", "Day high", ORANGE, ":"), ("pdl", "Day low", ORANGE, ":"),
          ("poc", "POC 7d", MUT, "-.")]
 
 
 def merged(lv):
-    """Levels sorted by price; levels within 0.1% of each other become one ("Yesterday low = Week low")."""
+    """Levels sorted by price; levels within 0.1% of each other become one ("Week + Day low"). Day = yesterday (UTC)."""
     out = []
     for k, name, col, ls in sorted(NAMES, key=lambda z: lv[z[0]]):
         v = lv[k]
         if out and abs(v - out[-1][0]) <= v * 0.001:
-            out[-1] = (out[-1][0], out[-1][1] + " = " + name, out[-1][2], out[-1][3])
+            a, b = out[-1][1].split(" "), name.split(" ")
+            nm = f"{a[0]} + {b[0]} {a[-1]}" if len(a) == 2 and len(b) == 2 and a[-1] == b[-1] else f"{out[-1][1]} + {name}"
+            out[-1] = (out[-1][0], nm, out[-1][2], out[-1][3])
         else:
             out.append((v, name, col, ls))
     return out
@@ -242,9 +244,9 @@ def map_card(d4, lv, path, now):
     rows = [(f"Price {fmt(lv['price'])}", "white"), (tr[0], tr[1]),
             (f"Normal day ±{fmt(lv['adr'])} · today used {used}", "white")]
     if up:
-        rows.append((f"▲ Above {fmt(up[0][0])} ({up[0][1]}) → next {fmt(up[1][0]) if up[1] else 'open'}", UP))
+        rows.append((f"▲ Above {fmt(up[0][0])} ({up[0][1]}) → next {fmt(up[1][0]) if up[1] else 'no level above'}", UP))
     if dn:
-        rows.append((f"▼ Below {fmt(dn[0][0])} ({dn[0][1]}) → next {fmt(dn[1][0]) if dn[1] else 'open'}", DN))
+        rows.append((f"▼ Below {fmt(dn[0][0])} ({dn[0][1]}) → next {fmt(dn[1][0]) if dn[1] else 'no level below'}", DN))
     rows.append(("Levels show WHERE price may react, not which way. No crypto signal is live yet.", MUT))
     for i, (t, c) in enumerate(rows):
         box.text(0.04, 0.88 - i * 0.155, t, color=c, fontsize=10 if i < 5 else 8, fontweight="bold" if i < 5 else None,
@@ -378,9 +380,9 @@ def post_map(now):
     up, dn = map_card(d4, lv, path, now)
     lines = ["₿ <b>BTC · Daily map</b> · ផែនទី BTC ថ្ងៃនេះ"]
     if up:
-        lines.append(f"▲ លើស {fmt(up[0][0])} → {fmt(up[1][0]) if up[1] else 'open'}")
+        lines.append(f"▲ លើស {fmt(up[0][0])} → {fmt(up[1][0]) if up[1] else 'no level above'}")
     if dn:
-        lines.append(f"▼ ក្រោម {fmt(dn[0][0])} → {fmt(dn[1][0]) if dn[1] else 'open'}")
+        lines.append(f"▼ ក្រោម {fmt(dn[0][0])} → {fmt(dn[1][0]) if dn[1] else 'no level below'}")
     lines.append("ផែនទី មិនមែនការទស្សន៍ទាយ · Futures = ហានិភ័យខ្ពស់")
     return send_photo(path, "\n".join(lines), "Crypto map")
 
@@ -470,6 +472,19 @@ PROOF_TEXT = ("₿ <b>Crypto · test record</b> · លទ្ធផលតេស�
               "Full table: studies/CRYPTO_RESULTS.md")
 
 
+INTRO = ("₿ <b>Crypto · គ្រីបតូ</b>: BTC only, quality only\n"
+         "• Every day: 1 BTC map (levels, not a forecast) · Sunday: 1 data card (open interest, funding, flows)\n"
+         "• Signals: only after a rule passes our tests. Gold rules were tested on 7 years of BTC + ETH and did NOT pass, "
+         "so there is no crypto signal yet.\n\n"
+         "⚠️ <b>Futures = ហានិភ័យខ្ពស់ (high risk)</b>\n"
+         "• Leverage 20x: តម្លៃទៅផ្ទុយតែ 5% = Liquidation (បាត់លុយទាំងអស់ក្នុង position)\n"
+         "• Funding: បង់រៀងរាល់ 8 ម៉ោង ពេលកាន់ position\n"
+         "• ទីផ្សារបើក 24/7 រួមទាំងចុងសប្តាហ៍ (weekend wicks)\n"
+         "• Exchange អាចបង្កកការដកប្រាក់ ឬ ត្រូវ hack បាន\n"
+         "• Cambodia: since Sep 2026 NBC + SERC require a licence for crypto services; check the rules yourself\n"
+         "• No referral or affiliate links here, ever.")
+
+
 def owner_note(text):
     chat = os.environ.get("TELEGRAM_OWNER_CHAT_ID")
     if DRY or not chat:
@@ -490,6 +505,13 @@ def main():
     st = load_state()
     os.makedirs(OUTDIR, exist_ok=True)
     today = now.strftime("%Y-%m-%d")
+    if not st.get("intro"):
+        if DRY:
+            print("[dry] intro:\n" + INTRO)
+        else:
+            from tg import send
+            if send(INTRO, title="Crypto intro"):
+                st["intro"] = today
     week = now.strftime("%G-W%V")
     if DRY or (now.hour == 0 and now.minute >= 10 or now.hour >= 1) and st.get("map") != today:
         if post_map(now):

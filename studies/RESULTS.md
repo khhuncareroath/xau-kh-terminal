@@ -483,3 +483,30 @@ BOTH halves with >= 10 newest trades and judge proven:
 - ⚡ Scalp (live first + 1H: 104, 55%, +0.437R): + Daily 86, +0.449R but older worse; + London/NY worse. Nothing passes.
 - 🎰 Fun (live 1 a day + 1H: 69%): + Daily 70% on 98 trades = the same within noise. Not changed.
 The rules are now at the limit of what 2 years of data can prove; stricter = luck, not quality.
+
+## ₿ Crypto: do the gold rules work on BTC? (studies/crypto_rules.py, crypto_robust.py) · 14 Nov 2026
+Data: Binance USDT-M perpetual 5m (with taker-buy volume), funding and open interest, Jan 2020 - Nov 2026 (~7 years),
+free archive data.binance.vision, downloaded in GitHub Actions (.github/workflows/crypto_research.yml). Costs 0.12% of
+price per round trip (taker 0.05% x 2 + 0.02% slippage) + the real funding while open. Chosen on BTC, ETH run unchanged.
+Gold $ settings converted with the 20-day median daily range. Full tables: studies/CRYPTO_RESULTS.md, CRYPTO_ROBUST.md.
+
+| Test (BTC) | Trades | Avg R | Older / newest | t | Proven | ETH |
+|---|---|---|---|---|---|---|
+| 💎 4H breakout A+/B+ (gold live rule, intraday) | 300 | +0.01 | +0.06 / -0.11 | 0.2 | no | +0.05, no |
+| ⚡ Scalp (gold live rule) | 408 | **-0.38** | -0.30 / -0.60 | -5.8 | no (reliably losing) | -0.17 |
+| 📊 Volume turn (gold live rule) | 680 | **-0.39** | -0.38 / -0.41 | -3.7 | no (reliably losing) | -0.22 |
+| Breakout + real delta agrees | 285 | +0.03 | +0.09 / -0.12 | 0.4 | no | +0.08, no |
+| Funding top 5% -> fade short | 161 | +0.24 | +0.27 / +0.18 | 2.2 | YES | **-0.03; 0 of 81 nearby versions positive on ETH** |
+| 🧪 Swing: 4H breakout, clean trend, held 3-7 days | 247 | +0.19 | +0.24 / +0.06 | 1.8 | no | +0.20, t 2.0 |
+
+Why the gold rules fail: crypto fees are ~10x gold's in R. A scalp with a 0.2-0.7% stop pays 0.2-0.6R in fees alone
+(gold: $0.40 on a $6 stop = 0.07R). Tight-stop ideas cannot survive taker fees on crypto.
+Round 2 (robustness, written before running): swing 72 of 81 nearby settings positive on BTC on both halves (median
++0.16R), 81 of 81 on ETH (+0.21R); with maker fees 79/81 and 81/81. But on BTC: t 1.8-1.9, newest 30% only +0.06R,
+2021 and 2025 negative, 15 of 27 quarters positive (judge needs 60%), and most of the profit is longs (+0.29R vs shorts
++0.04R: maybe crypto's long rise). Funding fade: 0 of 81 versions positive on ETH -> rejected as luck (1 pass in 16 tries).
+Live feeds from a GitHub runner (studies/crypto_probe.json): Binance futures 451 and Bybit 403 (US block); Bitget, OKX
+(funding, open interest, taker volume), Hyperliquid, Coinbase, Deribit, DefiLlama answer.
+Decision: NO crypto signal. crypto.py posts a daily BTC map (levels, not forecast) and a Sunday data card in
+"Crypto · គ្រីបតូ"; the swing (ER > 0.35, SL 2 x 4H ATR, TP 4R, 5 days, picked on BTC's older 70%) is a silent paper
+trade (owner note only, Friday record in Proof) until the live record and a re-test prove it. CRYPTO=off stops it all.
