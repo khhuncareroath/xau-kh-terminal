@@ -467,3 +467,10 @@ Owner: "fewer signals is fine, only quality". 🔥 QUALITY live entries (clean 4
   7 of 9 quarters, total +48R, PROVEN. (1H + Daily: 98, 70%, +0.42R, 4/mo: almost the same, fewer trades.)
   As tested: if the day's first valid setup has the 1H against it, no fun scalp that day.
 Decision (14 Nov 2026): FUN_PER_DAY 4 -> 1, FUN_1H=on. Friday post compares from 14 Nov with +0.38R / 69%.
+
+## 💎 Scalp quality-only (studies/scalp_quality.py) · 14 Nov 2026
+Same lever as Fun Scalp. ⚡ wide_scalp (live, up to 2 a day): 230 (9.6/mo), 51% win, +0.349R, total +80R.
+First of the day: 131, 53%, +0.381R (older +0.33 / newest +0.55), +50R, proven. First 2: same as live.
+1H agrees: 181, +0.367R. First of day + 1H agrees: 104 (4.3/mo), 55% win, +0.437R, older +0.34 / newest +0.81,
+7 of 8 quarters, total +45R, PROVEN. About 66 fewer losing trades in 2 years (~2.7 a month), but -35R total.
+Decision (owner: "fewer is fine, only quality"): SCALP_MAX_DAY 1 + SCALP_1H on (env vars bring the old rules back).

@@ -105,7 +105,8 @@ def main():
     sg = 1 if br["dir"] == "bull" else -1
     day = str((df.index[i] - pd.Timedelta(hours=18)).date())
     st = jl(STATE, {})
-    if st.get("day") == day and st.get("count", 1) >= research.SCALP_PER_DAY:
+    per_day = int(os.environ.get("SCALP_MAX_DAY", 1))   # 💎 14 Nov 2026: the day's first scalp only (was 2)
+    if st.get("day") == day and st.get("count", 1) >= per_day:
         print("scalp: today's scalps already sent"); return
     o, h, l, c = (df[k].to_numpy() for k in ("Open", "High", "Low", "Close"))
     a = atr(df).to_numpy()
@@ -121,6 +122,12 @@ def main():
     er = research.efficiency(df, df.index[i] + pd.Timedelta(minutes=5))
     if er is not None and er <= research.CHOP_ER:   # same check as research.wide_scalp: choppy 4H market = no scalp
         print(f"scalp: 4H market choppy (trend quality {er:.2f}), skipped"); return
+    # 💎 quality-only (owner, 14 Nov 2026; /tmp test logged in studies/RESULTS.md): first scalp of the day + 1H agrees
+    # = 104 trades in 2 yrs (4.3/mo), 55% win, +0.437R vs +0.349R, both halves better, judge proven.
+    # If the day's first valid scalp has the 1H against it, the day is done.
+    if os.environ.get("SCALP_1H", "on") == "on" and research._bias(df, "1H", pd.Timedelta(hours=1))[i] != br["dir"]:
+        json.dump({"day": day, "t": now, "count": 99, "skipped": "1H disagrees"}, open(STATE, "w"))
+        print("scalp: first scalp of the day, 1H disagrees -> no scalp today"); return
     tgt = entry + sg * research.SCALP_RR * risk
     bull = sg > 0
     bt = (jl("backtest.json", {}).get("models", {}).get("wide_scalp") or {}).get("all") or {}

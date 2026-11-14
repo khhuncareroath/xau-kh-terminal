@@ -15,7 +15,7 @@ EXPECT = [
     ("m15b", "📈 Signal B+", lambda a: a.get("model") == "setup_idea" and a.get("tier") == "B+", 0.14, 58, 1794470400),
     ("second", "📈 ⏳ Second chance (testing)", lambda a: a.get("kind") == "second", 0.47, 54, 0),
     ("vol", "📈 Signal A+ · 📊 Volume", lambda a: a.get("model") == "vp_turn", 0.26, 48, 0),
-    ("scalp", "⚡ Scalp", lambda a: a.get("kind") == "scalp", 0.35, 51, 0),
+    ("scalp", "⚡ Scalp", lambda a: a.get("kind") == "scalp", 0.44, 55, 1794652151),   # first of day + 1H agrees, from 14 Nov 2026
     ("crazy", "🎰 Fun Scalp 🎲 crazy", lambda a: a.get("kind") == "fun" and a.get("tier") == "crazy", -0.11, 49, 0),
     ("fun", "🎰 Fun Scalp 🔥 quality", lambda a: a.get("kind") == "fun" and a.get("tier") != "crazy", 0.38, 69, 1794652090),   # 1 a day + 1H agrees, from 14 Nov 2026
 ]
