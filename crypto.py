@@ -6,12 +6,14 @@ Posts (all in the "Crypto · គ្រីបតូ" topic, details on the pictur
                 two if/then lines. A MAP, not a forecast: on gold the analysis direction tested 50/50.
   weekly data   Sunday ~09:00 Cambodia: price vs open interest (7-day change quadrant), funding, taker buy/sell,
                 stablecoin supply, one plain verdict. Context only, never a trade by itself.
-  proof         Friday ~20:00 Cambodia in 🏆 Proof: what was tested on crypto, what passed, what failed.
+  news          only the very important crypto headlines (ETF, US rules, exchange hack/halt, stablecoin depeg,
+                Bitcoin reserve/ban, Cambodia crypto rules) from trusted sources, or BTC moving 8%+ in 24 h. Posted in
+                the same 📰 News topic as gold, max 1 a day and 3 a week.
 Signals: NONE until a crypto rule passes research.judge on BTC AND on ETH (studies/CRYPTO_RESULTS.md). The gold rules
 were tested on 7 years of BTC/ETH (Nov 2026) and did not pass, so nothing is sent as a trade.
 Paper: the one lead (🧪 SWING: 4H close beyond the last 30 4H candles, clean 4H trend ER > 0.35, SL 2 x 4H ATR,
 TP 4R, max 5 days; studies/crypto_robust.py: positive on BTC and ETH in most settings, but BTC t 1.9 and weak on the
-newest data = NOT proven) is tracked silently: the owner gets a private note, members see it only in the Friday record.
+newest data = NOT proven) is tracked silently: only the owner gets a private note.
 
 Data (free, answers from GitHub runners, checked 14 Nov 2026 by studies/crypto_data.py probe): Bitget USDT-M candles,
 OKX funding / open interest / taker volume, DefiLlama stablecoins. Binance futures and Bybit block US servers.
@@ -19,6 +21,7 @@ Env: CRYPTO=off stops everything, CRYPTO_DRY=1 renders the pictures without send
 """
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -452,37 +455,99 @@ def swing_check(st, now):
     return notes
 
 
-def paper_line(st):
-    cl = (st.get("paper") or {}).get("closed") or []
-    op = (st.get("paper") or {}).get("open")
-    if not cl and not op:
-        return "🧪 Paper swing (testing, not a signal): no trade yet."
-    rs = [x["r"] for x in cl]
-    w = sum(r > 0 for r in rs)
-    line = f"🧪 Paper swing (testing, not a signal): {len(rs)} closed, {w} won, {sum(rs):+.1f}R"
-    if op:
-        line += f" · 1 open ({'BUY' if op['sg'] > 0 else 'SELL'} {fmt(op['entry'])})"
-    return line + " · 7-year test: +0.25R a trade, NOT proven yet."
+# ------------------------------------------------------------------------------------------------ 📰 news (rare)
+NEWS_Q = ["bitcoin OR crypto SEC OR CFTC OR Congress", "bitcoin ETF OR ether ETF", "crypto exchange hacked OR halts withdrawals",
+          "stablecoin depeg OR Tether OR USDC", "bitcoin reserve OR bitcoin ban", "Cambodia crypto OR Cambodia digital asset"]
+NEWS_TRUSTED = re.compile(r"reuters|bloomberg|associated press|\bap news\b|cnbc|wall street journal|wsj|financial times|"
+                          r"coindesk|the block|decrypt|khmer times|phnom penh post|cambodianess", re.I)
+NEWS_RULES = [   # (pattern, Khmer line): only market-shaking types
+    (r"\b(spot )?(bitcoin|btc|ether|ethereum|crypto|solana|xrp) etfs?\b.*\b(approv\w*|reject\w*|den(y|ies|ied)|launch\w*|record (inflows?|outflows?))"
+     r"|\b(sec|regulators?)\b.*\b(approv\w*|reject\w*|den(y|ies|ied))\b.*\b(bitcoin|btc|ether|ethereum|crypto|solana|xrp)\b.*\betfs?\b",
+     "ព័ត៌មាន ETF: អាចធ្វើឱ្យតម្លៃ Crypto ប្រែប្រួលខ្លាំង"),
+    (r"\b(sec|cftc|congress|senate|house|white house|trump|treasury)\b.*\b(crypto|bitcoin|stablecoin)\b.*\b(approv\w*|pass\w*|signs?|signed|bans?|banned|sues?|sued|charges?|lawsuit|law)\b",
+     "ច្បាប់ សហរដ្ឋអាមេរិក លើ Crypto: ផលប៉ះពាល់ធំលើទីផ្សារ"),
+    (r"\b(binance|coinbase|okx|bybit|bitget|kraken|mexc|exchange)\b.*\b(hack(ed)?|exploit\w*|insolven\w*|bankrupt\w*|(halts?|freezes?|suspends?) withdrawals)",
+     "Exchange មានបញ្ហា (Hack / ដកប្រាក់មិនបាន): សូមប្រុងប្រយ័ត្ន"),
+    (r"\b(tether|usdt|usdc|stablecoin)\b.*\b(depeg\w*|de-peg\w*|loses? (its )?peg)",
+     "Stablecoin បាត់តម្លៃ 1$ (Depeg): ហានិភ័យខ្ពស់សម្រាប់ទីផ្សារទាំងមូល"),
+    (r"\b(strategic bitcoin reserve|bitcoin (as )?legal tender|bans? (bitcoin|crypto))",
+     "រដ្ឋាភិបាល ទិញ ឬ ហាមឃាត់ Bitcoin: ព័ត៌មានធំ"),
+    (r"\bcambodia\w*\b.*\b(crypto\w*|bitcoin|digital assets?|virtual assets?)|\b(nbc|serc)\b.*\b(crypto\w*|digital assets?|virtual assets?)",
+     "ព័ត៌មាន Crypto នៅកម្ពុជា: ច្បាប់ ឬ ការណែនាំថ្មី"),
+]
+NEWS_RULES = [(re.compile(p_, re.I), km) for p_, km in NEWS_RULES]
+NEWS_MAX_DAY, NEWS_MAX_WEEK, BIG_MOVE_PCT = 1, 3, 0.08
 
 
-PROOF_TEXT = ("₿ <b>Crypto · test record</b> · លទ្ធផលតេស្ត\n"
-              "No crypto signal yet. Gold rules tested on 7 years of BTC + ETH: none passed "
-              "(4H breakout ~0R, scalp and volume turn lost after fees).\n"
-              "មិនទាន់មានសញ្ញា Crypto ទេ: យើងផ្ញើតែសញ្ញាដែលបានតេស្តរួច។\n"
-              "Full table: studies/CRYPTO_RESULTS.md")
+def _headlines():
+    import html as _html
+    import xml.etree.ElementTree as ET
+    out = []
+    for q in NEWS_Q:
+        url = "https://news.google.com/rss/search?q=" + requests.utils.quote(q + " when:2h") + "&hl=en-US&gl=US&ceid=US:en"
+        try:
+            root = ET.fromstring(requests.get(url, timeout=20, headers=UA).content)
+        except Exception as e:  # noqa: BLE001
+            print("news feed failed:", e)
+            continue
+        for it in root.iter("item"):
+            t = _html.unescape((it.findtext("title") or "").strip())
+            src = (it.findtext("source") or "").strip()
+            out.append((t, src))
+    return out
 
 
-INTRO = ("₿ <b>Crypto · គ្រីបតូ</b>: BTC only, quality only\n"
-         "• Every day: 1 BTC map (levels, not a forecast) · Sunday: 1 data card (open interest, funding, flows)\n"
-         "• Signals: only after a rule passes our tests. Gold rules were tested on 7 years of BTC + ETH and did NOT pass, "
-         "so there is no crypto signal yet.\n\n"
-         "⚠️ <b>Futures = ហានិភ័យខ្ពស់ (high risk)</b>\n"
-         "• Leverage 20x: តម្លៃទៅផ្ទុយតែ 5% = Liquidation (បាត់លុយទាំងអស់ក្នុង position)\n"
+def crypto_news(st, now):
+    ns = st.setdefault("news", {"seen": [], "posted": []})
+    first = not ns["seen"]
+    posted = [p for p in ns["posted"] if now - pd.Timestamp(p) < pd.Timedelta(days=7)]
+    ns["posted"] = posted
+    day_ok = sum(now - pd.Timestamp(p) < pd.Timedelta(hours=24) for p in posted) < NEWS_MAX_DAY
+    week_ok = len(posted) < NEWS_MAX_WEEK
+    msg = None
+    # 1) BTC moved 8%+ in 24 h (checked with real prices, so it is never a rumour)
+    try:
+        h1 = candles("1H", 30)
+        chg = float(h1["Close"].iloc[-1] / h1["Close"].iloc[-25] - 1)
+        last_move = ns.get("move")
+        if abs(chg) >= BIG_MOVE_PCT and (not last_move or now - pd.Timestamp(last_move) > pd.Timedelta(hours=24)):
+            msg = (f"⚡ <b>BTC {'ឡើង' if chg > 0 else 'ធ្លាក់'} {chg * 100:+.1f}% ក្នុង 24 ម៉ោង</b>\n"
+                   f"BTC {fmt(float(h1['Close'].iloc[-1]))} · big move: leverage gets liquidated, wait for the dust to settle.")
+            ns["move"] = now.isoformat()
+    except Exception as e:  # noqa: BLE001
+        print("big move check failed:", e)
+    # 2) headlines: trusted source + one of the market-shaking types
+    import hashlib
+    for t, src in _headlines():
+        hid = hashlib.md5(t.lower().encode()).hexdigest()[:12]
+        if hid in ns["seen"]:
+            continue
+        ns["seen"].append(hid)
+        if first or msg or not NEWS_TRUSTED.search(src + " " + t):
+            continue
+        km = next((k for rx, k in NEWS_RULES if rx.search(t)), None)
+        if km:
+            from tg import esc
+            msg = f"🚨 <b>₿ CRYPTO NEWS</b>\n{esc(t)}\n{km}\n<i>{esc(src)}</i>"
+    ns["seen"] = ns["seen"][-400:]
+    if msg and day_ok and week_ok and not first:
+        if DRY:
+            print("[dry] news:", msg)
+            return
+        from tg import send
+        if send(msg, title="Breaking"):
+            ns["posted"].append(now.isoformat())
+
+
+INTRO = ("₿ <b>Crypto · គ្រីបតូ</b> · BTC only\n"
+         "Every day 1 BTC map · Sunday 1 data card · signals only after a rule passes our tests.\n\n"
+         "⚠️ <b>Futures = ហានិភ័យខ្ពស់</b>\n"
+         "• Leverage 20x: តម្លៃទៅផ្ទុយតែ 5% = Liquidation\n"
          "• Funding: បង់រៀងរាល់ 8 ម៉ោង ពេលកាន់ position\n"
-         "• ទីផ្សារបើក 24/7 រួមទាំងចុងសប្តាហ៍ (weekend wicks)\n"
+         "• ទីផ្សារបើក 24/7 រួមទាំងចុងសប្តាហ៍\n"
          "• Exchange អាចបង្កកការដកប្រាក់ ឬ ត្រូវ hack បាន\n"
-         "• Cambodia: since Sep 2026 NBC + SERC require a licence for crypto services; check the rules yourself\n"
-         "• No referral or affiliate links here, ever.")
+         "• Cambodia: NBC + SERC require a licence for crypto services (Sep 2026)\n"
+         "• No referral or affiliate links here.")
 
 
 def owner_note(text):
@@ -524,10 +589,10 @@ def main():
             owner_note(n)
     except Exception as e:  # noqa: BLE001
         print("paper swing check failed:", e)
-    if not DRY and now.weekday() == 4 and now.hour >= 13 and st.get("proof") != week:
-        from tg import send
-        if send(PROOF_TEXT + "\n" + paper_line(st), title="Crypto proof"):
-            st["proof"] = week
+    try:
+        crypto_news(st, now)
+    except Exception as e:  # noqa: BLE001
+        print("crypto news failed:", e)
     if not DRY:
         save_state(st)
 
