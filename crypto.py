@@ -4,6 +4,8 @@ Posts (all in the "Crypto · គ្រីបតូ" topic, details on the pictur
   daily map     once a day after the UTC daily close (~07:15 Cambodia): 4H chart with the levels that matter
                 (yesterday / last week high-low, the 30-candle 4H breakout lines, 7-day volume POC, 4H structure) and
                 two if/then lines. A MAP, not a forecast: on gold the analysis direction tested 50/50.
+  📍 updates    only when price reaches a MAJOR level (week high/low, 4H breakout line, daily trendline) or a 4H candle
+                closes through one: where price is + the if/then plan. Max 2 a day, 3 h apart. Not a signal.
   weekly data   Sunday ~09:00 Cambodia: price vs open interest (7-day change quadrant), funding, taker buy/sell,
                 stablecoin supply, one plain verdict. Context only, never a trade by itself.
   news          only the very important crypto headlines (ETF, US rules, exchange hack/halt, stablecoin depeg,
@@ -121,6 +123,29 @@ def _poc(h1, days=7):
     return float((edges[k] + edges[k + 1]) / 2)
 
 
+def trendlines(d1, n=3):
+    """Automatic daily trendlines like the ones drawn by hand: the last two CONFIRMED swing lows that rise (support)
+    and the last two confirmed swing highs that fall (resistance), kept only while no daily candle closed beyond them.
+    Same rule as studies/crypto_trendline.py. Returns {"sup": (t1, p1, t2, p2, value_today) or None, "res": ...}."""
+    done = d1.iloc[:-1]
+    H, L, C = (done[k].to_numpy() for k in ("High", "Low", "Close"))
+    m = len(done)
+    lows = [p for p in range(n, m - n) if L[p] == L[p - n:p + n + 1].min()]
+    highs = [p for p in range(n, m - n) if H[p] == H[p - n:p + n + 1].max()]
+    out = {"sup": None, "res": None}
+    for key, piv, arr, ok in (("sup", lows, L, lambda a, b: b > a), ("res", highs, H, lambda a, b: b < a)):
+        if len(piv) < 2:
+            continue
+        i1, i2 = piv[-2], piv[-1]
+        if not ok(arr[i1], arr[i2]):
+            continue
+        f = lambda j: arr[i1] + (arr[i2] - arr[i1]) * (j - i1) / (i2 - i1)  # noqa: E731
+        intact = all((C[j] >= f(j)) if key == "sup" else (C[j] <= f(j)) for j in range(i2, m))
+        if intact:
+            out[key] = (done.index[i1], float(arr[i1]), done.index[i2], float(arr[i2]), float(f(m)), float((arr[i2] - arr[i1]) / (i2 - i1)))
+    return out
+
+
 def levels(d4, d1, h1):
     from engine import atr
     from ict import structure, swings
@@ -132,6 +157,7 @@ def levels(d4, d1, h1):
     rng = (done["High"] - done["Low"]).tail(20)
     adr = float(rng.median())
     today = d1.iloc[-1]
+    tl = trendlines(d1)
     return {
         "price": float(d4["Close"].iloc[-1]),
         "pdh": float(done["High"].iloc[-1]), "pdl": float(done["Low"].iloc[-1]),
@@ -139,19 +165,22 @@ def levels(d4, d1, h1):
         "brk_up": float(c4["High"].tail(30).max()), "brk_dn": float(c4["Low"].tail(30).min()),
         "poc": _poc(h1), "trend": trend, "adr": adr,
         "used": float((today["High"] - today["Low"]) / adr) if adr > 0 else None,
+        "tl": tl, "tl_sup": tl["sup"][4] if tl["sup"] else None, "tl_res": tl["res"][4] if tl["res"] else None,
     }
 
 
-NAMES = [("brk_up", "4H breakout ↑", PURP, "-"), ("brk_dn", "4H breakout ↓", PURP, "-"),
+NAMES = [("brk_up", "Breakout ↑", PURP, "-"), ("brk_dn", "Breakout ↓", PURP, "-"),
          ("pwh", "Week high", BLUE, "--"), ("pwl", "Week low", BLUE, "--"),
          ("pdh", "Day high", ORANGE, ":"), ("pdl", "Day low", ORANGE, ":"),
-         ("poc", "POC 7d", MUT, "-.")]
+         ("poc", "POC 7d", MUT, "-."), ("tl_sup", "Trendline ↗", UP, "-"), ("tl_res", "Trendline ↘", DN, "-")]
+MAJOR = ("pwh", "pwl", "brk_up", "brk_dn", "tl_sup", "tl_res")   # the only levels that can trigger a 📍 update
 
 
-def merged(lv):
+def merged(lv, keys=None):
     """Levels sorted by price; levels within 0.1% of each other become one ("Week + Day low"). Day = yesterday (UTC)."""
     out = []
-    for k, name, col, ls in sorted(NAMES, key=lambda z: lv[z[0]]):
+    for k, name, col, ls in sorted([z for z in NAMES if lv.get(z[0]) is not None and (keys is None or z[0] in keys)],
+                                   key=lambda z: lv[z[0]]):
         v = lv[k]
         if out and abs(v - out[-1][0]) <= v * 0.001:
             a, b = out[-1][1].split(" "), name.split(" ")
@@ -198,23 +227,31 @@ def _candles(ax, df):
                color=col, zorder=3)
 
 
-def map_card(d4, lv, path, now):
+def map_card(d4, lv, path, now, pill="DAILY MAP · ផែនទីប្រចាំថ្ងៃ", pill_bg=BTC):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     plt.rcParams["font.family"] = _fonts()
     fig = plt.figure(figsize=(7.2, 9.0), dpi=150, facecolor=BG)
     fig.text(0.06, 0.955, "BTC/USDT · PERP", fontsize=18, fontweight="bold", color=INK)
-    _pill(fig, 0.06, 0.918, "DAILY MAP · ផែនទីប្រចាំថ្ងៃ", "white", BTC)
+    _pill(fig, 0.06, 0.918, pill, "white", pill_bg)
     _pill(fig, 0.52, 0.918, "map, not forecast", INK, GRID)
     fig.text(0.94, 0.955, now.strftime("%d %b %Y"), fontsize=10, color=MUT, ha="right")
-    ax = fig.add_axes([0.06, 0.36, 0.76, 0.53])
+    ax = fig.add_axes([0.06, 0.36, 0.70, 0.53])
     ax.set_facecolor(CARD)
     x = d4.tail(120)
     _candles(ax, x)
     lines = merged(lv)
     lo, hi = x["Low"].min(), x["High"].max()
+    tlk = {"Trendline ↗", "Trendline ↘"}
     for v, name, col, ls in lines:
+        if name in tlk:          # sloped: drawn from its first point (or the chart's left edge) to now
+            t1, p1, t2, p2, vnow, slope = lv["tl"]["sup" if "↗" in name else "res"]
+            ta = max(t1, x.index[0])
+            pa = p1 + slope * (ta - t1) / pd.Timedelta(days=1)
+            ax.plot([ta, x.index[-1]], [pa, vnow], color=col, lw=1.6, zorder=2)
+            lo, hi = min(lo, pa, vnow), max(hi, pa, vnow)
+            continue
         ax.axhline(v, color=col, ls=ls, lw=1.1, zorder=1)
         lo, hi = min(lo, v), max(hi, v)
     pad = (hi - lo) * 0.06
@@ -225,7 +262,7 @@ def map_card(d4, lv, path, now):
     for (v, name, col, _), y in zip(lines, ys):
         y0, y1 = ax.get_ylim()
         fy = 0.36 + 0.53 * (y - y0) / (y1 - y0)
-        fig.text(0.83, fy, f"{name}  {fmt(v)}", fontsize=7.6 if len(name) < 20 else 6.4, color="white", va="center",
+        fig.text(0.775, fy, f"{name}  {fmt(v)}", fontsize=7.6 if len(name) < 20 else 6.4, color="white", va="center",
                  fontweight="bold", bbox=dict(boxstyle="round,pad=0.25", fc=col, ec="none"))
     ax.axhline(lv["price"], color=INK, lw=0.6, alpha=0.5)
     ax.grid(color=GRID, lw=0.6)
@@ -388,6 +425,70 @@ def post_map(now):
         lines.append(f"▼ ក្រោម {fmt(dn[0][0])} → {fmt(dn[1][0]) if dn[1] else 'no level below'}")
     lines.append("ផែនទី មិនមែនការទស្សន៍ទាយ · Futures = ហានិភ័យខ្ពស់")
     return send_photo(path, "\n".join(lines), "Crypto map")
+
+
+# ------------------------------------------------------------------------------------------------ 📍 updates
+UPD_MAX_DAY, UPD_GAP_H = 2, 3
+
+
+def updates(st, now):
+    """📍 BTC update (owner: "quality update when price is at a good place"): only when price reaches a MAJOR level
+    (week high/low, 4H breakout line, daily trendline) or a 4H candle closes through one. Max 2 a day, 3 h apart, the
+    same level once a day. An update says WHERE price is and the if/then plan; it is not a trade signal."""
+    us = st.setdefault("upd", {"posted": [], "levels": {}})
+    us["posted"] = [p for p in us["posted"] if now - pd.Timestamp(p) < pd.Timedelta(hours=24)]
+    if len(us["posted"]) >= UPD_MAX_DAY or (us["posted"] and now - pd.Timestamp(us["posted"][-1]) < pd.Timedelta(hours=UPD_GAP_H)):
+        return
+    d4, d1, h1 = candles("4H", 200), candles("1D", 120), candles("1H", 200)
+    lv = levels(d4, d1, h1)
+    c4 = d4[d4.index + pd.Timedelta(hours=4) <= now]
+    h1c = h1[h1.index + pd.Timedelta(hours=1) <= now]
+    if len(c4) < 3 or len(h1c) < 2:
+        return
+    prev, last = float(c4["Close"].iloc[-2]), float(c4["Close"].iloc[-1])
+    hl, hh, hc = float(h1c["Low"].iloc[-1]), float(h1c["High"].iloc[-1]), float(h1c["Close"].iloc[-1])
+    major = merged(lv, MAJOR)
+    allm = merged(lv)
+    event = None
+    for v, name, col, _ in major:
+        key = f"{name}@{round(v, -1)}"
+        seen = us["levels"].get(key)
+        if seen and now - pd.Timestamp(seen) < pd.Timedelta(hours=24):
+            continue
+        fresh_4h = now - (c4.index[-1] + pd.Timedelta(hours=4)) < pd.Timedelta(minutes=30)
+        if fresh_4h and min(prev, last) < v < max(prev, last):
+            event = ("break", v, name, -1 if last < v else 1)
+        elif hl <= v <= hh and ((hc > v and last > v) or (hc < v and last < v)):
+            event = ("touch", v, name, 1 if last > v else -1)      # +1 = level is below price (support)
+        if event:
+            us["levels"][key] = now.isoformat()
+            break
+    if not event:
+        return
+    kind, v, name, side = event
+    below = [z for z in allm if z[0] < v * 0.999]
+    above = [z for z in allm if z[0] > v * 1.001]
+    below = f"{fmt(below[-1][0])} ({below[-1][1]})" if below else "no level below"
+    above = f"{fmt(above[0][0])} ({above[0][1]})" if above else "no level above"
+    nx = below if side < 0 else above            # break: where price goes next
+    if kind == "break":
+        cap = [f"📍 <b>BTC update</b> · 4H closed {'below' if side < 0 else 'above'} {name} {fmt(v)}",
+               f"→ next level {nx}",
+               "កុំដេញតាម (no chase): រង់ចាំ Retest",
+               "Update · មិនមែនសញ្ញា (not a signal)"]
+        pill, bg = "UPDATE · 4H CLOSE", (DN if side < 0 else UP)
+    else:
+        sup = side > 0
+        cap = [f"📍 <b>BTC update</b> · at {name} {fmt(v)}",
+               "តម្លៃមកដល់តំបន់សំខាន់ (key level) · watch the reaction",
+               (f"▲ 4H holds above {fmt(v)} = buyers defend → {above}" if sup else f"▼ 4H holds below {fmt(v)} = sellers defend → {below}"),
+               (f"▼ 4H closes below = level failed → {below}" if sup else f"▲ 4H closes above = level failed → {above}"),
+               "Update · មិនមែនសញ្ញា (not a signal)"]
+        pill, bg = "UPDATE · KEY LEVEL", BLUE
+    path = os.path.join(OUTDIR, "crypto_update.png")
+    map_card(d4, lv, path, now, pill=pill, pill_bg=bg)
+    if send_photo(path, "\n".join(cap), "Crypto update"):
+        us["posted"].append(now.isoformat())
 
 
 def post_data(now):
@@ -589,6 +690,11 @@ def main():
             owner_note(n)
     except Exception as e:  # noqa: BLE001
         print("paper swing check failed:", e)
+    try:
+        if not DRY:
+            updates(st, now)
+    except Exception as e:  # noqa: BLE001
+        print("update check failed:", e)
     try:
         crypto_news(st, now)
     except Exception as e:  # noqa: BLE001
