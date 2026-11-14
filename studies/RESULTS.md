@@ -474,3 +474,12 @@ First of the day: 131, 53%, +0.381R (older +0.33 / newest +0.55), +50R, proven. 
 1H agrees: 181, +0.367R. First of day + 1H agrees: 104 (4.3/mo), 55% win, +0.437R, older +0.34 / newest +0.81,
 7 of 8 quarters, total +45R, PROVEN. About 66 fewer losing trades in 2 years (~2.7 a month), but -35R total.
 Decision (owner: "fewer is fine, only quality"): SCALP_MAX_DAY 1 + SCALP_1H on (env vars bring the old rules back).
+
+## 💎💎 Max quality check (studies/max_quality.py) · 14 Nov 2026
+Owner: "only quality, I don't care about the amount". Stricter versions vs the rules just made live, must beat them on
+BOTH halves with >= 10 newest trades and judge proven:
+- 📈 M15 (live 1.0R: 307, 57%, +0.171R): first of the day +0.217R but newest worse (+0.18 vs +0.21); A+ only, 1H,
+  Daily, and every pair: worse on older or newest. Win rate stays 54-57% whatever the filter. Nothing passes.
+- ⚡ Scalp (live first + 1H: 104, 55%, +0.437R): + Daily 86, +0.449R but older worse; + London/NY worse. Nothing passes.
+- 🎰 Fun (live 1 a day + 1H: 69%): + Daily 70% on 98 trades = the same within noise. Not changed.
+The rules are now at the limit of what 2 years of data can prove; stricter = luck, not quality.
