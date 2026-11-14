@@ -139,13 +139,30 @@ def levels(d4, d1, h1):
     }
 
 
+NAMES = [("brk_up", "4H breakout ↑", PURP, "-"), ("brk_dn", "4H breakout ↓", PURP, "-"),
+         ("pwh", "Week high", BLUE, "--"), ("pwl", "Week low", BLUE, "--"),
+         ("pdh", "Yesterday high", ORANGE, ":"), ("pdl", "Yesterday low", ORANGE, ":"),
+         ("poc", "POC 7d", MUT, "-.")]
+
+
+def merged(lv):
+    """Levels sorted by price; levels within 0.1% of each other become one ("Yesterday low = Week low")."""
+    out = []
+    for k, name, col, ls in sorted(NAMES, key=lambda z: lv[z[0]]):
+        v = lv[k]
+        if out and abs(v - out[-1][0]) <= v * 0.001:
+            out[-1] = (out[-1][0], out[-1][1] + " = " + name, out[-1][2], out[-1][3])
+        else:
+            out.append((v, name, col, ls))
+    return out
+
+
 def if_then(lv):
-    """Two plain lines: the nearest level above and below, and where price can go after it."""
+    """Two plain lines: the nearest level above and below, and the one after it."""
     p = lv["price"]
-    named = {"Yesterday high": lv["pdh"], "Yesterday low": lv["pdl"], "Week high": lv["pwh"], "Week low": lv["pwl"],
-             "4H breakout up": lv["brk_up"], "4H breakout down": lv["brk_dn"], "Volume POC 7d": lv["poc"]}
-    above = sorted([(v, k) for k, v in named.items() if v > p * 1.001])
-    below = sorted([(v, k) for k, v in named.items() if v < p * 0.999], reverse=True)
+    m = merged(lv)
+    above = [(v, n) for v, n, _, _ in m if v > p * 1.001]
+    below = [(v, n) for v, n, _, _ in m if v < p * 0.999][::-1]
     up = (above[0], above[1] if len(above) > 1 else None) if above else None
     dn = (below[0], below[1] if len(below) > 1 else None) if below else None
     return up, dn
@@ -190,28 +207,21 @@ def map_card(d4, lv, path, now):
     ax.set_facecolor(CARD)
     x = d4.tail(120)
     _candles(ax, x)
-    lines = [("brk_up", "4H breakout ↑", PURP, "-"), ("brk_dn", "4H breakout ↓", PURP, "-"),
-             ("pwh", "Week high", BLUE, "--"), ("pwl", "Week low", BLUE, "--"),
-             ("pdh", "Yesterday high", ORANGE, ":"), ("pdl", "Yesterday low", ORANGE, ":"),
-             ("poc", "POC 7d", MUT, "-.")]
+    lines = merged(lv)
     lo, hi = x["Low"].min(), x["High"].max()
-    for k, name, col, ls in lines:
-        v = lv[k]
+    for v, name, col, ls in lines:
         ax.axhline(v, color=col, ls=ls, lw=1.1, zorder=1)
         lo, hi = min(lo, v), max(hi, v)
     pad = (hi - lo) * 0.06
     ax.set_ylim(lo - pad, hi + pad)
-    # right-side tags, nudged apart so they do not overlap
-    tags = sorted([(lv[k], name, col) for k, name, col, _ in lines])
-    ys, gap = [], (hi - lo + 2 * pad) * 0.035
-    for v, _, _ in tags:
-        y = v if not ys or v - ys[-1] >= gap else ys[-1] + gap
-        ys.append(y)
-    for (v, name, col), y in zip(tags, ys):
+    ys, gap = [], (hi - lo + 2 * pad) * 0.035     # right-side tags, nudged apart so they do not overlap
+    for v, *_ in lines:
+        ys.append(v if not ys or v - ys[-1] >= gap else ys[-1] + gap)
+    for (v, name, col, _), y in zip(lines, ys):
         y0, y1 = ax.get_ylim()
         fy = 0.36 + 0.53 * (y - y0) / (y1 - y0)
-        fig.text(0.83, fy, f"{name}  {fmt(v)}", fontsize=7.6, color="white", va="center", fontweight="bold",
-                 bbox=dict(boxstyle="round,pad=0.25", fc=col, ec="none"))
+        fig.text(0.83, fy, f"{name}  {fmt(v)}", fontsize=7.6 if len(name) < 20 else 6.4, color="white", va="center",
+                 fontweight="bold", bbox=dict(boxstyle="round,pad=0.25", fc=col, ec="none"))
     ax.axhline(lv["price"], color=INK, lw=0.6, alpha=0.5)
     ax.grid(color=GRID, lw=0.6)
     for s in ax.spines.values():
@@ -260,9 +270,9 @@ def verdict(px, oi, fu):
     do = float(oi["oi"].iloc[-1] / oi["oi"].iloc[-8] - 1)
     q = QUAD[(1 if dp >= 0 else -1, 1 if do >= 0 else -1)]
     hot = None
-    if fu is not None and len(fu) >= 30:
-        pct = float((fu <= fu.iloc[-1]).mean())
-        hot = "hot (crowded longs)" if pct >= 0.9 else "negative (crowded shorts)" if fu.iloc[-1] < 0 and pct <= 0.1 else "normal"
+    if fu is not None and len(fu):   # base rate is 0.01% / 8 h: well above = longs pay a lot, below zero = shorts pay
+        f = float(fu.iloc[-1])
+        hot = "hot: longs crowded" if f >= 0.0002 else "negative: shorts crowded" if f <= -0.0001 else "normal"
     return {"dp": dp, "do": do, "name": q[0], "text": q[1], "color": q[2], "funding": hot,
             "funding_now": float(fu.iloc[-1]) if fu is not None and len(fu) else None}
 
@@ -293,7 +303,7 @@ def data_card(d1, oi, fu, tk, st, path, now):
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
         return ax
 
-    a = panel([0.07, 0.64, 0.86, 0.23], "Price (black) and open interest (orange), 90 days")
+    a = panel([0.07, 0.64, 0.86, 0.23], "Price (black) and OKX open interest (orange), 90 days")
     p90 = px.tail(90)
     a.plot(p90.index, p90.values, color=INK, lw=1.2)
     a.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: fmt(v)))
@@ -315,7 +325,8 @@ def data_card(d1, oi, fu, tk, st, path, now):
         a3.axhline(1, color=MUT, lw=0.6)
     a4 = panel([0.07, 0.30, 0.86, 0.06], "")
     a4.axis("off")
-    if st is not None and len(st) > 31:
+    if st is not None and len(st) > 32:
+        st = st.iloc[:-1]                      # the last point is today, still filling in
         ch = st.iloc[-1] / st.iloc[-31] - 1
         a4.text(0, 0.5, f"Stablecoin supply ${st.iloc[-1] / 1e9:,.0f}bn · 30 days {ch * 100:+.1f}%  "
                          f"({'new money coming in' if ch > 0 else 'money leaving'})", fontsize=9.5, color=INK, va="center")
