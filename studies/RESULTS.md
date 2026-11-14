@@ -510,3 +510,21 @@ Live feeds from a GitHub runner (studies/crypto_probe.json): Binance futures 451
 Decision: NO crypto signal. crypto.py posts a daily BTC map (levels, not forecast) and a Sunday data card in
 "Crypto · គ្រីបតូ"; the swing (ER > 0.35, SL 2 x 4H ATR, TP 4R, 5 days, picked on BTC's older 70%) is a silent paper
 trade (owner note only, Friday record in Proof) until the live record and a re-test prove it. CRYPTO=off stops it all.
+
+## ₿ ANAJAK lesson rules (RANGES / MARKET STRUCTURE / BOOTCAMP PDFs) · studies/crypto_anajak.py · 14 Nov 2026
+Their written rules turned into exact rules before running (their checklist: reward:risk at least 1:2). BTC / ETH,
+2020-2026, 0.12% + funding, half at the range middle (eQ) then the other edge.
+
+| Rule | BTC trades | BTC avg R (older / newest) | ETH avg R | Verdict |
+|---|---|---|---|---|
+| Range deviation, 30 x 4H range (sweep the edge, close back inside) | 866 | -0.17 (-0.12 / -0.27) | -0.03 | loses |
+| same + OI did not rise on the sweep ("fakeout") | 324 | -0.14 (-0.13 / -0.16) | +0.05 | no edge |
+| Range deviation, 20-day range | 214 | -0.03 (+0.02 / -0.14) | -0.35 (t -2.5) | loses |
+| Monday range deviation (Monday high/low, mid as TP1) | 322 | -0.09 (-0.09 / -0.10) | -0.08 | loses |
+| Swing breakout WITH volume + delta + OI up | 120 | +0.26 (+0.32 / +0.14) | +0.06 | not proven |
+| Swing breakout WITHOUT all three (same years) | 117 | +0.23 (+0.32 / -0.05) | +0.36 | not proven |
+
+Lessons: fading range edges loses on crypto after fees (the breaks are real more often than traps on 4H/1D). The
+"volume + delta + OI" confirmation does not separate good breakouts from bad ones (BTC same, ETH the opposite way).
+The swing breakout itself stays positive (again), still not proven on BTC. Caveat: these are mechanical versions;
+ANAJAK traders add discretion (context, AVWAP bands, fundamentals) that a rule cannot copy. No change: no crypto signal.
