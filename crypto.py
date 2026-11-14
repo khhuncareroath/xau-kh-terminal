@@ -1,11 +1,11 @@
 """₿ Crypto · គ្រីបតូ: BTC perpetual (Bitget) map and data for the XAU.KH group. Quality only, no spam.
 
 Posts (all in the "Crypto · គ្រីបតូ" topic, details on the picture, short Khmer-friendly caption):
-  daily map     once a day after the UTC daily close (~07:15 Cambodia): 4H chart with the levels that matter
+  daily map     once a day (CRYPTO_MAP_EVERY=3: every 3 days) after the UTC daily close (~07:15 Cambodia): 4H chart with the levels that matter
                 (yesterday / last week high-low, the 30-candle 4H breakout lines, 7-day volume POC, 4H structure) and
                 two if/then lines. A MAP, not a forecast: on gold the analysis direction tested 50/50.
   📍 updates    only when price reaches a MAJOR level (week high/low, 4H breakout line, daily trendline) or a 4H candle
-                closes through one: where price is + the if/then plan. Max 2 a day, 3 h apart. Not a signal.
+                closes through one: where price is + the if/then plan. Max 1 a day, 3 a week (CRYPTO_UPD_WEEK). Not a signal.
   weekly data   Sunday ~09:00 Cambodia: price vs open interest (7-day change quadrant), funding, taker buy/sell,
                 stablecoin supply, one plain verdict. Context only, never a trade by itself.
   news          only the very important crypto headlines (ETF, US rules, exchange hack/halt, stablecoin depeg,
@@ -173,7 +173,7 @@ NAMES = [("brk_up", "Breakout ↑", PURP, "-"), ("brk_dn", "Breakout ↓", PURP,
          ("pwh", "Week high", BLUE, "--"), ("pwl", "Week low", BLUE, "--"),
          ("pdh", "Day high", ORANGE, ":"), ("pdl", "Day low", ORANGE, ":"),
          ("poc", "POC 7d", MUT, "-."), ("tl_sup", "Trendline ↗", UP, "-"), ("tl_res", "Trendline ↘", DN, "-")]
-MAJOR = ("pwh", "pwl", "brk_up", "brk_dn", "tl_sup", "tl_res")   # the only levels that can trigger a 📍 update
+MAJOR = ("pwh", "pwl", "tl_sup", "tl_res")   # only the biggest levels can trigger a 📍 update: week high/low, daily trendline
 
 
 def merged(lv, keys=None):
@@ -428,16 +428,19 @@ def post_map(now):
 
 
 # ------------------------------------------------------------------------------------------------ 📍 updates
-UPD_MAX_DAY, UPD_GAP_H = 2, 3
+UPD_GAP_H = 24                                           # at most 1 update a day
+UPD_MAX_WEEK = int(os.environ.get("CRYPTO_UPD_WEEK", 3))   # and at most 3 a week (1 = one a week)
+MAP_EVERY = int(os.environ.get("CRYPTO_MAP_EVERY", 1))     # daily map every N days (3 = every 3 days)
 
 
 def updates(st, now):
     """📍 BTC update (owner: "quality update when price is at a good place"): only when price reaches a MAJOR level
     (week high/low, 4H breakout line, daily trendline) or a 4H candle closes through one. Max 2 a day, 3 h apart, the
-    same level once a day. An update says WHERE price is and the if/then plan; it is not a trade signal."""
+    same level once a day. An update says WHERE price is and the if/then plan; it is not a trade signal.
+    Owner (14 Nov 2026): quality only, about 1 a day at most, ~1-3 a week -> 24 h apart, CRYPTO_UPD_WEEK a week."""
     us = st.setdefault("upd", {"posted": [], "levels": {}})
-    us["posted"] = [p for p in us["posted"] if now - pd.Timestamp(p) < pd.Timedelta(hours=24)]
-    if len(us["posted"]) >= UPD_MAX_DAY or (us["posted"] and now - pd.Timestamp(us["posted"][-1]) < pd.Timedelta(hours=UPD_GAP_H)):
+    us["posted"] = [p for p in us["posted"] if now - pd.Timestamp(p) < pd.Timedelta(days=7)]
+    if len(us["posted"]) >= UPD_MAX_WEEK or (us["posted"] and now - pd.Timestamp(us["posted"][-1]) < pd.Timedelta(hours=UPD_GAP_H)):
         return
     d4, d1, h1 = candles("4H", 200), candles("1D", 120), candles("1H", 200)
     lv = levels(d4, d1, h1)
@@ -453,7 +456,7 @@ def updates(st, now):
     for v, name, col, _ in major:
         key = f"{name}@{round(v, -1)}"
         seen = us["levels"].get(key)
-        if seen and now - pd.Timestamp(seen) < pd.Timedelta(hours=24):
+        if seen and now - pd.Timestamp(seen) < pd.Timedelta(days=3):
             continue
         fresh_4h = now - (c4.index[-1] + pd.Timedelta(hours=4)) < pd.Timedelta(minutes=30)
         if fresh_4h and min(prev, last) < v < max(prev, last):
@@ -679,7 +682,9 @@ def main():
             if send(INTRO, title="Crypto intro"):
                 st["intro"] = today
     week = now.strftime("%G-W%V")
-    if DRY or (now.hour == 0 and now.minute >= 10 or now.hour >= 1) and st.get("map") != today:
+    last_map = st.get("map")
+    map_due = not last_map or (now.date() - datetime.strptime(last_map, "%Y-%m-%d").date()).days >= MAP_EVERY
+    if DRY or (now.hour == 0 and now.minute >= 10 or now.hour >= 1) and map_due:
         if post_map(now):
             st["map"] = today
     if DRY or (now.weekday() == 6 and now.hour >= 2 and st.get("data") != week):

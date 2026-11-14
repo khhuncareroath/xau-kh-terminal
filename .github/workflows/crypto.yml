@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: false
 env:
   CRYPTO: ${{ vars.CRYPTO || 'on' }}
+  CRYPTO_UPD_WEEK: ${{ vars.CRYPTO_UPD_WEEK || '3' }}     # 📍 updates a week (max 1 a day)
+  CRYPTO_MAP_EVERY: ${{ vars.CRYPTO_MAP_EVERY || '1' }}   # daily map every N days
   TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
   TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
