@@ -528,3 +528,18 @@ Lessons: fading range edges loses on crypto after fees (the breaks are real more
 "volume + delta + OI" confirmation does not separate good breakouts from bad ones (BTC same, ETH the opposite way).
 The swing breakout itself stays positive (again), still not proven on BTC. Caveat: these are mechanical versions;
 ANAJAK traders add discretion (context, AVWAP bands, fundamentals) that a rule cannot copy. No change: no crypto signal.
+
+## ₿ Trendlines (ANAJAK's main tool) · studies/crypto_trendline.py · 14 Nov 2026
+Automatic trendlines without hindsight (last two confirmed rising swing lows / falling swing highs, valid until a close
+beyond). Bounce = touch + close back, SL 0.5 ATR past the line; break = first close beyond. TP 3R, 5 / 10 days.
+
+| Rule | BTC trades | BTC avg R (older / newest) | t | ETH avg R (older / newest) |
+|---|---|---|---|---|
+| 4H trendline bounce | 383 | -0.28 (-0.29 / -0.26) | -3.3 | -0.09 |
+| 4H trendline break | 534 | -0.20 (-0.22 / -0.14) | -2.9 | -0.16 |
+| Daily trendline bounce | 108 | -0.08 (+0.10 / -0.47) | -0.6 | +0.12 (+0.23 / -0.11) |
+| Daily trendline break | 143 | +0.13 (+0.14 / +0.11) | 1.0 | +0.28 (+0.38 / +0.05), t 2.1 |
+
+Same lesson as every crypto test so far: short-timeframe lines and fades lose after fees; slow, higher-timeframe
+breaks held for days are positive on both coins but not proven on BTC. No signal. Trendlines are drawn on the map and
+can trigger a 📍 update (where price is + if/then), which is information, not a trade.
