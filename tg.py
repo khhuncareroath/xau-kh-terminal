@@ -54,6 +54,7 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
     "fun":      ("Fun Scalp · លេងសើច", 16478047, ["🎰", "🎲", "🎯"]),
     "indicator": ("Indicator · ឧបករណ៍", 9367192, ["📈", "📊", "💡"]),
     "app":      ("App · កម្មវិធី", 9367192, ["📱", "📲", "💻"]),
+    "crypto":   ("Crypto · គ្រីបតូ", 16749490, ["🪙", "💰", "📈"]),
 }
 
 # ---------------------------------------------------------------- 📲 XAU.KH App (Telegram Mini App, 13 Nov 2026)
@@ -105,6 +106,8 @@ def section_for(title):
         return "indicator"     # 📈 XAU.KH FLOW TradingView indicator topic (indicator_post.py)
     if t == "app":
         return "app"           # 📲 XAU.KH App topic (app_post.py)
+    if t.startswith("crypto") and "proof" not in t:
+        return "crypto"        # ₿ BTC map + weekly data (crypto.py); the crypto record still goes to 🏆 Proof
     if t in ("guide", "lesson"):
         return "learn"
     if "fun scalp" in t:
