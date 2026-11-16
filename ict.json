@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-16 17:00 UTC",
-  "price": 3863.35,
-  "last_bar": "2026-11-16 11:55:00-05:00",
-  "atr_5m": 3.21,
+  "time": "2026-11-16 17:10 UTC",
+  "price": 3867.51,
+  "last_bar": "2026-11-16 12:05:00-05:00",
+  "atr_5m": 3.53,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -49,17 +49,17 @@
         },
         {
           "dir": "bull",
-          "lo": 3842.31,
-          "hi": 3847.91,
+          "lo": 3864.29,
+          "hi": 3867.22,
           "status": "open",
-          "time": "2026-11-16 01:55:00-05:00"
+          "time": "2026-11-16 12:00:00-05:00"
         },
         {
-          "dir": "bear",
-          "lo": 3881.99,
-          "hi": 3889.9,
-          "status": "partial",
-          "time": "2026-11-15 20:00:00-05:00"
+          "dir": "bull",
+          "lo": 3859.23,
+          "hi": 3862.01,
+          "status": "open",
+          "time": "2026-11-16 11:55:00-05:00"
         }
       ]
     },
@@ -99,18 +99,18 @@
       ],
       "fvgs": [
         {
+          "dir": "bear",
+          "lo": 3868.17,
+          "hi": 3871.17,
+          "status": "partial",
+          "time": "2026-11-16 10:15:00-05:00"
+        },
+        {
           "dir": "bull",
           "lo": 3856.12,
           "hi": 3861.05,
           "status": "partial",
           "time": "2026-11-16 05:00:00-05:00"
-        },
-        {
-          "dir": "bear",
-          "lo": 3868.17,
-          "hi": 3871.17,
-          "status": "open",
-          "time": "2026-11-16 10:15:00-05:00"
         },
         {
           "dir": "bear",
@@ -305,36 +305,34 @@
     }
   ],
   "setup": {
-    "stage": 2,
-    "label": "Shift confirmed, waiting for the retest",
-    "dir": "bull",
+    "stage": 3,
+    "label": "Price is in the retest zone",
+    "dir": "bear",
     "zone": [
-      3857.43,
-      3859.23
+      3867.52,
+      3869.99
     ],
-    "entry": 3858.33,
-    "stop": 3860.25,
-    "target": 3861.45,
-    "rr": 1.63,
+    "entry": 3868.75,
+    "stop": 3885.16,
+    "target": 3839.21,
+    "rr": 1.8,
     "reasons": [
-      "15m swing low at 3862.2 was swept and price closed back inside (sell-side liquidity taken).",
-      "Price closed beyond 3860.86: a bull structure shift right after the sweep.",
-      "Retest zone: order block 3857.43-3859.23.",
-      "1H structure is bull: agrees."
+      "Prev day high at 3881.63 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3861.21: a bear structure shift right after the sweep.",
+      "Retest zone: fair value gap 3867.52-3869.99.",
+      "1H structure is bull: this goes against it, so treat as lower quality."
     ],
-    "sweep_time": "2026-11-16 10:40:00-05:00",
-    "shift_time": "2026-11-16 11:55:00-05:00",
-    "sweep_extreme": 3861.21,
-    "sweep_name": "15m swing low",
-    "displacement": true,
-    "risk_atr": 0.6,
+    "sweep_time": "2026-11-16 09:35:00-05:00",
+    "shift_time": "2026-11-16 10:55:00-05:00",
+    "sweep_extreme": 3884.1,
+    "sweep_name": "Prev day high",
+    "displacement": false,
+    "risk_atr": 4.65,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-16 07:00",
-      "11-16 07:05",
       "11-16 07:10",
       "11-16 07:15",
       "11-16 07:20",
@@ -392,11 +390,11 @@
       "11-16 11:40",
       "11-16 11:45",
       "11-16 11:50",
-      "11-16 11:55"
+      "11-16 11:55",
+      "11-16 12:00",
+      "11-16 12:05"
     ],
     "ts": [
-      1794830400,
-      1794830700,
       1794831000,
       1794831300,
       1794831600,
@@ -454,23 +452,11 @@
       1794847200,
       1794847500,
       1794847800,
-      1794848100
+      1794848100,
+      1794848400,
+      1794848700
     ],
     "candles": [
-      [
-        3873.63,
-        3874.32,
-        3872.07,
-        3872.13,
-        537.0
-      ],
-      [
-        3872.22,
-        3872.62,
-        3868.62,
-        3868.86,
-        418.0
-      ],
       [
         3869.25,
         3870.27,
@@ -868,19 +854,31 @@
         3859.23,
         3857.43,
         3858.28,
-        0.0
+        514.0
       ],
       [
         3858.03,
-        3863.86,
+        3864.29,
         3857.31,
-        3863.35,
+        3864.11,
+        1134.0
+      ],
+      [
+        3863.73,
+        3870.12,
+        3862.01,
+        3867.27,
+        0.0
+      ],
+      [
+        3868.01,
+        3869.37,
+        3867.22,
+        3867.51,
         842.0
       ]
     ],
     "vwap": [
-      3865.77,
-      3865.79,
       3865.81,
       3865.85,
       3865.89,
@@ -937,12 +935,12 @@
       3867.23,
       3867.17,
       3867.11,
-      3867.11,
-      3867.08
+      3867.08,
+      3867.03,
+      3867.03,
+      3867.04
     ],
     "sd": [
-      14.07,
-      14.03,
       14.0,
       13.96,
       13.92,
@@ -999,23 +997,25 @@
       12.14,
       12.11,
       12.09,
-      12.09,
-      12.06
+      12.08,
+      12.04,
+      12.04,
+      12.0
     ],
     "marks": {
       "sweep": {
-        "price": 3862.2,
-        "i": 44
+        "price": 3881.63,
+        "i": 29
       },
       "mss": {
-        "level": 3860.86,
-        "i": 59
+        "level": 3861.21,
+        "i": 45
       },
       "zone": {
-        "lo": 3857.43,
-        "hi": 3859.23,
-        "kind": "ob",
-        "i": 58
+        "lo": 3867.52,
+        "hi": 3869.99,
+        "kind": "fvg",
+        "i": 38
       }
     }
   },
