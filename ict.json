@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-16 12:40 UTC",
-  "price": 3867.28,
-  "last_bar": "2026-11-16 07:35:00-05:00",
-  "atr_5m": 2.96,
+  "time": "2026-11-16 12:50 UTC",
+  "price": 3868.97,
+  "last_bar": "2026-11-16 07:45:00-05:00",
+  "atr_5m": 3.13,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -48,18 +48,18 @@
       ],
       "fvgs": [
         {
-          "dir": "bull",
-          "lo": 3863.62,
-          "hi": 3865.28,
-          "status": "open",
-          "time": "2026-11-16 05:35:00-05:00"
-        },
-        {
           "dir": "bear",
           "lo": 3872.62,
           "hi": 3873.27,
           "status": "partial",
           "time": "2026-11-16 07:00:00-05:00"
+        },
+        {
+          "dir": "bull",
+          "lo": 3863.62,
+          "hi": 3865.28,
+          "status": "open",
+          "time": "2026-11-16 05:35:00-05:00"
         },
         {
           "dir": "bear",
@@ -319,36 +319,34 @@
     }
   ],
   "setup": {
-    "stage": 3,
-    "label": "Price is in the retest zone",
-    "dir": "bear",
+    "stage": 2,
+    "label": "Shift confirmed, waiting for the retest",
+    "dir": "bull",
     "zone": [
-      3864.62,
-      3867.72
+      3851.19,
+      3855.07
     ],
-    "entry": 3866.17,
-    "stop": 3879.41,
-    "target": 3839.21,
-    "rr": 2.04,
+    "entry": 3853.13,
+    "stop": 3848.92,
+    "target": 3860.85,
+    "rr": 1.83,
     "reasons": [
-      "15m swing high at 3878.07 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 3863.84: a bear structure shift right after the sweep.",
-      "Retest zone: order block 3864.62-3867.72.",
-      "1H structure is bear: agrees."
+      "1H swing low at 3853.27 was swept and price closed back inside (sell-side liquidity taken).",
+      "Price closed beyond 3855.79: a bull structure shift right after the sweep.",
+      "Retest zone: order block 3851.19-3855.07.",
+      "1H structure is bear: this goes against it, so treat as lower quality."
     ],
-    "sweep_time": "2026-11-16 00:20:00-05:00",
-    "shift_time": "2026-11-16 00:45:00-05:00",
-    "sweep_extreme": 3878.52,
-    "sweep_name": "15m swing high",
+    "sweep_time": "2026-11-16 00:45:00-05:00",
+    "shift_time": "2026-11-16 02:25:00-05:00",
+    "sweep_extreme": 3849.86,
+    "sweep_name": "1H swing low",
     "displacement": true,
-    "risk_atr": 4.47,
+    "risk_atr": 1.34,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-16 02:40",
-      "11-16 02:45",
       "11-16 02:50",
       "11-16 02:55",
       "11-16 03:00",
@@ -406,11 +404,11 @@
       "11-16 07:20",
       "11-16 07:25",
       "11-16 07:30",
-      "11-16 07:35"
+      "11-16 07:35",
+      "11-16 07:40",
+      "11-16 07:45"
     ],
     "ts": [
-      1794814800,
-      1794815100,
       1794815400,
       1794815700,
       1794816000,
@@ -468,23 +466,11 @@
       1794831600,
       1794831900,
       1794832200,
-      1794832500
+      1794832500,
+      1794832800,
+      1794833100
     ],
     "candles": [
-      [
-        3855.79,
-        3857.43,
-        3854.75,
-        3855.0,
-        216.0
-      ],
-      [
-        3855.47,
-        3857.28,
-        3853.41,
-        3857.05,
-        210.0
-      ],
       [
         3856.58,
         3859.05,
@@ -882,19 +868,31 @@
         3875.19,
         3867.8,
         3868.34,
-        0.0
+        508.0
       ],
       [
         3869.38,
         3870.06,
         3866.83,
-        3867.28,
+        3867.46,
+        326.0
+      ],
+      [
+        3867.32,
+        3868.47,
+        3866.75,
+        3868.31,
+        0.0
+      ],
+      [
+        3868.2,
+        3869.23,
+        3865.46,
+        3868.97,
         399.0
       ]
     ],
     "vwap": [
-      3866.84,
-      3866.8,
       3866.74,
       3866.69,
       3866.59,
@@ -951,12 +949,12 @@
       3866.03,
       3866.07,
       3866.13,
-      3866.13,
-      3866.14
+      3866.15,
+      3866.16,
+      3866.16,
+      3866.17
     ],
     "sd": [
-      15.94,
-      15.92,
       15.9,
       15.88,
       15.85,
@@ -1013,8 +1011,10 @@
       14.03,
       13.99,
       13.94,
-      13.94,
-      13.91
+      13.91,
+      13.88,
+      13.88,
+      13.85
     ],
     "marks": {}
   },
