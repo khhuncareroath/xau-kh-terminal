@@ -46,10 +46,12 @@ EXPIRE_H = 24
 KH = timezone(timedelta(hours=7))
 _used = {}
 
-HOW = ("✋ <b>Trade check</b> · send a chart screenshot (XAU.KH PRO panel visible) with your trade as the caption:\n"
-       "<code>BUY 3865.8 SL 3858 TP 3880 · bounce from POC</code>\n"
-       "Side, entry, SL, TP and one reason. Check BEFORE you click.\n"
-       "🇰🇭 ផ្ញើរូបក្រាហ្វ + សរសេរ BUY/SELL តម្លៃចូល SL TP និងហេតុផល")
+HOW = ("✋ <b>Trade check</b> · send a chart screenshot (XAU.KH PRO panel visible) with just <b>BUY</b> or <b>SELL</b>.\n"
+       "I fill in entry (live price), SL (behind the nearest WALL) and TP (2R), then check it.\n"
+       "Your own numbers are fine too: <code>BUY 3865.8 SL 3858 TP 3880 · reason</code>\n"
+       "Check BEFORE you click.\n"
+       "🇰🇭 ផ្ញើរូបក្រាហ្វ + សរសេរ BUY ឬ SELL ប៉ុណ្ណោះ · bot ដាក់ SL TP ឲ្យ")
+DEFAULT_RISK = 8.0   # $ stop when no WALL is in a sensible range behind the entry
 
 
 # ---------------------------------------------------------------- small helpers
@@ -97,7 +99,9 @@ def _day_kh(ts=None):
 def _sb(method, path, body=None, prefer=None):
     if not (SB_URL and SB_KEY):
         return None
-    h = {"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}", "Content-Type": "application/json"}
+    h = {"apikey": SB_KEY, "Content-Type": "application/json"}
+    if not SB_KEY.startswith("sb_"):   # legacy service_role key (a JWT) also goes in Authorization; new sb_secret_ keys don't
+        h["Authorization"] = f"Bearer {SB_KEY}"
     if prefer:
         h["Prefer"] = prefer
     req = urllib.request.Request(f"{SB_URL}/rest/v1/{path}", method=method, headers=h,
@@ -154,18 +158,51 @@ def parse_caption(text):
             if not any(a <= x.start() < b for a, b in used):
                 en = x
                 break
-    if not side or not sl or not tp or not en:
-        return None, "I need side, entry, SL and TP."
-    entry, slv, tpv = _num(en.group(en.lastindex)), _num(sl.group(1)), _num(tp.group(1))
-    if side == "BUY" and not (slv < entry < tpv):
-        return None, "For a BUY: SL below entry, TP above entry."
-    if side == "SELL" and not (tpv < entry < slv):
-        return None, "For a SELL: TP below entry, SL above entry."
+    if not side:
+        return None, "Write BUY or SELL with the screenshot."
+    entry = _num(en.group(en.lastindex)) if en else None
+    slv = _num(sl.group(1)) if sl else None
+    tpv = _num(tp.group(1)) if tp else None
     reason = ""
     r = re.split(r"\s[·|\-–—:]\s|\n", t, maxsplit=1)
     if len(r) > 1:
         reason = r[1].strip()
-    return {"side": side, "entry": entry, "sl": slv, "tp": tpv, "reason": reason[:300]}, None
+    return {"side": side, "entry": entry, "sl": slv, "tp": tpv, "reason": reason[:300], "auto": []}, None
+
+
+def fill(trade, read):
+    """Fill what the member left out: entry = live price, SL = behind the nearest WALL, TP = 2R. -> error or None."""
+    S = 1 if trade["side"] == "BUY" else -1
+    if trade["entry"] is None:
+        lp, lt = live_price()
+        cp = read.get("price") if read.get("pro_visible") else None
+        trade["entry"] = lp if lp and time.time() - lt < 1800 else cp
+        if trade["entry"] is None:
+            return "I couldn't get the live price. Add your entry, e.g. BUY 3866"
+        trade["auto"].append("entry = live price")
+    E = trade["entry"]
+    if trade["sl"] is None:
+        wall = read.get("wall_down") if S == 1 else read.get("wall_up")
+        sl = None
+        if wall and (E - wall) * S > 0:
+            sl = round(wall - S * 0.5, 2)
+            if not (MIN_RISK <= abs(E - sl) <= MAX_RISK):
+                sl = None
+        if sl is not None:
+            trade["auto"].append(f"SL just {'below' if S == 1 else 'above'} the {'▼' if S == 1 else '▲'} WALL {_f(wall)}")
+        else:
+            sl = round(E - S * DEFAULT_RISK, 2)
+            trade["auto"].append(f"SL ${DEFAULT_RISK:.0f} away (no WALL in range)")
+        trade["sl"] = sl
+    if (E - trade["sl"]) * S <= 0:
+        return (f"For a {trade['side']} the SL must be {'BELOW' if S == 1 else 'ABOVE'} the entry {_f(E)}. "
+                f"{_f(trade['sl'])} is on the wrong side. Send just {trade['side']} and I'll place it.")
+    if trade["tp"] is None:
+        trade["tp"] = round(E + S * MIN_RR * abs(E - trade["sl"]), 2)
+        trade["auto"].append(f"TP at {MIN_RR:.0f}R")
+    if (trade["tp"] - E) * S <= 0:
+        return f"For a {trade['side']} the TP must be {'ABOVE' if S == 1 else 'BELOW'} the entry {_f(E)}."
+    return None
 
 
 # ---------------------------------------------------------------- 2 · reading the screenshot
@@ -260,7 +297,7 @@ def evaluate(trade, read, user=None, now=None):
     S = 1 if trade["side"] == "BUY" else -1
     E, SL, TP = trade["entry"], trade["sl"], trade["tp"]
     risk = abs(E - SL)
-    rr = abs(TP - E) / risk if risk > 0 else 0
+    rr = round(abs(TP - E) / risk, 2) if risk > 0 else 0   # rounded so an exact 2R fill is not flagged
     out = []
     add = lambda m, t: out.append((m, t))
     seen = read.get("pro_visible")
@@ -343,6 +380,8 @@ def reply_text(trade, read, verdict, out, instead, rr):
     order = {"✗": 0, "!": 1, "✓": 2}
     for m, t in sorted(out, key=lambda x: order[x[0]]):
         L.append(f"{'✗' if m == '✗' else '⚠' if m == '!' else '✓'} {html.escape(t, quote=False)}")
+    if trade.get("auto"):
+        L.append(f"🤖 <i>I filled in: {html.escape(' · '.join(trade['auto']), quote=False)}</i>")
     if instead:
         L.append(f"👉 <b>{html.escape(instead, quote=False)}</b>")
     L.append(f"🇰🇭 {km}")
@@ -388,6 +427,10 @@ def handle_photo(msg, base):
         send("Couldn't download the screenshot. Try again.")
         return True
     read = read_chart(img)
+    err = fill(trade, read)
+    if err:
+        send(f"⚠️ {err}")
+        return True
     verdict, out, instead, rr = evaluate(trade, read, user)
     text = reply_text(trade, read, verdict, out, instead, rr)
     row = _sb("POST", "trade_checks", {
