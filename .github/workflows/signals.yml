@@ -27,6 +27,10 @@ env:
   BPLUS_SIGNALS: ${{ vars.BPLUS_SIGNALS || 'on' }}      # 📈 B+ M15 signals (with the other-side check); off = A+ only
   SPLUS: ${{ vars.SPLUS || 'off' }}                     # 'on' brings back the S+ ICT setup
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # optional: AI-written "Why" lines
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}             # ✋ trade check: private storage (not this public repo)
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  TRADECHECK: ${{ vars.TRADECHECK || 'owner' }}         # owner = only you · all = every member · off
+  TRADECHECK_PER_DAY: ${{ vars.TRADECHECK_PER_DAY || '10' }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}         # optional, free tier: breaking news in Khmer
   GEMINI_MODEL: ${{ vars.GEMINI_MODEL || '' }}
   AI_LANG: ${{ vars.AI_LANG || 'en' }}                  # 'km' adds a Khmer version
