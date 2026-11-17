@@ -206,7 +206,7 @@ def _base(msg):
 def handle(msg):
     if time.time() - msg.get("date", 0) > 600:   # old message (bot was offline): don't answer late
         return
-    if msg.get("photo"):   # ✋ trade check: screenshot + "BUY 3865 SL 3858 TP 3880" (private chat only)
+    if msg.get("photo") or str((msg.get("document") or {}).get("mime_type", "")).startswith("image/"):   # ✋ trade check: screenshot + "BUY 3865 SL 3858 TP 3880" (private chat only)
         try:
             import tradecheck
             tradecheck.handle_photo(msg, _base(msg))

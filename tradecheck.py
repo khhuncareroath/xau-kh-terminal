@@ -14,7 +14,7 @@ Private chat only. Example caption on the photo:
 Privacy: checks are saved in Supabase (NOT in this public repo). Each member sees only their own rows:
 in this private chat and through the my-checks edge function in the mini app.
 
-Secrets: ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY (without the two Supabase ones it still checks,
+Secrets: ANTHROPIC_API_KEY or GEMINI_API_KEY (free tier; Claude is used when both are set), SUPABASE_URL, SUPABASE_SERVICE_KEY (without the two Supabase ones it still checks,
 it just can't save or grade).
 Variables: TRADECHECK = owner (default: only TELEGRAM_OWNER_CHAT_ID) | all | off
            TRADECHECK_PER_DAY (default 10 per member), TRADECHECK_MAX_RISK (default 25 = PRO's "skip if risk > $")
@@ -222,22 +222,61 @@ Return ONE JSON object and nothing else:
 Never guess a number you cannot read: use null."""
 
 
-def read_chart(img_bytes, media="image/jpeg"):
-    key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key:
-        return {"pro_visible": False, "error": "no ANTHROPIC_API_KEY"}
+GEMINI_MODELS = [m for m in [os.environ.get("GEMINI_MODEL")] if m] + [
+    "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest", "gemini-flash-latest"]   # same list as breaking.py: old ids get retired from the free tier
+
+
+def _parse_json(txt):
+    return json.loads(txt[txt.index("{"): txt.rindex("}") + 1])
+
+
+def _read_claude(key, img_bytes, media):
     body = {"model": MODEL, "max_tokens": 500, "messages": [{"role": "user", "content": [
         {"type": "image", "source": {"type": "base64", "media_type": media, "data": base64.b64encode(img_bytes).decode()}},
         {"type": "text", "text": READ_PROMPT}]}]}
     req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(),
                                  headers={"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+    out = json.load(urllib.request.urlopen(req, timeout=60))
+    return _parse_json("".join(c.get("text", "") for c in out.get("content", [])))
+
+
+def _read_gemini(key, img_bytes, media):
+    body = {"contents": [{"role": "user", "parts": [
+        {"inline_data": {"mime_type": media, "data": base64.b64encode(img_bytes).decode()}}, {"text": READ_PROMPT}]}],
+        "generationConfig": {"temperature": 0, "maxOutputTokens": 1500, "responseMimeType": "application/json"}}
+    errs = []
+    for mdl in dict.fromkeys(GEMINI_MODELS):
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{mdl}:generateContent?key={urllib.parse.quote(key)}"
+        req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={"content-type": "application/json"})
+        try:
+            r = json.load(urllib.request.urlopen(req, timeout=60))
+        except urllib.error.HTTPError as e:
+            errs.append(f"{mdl} {e.code}")
+            if e.code in (400, 403, 404, 429):
+                continue
+            raise
+        txt = "".join(p_.get("text", "") for c in r.get("candidates", []) for p_ in c.get("content", {}).get("parts", [])
+                      if not p_.get("thought"))
+        print("trade check read with", mdl)
+        return _parse_json(txt)
+    raise RuntimeError("Gemini: " + ", ".join(errs))
+
+
+def read_chart(img_bytes, media="image/jpeg"):
+    """Claude if ANTHROPIC_API_KEY is set, else Gemini (GEMINI_API_KEY, free tier). Never raises."""
+    ak, gk = os.environ.get("ANTHROPIC_API_KEY"), os.environ.get("GEMINI_API_KEY")
+    if not ak and not gk:
+        return {"pro_visible": False, "error": "no AI key: add ANTHROPIC_API_KEY or GEMINI_API_KEY in GitHub secrets"}
     try:
-        out = json.load(urllib.request.urlopen(req, timeout=60))
-        txt = "".join(c.get("text", "") for c in out.get("content", []))
-        d = json.loads(txt[txt.index("{"): txt.rindex("}") + 1])
+        d = _read_claude(ak, img_bytes, media) if ak else _read_gemini(gk, img_bytes, media)
+    except urllib.error.HTTPError as e:
+        why = e.read().decode("utf-8", "ignore")[:200]
+        print("trade check read failed:", e.code, why)
+        return {"pro_visible": False, "error": f"AI error {e.code}: {why}"}
     except Exception as e:
         print("trade check read failed:", e)
-        return {"pro_visible": False, "error": "could not read the screenshot"}
+        return {"pro_visible": False, "error": f"could not read the screenshot ({type(e).__name__}: {str(e)[:120]})"}
     return apply_chk(d)
 
 
@@ -375,6 +414,8 @@ def evaluate(trade, read, user=None, now=None):
 
 def reply_text(trade, read, verdict, out, instead, rr):
     head = {"GO": "✅ <b>GO</b>", "CAUTION": "⚠️ <b>CAUTION</b>", "NO-GO": "⛔ <b>NO-GO</b>"}[verdict]
+    if not read.get("pro_visible") and verdict != "NO-GO":
+        head = "❓ <b>NOT CHECKED</b> · I couldn't read the chart, so this is NOT an OK"
     km = {"GO": "អាចចូលបាន តាមផែនការ", "CAUTION": "ប្រយ័ត្ន · បន្ថយ lot ឬរង់ចាំ", "NO-GO": "កុំចូល · រង់ចាំ"}[verdict]
     L = [f"{head} · {trade['side']} {_f(trade['entry'])} · SL {_f(trade['sl'])} · TP {_f(trade['tp'])} · {rr:.1f}R"]
     order = {"✗": 0, "!": 1, "✓": 2}
@@ -384,6 +425,10 @@ def reply_text(trade, read, verdict, out, instead, rr):
         L.append(f"🤖 <i>I filled in: {html.escape(' · '.join(trade['auto']), quote=False)}</i>")
     if instead:
         L.append(f"👉 <b>{html.escape(instead, quote=False)}</b>")
+    if not read.get("pro_visible"):
+        km = "មិនបានពិនិត្យក្រាហ្វ · កុំចាត់ទុកថាអាចចូលបាន"
+        L.append("<i>Fix: crop to the chart + PRO panel, or send the picture as a File (no compression)."
+                 + (f" Reason: {html.escape(str(read['error']), quote=False)}" if read.get("error") else "") + "</i>")
     L.append(f"🇰🇭 {km}")
     if read.get("pro_visible"):
         src = "CHK line (exact)" if read.get("chk_ok") else "the panel, by eye"
@@ -419,14 +464,18 @@ def handle_photo(msg, base):
     _used[(user, _day_kh())] = _used.get((user, _day_kh()), 0) + 1
     _api("sendChatAction", {"chat_id": msg["chat"]["id"], "action": "typing"})
     try:
-        ph = max(msg["photo"], key=lambda p: p.get("file_size", 0))
-        fp = _api("getFile", {"file_id": ph["file_id"]})["file_path"]
+        if msg.get("photo"):
+            fid = max(msg["photo"], key=lambda p: p.get("file_size", 0))["file_id"]
+        else:
+            fid = msg["document"]["file_id"]
+        fp = _api("getFile", {"file_id": fid})["file_path"]
         img = urllib.request.urlopen(f"https://api.telegram.org/file/bot{_tok()}/{fp}", timeout=30).read()
     except Exception as e:
         print("trade check download failed:", e)
         send("Couldn't download the screenshot. Try again.")
         return True
-    read = read_chart(img)
+    media = "image/png" if fp.lower().endswith(".png") else "image/webp" if fp.lower().endswith(".webp") else "image/jpeg"
+    read = read_chart(img, media)
     err = fill(trade, read)
     if err:
         send(f"⚠️ {err}")
@@ -437,7 +486,7 @@ def handle_photo(msg, base):
         "tg_user": int(user), "side": trade["side"], "entry": trade["entry"], "sl": trade["sl"], "tp": trade["tp"],
         "reason": trade["reason"] or None, "verdict": verdict, "checks": [{"m": m, "t": t} for m, t in out],
         "chart_read": {k: read.get(k) for k in ("bias", "score", "h1", "h4", "trigger", "wall_up", "wall_down",
-                                               "poi_low", "poi_high", "price", "timeframe", "chk_ok", "pro_visible")},
+                                               "poi_low", "poi_high", "price", "timeframe", "chk_ok", "pro_visible", "error")},
         "live_price": live_price()[0], "rr": round(rr, 2)}, prefer="return=representation")
     kw = {}
     if row:
