@@ -5,6 +5,8 @@
   /proof   the live record
   /lesson  a random short lesson
   /help    the list
+  /trade   how to use the ✋ trade check (photo + "BUY 3865 SL 3858 TP 3880" in a private chat)
+  /mytrades  your private 7-day bill: followed the check vs overrode a NO-GO
 
 loop.py calls serve(until) in the gap between its 5-minute cycles, so replies come within seconds.
 Telegram long polling (getUpdates); the offset is kept in data/cache so restarts don't answer twice.
@@ -185,7 +187,7 @@ def academy_answer():
 
 
 HELP = ("🤖 <b>XAU.KH bot</b>\n/check: gold right now + what to do · មើលមាសឥឡូវ\n/signal: latest signal · សញ្ញាចុងក្រោយ\n"
-        "/proof: live record · លទ្ធផល\n/academy: all 45 lessons · មេរៀនទាំងអស់\n/lesson 5: open chapter 5 · បើកមេរៀនទី 5\n"
+        "/proof: live record · លទ្ធផល\n✋ /trade: check YOUR trade before you click (private chat) · ពិនិត្យមុនចូល\n/academy: all 45 lessons · មេរៀនទាំងអស់\n/lesson 5: open chapter 5 · បើកមេរៀនទី 5\n"
         "/app: open the XAU.KH App · បើកកម្មវិធី")
 
 APP_TEXT = ("📲 <b>XAU.KH App · កម្មវិធី XAU.KH</b>\nPrice, direction, buy / sell areas, chart, news countdown, record.\n"
@@ -193,25 +195,47 @@ APP_TEXT = ("📲 <b>XAU.KH App · កម្មវិធី XAU.KH</b>\nPrice, d
 
 
 # ---------------------------------------------------------------- loop
+def _base(msg):
+    base = {"chat_id": msg["chat"]["id"], "parse_mode": "HTML",
+            "reply_parameters": json.dumps({"message_id": msg["message_id"], "allow_sending_without_reply": True})}
+    if msg.get("is_topic_message") and msg.get("message_thread_id"):
+        base["message_thread_id"] = msg["message_thread_id"]
+    return base
+
+
 def handle(msg):
+    if time.time() - msg.get("date", 0) > 600:   # old message (bot was offline): don't answer late
+        return
+    if msg.get("photo"):   # ✋ trade check: screenshot + "BUY 3865 SL 3858 TP 3880" (private chat only)
+        try:
+            import tradecheck
+            tradecheck.handle_photo(msg, _base(msg))
+        except Exception as e:
+            print("trade check failed:", e)
+        return
     text = (msg.get("text") or "").strip()
     if not text.startswith("/"):
         return
-    if time.time() - msg.get("date", 0) > 600:   # old command (bot was offline): don't answer late
-        return
     cmd = text.split()[0].split("@")[0].lower()
-    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/academy", "/help", "/start", "/app"):
+    if cmd not in ("/check", "/signal", "/proof", "/lesson", "/academy", "/help", "/start", "/app", "/trade", "/mytrades"):
         return
     user = (msg.get("from") or {}).get("id")
     if user and time.time() - _last_user.get((user, cmd), 0) < COOLDOWN_S and cmd != "/help":
         return
     _last_user[(user, cmd)] = time.time()
-    chat = msg["chat"]["id"]
-    base = {"chat_id": chat, "parse_mode": "HTML",
-            "reply_parameters": json.dumps({"message_id": msg["message_id"], "allow_sending_without_reply": True})}
-    if msg.get("is_topic_message") and msg.get("message_thread_id"):
-        base["message_thread_id"] = msg["message_thread_id"]
+    base = _base(msg)
     try:
+        if cmd in ("/trade", "/mytrades"):
+            import tradecheck
+            if (msg.get("chat") or {}).get("type") != "private":
+                api("sendMessage", dict(base, text="✋ Trade checks are private: open a chat with me and send it there."))
+            elif not tradecheck.allowed((msg.get("from") or {}).get("id")):
+                api("sendMessage", dict(base, text="✋ Trade check is in testing. Coming soon · មកដល់ឆាប់ៗ"))
+            elif cmd == "/trade":
+                api("sendMessage", dict(base, text=tradecheck.HOW))
+            else:
+                tradecheck.mytrades(msg, base)
+            return
         if cmd == "/check":
             path, text = check_answer()
             if path:
@@ -254,7 +278,9 @@ def serve(until):
                 {"command": "proof", "description": "Live record, wins and losses · លទ្ធផល"},
                 {"command": "academy", "description": "All 45 lessons · មេរៀនទាំងអស់"},
                 {"command": "lesson", "description": "Today's lesson, or /lesson 5 · មេរៀន"},
-                {"command": "app", "description": "Open the XAU.KH App · បើកកម្មវិធី"}], ensure_ascii=False)})
+                {"command": "app", "description": "Open the XAU.KH App · បើកកម្មវិធី"},
+                {"command": "trade", "description": "✋ Check your trade before you click · ពិនិត្យមុនចូល"},
+                {"command": "mytrades", "description": "Your private 7-day bill · លទ្ធផលរបស់ខ្ញុំ"}], ensure_ascii=False)})
             _menu = True
         except Exception as e:
             print("setMyCommands failed:", e)
@@ -265,7 +291,7 @@ def serve(until):
     while time.time() < until - 3:
         wait = int(max(1, min(25, until - time.time() - 3)))
         try:
-            ups = api("getUpdates", {"offset": off, "timeout": wait, "allowed_updates": json.dumps(["message"])},
+            ups = api("getUpdates", {"offset": off, "timeout": wait, "allowed_updates": json.dumps(["message", "callback_query"])},
                       timeout=wait + 10) or []
         except urllib.error.HTTPError as e:
             print("getUpdates:", e.code)   # 409 = another runner is polling: just wait
@@ -279,6 +305,12 @@ def serve(until):
             off = u["update_id"] + 1
             if u.get("message"):
                 handle(u["message"])
+            elif u.get("callback_query"):   # ✋ trade check buttons: "I took it" / "I skipped"
+                try:
+                    import tradecheck
+                    tradecheck.on_callback(u["callback_query"])
+                except Exception as e:
+                    print("trade check button failed:", e)
         if ups:
             os.makedirs("data/cache", exist_ok=True)
             json.dump({"offset": off}, open(OFFSET, "w"))

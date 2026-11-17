@@ -75,6 +75,7 @@ def cycle(n):
     run("indicator_post.py")   # 📈 one-time: Indicator topic posts + files (indicator_state.json stops repeats)
     run("app_post.py")   # 📲 one-time: App topic welcome post + pin + announcement (app_state.json stops repeats)
     run("second.py")   # ⏳ second chance: re-entry limit after an M15 signal was swept (5m MSS back)
+    run("tradecheck.py")   # ✋ grade members' taken trade checks (private, in Supabase); does nothing if none are open
     core_ok = all([run(s) for s in CORE])
     if core_ok:
         for s in OPTIONAL:
