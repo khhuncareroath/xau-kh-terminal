@@ -20,7 +20,7 @@
   const home = /(^|\/)(index\.html)?$/.test(location.pathname);
   try {
     const sp = ((W.initDataUnsafe || {}).start_param || "").toLowerCase();
-    const pages = { scaleup: "scaleup.html", journal: "journal.html", challenge: "challenge.html" };
+    const pages = { scaleup: "scaleup.html", journal: "journal.html", challenge: "challenge.html", check: "journal.html#check" };
     if (home && sp && !sessionStorage.getItem("xau-start-done")) {
       sessionStorage.setItem("xau-start-done", "1");
       if (pages[sp]) location.replace(pages[sp]);

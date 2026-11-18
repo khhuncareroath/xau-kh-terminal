@@ -72,6 +72,17 @@ input,select{width:100%;height:44px;border-radius:12px;border:0;background:var(-
 .trade:last-child{border:0}
 .tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;flex:none}
 .tag.b{background:color-mix(in srgb,var(--up) 20%,transparent);color:var(--up)}
+.tc-drop{display:grid;place-items:center;gap:6px;min-height:120px;border:1.5px dashed var(--sep);border-radius:14px;cursor:pointer;color:var(--label2);text-align:center;padding:12px;overflow:hidden}
+.tc-drop img{max-width:100%;max-height:220px;border-radius:10px;display:block}
+.tc-v{font-size:22px;font-weight:800;margin:2px 0 6px}
+.tc-v.go{color:var(--up)}.tc-v.caution{color:var(--gold)}.tc-v.nogo{color:var(--dn)}.tc-v.unk{color:var(--label2)}
+.tc-l{display:flex;gap:8px;padding:5px 0;font-size:14.5px;line-height:1.35}.tc-l b{flex:none;width:18px;text-align:center}
+.tc-l.x b{color:var(--dn)}.tc-l.w b{color:var(--gold)}.tc-l.ok b{color:var(--up)}
+.tc-inst{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--fill);font-weight:600;font-size:14.5px}
+.tc-small{font-size:12.5px;color:var(--label2);margin-top:8px}
+.tc-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tc-bill{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tc-bill div{background:var(--fill);border-radius:12px;padding:10px}.tc-bill b{display:block;font-size:20px}
+.tc-it{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:.5px solid var(--sep);font-size:14px}.tc-it .info{flex:1;min-width:0}.tc-it small{color:var(--label2);display:block}
 .tag.s{background:color-mix(in srgb,var(--dn) 20%,transparent);color:var(--dn)}
 .trade .info{flex:1;min-width:0}.trade .info b{font-size:14.5px}.trade .info span{display:block;font-size:12.5px;color:var(--label2)}
 .res{font-weight:700;font-size:14.5px;text-align:right;min-width:76px}
@@ -283,7 +294,7 @@ main>*:nth-child(5){animation-delay:.2s}main>*:nth-child(6){animation-delay:.25s
     <div class="row num" style="margin-top:6px"><span id="k-n">0 trades</span><span id="k-dd"></span></div>
   </div>
 
-  <div class="seg" id="tabs" style="margin-bottom:14px"><button data-v="add" class="on">Add</button><button data-v="list">Trades</button><button data-v="insights">Insights</button><button data-v="cal">Calendar</button></div>
+  <div class="seg" id="tabs" style="margin-bottom:14px"><button data-v="check">Check</button><button data-v="add" class="on">Add</button><button data-v="list">Trades</button><button data-v="insights">Insights</button><button data-v="cal">Calendar</button></div>
 
   <section class="card" id="p-add">
     <h2>New trade · ការជួញដូរថ្មី</h2>
@@ -307,6 +318,25 @@ main>*:nth-child(5){animation-delay:.2s}main>*:nth-child(6){animation-delay:.25s
     <label style="margin-top:12px">Notes</label>
     <textarea id="f-note" rows="2" placeholder="What did you see? What would you do differently?"></textarea>
     <button class="btn" id="save">Save trade</button>
+  </section>
+
+  <section id="p-check" hidden>
+    <div class="card">
+      <h2>✋ Check before you click · ពិនិត្យមុនចូល</h2>
+      <p class="tc-small" style="margin-top:0">Screenshot your chart with the XAU.KH PRO panel, pick BUY or SELL. The check reads the panel and tells you GO, CAUTION or NO-GO, and why. Only you see your checks.</p>
+      <label class="tc-drop" id="tc-drop"><span id="tc-ph">📷 Tap to add your chart screenshot<br><small>បន្ថែមរូបក្រាហ្វ</small></span><img id="tc-img" alt="" hidden><input id="tc-file" type="file" accept="image/*" hidden></label>
+      <div class="seg" id="c-dir" style="margin-top:12px"><button data-v="BUY" class="b">BUY</button><button data-v="SELL" class="s">SELL</button></div>
+      <details style="margin-top:12px"><summary class="tc-small" style="cursor:pointer">Your own entry / SL / TP (optional: empty = I fill them in)</summary>
+        <div class="grid" style="margin-top:10px">
+          <div><label>Entry</label><input id="c-entry" type="number" inputmode="decimal" step="0.01" placeholder="live price"></div>
+          <div><label>Stop loss</label><input id="c-sl" type="number" inputmode="decimal" step="0.01" placeholder="behind the WALL"></div>
+          <div><label>Take profit</label><input id="c-tp" type="number" inputmode="decimal" step="0.01" placeholder="2R"></div>
+          <div><label>Why?</label><input id="c-why" type="text" maxlength="120" placeholder="e.g. FLIP at the POI"></div>
+        </div></details>
+      <button class="btn" id="c-go">Check my trade</button>
+      <div id="c-out"></div>
+    </div>
+    <div class="card"><h2>My checks · ការពិនិត្យរបស់ខ្ញុំ</h2><div id="c-bill"></div><div id="c-list"><p class="tc-small">Loading…</p></div></div>
   </section>
 
   <section class="card" id="p-list" hidden><h2>Trades</h2><div id="list"></div></section>
@@ -346,7 +376,7 @@ chips("#f-setup",SETUPS);chips("#f-mood",MOODS);chips("#f-err",ERRS);
 const pick=id=>$$(id+" .on").map(b=>b.dataset.k);
 $$(".seg").forEach(s=>s.onclick=e=>{const b=e.target.closest("button");if(!b)return;s.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
   if(s.id==="tabs")tab(b.dataset.v);else calc()});
-function tab(v){["add","list","insights","cal"].forEach(k=>$("#p-"+k).hidden=k!==v);render()}
+function tab(v){["check","add","list","insights","cal"].forEach(k=>$("#p-"+k).hidden=k!==v);render();if(v==="check"&&window.tcOpen)window.tcOpen()}
 function sess(ts){const h=+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(new Date(ts));
   return h>=18||h<2?"Asia":h<7?"London":h<12?"New York":"Late NY"}
 function stats(t){const sg=t.dir==="bull"?1:-1,risk=t.sl?Math.abs(t.entry-t.sl):null;
@@ -443,6 +473,7 @@ $("#imp").onchange=async e=>{const txt=await e.target.files[0].text();const line
     T.push({id:r.id||Date.now().toString(36)+n,t:Date.parse(r.t)||Date.now(),dir:r.dir==="bear"?"bear":"bull",entry:+r.entry,lot:+r.lot||0.01,sl:+r.sl||null,tp:+r.tp||null,
       exit:r.exit===""?null:+r.exit,setup:r.setup||"Other",mood:r.mood||"",err:r.err?r.err.split("|"):[],note:r.note||""});n++}save(T);render();alert(n+" trades imported")};
 resetForm();sigs();render();addEventListener("resize",render);
+if(location.hash==="#check"){tab("check");$$("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==="check"))}
 })();
 </script>
 
@@ -476,6 +507,72 @@ resetForm();sigs();render();addEventListener("resize",render);
     for(let i=0;i<18;i++){const p=document.createElement("i");p.className="burst";const a=Math.random()*Math.PI*2,d=60+Math.random()*90;
       p.style.cssText=`left:${cx}px;top:${cy}px;background:${colors[i%colors.length]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-40}px;--r:${Math.random()*540}deg`;
       document.body.appendChild(p);setTimeout(()=>p.remove(),950)}};
+})();
+</script>
+<script>
+/* ✋ Trade check: screenshot + BUY/SELL -> GO / CAUTION / NO-GO from the private "trade-check" function (Supabase).
+   Telegram proves who you are (initData); you only ever see your own checks. Outside Telegram it shows how to open it. */
+(()=>{
+const URL_="https://riwmrounmijngjysbluo.supabase.co/functions/v1/trade-check";
+const W=window.Telegram&&window.Telegram.WebApp, ID=W&&W.initData||"";
+const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f2=x=>x==null?"–":(+x).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const haptic=t=>{try{W&&W.HapticFeedback&&W.HapticFeedback.notificationOccurred(t)}catch(e){}};
+let img=null,media="image/jpeg",loaded=false,busy=false;
+const call=async body=>{const r=await fetch(URL_,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({initData:ID,...body})});
+  let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||("Error "+r.status));return j};
+const notTg=()=>{$("#c-out").innerHTML=`<p class="tc-small">Open this inside Telegram from the XAU.KH bot to use the check: <a href="https://t.me/XAUKH066566667_bot/app?startapp=check">open in Telegram</a></p>`};
+
+// screenshot -> smaller JPEG (sharp enough to read the panel, quick to send)
+$("#tc-file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{
+  const k=Math.min(1,2000/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+  c.getContext("2d").drawImage(im,0,0,c.width,c.height);const d=c.toDataURL("image/jpeg",.9);img=d.split(",")[1];media="image/jpeg";
+  $("#tc-img").src=d;$("#tc-img").hidden=false;$("#tc-ph").hidden=true};im.src=fr.result};fr.readAsDataURL(f)};
+
+const line=l=>`<div class="tc-l ${l.m==="✗"?"x":l.m==="!"?"w":"ok"}"><b>${l.m==="✗"?"✗":l.m==="!"?"⚠":"✓"}</b><span>${esc(l.t)}</span></div>`;
+function show(j){const r=j.result,t=j.trade,rd=j.read||{};
+  const cls=r.notChecked?"unk":r.verdict==="GO"?"go":r.verdict==="CAUTION"?"caution":"nogo";
+  const head=r.notChecked?"❓ NOT CHECKED":r.verdict==="GO"?"✅ GO":r.verdict==="CAUTION"?"⚠️ CAUTION":"⛔ NO-GO";
+  const km=r.notChecked?"មិនបានពិនិត្យក្រាហ្វ · កុំចាត់ទុកថាអាចចូលបាន":r.verdict==="GO"?"អាចចូលបាន តាមផែនការ":r.verdict==="CAUTION"?"ប្រយ័ត្ន · បន្ថយ lot ឬរង់ចាំ":"កុំចូល · រង់ចាំ";
+  const order={"✗":0,"!":1,"✓":2};
+  $("#c-out").innerHTML=`<div style="margin-top:16px"><div class="tc-v ${cls}">${head}</div>
+    <div class="num" style="font-weight:600">${esc(t.side)} ${f2(t.entry)} · SL ${f2(t.sl)} · TP ${f2(t.tp)} · ${(+r.rr).toFixed(1)}R</div>
+    ${r.notChecked?`<p class="tc-small">I couldn't read the chart, so this is NOT an OK. Crop to the chart + PRO panel and try again.${rd.error?" ("+esc(rd.error)+")":""}</p>`:""}
+    <div style="margin-top:8px">${[...r.lines].sort((a,b)=>order[a.m]-order[b.m]).map(line).join("")}</div>
+    ${t.auto&&t.auto.length?`<p class="tc-small">🤖 I filled in: ${esc(t.auto.join(" · "))}</p>`:""}
+    ${r.instead?`<div class="tc-inst">👉 ${esc(r.instead)}</div>`:""}
+    <p class="tc-small">🇰🇭 ${km}</p>
+    ${rd.pro_visible?`<p class="tc-small">📖 Read from ${rd.chk_ok?"the CHK line (exact)":"the panel, by eye"}: BIAS ${esc(rd.bias)} · score ${rd.score??"?"}/5 · trigger ${esc(String(rd.trigger||"?").replace("_"," "))}</p>`:""}
+    <div class="tc-row2"><button class="btn ghost" style="margin:0" data-took="1">✅ I took it</button><button class="btn ghost" style="margin:0" data-took="0">✋ I skipped</button></div>
+    <p class="tc-small">A rules check, not financial advice.</p></div>`;
+  haptic(r.verdict==="GO"&&!r.notChecked?"success":r.verdict==="NO-GO"?"error":"warning");
+  $("#c-out").querySelectorAll("[data-took]").forEach(b=>b.onclick=async()=>{try{const m=await call({action:"mark",id:j.id,taken:b.dataset.took==="1"});
+    $("#c-out .tc-row2").outerHTML=`<p class="tc-small" style="font-weight:600">${b.dataset.took==="1"?(m.override?"🔴 Taken against a NO-GO. It goes on your bill.":"📒 Tracking it. The result shows below when SL or TP is hit."):"👍 Skipped. Waiting is a position too."}</p>`;list()}catch(e){alert(e.message)}});
+}
+
+$("#c-go").onclick=async()=>{if(!ID)return notTg();if(busy)return;
+  const side=(document.querySelector("#c-dir .on")||{}).dataset;if(!side||!side.v)return alert("Pick BUY or SELL · ជ្រើស BUY ឬ SELL");
+  if(!img)return alert("Add your chart screenshot first · បន្ថែមរូបក្រាហ្វ");
+  busy=true;const b=$("#c-go");b.textContent="Checking…";b.disabled=true;$("#c-out").innerHTML="";
+  try{const j=await call({action:"check",image:img,media,side:side.v,entry:$("#c-entry").value,sl:$("#c-sl").value,tp:$("#c-tp").value,reason:$("#c-why").value});show(j);list()}
+  catch(e){$("#c-out").innerHTML=`<p class="tc-small" style="color:var(--dn);font-weight:600">⚠️ ${esc(e.message)}</p>`;haptic("error")}
+  finally{busy=false;b.textContent="Check my trade";b.disabled=false}};
+
+const ST={checked:"not marked",skipped:"skipped",open:"open",win:"TP hit",loss:"SL hit",be:"breakeven",expired:"closed (24h)"};
+async function list(){if(!ID){$("#c-list").innerHTML="";return notTg()}
+  try{const j=await call({action:"list"}),w=j.week;
+    $("#c-bill").innerHTML=`<p class="tc-small" style="margin-top:0">Last 7 days · ${w.checks} checks, ${w.skipped} skipped</p><div class="tc-bill">
+      <div><small>✅ Followed the check</small><b class="num" style="color:${w.followed.r>=0?"var(--up)":"var(--dn)"}">${w.followed.r>=0?"+":""}${w.followed.r}R</b><small>${w.followed.trades} trades</small></div>
+      <div><small>🔴 Overrode a NO-GO</small><b class="num" style="color:${w.overrode.r>=0?"var(--up)":"var(--dn)"}">${w.overrode.r>=0?"+":""}${w.overrode.r}R</b><small>${w.overrode.trades} trades</small></div></div>`;
+    $("#c-list").innerHTML=j.checks.length?j.checks.slice(0,30).map(c=>{const v=c.verdict==="GO"?"✅":c.verdict==="CAUTION"?"⚠️":"⛔";
+      const res=c.result_r!=null?` · <b class="num" style="color:${c.result_r>=0?"var(--up)":"var(--dn)"}">${c.result_r>=0?"+":""}${(+c.result_r).toFixed(2)}R</b>`:"";
+      return `<div class="tc-it"><span class="tag ${c.side==="BUY"?"b":"s"}">${c.side}</span><div class="info"><b class="num">${v} ${esc(c.verdict)} · ${f2(c.entry)}</b>
+        <small>${new Date(c.created_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · ${ST[c.status]||c.status}${res}${c.reason?" · "+esc(c.reason):""}</small></div></div>`}).join("")
+      :`<p class="tc-small">No checks yet. Your first one is above.</p>`}
+  catch(e){$("#c-list").innerHTML=`<p class="tc-small">⚠️ ${esc(e.message)}</p>`}}
+window.tcOpen=()=>{if(!loaded){loaded=true;list()}};
+if(!ID)notTg();
+if(!$("#p-check").hidden)window.tcOpen();   // opened straight on the Check tab (journal.html#check)
 })();
 </script>
 </body>

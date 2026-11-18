@@ -269,6 +269,13 @@ def serve(until):
     if not _tok():
         time.sleep(max(0, until - time.time()))
         return
+    try:   # pick up a new tradecheck.py after each git pull too (loop.py reloads this file, not the ones it imports)
+        import importlib
+        import sys as _sys
+        if "tradecheck" in _sys.modules:
+            importlib.reload(_sys.modules["tradecheck"])
+    except Exception as e:
+        print("tradecheck reload failed:", e)
     global _menu
     if not _menu:
         try:   # show the commands in Telegram's "/" menu
