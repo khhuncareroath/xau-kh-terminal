@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-18 13:55 UTC",
-  "price": 3785.24,
-  "last_bar": "2026-11-18 08:50:00-05:00",
-  "atr_5m": 7.06,
+  "time": "2026-11-18 14:05 UTC",
+  "price": 3783.67,
+  "last_bar": "2026-11-18 09:00:00-05:00",
+  "atr_5m": 6.91,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -44,7 +44,7 @@
           "dir": "bull",
           "lo": 3779.0,
           "hi": 3782.87,
-          "status": "open",
+          "status": "partial",
           "time": "2026-11-18 08:40:00-05:00"
         },
         {
@@ -102,7 +102,7 @@
           "dir": "bull",
           "lo": 3775.1,
           "hi": 3782.87,
-          "status": "open",
+          "status": "partial",
           "time": "2026-11-18 08:30:00-05:00"
         },
         {
@@ -164,6 +164,13 @@
       ],
       "fvgs": [
         {
+          "dir": "bull",
+          "lo": 3773.41,
+          "hi": 3782.29,
+          "status": "open",
+          "time": "2026-11-18 08:00:00-05:00"
+        },
+        {
           "dir": "bear",
           "lo": 3830.73,
           "hi": 3845.64,
@@ -176,13 +183,6 @@
           "hi": 3862.5,
           "status": "partial",
           "time": "2026-11-17 13:00:00-05:00"
-        },
-        {
-          "dir": "bear",
-          "lo": 3908.39,
-          "hi": 3929.63,
-          "status": "partial",
-          "time": "2026-11-12 08:00:00-05:00"
         }
       ]
     },
@@ -299,6 +299,13 @@
   "sweeps": [
     {
       "side": "buy-side",
+      "level": 3786.59,
+      "name": "London high",
+      "extreme": 3789.41372,
+      "time": "2026-11-18 01:05:00-05:00"
+    },
+    {
+      "side": "buy-side",
       "level": 3773.58,
       "name": "15m swing high",
       "extreme": 3775.09984,
@@ -313,18 +320,34 @@
     }
   ],
   "setup": {
-    "stage": 1,
-    "label": "Sweep happened, waiting for a structure shift",
+    "stage": 3,
+    "label": "Price is in the retest zone",
     "dir": "bear",
+    "zone": [
+      3779.32,
+      3782.97
+    ],
+    "entry": 3781.15,
+    "stop": 3791.49,
+    "target": 3765.2,
+    "rr": 1.54,
     "reasons": [
-      "1H swing high at 3786.59 was swept and price closed back inside (buy-side liquidity taken)."
-    ]
+      "London high at 3786.59 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3776.31: a bear structure shift right after the sweep.",
+      "Retest zone: order block 3779.32-3782.97.",
+      "1H structure is bear: agrees."
+    ],
+    "sweep_time": "2026-11-18 01:05:00-05:00",
+    "shift_time": "2026-11-18 02:00:00-05:00",
+    "sweep_extreme": 3789.41,
+    "sweep_name": "London high",
+    "displacement": true,
+    "risk_atr": 1.5,
+    "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-18 03:55",
-      "11-18 04:00",
       "11-18 04:05",
       "11-18 04:10",
       "11-18 04:15",
@@ -382,11 +405,11 @@
       "11-18 08:35",
       "11-18 08:40",
       "11-18 08:45",
-      "11-18 08:50"
+      "11-18 08:50",
+      "11-18 08:55",
+      "11-18 09:00"
     ],
     "ts": [
-      1794992100,
-      1794992400,
       1794992700,
       1794993000,
       1794993300,
@@ -444,23 +467,11 @@
       1795008900,
       1795009200,
       1795009500,
-      1795009800
+      1795009800,
+      1795010100,
+      1795010400
     ],
     "candles": [
-      [
-        3768.19,
-        3770.74,
-        3765.0,
-        3769.24,
-        719.0
-      ],
-      [
-        3769.42,
-        3772.16,
-        3768.28,
-        3771.91,
-        692.0
-      ],
       [
         3771.54,
         3773.73,
@@ -858,19 +869,31 @@
         3787.12,
         3782.87,
         3786.4,
-        0.0
+        1914.0
       ],
       [
         3785.49,
         3789.1,
         3784.1,
         3785.24,
-        688.0
+        1604.0
+      ],
+      [
+        3785.92,
+        3787.46,
+        3783.0,
+        3783.35,
+        0.0
+      ],
+      [
+        3783.85,
+        3784.44,
+        3782.29,
+        3783.67,
+        707.5
       ]
     ],
     "vwap": [
-      3798.11,
-      3797.89,
       3797.74,
       3797.59,
       3797.21,
@@ -927,12 +950,12 @@
       3786.32,
       3786.25,
       3786.17,
-      3786.17,
-      3786.17
+      3786.16,
+      3786.16,
+      3786.16,
+      3786.15
     ],
     "sd": [
-      24.66,
-      24.68,
       24.68,
       24.7,
       24.77,
@@ -989,15 +1012,12 @@
       25.35,
       25.27,
       25.04,
-      25.04,
-      24.98
+      24.87,
+      24.73,
+      24.73,
+      24.68
     ],
-    "marks": {
-      "sweep": {
-        "price": 3786.59,
-        "i": 59
-      }
-    }
+    "marks": {}
   },
   "disclaimer": "Mechanical analysis ideas, not signals or advice."
 }
