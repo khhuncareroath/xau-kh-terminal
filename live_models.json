@@ -1,13 +1,13 @@
 {
- "time": "2026-11-18 13:45 UTC",
- "last_bar": "2026-11-18 08:40:00-05:00",
- "price": 3783.66,
+ "time": "2026-11-18 13:55 UTC",
+ "last_bar": "2026-11-18 08:50:00-05:00",
+ "price": 3785.24,
  "signals": [
   {
-   "entry": 3783.66,
+   "entry": 3785.49,
    "dir": "bull",
    "stop": 3759.43,
-   "target": 3820.0,
+   "target": 3824.56,
    "trigger_time": "2026-11-18 08:50:00-05:00",
    "model": "ny_breakout",
    "rr": 1.5,
@@ -18,6 +18,22 @@
     "avg_R": 0.033
    },
    "description": "New York breakout of the 08:00-08:30 range, stop at the range middle, 1.5R target"
+  },
+  {
+   "entry": 3785.24,
+   "dir": "bear",
+   "stop": 3794.65,
+   "target": 3766.42,
+   "trigger_time": "2026-11-18 09:10:00-05:00",
+   "model": "trend_pullback",
+   "rr": 2.0,
+   "proven": false,
+   "backtest": {
+    "trades": 293,
+    "win_rate_pct": 30,
+    "avg_R": -0.199
+   },
+   "description": "Daily and 4H trend agree, pullback to VWAP in London or New York, 2R target"
   }
  ]
 }
