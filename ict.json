@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-19 10:05 UTC",
-  "price": 3728.14,
-  "last_bar": "2026-11-19 05:00:00-05:00",
-  "atr_5m": 4.09,
+  "time": "2026-11-19 10:15 UTC",
+  "price": 3730.59,
+  "last_bar": "2026-11-19 05:10:00-05:00",
+  "atr_5m": 4.03,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -34,10 +34,10 @@
       "fvgs": [
         {
           "dir": "bear",
-          "lo": 3728.34,
-          "hi": 3729.67,
-          "status": "open",
-          "time": "2026-11-19 04:55:00-05:00"
+          "lo": 3730.37,
+          "hi": 3733.49,
+          "status": "partial",
+          "time": "2026-11-19 04:45:00-05:00"
         },
         {
           "dir": "bull",
@@ -48,10 +48,10 @@
         },
         {
           "dir": "bear",
-          "lo": 3730.37,
-          "hi": 3733.49,
-          "status": "open",
-          "time": "2026-11-19 04:45:00-05:00"
+          "lo": 3734.56,
+          "hi": 3737.9,
+          "status": "partial",
+          "time": "2026-11-19 04:10:00-05:00"
         }
       ]
     },
@@ -98,18 +98,18 @@
       ],
       "fvgs": [
         {
-          "dir": "bull",
-          "lo": 3714.89,
-          "hi": 3720.1,
-          "status": "open",
-          "time": "2026-11-18 22:45:00-05:00"
-        },
-        {
           "dir": "bear",
           "lo": 3737.45,
           "hi": 3746.86,
           "status": "partial",
           "time": "2026-11-18 21:30:00-05:00"
+        },
+        {
+          "dir": "bull",
+          "lo": 3714.89,
+          "hi": 3720.1,
+          "status": "open",
+          "time": "2026-11-18 22:45:00-05:00"
         },
         {
           "dir": "bear",
@@ -312,6 +312,13 @@
   "sweeps": [
     {
       "side": "buy-side",
+      "level": 3750.66,
+      "name": "15m swing high",
+      "extreme": 3752.62684,
+      "time": "2026-11-18 21:15:00-05:00"
+    },
+    {
+      "side": "buy-side",
       "level": 3727.17,
       "name": "15m swing high",
       "extreme": 3728.35704,
@@ -319,19 +326,34 @@
     }
   ],
   "setup": {
-    "stage": 4,
-    "label": "Idea void: price took out the sweep extreme",
+    "stage": 2,
+    "label": "Shift confirmed, waiting for the retest",
     "dir": "bear",
+    "zone": [
+      3746.88,
+      3752.63
+    ],
+    "entry": 3749.75,
+    "stop": 3753.84,
+    "target": 3742.26,
+    "rr": 1.83,
     "reasons": [
-      "15m swing high at 3727.17 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 3730.35: a bear structure shift right after the sweep."
-    ]
+      "15m swing high at 3750.66 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3746.16: a bear structure shift right after the sweep.",
+      "Retest zone: order block 3746.88-3752.63.",
+      "1H structure is bear: agrees."
+    ],
+    "sweep_time": "2026-11-18 21:15:00-05:00",
+    "shift_time": "2026-11-18 21:30:00-05:00",
+    "sweep_extreme": 3752.63,
+    "sweep_name": "15m swing high",
+    "displacement": false,
+    "risk_atr": 1.01,
+    "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-19 00:05",
-      "11-19 00:10",
       "11-19 00:15",
       "11-19 00:20",
       "11-19 00:25",
@@ -389,11 +411,11 @@
       "11-19 04:45",
       "11-19 04:50",
       "11-19 04:55",
-      "11-19 05:00"
+      "11-19 05:00",
+      "11-19 05:05",
+      "11-19 05:10"
     ],
     "ts": [
-      1795064700,
-      1795065000,
       1795065300,
       1795065600,
       1795065900,
@@ -451,23 +473,11 @@
       1795081500,
       1795081800,
       1795082100,
-      1795082400
+      1795082400,
+      1795082700,
+      1795083000
     ],
     "candles": [
-      [
-        3724.23,
-        3735.25,
-        3724.09,
-        3729.46,
-        1005.0
-      ],
-      [
-        3730.48,
-        3734.27,
-        3728.0,
-        3728.31,
-        269.0
-      ],
       [
         3728.89,
         3732.74,
@@ -865,19 +875,31 @@
         3730.27,
         3726.62,
         3727.65,
-        0.0
+        607.0
       ],
       [
         3727.4,
         3728.34,
         3726.48,
         3728.14,
+        360.0
+      ],
+      [
+        3727.86,
+        3730.93,
+        3727.86,
+        3730.77,
+        0.0
+      ],
+      [
+        3730.34,
+        3731.02,
+        3728.56,
+        3730.59,
         340.5
       ]
     ],
     "vwap": [
-      3730.67,
-      3730.66,
       3730.67,
       3730.66,
       3730.67,
@@ -934,12 +956,12 @@
       3732.23,
       3732.22,
       3732.21,
-      3732.21,
-      3732.19
+      3732.18,
+      3732.16,
+      3732.16,
+      3732.14
     ],
     "sd": [
-      17.26,
-      17.21,
       17.14,
       17.11,
       17.06,
@@ -996,15 +1018,12 @@
       14.25,
       14.22,
       14.19,
-      14.19,
-      14.16
+      14.14,
+      14.1,
+      14.1,
+      14.07
     ],
-    "marks": {
-      "mss": {
-        "level": 3730.35,
-        "i": 21
-      }
-    }
+    "marks": {}
   },
   "disclaimer": "Mechanical analysis ideas, not signals or advice."
 }
