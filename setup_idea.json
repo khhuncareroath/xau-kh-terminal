@@ -36,7 +36,11 @@
     "hi": 3601.01
    }
   },
-  "done": {},
+  "done": {
+   "SELL_SZ": "zone broken",
+   "BUY": "sent",
+   "SELL": "cancelled"
+  },
   "atr15": 7.542489285714282,
   "demand": [
    {
@@ -87,13 +91,59 @@
   },
   "with_trend": "BUY",
   "msg_id": 404,
-  "session": "London"
+  "session": "London",
+  "checks": {
+   "BUY": {
+    "score": 6,
+    "of": 7,
+    "list": [
+     [
+      true,
+      "4H swing trend up",
+      "\u1793\u17b7\u1793\u17d2\u1793\u17b6\u1780\u17b6\u179a 4H \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
+     ],
+     [
+      true,
+      "1H structure up",
+      "Structure 1H \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
+     ],
+     [
+      true,
+      "15m structure turned up (BOS / CHOCH)",
+      "15m BOS/CHOCH \u178f\u17d2\u179a\u17bc\u179c\u1791\u17b7\u179f"
+     ],
+     [
+      true,
+      "5m confirmation up",
+      "5m \u1794\u1789\u17d2\u1787\u17b6\u1780\u17cb"
+     ],
+     [
+      true,
+      "strong 15m candle (displacement)",
+      "\u1791\u17c0\u1793 15m \u1781\u17d2\u179b\u17b6\u17c6\u1784"
+     ],
+     [
+      false,
+      "liquidity swept below first ($$)",
+      "\u1794\u17c4\u179f liquidity \u1798\u17bb\u1793"
+     ],
+     [
+      true,
+      "clear path: no supply before TP1",
+      "\u1782\u17d2\u1798\u17b6\u1793 Supply \u179a\u17b6\u17c6\u1784\u1798\u17bb\u1793 TP1"
+     ]
+    ],
+    "tier": "A+",
+    "htf_break": null
+   }
+  }
  },
- "last_key": "BUY_DZ|2026-11-20 10:30:00-05:00",
+ "last_key": "BUY|2026-11-23 02:00:00-05:00",
  "count": {
   "2026-11-10": 1,
   "2026-11-11": 2,
   "2026-11-17": 2,
-  "2026-11-18": 1
+  "2026-11-18": 1,
+  "2026-11-22": 1
  }
 }
