@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-24 04:20 UTC",
-  "price": 3630.08,
-  "last_bar": "2026-11-23 23:15:00-05:00",
-  "atr_5m": 4.28,
+  "time": "2026-11-24 04:25 UTC",
+  "price": 3631.73,
+  "last_bar": "2026-11-23 23:20:00-05:00",
+  "atr_5m": 4.15,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -291,8 +291,8 @@
   "sweeps": [
     {
       "side": "sell-side",
-      "level": 3630.08,
-      "name": "London low",
+      "level": 3630.55,
+      "name": "15m swing low",
       "extreme": 3629.2454,
       "time": "2026-11-23 16:55:00-05:00"
     },
@@ -312,35 +312,34 @@
     }
   ],
   "setup": {
-    "stage": 3,
-    "label": "Price is in the retest zone",
-    "dir": "bull",
+    "stage": 2,
+    "label": "Shift confirmed, waiting for the retest",
+    "dir": "bear",
     "zone": [
-      3625.82,
-      3629.73
+      3669.88,
+      3673.63
     ],
-    "entry": 3627.78,
-    "stop": 3619.28,
-    "target": 3643.41,
-    "rr": 1.84,
+    "entry": 3671.76,
+    "stop": 3682.44,
+    "target": 3652.62,
+    "rr": 1.79,
     "reasons": [
-      "15m swing low at 3620.96 was swept and price closed back inside (sell-side liquidity taken).",
-      "Price closed beyond 3638.94: a bull structure shift right after the sweep.",
-      "Retest zone: fair value gap 3625.82-3629.73.",
-      "1H structure is bull: agrees."
+      "15m swing high at 3678.35 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3652.62: a bear structure shift right after the sweep.",
+      "Retest zone: fair value gap 3669.88-3673.63.",
+      "1H structure is bull: this goes against it, so treat as lower quality."
     ],
-    "sweep_time": "2026-11-23 18:45:00-05:00",
-    "shift_time": "2026-11-23 19:20:00-05:00",
-    "sweep_extreme": 3620.56,
-    "sweep_name": "15m swing low",
+    "sweep_time": "2026-11-23 20:45:00-05:00",
+    "shift_time": "2026-11-23 21:00:00-05:00",
+    "sweep_extreme": 3681.2,
+    "sweep_name": "15m swing high",
     "displacement": true,
-    "risk_atr": 1.99,
+    "risk_atr": 2.58,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-23 18:20",
       "11-23 18:25",
       "11-23 18:30",
       "11-23 18:35",
@@ -399,10 +398,10 @@
       "11-23 23:00",
       "11-23 23:05",
       "11-23 23:10",
-      "11-23 23:15"
+      "11-23 23:15",
+      "11-23 23:20"
     ],
     "ts": [
-      1795476000,
       1795476300,
       1795476600,
       1795476900,
@@ -461,16 +460,10 @@
       1795492800,
       1795493100,
       1795493400,
-      1795493700
+      1795493700,
+      1795494000
     ],
     "candles": [
-      [
-        3631.22,
-        3633.72,
-        3630.81,
-        3633.62,
-        172.0
-      ],
       [
         3633.4,
         3634.67,
@@ -875,18 +868,24 @@
         3634.1,
         3631.08,
         3631.2,
-        0.0
+        146.0
       ],
       [
         3631.33,
         3633.09,
         3629.9,
         3630.08,
+        0.0
+      ],
+      [
+        3630.54,
+        3632.8,
+        3630.54,
+        3631.73,
         580.5
       ]
     ],
     "vwap": [
-      3633.46,
       3633.48,
       3633.5,
       3633.4,
@@ -944,11 +943,11 @@
       3649.83,
       3649.7,
       3649.6,
-      3649.6,
-      3649.27
+      3649.52,
+      3649.52,
+      3649.21
     ],
     "sd": [
-      2.33,
       2.24,
       2.15,
       2.09,
@@ -1006,23 +1005,24 @@
       13.47,
       13.51,
       13.54,
-      13.54,
+      13.56,
+      13.56,
       13.64
     ],
     "marks": {
       "sweep": {
-        "price": 3620.96,
-        "i": 5
+        "price": 3678.35,
+        "i": 28
       },
       "mss": {
-        "level": 3638.94,
-        "i": 12
+        "level": 3652.62,
+        "i": 31
       },
       "zone": {
-        "lo": 3625.82,
-        "hi": 3629.73,
+        "lo": 3669.88,
+        "hi": 3673.63,
         "kind": "fvg",
-        "i": 7
+        "i": 28
       }
     }
   },
