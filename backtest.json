@@ -1,9 +1,9 @@
 {
-  "time": "2026-11-21 02:47 UTC",
+  "time": "2026-11-24 05:31 UTC",
   "data": {
-    "bars": 145388,
+    "bars": 145676,
     "from": "2024-11-03 18:00:00-05:00",
-    "to": "2026-11-20 16:55:00-05:00",
+    "to": "2026-11-23 18:55:00-05:00",
     "symbol": "XAUUSD spot (Dukascopy)"
   },
   "settings": {
@@ -16,11 +16,11 @@
   "rules": {
     "current": {
       "summary": {
-        "alerts": 1539,
+        "alerts": 1542,
         "filled": 486,
         "fill_rate_pct": 32,
-        "missed": 998,
-        "expired": 55,
+        "missed": 1000,
+        "expired": 56,
         "win_rate_pct": 33,
         "avg_R": -0.169,
         "total_R": -82.31,
@@ -180,36 +180,6 @@
       },
       "verdict": "Losing after costs (-0.17R per trade over 486 trades): do not promote these alerts as an edge. The best filter on older data ({'stop size': 'tight (<1.5 ATR)', 'zone': 'FVG'}) has only 3 trades in the newer data: too few to confirm.",
       "recent": [
-        {
-          "time": "2026-11-04 11:35:00-05:00",
-          "dir": "bull",
-          "entry": 4044.67,
-          "stop": 4027.48,
-          "target": 4070.51,
-          "rr": 1.5,
-          "result": "expired",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-05 00:15:00-05:00",
-          "dir": "bear",
-          "entry": 4140.35,
-          "stop": 4140.4,
-          "target": 4140.27,
-          "rr": 1.76,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-06 01:20:00-05:00",
-          "dir": "bull",
-          "entry": 4045.06,
-          "stop": 4034.19,
-          "target": 4061.41,
-          "rr": 1.5,
-          "result": "win",
-          "R": 1.467
-        },
         {
           "time": "2026-11-06 09:45:00-05:00",
           "dir": "bull",
@@ -429,16 +399,46 @@
           "rr": 1.52,
           "result": "loss",
           "R": -0.298
+        },
+        {
+          "time": "2026-11-22 20:55:00-05:00",
+          "dir": "bear",
+          "entry": 3611.26,
+          "stop": 3634.04,
+          "target": 3573.34,
+          "rr": 1.66,
+          "result": "expired",
+          "R": 0.0
+        },
+        {
+          "time": "2026-11-23 02:55:00-05:00",
+          "dir": "bear",
+          "entry": 3626.29,
+          "stop": 3629.02,
+          "target": 3621.76,
+          "rr": 1.66,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-11-23 08:55:00-05:00",
+          "dir": "bull",
+          "entry": 3613.88,
+          "stop": 3608.56,
+          "target": 3622.24,
+          "rr": 1.57,
+          "result": "missed",
+          "R": 0.0
         }
       ],
       "proven": false
     },
     "v2": {
       "summary": {
-        "alerts": 1486,
+        "alerts": 1489,
         "filled": 325,
         "fill_rate_pct": 22,
-        "missed": 344,
+        "missed": 345,
         "expired": 20,
         "win_rate_pct": 25,
         "avg_R": -0.164,
@@ -589,36 +589,6 @@
       },
       "verdict": "Losing after costs (-0.16R per trade over 325 trades): do not promote these alerts as an edge. The best filter on older data ({'stop size': 'tight (<1.5 ATR)', 'zone': 'FVG'}) has only 4 trades in the newer data: too few to confirm.",
       "recent": [
-        {
-          "time": "2026-11-05 00:15:00-05:00",
-          "dir": "bear",
-          "entry": 4140.35,
-          "stop": 4140.4,
-          "target": 4125.61,
-          "rr": 332.26,
-          "result": "missed",
-          "R": 0.0
-        },
-        {
-          "time": "2026-11-06 01:20:00-05:00",
-          "dir": "bull",
-          "entry": 4045.06,
-          "stop": 4034.19,
-          "target": 4068.86,
-          "rr": 2.19,
-          "result": "win",
-          "R": 2.153
-        },
-        {
-          "time": "2026-11-06 09:45:00-05:00",
-          "dir": "bull",
-          "entry": 4035.02,
-          "stop": 4024.54,
-          "target": 4067.14,
-          "rr": 3.06,
-          "result": "skipped: price already ran",
-          "R": 0.0
-        },
         {
           "time": "2026-11-06 12:20:00-05:00",
           "dir": "bear",
@@ -838,6 +808,36 @@
           "rr": 2.15,
           "result": "loss",
           "R": -0.298
+        },
+        {
+          "time": "2026-11-22 20:55:00-05:00",
+          "dir": "bear",
+          "entry": 3611.26,
+          "stop": 3634.04,
+          "target": 3569.84,
+          "rr": 1.82,
+          "result": "skipped: price already ran",
+          "R": 0.0
+        },
+        {
+          "time": "2026-11-23 02:55:00-05:00",
+          "dir": "bear",
+          "entry": 3626.29,
+          "stop": 3629.02,
+          "target": 3612.98,
+          "rr": 4.88,
+          "result": "missed",
+          "R": 0.0
+        },
+        {
+          "time": "2026-11-23 08:55:00-05:00",
+          "dir": "bull",
+          "entry": 3613.88,
+          "stop": 3608.56,
+          "target": 3672.82,
+          "rr": 11.08,
+          "result": "skipped: price already ran",
+          "R": 0.0
         }
       ],
       "proven": false
@@ -967,9 +967,9 @@
     "acceptance": {
       "description": "Volume profile acceptance: two 30m closes beyond yesterday's value, trade the continuation",
       "all": {
-        "trades": 308,
+        "trades": 309,
         "win_rate_pct": 40,
-        "avg_R": 0.034
+        "avg_R": 0.056
       },
       "older_70pct": {
         "trades": 214,
@@ -977,9 +977,9 @@
         "avg_R": 0.081
       },
       "newest_30pct": {
-        "trades": 94,
-        "win_rate_pct": 38,
-        "avg_R": -0.073
+        "trades": 95,
+        "win_rate_pct": 39,
+        "avg_R": -0.001
       },
       "quarters": {
         "2024-Q4": {
@@ -1015,14 +1015,14 @@
           "avg_R": 0.153
         },
         "2026-Q4": {
-          "trades": 17,
-          "avg_R": -0.782
+          "trades": 18,
+          "avg_R": -0.361
         }
       },
       "positive_quarters": "4 of 9",
-      "t_stat": 0.32,
+      "t_stat": 0.51,
       "proven": false,
-      "verdict": "No edge: +0.03R per trade after costs."
+      "verdict": "No edge: +0.06R per trade after costs."
     },
     "london_breakout": {
       "description": "London breakout of the Asia range, stop at the range middle, 1.5R target",
@@ -1092,14 +1092,14 @@
         "avg_R": 0.031
       },
       "older_70pct": {
-        "trades": 334,
+        "trades": 335,
         "win_rate_pct": 49,
-        "avg_R": 0.085
+        "avg_R": 0.089
       },
       "newest_30pct": {
-        "trades": 125,
+        "trades": 124,
         "win_rate_pct": 39,
-        "avg_R": -0.113
+        "avg_R": -0.126
       },
       "quarters": {
         "2024-Q4": {
@@ -1207,19 +1207,19 @@
     "vwap_fade": {
       "description": "Fade a 2-sigma VWAP stretch in London or New York, target VWAP",
       "all": {
-        "trades": 625,
+        "trades": 626,
         "win_rate_pct": 31,
-        "avg_R": -0.154
+        "avg_R": -0.151
       },
       "older_70pct": {
-        "trades": 433,
+        "trades": 436,
         "win_rate_pct": 32,
-        "avg_R": -0.214
+        "avg_R": -0.211
       },
       "newest_30pct": {
-        "trades": 192,
+        "trades": 190,
         "win_rate_pct": 30,
-        "avg_R": -0.019
+        "avg_R": -0.014
       },
       "quarters": {
         "2024-Q4": {
@@ -1255,12 +1255,12 @@
           "avg_R": -0.289
         },
         "2026-Q4": {
-          "trades": 36,
-          "avg_R": 0.012
+          "trades": 37,
+          "avg_R": 0.068
         }
       },
       "positive_quarters": "3 of 9",
-      "t_stat": -1.64,
+      "t_stat": -1.6,
       "proven": false,
       "verdict": "No edge: -0.15R per trade after costs."
     },
@@ -1268,8 +1268,8 @@
       "description": "4H trend following: close beyond the 1-week high or low, stop 2 x 4H ATR, 3R target",
       "all": {
         "trades": 96,
-        "win_rate_pct": 45,
-        "avg_R": 0.39
+        "win_rate_pct": 44,
+        "avg_R": 0.377
       },
       "older_70pct": {
         "trades": 66,
@@ -1278,8 +1278,8 @@
       },
       "newest_30pct": {
         "trades": 30,
-        "win_rate_pct": 47,
-        "avg_R": 0.17
+        "win_rate_pct": 43,
+        "avg_R": 0.131
       },
       "quarters": {
         "2024-Q4": {
@@ -1316,13 +1316,13 @@
         },
         "2026-Q4": {
           "trades": 8,
-          "avg_R": 0.404
+          "avg_R": 0.257
         }
       },
       "by_direction": {
         "short": {
           "trades": 39,
-          "avg_R": 0.055
+          "avg_R": 0.025
         },
         "long": {
           "trades": 57,
@@ -1330,7 +1330,7 @@
         }
       },
       "positive_quarters": "8 of 9",
-      "t_stat": 2.33,
+      "t_stat": 2.25,
       "proven": true,
       "verdict": "Proven so far: positive overall, on the newest data and in most quarters. Eligible for trade alerts."
     },
@@ -1881,9 +1881,9 @@
     "crt_daily": {
       "description": "Candle range (PO3) on daily candles: sweep of yesterday's high/low and close back inside, target the other side",
       "all": {
-        "trades": 129,
+        "trades": 130,
         "win_rate_pct": 44,
-        "avg_R": 0.066
+        "avg_R": 0.065
       },
       "older_70pct": {
         "trades": 87,
@@ -1891,9 +1891,9 @@
         "avg_R": -0.021
       },
       "newest_30pct": {
-        "trades": 42,
-        "win_rate_pct": 45,
-        "avg_R": 0.246
+        "trades": 43,
+        "win_rate_pct": 44,
+        "avg_R": 0.24
       },
       "quarters": {
         "2024-Q4": {
@@ -1929,8 +1929,8 @@
           "avg_R": 0.114
         },
         "2026-Q4": {
-          "trades": 6,
-          "avg_R": 1.226
+          "trades": 7,
+          "avg_R": 1.047
         }
       },
       "by_direction": {
@@ -1939,14 +1939,14 @@
           "avg_R": -0.066
         },
         "short": {
-          "trades": 72,
-          "avg_R": 0.17
+          "trades": 73,
+          "avg_R": 0.167
         }
       },
       "positive_quarters": "5 of 9",
       "t_stat": 0.47,
       "proven": false,
-      "verdict": "No edge: +0.07R per trade after costs."
+      "verdict": "No edge: +0.06R per trade after costs."
     },
     "vp_shape": {
       "description": "Volume profile shape of the last session (P = buy, b = sell the pullback to the POC), 2R target",
@@ -1956,14 +1956,14 @@
         "avg_R": 0.15
       },
       "older_70pct": {
-        "trades": 168,
+        "trades": 169,
         "win_rate_pct": 49,
-        "avg_R": 0.141
+        "avg_R": 0.135
       },
       "newest_30pct": {
-        "trades": 74,
+        "trades": 73,
         "win_rate_pct": 49,
-        "avg_R": 0.17
+        "avg_R": 0.186
       },
       "quarters": {
         "2024-Q4": {
@@ -2026,14 +2026,14 @@
         "avg_R": 0.257
       },
       "older_70pct": {
-        "trades": 88,
-        "win_rate_pct": 48,
-        "avg_R": 0.311
+        "trades": 89,
+        "win_rate_pct": 47,
+        "avg_R": 0.296
       },
       "newest_30pct": {
-        "trades": 35,
-        "win_rate_pct": 46,
-        "avg_R": 0.121
+        "trades": 34,
+        "win_rate_pct": 47,
+        "avg_R": 0.154
       },
       "quarters": {
         "2024-Q4": {
@@ -2227,9 +2227,9 @@
     "range_extreme": {
       "description": "Day Range extreme: stretched 3 steps against the 4H trend, 15m close back, target the day open",
       "all": {
-        "trades": 58,
-        "win_rate_pct": 60,
-        "avg_R": 0.213
+        "trades": 59,
+        "win_rate_pct": 61,
+        "avg_R": 0.217
       },
       "older_70pct": {
         "trades": 39,
@@ -2237,9 +2237,9 @@
         "avg_R": 0.175
       },
       "newest_30pct": {
-        "trades": 19,
-        "win_rate_pct": 63,
-        "avg_R": 0.29
+        "trades": 20,
+        "win_rate_pct": 65,
+        "avg_R": 0.3
       },
       "quarters": {
         "2024-Q4": {
@@ -2275,14 +2275,14 @@
           "avg_R": 0.19
         },
         "2026-Q4": {
-          "trades": 2,
-          "avg_R": 0.018
+          "trades": 3,
+          "avg_R": 0.171
         }
       },
       "by_direction": {
         "short": {
-          "trades": 20,
-          "avg_R": -0.131
+          "trades": 21,
+          "avg_R": -0.102
         },
         "long": {
           "trades": 38,
@@ -2290,9 +2290,9 @@
         }
       },
       "positive_quarters": "6 of 6",
-      "t_stat": 1.4,
+      "t_stat": 1.45,
       "proven": false,
-      "verdict": "Positive (+0.21R) but not statistically clear yet (t=1.4, need 2): could still be luck."
+      "verdict": "Positive (+0.22R) but not statistically clear yet (t=1.5, need 2): could still be luck."
     },
     "combo_scalp": {
       "description": "\ud83e\udd2c COMBO SCALP: after a COMBO 4H breakout, first 5m dip into a 15m FVG + confirmation candle, SL ~$7, TP 2R, 3h",
