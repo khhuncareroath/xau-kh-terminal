@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-24 22:30 UTC",
-  "price": 3555.75,
-  "last_bar": "2026-11-24 17:25:00-05:00",
-  "atr_5m": 1.45,
+  "time": "2026-11-24 22:40 UTC",
+  "price": 3556.21,
+  "last_bar": "2026-11-24 17:35:00-05:00",
+  "atr_5m": 0.9,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -326,11 +326,11 @@
   },
   "sweeps": [
     {
-      "side": "buy-side",
-      "level": 3631.35,
-      "name": "1H swing high",
-      "extreme": 3632.53297,
-      "time": "2026-11-24 09:40:00-05:00"
+      "side": "sell-side",
+      "level": 3620.96,
+      "name": "15m swing low",
+      "extreme": 3620.21975,
+      "time": "2026-11-24 09:55:00-05:00"
     },
     {
       "side": "sell-side",
@@ -348,36 +348,17 @@
     }
   ],
   "setup": {
-    "stage": 2,
-    "label": "Shift confirmed, waiting for the retest",
-    "dir": "bear",
-    "zone": [
-      3623.49,
-      3632.53
-    ],
-    "entry": 3628.01,
-    "stop": 3633.03,
-    "target": 3619.65,
-    "rr": 1.67,
+    "stage": 4,
+    "label": "Idea void: price took out the sweep extreme",
+    "dir": "bull",
     "reasons": [
-      "1H swing high at 3631.35 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 3611.66: a bear structure shift right after the sweep.",
-      "Retest zone: order block 3623.49-3632.53.",
-      "1H structure is bear: agrees."
-    ],
-    "sweep_time": "2026-11-24 09:40:00-05:00",
-    "shift_time": "2026-11-24 10:05:00-05:00",
-    "sweep_extreme": 3632.53,
-    "sweep_name": "1H swing high",
-    "displacement": true,
-    "risk_atr": 3.46,
-    "note": "Idea to confirm with your own entry model, not a signal."
+      "15m swing low at 3576.36 was swept and price closed back inside (sell-side liquidity taken).",
+      "Price closed beyond 3571.94: a bull structure shift right after the sweep."
+    ]
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-24 12:30",
-      "11-24 12:35",
       "11-24 12:40",
       "11-24 12:45",
       "11-24 12:50",
@@ -435,11 +416,11 @@
       "11-24 17:10",
       "11-24 17:15",
       "11-24 17:20",
-      "11-24 17:25"
+      "11-24 17:25",
+      "11-24 17:30",
+      "11-24 17:35"
     ],
     "ts": [
-      1795541400,
-      1795541700,
       1795542000,
       1795542300,
       1795542600,
@@ -497,23 +478,11 @@
       1795558200,
       1795558500,
       1795558800,
-      1795559100
+      1795559100,
+      1795559400,
+      1795559700
     ],
     "candles": [
-      [
-        3563.65,
-        3567.1,
-        3563.47,
-        3566.84,
-        623.0
-      ],
-      [
-        3566.25,
-        3566.59,
-        3562.9,
-        3562.96,
-        483.0
-      ],
       [
         3563.04,
         3568.75,
@@ -917,13 +886,25 @@
         3556.21,
         3556.71,
         3555.36,
-        3555.75,
+        3556.18,
+        326.0
+      ],
+      [
+        3556.04,
+        3556.47,
+        3556.04,
+        3556.37,
+        326.0
+      ],
+      [
+        3556.31,
+        3556.46,
+        3556.19,
+        3556.21,
         326.0
       ]
     ],
     "vwap": [
-      3618.3,
-      3618.17,
       3617.99,
       3617.74,
       3617.62,
@@ -981,11 +962,11 @@
       3611.02,
       3610.94,
       3610.86,
-      3610.78
+      3610.78,
+      3610.7,
+      3610.62
     ],
     "sd": [
-      26.22,
-      26.33,
       26.46,
       26.64,
       26.73,
@@ -1043,7 +1024,9 @@
       31.42,
       31.47,
       31.52,
-      31.57
+      31.57,
+      31.61,
+      31.66
     ],
     "marks": {}
   },
