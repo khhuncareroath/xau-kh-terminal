@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-24 09:40 UTC",
-  "price": 3620.23,
-  "last_bar": "2026-11-24 04:35:00-05:00",
-  "atr_5m": 5.26,
+  "time": "2026-11-24 09:50 UTC",
+  "price": 3619.8,
+  "last_bar": "2026-11-24 04:45:00-05:00",
+  "atr_5m": 4.56,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -43,8 +43,8 @@
         {
           "dir": "bull",
           "lo": 3618.47,
-          "hi": 3620.06,
-          "status": "open",
+          "hi": 3619.91,
+          "status": "partial",
           "time": "2026-11-24 04:30:00-05:00"
         },
         {
@@ -312,13 +312,6 @@
   },
   "sweeps": [
     {
-      "side": "buy-side",
-      "level": 3678.35,
-      "name": "15m swing high",
-      "extreme": 3681.19669,
-      "time": "2026-11-23 20:45:00-05:00"
-    },
-    {
       "side": "sell-side",
       "level": 3630.55,
       "name": "15m swing low",
@@ -334,36 +327,17 @@
     }
   ],
   "setup": {
-    "stage": 2,
-    "label": "Shift confirmed, waiting for the retest",
-    "dir": "bear",
-    "zone": [
-      3669.88,
-      3673.63
-    ],
-    "entry": 3671.76,
-    "stop": 3682.78,
-    "target": 3652.62,
-    "rr": 1.74,
+    "stage": 4,
+    "label": "Idea void: price took out the sweep extreme",
+    "dir": "bull",
     "reasons": [
-      "15m swing high at 3678.35 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 3652.62: a bear structure shift right after the sweep.",
-      "Retest zone: fair value gap 3669.88-3673.63.",
-      "1H structure is bear: agrees."
-    ],
-    "sweep_time": "2026-11-23 20:45:00-05:00",
-    "shift_time": "2026-11-23 21:00:00-05:00",
-    "sweep_extreme": 3681.2,
-    "sweep_name": "15m swing high",
-    "displacement": true,
-    "risk_atr": 2.09,
-    "note": "Idea to confirm with your own entry model, not a signal."
+      "1H swing low at 3620.56 was swept and price closed back inside (sell-side liquidity taken).",
+      "Price closed beyond 3624.13: a bull structure shift right after the sweep."
+    ]
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-23 23:40",
-      "11-23 23:45",
       "11-23 23:50",
       "11-23 23:55",
       "11-24 00:00",
@@ -421,11 +395,11 @@
       "11-24 04:20",
       "11-24 04:25",
       "11-24 04:30",
-      "11-24 04:35"
+      "11-24 04:35",
+      "11-24 04:40",
+      "11-24 04:45"
     ],
     "ts": [
-      1795495200,
-      1795495500,
       1795495800,
       1795496100,
       1795496400,
@@ -483,23 +457,11 @@
       1795512000,
       1795512300,
       1795512600,
-      1795512900
+      1795512900,
+      1795513200,
+      1795513500
     ],
     "candles": [
-      [
-        3626.5,
-        3630.94,
-        3626.5,
-        3630.86,
-        204.0
-      ],
-      [
-        3630.7,
-        3637.42,
-        3630.37,
-        3635.89,
-        568.0
-      ],
       [
         3636.26,
         3636.5,
@@ -897,19 +859,31 @@
         3624.63,
         3616.51,
         3624.48,
-        0.0
+        830.0
       ],
       [
         3624.14,
         3624.14,
-        3620.06,
-        3620.23,
-        503.0
+        3619.91,
+        3619.97,
+        283.0
+      ],
+      [
+        3620.05,
+        3624.37,
+        3619.65,
+        3624.22,
+        0.0
+      ],
+      [
+        3623.79,
+        3626.6,
+        3619.65,
+        3619.8,
+        520.0
       ]
     ],
     "vwap": [
-      3648.45,
-      3648.22,
       3647.9,
       3647.82,
       3647.61,
@@ -966,12 +940,12 @@
       3637.13,
       3636.74,
       3636.65,
-      3636.65,
-      3636.54
+      3636.47,
+      3636.41,
+      3636.41,
+      3636.3
     ],
     "sd": [
-      13.98,
-      13.98,
       13.93,
       13.93,
       13.86,
@@ -1028,10 +1002,21 @@
       16.31,
       16.37,
       16.38,
-      16.38,
-      16.37
+      16.36,
+      16.36,
+      16.36,
+      16.34
     ],
-    "marks": {}
+    "marks": {
+      "sweep": {
+        "price": 3620.56,
+        "i": 15
+      },
+      "mss": {
+        "level": 3624.13,
+        "i": 47
+      }
+    }
   },
   "disclaimer": "Mechanical analysis ideas, not signals or advice."
 }
