@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-24 09:50 UTC",
-  "price": 3619.8,
-  "last_bar": "2026-11-24 04:45:00-05:00",
-  "atr_5m": 4.56,
+  "time": "2026-11-24 09:55 UTC",
+  "price": 3622.79,
+  "last_bar": "2026-11-24 04:50:00-05:00",
+  "atr_5m": 4.81,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -48,18 +48,18 @@
           "time": "2026-11-24 04:30:00-05:00"
         },
         {
-          "dir": "bull",
-          "lo": 3597.28,
-          "hi": 3601.01,
-          "status": "partial",
-          "time": "2026-11-22 22:10:00-05:00"
-        },
-        {
           "dir": "bear",
           "lo": 3644.34,
           "hi": 3647.06,
           "status": "open",
           "time": "2026-11-23 21:45:00-05:00"
+        },
+        {
+          "dir": "bull",
+          "lo": 3597.28,
+          "hi": 3601.01,
+          "status": "partial",
+          "time": "2026-11-22 22:10:00-05:00"
         }
       ]
     },
@@ -312,6 +312,13 @@
   },
   "sweeps": [
     {
+      "side": "buy-side",
+      "level": 3658.53,
+      "name": "15m swing high",
+      "extreme": 3669.48037,
+      "time": "2026-11-23 20:55:00-05:00"
+    },
+    {
       "side": "sell-side",
       "level": 3630.55,
       "name": "15m swing low",
@@ -327,18 +334,34 @@
     }
   ],
   "setup": {
-    "stage": 4,
-    "label": "Idea void: price took out the sweep extreme",
-    "dir": "bull",
+    "stage": 2,
+    "label": "Shift confirmed, waiting for the retest",
+    "dir": "bear",
+    "zone": [
+      3657.42,
+      3665.18
+    ],
+    "entry": 3661.3,
+    "stop": 3670.92,
+    "target": 3646.67,
+    "rr": 1.52,
     "reasons": [
-      "1H swing low at 3620.56 was swept and price closed back inside (sell-side liquidity taken).",
-      "Price closed beyond 3624.13: a bull structure shift right after the sweep."
-    ]
+      "15m swing high at 3658.53 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3652.62: a bear structure shift right after the sweep.",
+      "Retest zone: fair value gap 3657.42-3665.18.",
+      "1H structure is bear: agrees."
+    ],
+    "sweep_time": "2026-11-23 20:55:00-05:00",
+    "shift_time": "2026-11-23 21:00:00-05:00",
+    "sweep_extreme": 3669.48,
+    "sweep_name": "15m swing high",
+    "displacement": true,
+    "risk_atr": 2.0,
+    "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-23 23:50",
       "11-23 23:55",
       "11-24 00:00",
       "11-24 00:05",
@@ -397,10 +420,10 @@
       "11-24 04:30",
       "11-24 04:35",
       "11-24 04:40",
-      "11-24 04:45"
+      "11-24 04:45",
+      "11-24 04:50"
     ],
     "ts": [
-      1795495800,
       1795496100,
       1795496400,
       1795496700,
@@ -459,16 +482,10 @@
       1795512600,
       1795512900,
       1795513200,
-      1795513500
+      1795513500,
+      1795513800
     ],
     "candles": [
-      [
-        3636.26,
-        3636.5,
-        3635.44,
-        3636.41,
-        969.0
-      ],
       [
         3636.17,
         3636.17,
@@ -873,18 +890,24 @@
         3624.37,
         3619.65,
         3624.22,
-        0.0
+        602.0
       ],
       [
         3623.79,
         3626.6,
-        3619.65,
-        3619.8,
-        520.0
+        3619.39,
+        3619.49,
+        0.0
+      ],
+      [
+        3619.56,
+        3623.71,
+        3617.74,
+        3622.79,
+        535.0
       ]
     ],
     "vwap": [
-      3647.9,
       3647.82,
       3647.61,
       3647.55,
@@ -942,11 +965,11 @@
       3636.65,
       3636.47,
       3636.41,
-      3636.41,
-      3636.3
+      3636.29,
+      3636.29,
+      3636.17
     ],
     "sd": [
-      13.93,
       13.93,
       13.86,
       13.83,
@@ -1004,19 +1027,11 @@
       16.38,
       16.36,
       16.36,
-      16.36,
-      16.34
+      16.34,
+      16.34,
+      16.32
     ],
-    "marks": {
-      "sweep": {
-        "price": 3620.56,
-        "i": 15
-      },
-      "mss": {
-        "level": 3624.13,
-        "i": 47
-      }
-    }
+    "marks": {}
   },
   "disclaimer": "Mechanical analysis ideas, not signals or advice."
 }
