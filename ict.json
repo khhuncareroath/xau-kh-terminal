@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-25 08:10 UTC",
-  "price": 3517.19,
-  "last_bar": "2026-11-25 03:05:00-05:00",
-  "atr_5m": 4.79,
+  "time": "2026-11-25 08:20 UTC",
+  "price": 3520.5,
+  "last_bar": "2026-11-25 03:15:00-05:00",
+  "atr_5m": 4.93,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -326,6 +326,13 @@
   },
   "sweeps": [
     {
+      "side": "buy-side",
+      "level": 3568.62,
+      "name": "1H swing high",
+      "extreme": 3569.64375,
+      "time": "2026-11-24 21:25:00-05:00"
+    },
+    {
       "side": "sell-side",
       "level": 3532.75,
       "name": "1H swing low",
@@ -338,46 +345,37 @@
       "name": "15m swing low",
       "extreme": 3524.4775,
       "time": "2026-11-25 00:50:00-05:00"
-    },
-    {
-      "side": "sell-side",
-      "level": 3517.19,
-      "name": "New York low",
-      "extreme": 3515.36106,
-      "time": "2026-11-25 01:00:00-05:00"
     }
   ],
   "setup": {
-    "stage": 3,
-    "label": "Price is in the retest zone",
-    "dir": "bull",
+    "stage": 2,
+    "label": "Shift confirmed, waiting for the retest",
+    "dir": "bear",
     "zone": [
-      3516.92,
-      3521.92
+      3549.21,
+      3556.01
     ],
-    "entry": 3519.42,
-    "stop": 3513.92,
-    "target": 3527.83,
-    "rr": 1.53,
+    "entry": 3552.61,
+    "stop": 3571.12,
+    "target": 3521.75,
+    "rr": 1.67,
     "reasons": [
-      "New York low at 3517.19 was swept and price closed back inside (sell-side liquidity taken).",
-      "Price closed beyond 3522.99: a bull structure shift right after the sweep.",
-      "Retest zone: order block 3516.92-3521.92.",
-      "1H structure is bear: this goes against it, so treat as lower quality."
+      "1H swing high at 3568.62 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3549.21: a bear structure shift right after the sweep.",
+      "Retest zone: order block 3549.21-3556.01.",
+      "1H structure is bear: agrees."
     ],
-    "sweep_time": "2026-11-25 01:00:00-05:00",
-    "shift_time": "2026-11-25 02:30:00-05:00",
-    "sweep_extreme": 3515.36,
-    "sweep_name": "New York low",
-    "displacement": true,
-    "risk_atr": 1.15,
+    "sweep_time": "2026-11-24 21:25:00-05:00",
+    "shift_time": "2026-11-24 22:45:00-05:00",
+    "sweep_extreme": 3569.64,
+    "sweep_name": "1H swing high",
+    "displacement": false,
+    "risk_atr": 3.75,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-24 22:10",
-      "11-24 22:15",
       "11-24 22:20",
       "11-24 22:25",
       "11-24 22:30",
@@ -435,11 +433,11 @@
       "11-25 02:50",
       "11-25 02:55",
       "11-25 03:00",
-      "11-25 03:05"
+      "11-25 03:05",
+      "11-25 03:10",
+      "11-25 03:15"
     ],
     "ts": [
-      1795576200,
-      1795576500,
       1795576800,
       1795577100,
       1795577400,
@@ -497,23 +495,11 @@
       1795593000,
       1795593300,
       1795593600,
-      1795593900
+      1795593900,
+      1795594200,
+      1795594500
     ],
     "candles": [
-      [
-        3557.21,
-        3560.24,
-        3557.21,
-        3560.23,
-        41.0
-      ],
-      [
-        3560.27,
-        3560.27,
-        3556.69,
-        3556.85,
-        58.0
-      ],
       [
         3557.11,
         3557.11,
@@ -911,19 +897,31 @@
         3527.21,
         3520.51,
         3520.78,
-        0.0
+        333.0
       ],
       [
         3521.26,
         3523.2,
         3517.16,
-        3517.19,
-        98.0
+        3522.01,
+        305.0
+      ],
+      [
+        3520.32,
+        3526.06,
+        3520.32,
+        3523.96,
+        0.0
+      ],
+      [
+        3523.78,
+        3525.3,
+        3520.14,
+        3520.5,
+        106.5
       ]
     ],
     "vwap": [
-      3553.07,
-      3553.09,
       3553.1,
       3553.1,
       3553.1,
@@ -980,12 +978,12 @@
       3545.37,
       3545.27,
       3545.14,
-      3545.14,
-      3545.01
+      3544.75,
+      3544.36,
+      3544.36,
+      3544.23
     ],
     "sd": [
-      8.44,
-      8.43,
       8.41,
       8.38,
       8.36,
@@ -1042,23 +1040,21 @@
       14.55,
       14.58,
       14.62,
-      14.62,
-      14.7
+      14.79,
+      14.98,
+      14.98,
+      15.03
     ],
     "marks": {
-      "sweep": {
-        "price": 3517.19,
-        "i": 34
-      },
       "mss": {
-        "level": 3522.99,
-        "i": 52
+        "level": 3549.21,
+        "i": 5
       },
       "zone": {
-        "lo": 3516.92,
-        "hi": 3521.92,
+        "lo": 3549.21,
+        "hi": 3556.01,
         "kind": "ob",
-        "i": 50
+        "i": 2
       }
     }
   },
