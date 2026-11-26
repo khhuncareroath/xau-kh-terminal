@@ -55,6 +55,7 @@ SECTIONS = {   # key: (topic name, Telegram icon colour, wanted topic-icon emoji
     "indicator": ("Indicator · ឧបករណ៍", 9367192, ["📈", "📊", "💡"]),
     "app":      ("App · កម្មវិធី", 9367192, ["📱", "📲", "💻"]),
     "crypto":   ("Crypto · គ្រីបតូ", 16749490, ["🪙", "💰", "📈"]),
+    "biasflow": ("Bias Flow · Alerts", 7322096, ["🧭"]),   # 🧭 ZENN28-style D/H4/H1/M15 flow reminders (biasflow.py)
 }
 
 # ---------------------------------------------------------------- 📲 XAU.KH App (Telegram Mini App, 13 Nov 2026)
@@ -106,6 +107,8 @@ def section_for(title):
         return "indicator"     # 📈 XAU.KH FLOW TradingView indicator topic (indicator_post.py)
     if t == "app":
         return "app"           # 📲 XAU.KH App topic (app_post.py)
+    if t == "bias flow":
+        return "biasflow"      # 🧭 Bias Flow · Alerts (biasflow.py): reminders only, never signals
     if t.startswith("crypto") and "proof" not in t:
         return "crypto"        # ₿ BTC map + weekly data (crypto.py); the crypto record still goes to 🏆 Proof
     if t in ("guide", "lesson"):
@@ -172,6 +175,8 @@ def thread_id(key, fresh=False):
             icon = _icon(want)
             if icon:
                 fields["icon_custom_emoji_id"] = icon
+            elif key == "biasflow":   # 🧭 is not one of Telegram's free topic icons: put it in the name instead
+                fields["name"] = f"{want[0]} {name}"
             res = _api("createForumTopic", fields)
             d["topics"][key] = res["message_thread_id"]
             try:   # closed topic = only admins (the bot) can post, members read and react
