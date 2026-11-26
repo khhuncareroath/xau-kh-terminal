@@ -7,9 +7,11 @@ Every 15 minutes, after each 15m candle closes (loop.py runs this every 5-minute
     🟢/🔴 it became aligned · 🔥 all 3 aligned the same way · ⚪ back to mixed. The post has the table (pair, higher TF,
     lower TF, status, since in UTC+7), the price and the latest Asia / London / New York VAH · POC · VAL
     (New York time: Asia 18:00-02:00, London 02:00-08:00, New York 08:00-17:00; value area 70%, 24 rows, 15m candles).
- 3. 👀 Setup watch: H1+M15 aligned + inside a killzone (UTC+7: London 13:30-16:00, NY 19:30-22:30) + the last 15m
-    candle traded through the POC of the previous session (London killzone: Asia POC; NY killzone: London POC).
+ 3. 👀 Setup watch: H1+M15 aligned + inside a killzone (UTC+7: London 13:30-16:00, NY 19:30-22:30, by the 15m
+    candle's open time) + that 15m candle traded through the POC of the session BEFORE the current one.
     At most one per killzone per day.
+ Ported from the owner's reference bias_flow_alerts.py (27 Nov 2026): same pivots, sessions, profile, messages and
+ guide; data = the bot's own closed spot candles instead of Twelve Data calls.
  4. When the topic is first used: posts and pins the SELL / BUY 5-check guide.
 State in biasflow_state.json (committed by loop.py), so a restart never repeats an alert. BIAS_FLOW=off stops it.
 Run: python biasflow.py   ·   python biasflow.py --dry  (prints what it would post, sends nothing)
@@ -36,26 +38,24 @@ SESSIONS = [("Asia", 18, 2), ("London", 2, 8), ("New York", 8, 17)]       # New 
 KILLZONES = [("London", (13, 30), (16, 0), "Asia"), ("New York", (19, 30), (22, 30), "London")]   # UTC+7, prev session
 ROWS, VA = 24, 0.70
 
-GUIDE = (
-    "🧭 <b>Bias Flow · Alerts: how to use them</b>\n"
-    "<i>The alert only reminds you to look. You check, you decide. No reaction = no trade.</i>\n"
-    "ការជូនដំណឹងគ្រាន់តែរំលឹកឱ្យមើល · អ្នកពិនិត្យ និងសម្រេចចិត្តខ្លួនឯង\n\n"
-    "🔴 <b>SELL: 5 checks</b>\n"
-    "1️⃣ Flow: <b>H1 + M15 ALIGNED BEARISH</b> (better if H4 or Daily is Bear too)\n"
-    "2️⃣ Location: price comes UP into the previous session's <b>POC / VAH</b> (premium)\n"
-    "3️⃣ Time: inside a killzone · London 13:30–16:00 · NY 19:30–22:30 (UTC+7)\n"
-    "4️⃣ Reaction on 3m–5m: <b>$ swept</b> above a high → <b>CISD</b> down\n"
-    "5️⃣ Entry: the bearish <b>FVG</b> after the CISD · SL above the sweep high · TP the next VAL / low\n\n"
-    "🟢 <b>BUY: 5 checks</b>\n"
-    "1️⃣ Flow: <b>H1 + M15 ALIGNED BULLISH</b> (better if H4 or Daily is Bull too)\n"
-    "2️⃣ Location: price comes DOWN into the previous session's <b>POC / VAL</b> (discount)\n"
-    "3️⃣ Time: inside a killzone · London 13:30–16:00 · NY 19:30–22:30 (UTC+7)\n"
-    "4️⃣ Reaction on 3m–5m: <b>$ swept</b> below a low → <b>CISD</b> up\n"
-    "5️⃣ Entry: the bullish <b>FVG</b> after the CISD · SL below the sweep low · TP the next VAH / high\n\n"
-    "⛔ Missing one check = no trade · ខ្វះមួយ = មិនចូល\n"
-    "🟢🔴 = a pair became aligned · 🔥 = all 3 aligned · ⚪ = back to mixed · 👀 = setup watch (POC touched in a killzone)\n"
-    "<i>Education, not financial advice. Always use a stop loss · ការអប់រំ មិនមែនដំបូន្មានហិរញ្ញវត្ថុ</i>"
-)
+GUIDE = """<b>📌 How to use these alerts · SELL / BUY in 5 checks</b>
+
+<b>🔴 SELL</b>
+1️⃣ Flow: <b>H1 + M15 aligned BEARISH</b> (🔴 alert)
+2️⃣ Time: inside the killzone (London 13:30–16:00)
+3️⃣ Retrace: price comes UP into the <b>POC of the previous session</b> (👀 alert)
+4️⃣ Reaction on 3m–5m: wick takes the high above ($ swept) → <b>CISD ▼ / MSS ▼</b> → leaves an FVG
+5️⃣ Entry in that FVG / iFVG · <b>SL</b> above the sweep high · <b>TP</b> next low (session low / VAL / PDL), at least 2R
+
+<b>🟢 BUY</b> = the mirror
+H1 + M15 aligned BULLISH → killzone → price dips DOWN into the previous-session POC → $ swept below → CISD ▲ / MSS ▲ → entry in the FVG · SL under the sweep low · TP next high
+
+<b>⛔ No trade if</b>
+• flow is MIXED · outside the killzone · no reaction at the POC
+• big news within 15 min · SL too big for your plan
+
+On the chart: XAU.KH PRO = POC / walls / bias · KH MAP = sweep → CISD → MSS story.
+Alert = reminder. The decision is yours."""
 
 
 # ------------------------------------------------------------------ logic
@@ -89,7 +89,7 @@ def trends(df, now):
     for name, rule, span in TFS:
         d = closed_tf(df, rule, span, now)
         st, j = trend(d)
-        out[name] = {"state": st, "since": float((d.index[j] + span).timestamp()) if j is not None else None}
+        out[name] = {"state": st, "since": float(d.index[j].timestamp()) if j is not None else None}
     return out
 
 
@@ -130,34 +130,60 @@ def profile(d):
     return {"vah": lo + (top + 1) * step, "poc": lo + (p + 0.5) * step, "val": lo + bot * step}
 
 
-def sessions(d15, now):
-    """Latest Asia / London / New York session (started by `now`) -> dict name: {vah, poc, val, live, start}."""
-    out = {}
-    idx_ny = d15.index.tz_convert(NY)
-    now_ny = now.tz_convert(NY)
-    for name, s, e in SESSIONS:
-        day = now_ny.normalize()
-        for back in range(0, 6):           # newest session that has started AND has at least one closed candle
-            st = (day - pd.Timedelta(days=back)).replace(hour=s)
-            en = (st + pd.Timedelta(days=1)).replace(hour=e) if s > e else st.replace(hour=e)   # Asia: evening -> next day
-            if st > now_ny:
-                continue
-            m = (idx_ny >= st) & (idx_ny < en)
-            vp = profile(d15[m])
-            if vp:
-                vp.update(live=now_ny < en, start=float(st.timestamp()), end=float(en.timestamp()))
-                out[name] = vp
-                break
+def session_of(t):
+    h = t.astimezone(NY).hour
+    return "Asia" if (h >= 18 or h < 2) else "London" if h < 8 else "New York" if h < 17 else None
+
+
+def blocks(d15):
+    """Consecutive runs of 15m candles in the same session (by the candle's open time, New York clock)."""
+    out, cur, name = [], [], None
+    for t in d15.index:
+        s_ = session_of(t)
+        if s_ != name:
+            if cur and name:
+                out.append((name, cur))
+            cur, name = [], s_
+        if s_:
+            cur.append(t)
+    if cur and name:
+        out.append((name, cur))
     return out
 
 
+def sessions(d15, now=None):
+    """Latest Asia / London / New York block (the current one may still be developing) -> VAH / POC / VAL."""
+    bl = blocks(d15)
+    cur = session_of(d15.index[-1]) if len(d15) else None
+    out = {}
+    for name, ts in bl:
+        if len(ts) >= 3:
+            vp = profile(d15.loc[ts])
+            if vp:
+                vp["live"] = name == cur and ts[-1] == d15.index[-1]
+                out[name] = vp
+    return out
+
+
+def prev_session_poc(d15):
+    """POC of the session BEFORE the one we are in now (Asia -> for London, London -> for New York ...)."""
+    bl = blocks(d15)
+    if session_of(d15.index[-1]) is not None and bl:
+        bl = bl[:-1]                         # drop the current (developing) block
+    if not bl:
+        return None, None
+    name, ts = bl[-1]
+    vp = profile(d15.loc[ts]) if len(ts) >= 3 else None
+    return (name, vp["poc"]) if vp else (None, None)
+
+
 def killzone(t_ict):
-    for name, (h0, m0), (h1, m1), prev in KILLZONES:
-        a = t_ict.replace(hour=h0, minute=m0, second=0, microsecond=0)
-        b = t_ict.replace(hour=h1, minute=m1, second=0, microsecond=0)
-        if a <= t_ict <= b:
-            return name, prev
-    return None, None
+    """Killzone of a 15m candle by its OPEN time (UTC+7), start included, end excluded."""
+    hm = t_ict.strftime("%H:%M")
+    for name, (h0, m0), (h1, m1), _ in KILLZONES:
+        if f"{h0:02d}:{m0:02d}" <= hm < f"{h1:02d}:{m1:02d}":
+            return name
+    return None
 
 
 # ------------------------------------------------------------------ text
@@ -174,57 +200,51 @@ def when(ts):
     return datetime.fromtimestamp(ts, ICT).strftime("%d %b %H:%M") if ts else "-"
 
 
-def table(tr, pr):
-    rows = [f"{'Pair':<7}{'Higher':<10}{'Lower':<11}{'Status':<10}Since"]
+def arrow(x):
+    return "▲" if x == "bull" else "▼" if x == "bear" else "–"
+
+
+def build_message(head, km, tr, pr, price, vp):
+    w = [11, 6, 7, 16]
+    lines = ["Pair".ljust(w[0]) + "High".ljust(w[1]) + "Low".ljust(w[2]) + "Status".ljust(w[3]) + "Since UTC+7"]
     for p in pr:
-        rows.append(f"{SHORT[p['pair']]:<7}{(p['hi'] + ' ' + ARROW[tr[p['hi']]['state']]):<10}"
-                    f"{(p['lo'] + ' ' + ARROW[tr[p['lo']]['state']]):<11}{ST_SHORT[p['status']]:<10}{when(p['since'])}")
-    return "<pre>" + "\n".join(rows) + "</pre>"
+        lines.append(p["pair"].ljust(w[0]) + f"{p['hi']} {arrow(tr[p['hi']]['state'])}".ljust(w[1])
+                     + f"{p['lo']} {arrow(tr[p['lo']]['state'])}".ljust(w[2]) + p["status"].ljust(w[3]) + when(p["since"]))
+    bias = " · ".join(f"{p['pair'].replace(' ', '')} {p['status'].replace('ALIGNED ', '')}" for p in pr)
+    lv = [f"{nm}: VAH {vp[nm]['vah']:,.2f} · POC {vp[nm]['poc']:,.2f} · VAL {vp[nm]['val']:,.2f}"
+          + (" (live)" if vp[nm].get("live") else "") for nm in ("Asia", "London", "New York") if vp.get(nm)]
+    return (f"<b>{head}</b>\n" + (f"🇰🇭 {km}\n" if km else "") +
+            f"<pre>{chr(10).join(lines)}</pre>\n"
+            f"Bias: {bias}\n"
+            f"Price <b>{price:,.2f}</b>\n" + ("\n".join(lv) + "\n" if lv else "") +
+            "\n👉 Open TradingView: check the walls, the outlooks and the KH MAP story.\n"
+            "Alert = reminder · the decision is yours.")
 
 
-def vp_lines(vp):
-    out = ["📊 <b>Session value · VAH · POC · VAL</b>"]
-    for name, _, _ in SESSIONS:
-        v = vp.get(name)
-        if v:
-            out.append(f"{'🌏' if name == 'Asia' else '🇬🇧' if name == 'London' else '🇺🇸'} {name}: "
-                       f"{fmt(v['vah'])} · <b>{fmt(v['poc'])}</b> · {fmt(v['val'])}" + (" <i>(live)</i>" if v["live"] else ""))
-    return out
+KM = {"ALIGNED BULLISH": "ទិសឡើងស្របគ្នា · រកតែ BUY", "ALIGNED BEARISH": "ទិសចុះស្របគ្នា · រកតែ SELL",
+      "MIXED": "ទិសចម្រុះ · រង់ចាំ"}
 
 
-def flow_post(changes, tr, pr, price, t_ict, vp):
-    al = [p["status"] for p in pr]
-    head = []
-    if al.count("ALIGNED BULLISH") == 3 or al.count("ALIGNED BEARISH") == 3:
-        bull = al[0] == "ALIGNED BULLISH"
-        head.append(f"🔥 <b>ALL 3 ALIGNED {'BULLISH' if bull else 'BEARISH'}</b> · D, H4, H1, M15 all {'▲ Bull' if bull else '▼ Bear'}")
-        head.append("🇰🇭 គ្រប់ timeframe ទិសដូចគ្នា · " + ("ទិញ (BUY) ប៉ុណ្ណោះ" if bull else "លក់ (SELL) ប៉ុណ្ណោះ") + " តាមលក្ខខណ្ឌ 5 ចំណុច")
-    else:
-        for p in changes:
-            if p["status"] == "MIXED":
-                head.append(f"⚪ <b>{p['pair']} back to MIXED</b>")
-            else:
-                bull = p["status"] == "ALIGNED BULLISH"
-                head.append(f"{'🟢' if bull else '🔴'} <b>{p['pair']} {p['status']}</b>")
-        km = [("ទិសឡើង" if p["status"] == "ALIGNED BULLISH" else "ទិសចុះ" if p["status"] == "ALIGNED BEARISH" else "ចម្រុះ (រង់ចាំ)")
-              for p in changes]
-        head.append("🇰🇭 " + " · ".join(f"{SHORT[p['pair']]}: {k}" for p, k in zip(changes, km)))
-    return "\n".join(head + [f"💰 Gold <b>{fmt(price)}</b> · {t_ict:%H:%M} UTC+7", table(tr, pr)] + vp_lines(vp)
-                     + ["<i>Reminder only, not a signal · you check, you decide</i>"])
+def flow_head(events, pr):
+    """events = [(pair, old status, new status)] -> (headline, Khmer line), as in the reference."""
+    aligned = [e for e in events if e[2] != "MIXED"]
+    e = aligned[-1] if aligned else events[-1]
+    sts = {p["status"] for p in pr}
+    if len(sts) == 1 and pr[0]["status"] != "MIXED":
+        return f"🔥 XAU.KH Biased Flow | XAUUSD | ALL 3 PAIRS {pr[0]['status']}", "គ្រប់ timeframe " + KM[pr[0]["status"]]
+    if e[2] != "MIXED":
+        return f"{'🟢' if 'BULL' in e[2] else '🔴'} XAU.KH Biased Flow | XAUUSD | {e[0]} {e[2]}", f"{e[0]}: {KM[e[2]]}"
+    return f"⚪ XAU.KH Biased Flow | XAUUSD | {e[0]} back to MIXED (was {e[1]})", f"{e[0]}: {KM['MIXED']}"
 
 
-def watch_post(kz, prev, p, poc, price, t_ict):
-    bull = p["status"] == "ALIGNED BULLISH"
-    return "\n".join([
-        f"👀 <b>Setup watch · {kz} killzone</b>",
-        f"H1 + M15 <b>{p['status']}</b> · the last 15m candle traded through the <b>{prev} POC {fmt(poc)}</b>",
-        f"💰 Gold <b>{fmt(price)}</b> · {t_ict:%H:%M} UTC+7",
-        "",
-        f"⏳ Wait for the reaction on 3m–5m: <b>$ swept → CISD → FVG entry</b>. No reaction = no trade.",
-        f"🇰🇭 រង់ចាំប្រតិកម្មលើ 3m–5m: $ swept → CISD → ចូលនៅ FVG · គ្មានប្រតិកម្ម = មិនចូល",
-        f"{'🟢 Look for BUY reactions only' if bull else '🔴 Look for SELL reactions only'} · check the 5 points in the pinned guide",
-        "<i>Reminder only, not a signal · you decide</i>",
-    ])
+def watch_post(kz, pnm, status, poc, price):
+    d = 1 if "BULL" in status else -1
+    side = "SELL" if d == -1 else "BUY"
+    return (f"👀 <b>SETUP WATCH · {side}</b> | XAUUSD\n"
+            f"✓ H1 + M15 {status}\n✓ {kz} killzone\n✓ price retraced into <b>{pnm} POC {poc:,.2f}</b> (price {price:,.2f})\n\n"
+            f"Now wait for the reaction on 3m–5m: $ swept {'above' if d == -1 else 'below'} → CISD {'▼' if d == -1 else '▲'} → FVG entry.\n"
+            "No reaction = no trade. Alert = reminder · the decision is yours.\n"
+            f"🇰🇭 រង់ចាំប្រតិកម្មលើ 3m–5m: $ swept → CISD → ចូលនៅ FVG · គ្មានប្រតិកម្ម = មិនចូល")
 
 
 # ------------------------------------------------------------------ run
@@ -245,11 +265,23 @@ def main(dry=False, df=None, now=None):
     live = df is None
     if live and not dry and not (os.environ.get("TELEGRAM_TOKEN") and tg.group_id()):
         print("bias flow: no Telegram group/secrets"); return
+    import hashlib
+    gh = hashlib.sha1(GUIDE.encode()).hexdigest()[:10]
+    if not dry and st.get("guide") and st.get("guide_hash") != gh:   # guide text changed: edit the pinned message
+        try:
+            chat, _ = tg.target(TITLE)
+            tg._api("editMessageText", {"chat_id": chat, "message_id": st["guide"], "text": GUIDE, "parse_mode": "HTML",
+                                        "disable_web_page_preview": "true"})
+            st["guide_hash"] = gh
+            json.dump(st, open(STATE, "w"), indent=1)
+            print("bias flow: pinned guide updated")
+        except Exception as e:
+            print("bias flow: guide edit failed:", e)
     if not dry and not st.get("guide"):
         mid = tg.send(GUIDE, TITLE)
         if not mid:
             print("bias flow: guide post failed"); return
-        st["guide"] = mid
+        st["guide"], st["guide_hash"] = mid, gh
         try:
             chat, _ = tg.target(TITLE)
             tg._api("pinChatMessage", {"chat_id": chat, "message_id": mid, "disable_notification": "true"})
@@ -276,28 +308,29 @@ def main(dry=False, df=None, now=None):
     tr = trends(df, now)
     pr = pairs(tr)
     price = float(d15["Close"].iloc[-1])
-    t_ict = datetime.fromtimestamp(last15, ICT)
-    vp = sessions(d15, pd.Timestamp(last15, unit="s", tz="UTC"))
+    vp = sessions(d15)
     old = st.get("pairs")
     status = {p["pair"]: p["status"] for p in pr}
     if old is None:
-        print("bias flow: first run, saving the current flow without posting")
+        print("bias flow: first run, flow saved; alerts start from the next change")
     else:
-        changes = [p for p in pr if old.get(p["pair"]) != p["status"]]
-        if changes:
-            mid = send(flow_post(changes, tr, pr, price, t_ict, vp))
+        events = [(p["pair"], old.get(p["pair"]), p["status"]) for p in pr if old.get(p["pair"]) != p["status"]]
+        if events:
+            head, km = flow_head(events, pr)
+            mid = send(build_message(head, km, tr, pr, price, vp))
             if not mid and not dry:
                 print("bias flow: post failed, will retry next cycle"); return
-            print("bias flow: posted", [(p["pair"], p["status"]) for p in changes])
-    # 👀 setup watch
-    h1m15 = pr[2]
-    kz, prev = killzone(t_ict)
-    if kz and h1m15["status"] != "MIXED" and vp.get(prev):
-        key = f"{t_ict:%Y-%m-%d}|{kz}"
-        poc = vp[prev]["poc"]
+            print("bias flow: posted", head)
+    # 👀 setup watch (ZENN28): H1+M15 aligned · killzone · this 15m candle traded through the previous session's POC
+    h1m15 = pr[2]["status"]
+    t_open = datetime.fromtimestamp(d15.index[-1].timestamp(), ICT)
+    kz = killzone(t_open)
+    pnm, poc = prev_session_poc(d15)
+    if kz and h1m15 != "MIXED" and poc:
+        key = f"{t_open:%Y-%m-%d}|{kz}"          # at most one per killzone per day
         bar = d15.iloc[-1]
         if key not in st.get("watch", []) and bar["Low"] <= poc <= bar["High"]:
-            mid = send(watch_post(kz, prev, h1m15, poc, price, t_ict))
+            mid = send(watch_post(kz, pnm, h1m15, poc, price))
             if mid or dry:
                 st["watch"] = (st.get("watch", []) + [key])[-20:]
                 print("bias flow: setup watch", key)
