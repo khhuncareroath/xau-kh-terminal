@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-27 10:05 UTC",
-  "price": 3671.2,
-  "last_bar": "2026-11-27 05:00:00-05:00",
-  "atr_5m": 3.32,
+  "time": "2026-11-27 10:10 UTC",
+  "price": 3669.62,
+  "last_bar": "2026-11-27 05:05:00-05:00",
+  "atr_5m": 3.57,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -48,18 +48,18 @@
       ],
       "fvgs": [
         {
-          "dir": "bear",
-          "lo": 3674.98,
-          "hi": 3677.21,
-          "status": "open",
-          "time": "2026-11-27 04:55:00-05:00"
-        },
-        {
           "dir": "bull",
           "lo": 3664.71,
           "hi": 3666.78,
           "status": "open",
           "time": "2026-11-27 03:10:00-05:00"
+        },
+        {
+          "dir": "bear",
+          "lo": 3674.98,
+          "hi": 3677.21,
+          "status": "open",
+          "time": "2026-11-27 04:55:00-05:00"
         },
         {
           "dir": "bull",
@@ -327,7 +327,7 @@
     },
     {
       "side": "buy-side",
-      "level": 3671.2,
+      "level": 3669.62,
       "name": "New York high",
       "extreme": 3673.54711,
       "time": "2026-11-27 03:15:00-05:00"
@@ -342,11 +342,11 @@
       3680.76
     ],
     "entry": 3680.12,
-    "stop": 3674.54,
+    "stop": 3674.62,
     "target": 3668.78,
-    "rr": 2.03,
+    "rr": 2.06,
     "reasons": [
-      "New York high at 3671.2 was swept and price closed back inside (buy-side liquidity taken).",
+      "New York high at 3669.62 was swept and price closed back inside (buy-side liquidity taken).",
       "Price closed beyond 3677.55: a bear structure shift right after the sweep.",
       "Retest zone: order block 3679.48-3680.76.",
       "1H structure is bull: this goes against it, so treat as lower quality."
@@ -356,13 +356,12 @@
     "sweep_extreme": 3673.55,
     "sweep_name": "New York high",
     "displacement": true,
-    "risk_atr": 1.68,
+    "risk_atr": 1.54,
     "note": "Idea to confirm with your own entry model, not a signal."
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-27 00:05",
       "11-27 00:10",
       "11-27 00:15",
       "11-27 00:20",
@@ -421,10 +420,10 @@
       "11-27 04:45",
       "11-27 04:50",
       "11-27 04:55",
-      "11-27 05:00"
+      "11-27 05:00",
+      "11-27 05:05"
     ],
     "ts": [
-      1795755900,
       1795756200,
       1795756500,
       1795756800,
@@ -483,16 +482,10 @@
       1795772700,
       1795773000,
       1795773300,
-      1795773600
+      1795773600,
+      1795773900
     ],
     "candles": [
-      [
-        3637.75,
-        3639.83,
-        3635.97,
-        3639.55,
-        351.5
-      ],
       [
         3639.14,
         3640.2,
@@ -902,13 +895,19 @@
       [
         3672.63,
         3674.98,
-        3670.94,
-        3671.2,
+        3670.1,
+        3672.34,
+        351.5
+      ],
+      [
+        3672.28,
+        3672.28,
+        3668.92,
+        3669.62,
         351.5
       ]
     ],
     "vwap": [
-      3599.38,
       3599.91,
       3600.43,
       3601.0,
@@ -967,10 +966,10 @@
       3626.01,
       3626.41,
       3626.78,
-      3627.12
+      3627.12,
+      3627.44
     ],
     "sd": [
-      30.18,
       30.33,
       30.46,
       30.67,
@@ -1029,22 +1028,23 @@
       39.2,
       39.31,
       39.39,
-      39.44
+      39.44,
+      39.46
     ],
     "marks": {
       "sweep": {
-        "price": 3671.2,
-        "i": 38
+        "price": 3669.62,
+        "i": 37
       },
       "mss": {
         "level": 3677.55,
-        "i": 58
+        "i": 57
       },
       "zone": {
         "lo": 3679.48,
         "hi": 3680.76,
         "kind": "ob",
-        "i": 55
+        "i": 54
       }
     }
   },
