@@ -570,6 +570,19 @@ def grade():
         E, SL, TP = float(r["entry"]), float(r["sl"]), float(r["tp"])
         risk = abs(E - SL)
         st, res = None, None
+        # a LIMIT plan only starts once price reaches the entry (before, a TP touch would be a fake win)
+        touched = [i for i, (_, b) in enumerate(bars.iterrows()) if b["Low"] <= E <= b["High"]]
+        if touched:
+            bars = bars.iloc[touched[0]:]
+        else:
+            if len(bars) and (bars.index[-1] - t0) > pd.Timedelta(hours=EXPIRE_H):
+                _sb("PATCH", f"trade_checks?id=eq.{r['id']}",
+                    {"status": "expired", "result_r": 0, "closed_at": datetime.now(timezone.utc).isoformat()})
+                try:
+                    _api("sendMessage", {"chat_id": r["tg_user"], "text": f"⏱ Your {r['side']} limit {_f(E)} was never reached: no trade, 0R."})
+                except Exception as e:
+                    print("trade check message failed:", e)
+            continue
         for _, b in bars.iterrows():
             hit_sl = b["Low"] <= SL if S == 1 else b["High"] >= SL
             hit_tp = b["High"] >= TP if S == 1 else b["Low"] <= TP

@@ -206,6 +206,14 @@ def _base(msg):
 def handle(msg):
     if time.time() - msg.get("date", 0) > 600:   # old message (bot was offline): don't answer late
         return
+    try:   # 💊 owner's coach (private): trade ideas, screenshots, /scan, /coach. Members keep the ✋ trade check.
+        import importlib
+        import coach
+        importlib.reload(coach)   # new coach code after each git pull, no restart
+        if coach.handle(msg, _base(msg)):
+            return
+    except Exception as e:
+        print("coach failed:", e)
     if msg.get("photo") or str((msg.get("document") or {}).get("mime_type", "")).startswith("image/"):   # ✋ trade check: screenshot + "BUY 3865 SL 3858 TP 3880" (private chat only)
         try:
             import tradecheck
