@@ -1,7 +1,7 @@
 {
-  "time": "2026-11-27 21:00 UTC",
+  "time": "2026-11-27 21:05 UTC",
   "price": 3654.56,
-  "atr_5m": 0.34,
+  "atr_5m": 0.35,
   "zones": [
     {
       "low": 3696.5,
@@ -95,8 +95,8 @@
     },
     {
       "low": 3636.59,
-      "high": 3638.56,
-      "mid": 3637.57,
+      "high": 3638.62,
+      "mid": 3637.61,
       "score": 6.5,
       "rating": "C",
       "families": [
@@ -110,14 +110,14 @@
         },
         {
           "name": "VWAP",
-          "price": 3638.06
+          "price": 3638.12
         }
       ],
       "role": "support",
-      "distance": -16.99,
+      "distance": -16.95,
       "location": "premium",
       "reasons": [
-        "2 level(s) agree across 2 source type(s): 15m bull OB 3637.09, VWAP 3638.06",
+        "2 level(s) agree across 2 source type(s): 15m bull OB 3637.09, VWAP 3638.12",
         "Zone sits in the premium half of yesterday's range.",
         "Order block: the last opposite candle before a move that broke structure; price often reacts when it returns."
       ]
@@ -152,9 +152,9 @@
       ]
     },
     {
-      "low": 3605.82,
+      "low": 3605.92,
       "high": 3607.19,
-      "mid": 3606.51,
+      "mid": 3606.56,
       "score": 11.5,
       "rating": "B",
       "families": [
@@ -165,7 +165,7 @@
       "sources": [
         {
           "name": "VWAP -1s",
-          "price": 3606.32
+          "price": 3606.42
         },
         {
           "name": "Prev day high",
@@ -177,10 +177,10 @@
         }
       ],
       "role": "support",
-      "distance": -48.05,
+      "distance": -48.0,
       "location": "premium",
       "reasons": [
-        "3 level(s) agree across 3 source type(s): VWAP -1s 3606.32, Prev day high 3606.46, 1H bull FVG 3606.69",
+        "3 level(s) agree across 3 source type(s): VWAP -1s 3606.42, Prev day high 3606.46, 1H bull FVG 3606.69",
         "Zone sits in the premium half of yesterday's range.",
         "Fair value gap: a spot price moved through too fast; it often returns to rebalance before continuing."
       ]
@@ -188,14 +188,14 @@
   ],
   "sweeps": [
     {
-      "level": "New York low",
-      "price": 3624.17,
+      "level": "London low",
+      "price": 3654.08,
       "type": "swept below, closed back above",
       "meaning": "sell-side liquidity was taken; bullish if structure shifts up"
     },
     {
-      "level": "London low",
-      "price": 3654.08,
+      "level": "New York low",
+      "price": 3624.17,
       "type": "swept below, closed back above",
       "meaning": "sell-side liquidity was taken; bullish if structure shifts up"
     }
@@ -225,9 +225,9 @@
   ],
   "playbooks": [
     {
-      "zone": "3605.82-3607.19",
+      "zone": "3605.92-3607.19",
       "rating": "B",
-      "text": "IF price trades into 3605.82-3607.19 and rejects it (a sweep below that closes back above), look for longs toward the next zone. Idea is invalid on a 5m close below 3604.82.",
+      "text": "IF price trades into 3605.92-3607.19 and rejects it (a sweep below that closes back above), look for longs toward the next zone. Idea is invalid on a 5m close below 3604.92.",
       "note": "Confirm with your own ICT entry (structure shift, FVG). The setup tracker in ict.json shows the engine's own view."
     }
   ],
