@@ -65,7 +65,13 @@ Only 2 kinds of alert:
 def closed_tf(df, rule, span, now):
     """Candles of this timeframe that have fully closed by `now` (5m data must be closed candles already)."""
     import ict
-    d = ict.resample(df, rule)
+    if rule == "4H":   # like TradingView / ZENN28: 4H candles start at 18:00 New York (06:00 / 10:00 / 14:00 ... UTC+7 in winter)
+        x = df.copy()
+        x.index = x.index.tz_convert(NY) + pd.Timedelta(hours=6)
+        d = x.resample("4h").agg(ict.AGG).dropna()
+        d.index = (d.index - pd.Timedelta(hours=6)).tz_convert("UTC")
+    else:
+        d = ict.resample(df, rule)
     return d[d.index + span <= now]
 
 
@@ -220,8 +226,10 @@ def direction_post(bull, tr, pr, price, pnm, poc):
     side = "BUY" if bull else "SELL"
     head = (f"🔥 <b>STRONG {side} DAY · all timeframes agree</b>" if full else
             f"{'🟢' if bull else '🔴'} <b>{side} bias · H1 + M15 aligned {'BULLISH' if bull else 'BEARISH'}</b>")
+    mark = lambda p: "✅" if p["status"] == ("ALIGNED BULLISH" if bull else "ALIGNED BEARISH") else "–"
     lines = [head,
              f"🇰🇭 {'ទិសឡើង · រកតែ BUY · កុំ SELL' if bull else 'ទិសចុះ · រកតែ SELL · កុំ BUY'}",
+             f"H4-H1 {mark(pr[1])} · H1-M15 {mark(pr[2])} · Daily-H4 {mark(pr[0])}",
              f"{tf_line(tr)}  ·  strength {n}/4",
              f"💰 Price <b>{price:,.2f}</b>"]
     if poc:
@@ -230,6 +238,34 @@ def direction_post(bull, tr, pr, price, pnm, poc):
     lines += ["👀 You'll get a <b>Get ready</b> alert when it's there. Don't trade yet.",
               "<i>Reminder, not a signal · you decide</i>"]
     return "\n".join(lines)
+
+
+def joined_post(bull, tr, pr, price, pnm, poc):
+    """H4 + H1 lines up with an H1 + M15 flow already running: the bigger picture agrees (ZENN28's two ✅)."""
+    side = "BUY" if bull else "SELL"
+    lines = [f"{'🟢🟢' if bull else '🔴🔴'} <b>H4-H1 {'BULLISH' if bull else 'BEARISH'} aligned ✅ · H1-M15 ✅</b>",
+             f"🇰🇭 timeframe ធំក៏ស្រប · រកតែ {side} · កុំតាម{'ទិញ' if bull else 'លក់'}ពេលវារត់ហើយ",
+             f"{tf_line(tr)}  ·  price <b>{price:,.2f}</b>",
+             "⛔ Don't chase a market that already ran. Wait for the pullback, then a setup."]
+    if poc:
+        lines.append(f"🎯 Pullback zone: <b>{poc:,.2f}</b> ({pnm} POC) in a killzone → 👀 alert")
+    lines.append("<i>Reminder, not a signal · you decide</i>")
+    return "\n".join(lines)
+
+
+def ready_plan(bull, poc):
+    """The 💊 coach's plan for the Get-ready level: entry at the POC, SL behind the stop pool, TP, lot. Never raises."""
+    try:
+        import coach
+        ctx = coach.context()
+        res = coach.evaluate({"side": "BUY" if bull else "SELL", "entry": round(poc, 2), "sl": None, "tp": None}, ctx)
+        t = res["trade"]
+        risk = abs(t["entry"] - t["sl"])
+        return (f"📋 Ready plan: {'BUY' if bull else 'SELL'} {t['entry']:,.2f} · SL <b>{t['sl']:,.2f}</b> · TP <b>{t['tp']:,.2f}</b> "
+                f"(RR {res['rr']:.1f}) · {coach.lot(risk)}\n<i>Only after the 5m reaction. Price moved on? Send it to the 💊 coach.</i>")
+    except Exception as e:
+        print("bias flow: ready plan failed:", e)
+        return None
 
 
 def watch_post(kz, pnm, status, poc, price):
@@ -331,6 +367,14 @@ def main(dry=False, df=None, now=None):
             print("bias flow: posted direction", new, "all3" if full_now else "")
         elif turned:
             print("bias flow: same direction again within", COOLDOWN_H, "h: not re-posted")
+        h4h1 = pr[1]["status"]
+        jkey = f"{datetime.fromtimestamp(last15, ICT):%Y-%m-%d}|{h4h1}"
+        if (h4h1 != "MIXED" and h4h1 == new and old.get("H4 + H1") != h4h1 and not (full_now and not full_before)
+                and jkey not in st.get("joined", [])):
+            mid = send(joined_post(h4h1 == "ALIGNED BULLISH", tr, pr, price, pnm, poc))
+            if mid or dry:
+                st["joined"] = (st.get("joined", []) + [jkey])[-10:]
+                print("bias flow: H4+H1 joined", h4h1)
     # 👀 setup watch (ZENN28): H1+M15 aligned · killzone · this 15m candle traded through the previous session's POC
     h1m15 = pr[2]["status"]
     t_open = datetime.fromtimestamp(d15.index[-1].timestamp(), ICT)
@@ -339,7 +383,8 @@ def main(dry=False, df=None, now=None):
         key = f"{t_open:%Y-%m-%d}|{kz}"          # at most one per killzone per day
         bar = d15.iloc[-1]
         if key not in st.get("watch", []) and bar["Low"] <= poc <= bar["High"]:
-            mid = send(watch_post(kz, pnm, h1m15, poc, price))
+            plan = ready_plan("BULL" in h1m15, poc)
+            mid = send(watch_post(kz, pnm, h1m15, poc, price) + (f"\n{plan}" if plan else ""))
             if mid or dry:
                 st["watch"] = (st.get("watch", []) + [key])[-20:]
                 print("bias flow: setup watch", key)

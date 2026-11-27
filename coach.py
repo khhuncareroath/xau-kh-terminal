@@ -70,7 +70,7 @@ def context(now=None):
         df.index = df.index.tz_localize("UTC")
     df = closed(df, 5, now=now_ts)
     df = df[df["Volume"] >= 0]
-    now = pd.Timestamp(now_ts, unit="s", tz="UTC")
+    now = pd.Timestamp(int(now_ts), unit="s", tz="UTC")   # whole seconds: the candle index can't hold fractions
     d15 = bf.closed_tf(df, "15m", pd.Timedelta(minutes=15), now)
     tr = bf.trends(df, now)
     pr = bf.pairs(tr)
