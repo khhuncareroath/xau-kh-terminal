@@ -38,24 +38,27 @@ SESSIONS = [("Asia", 18, 2), ("London", 2, 8), ("New York", 8, 17)]       # New 
 KILLZONES = [("London", (13, 30), (16, 0), "Asia"), ("New York", (19, 30), (22, 30), "London")]   # UTC+7, prev session
 ROWS, VA = 24, 0.70
 
-GUIDE = """<b>📌 How to use these alerts · SELL / BUY in 5 checks</b>
+GUIDE = """📌 <b>Bias Flow · how it works (easy)</b>
 
-<b>🔴 SELL</b>
-1️⃣ Flow: <b>H1 + M15 aligned BEARISH</b> (🔴 alert)
-2️⃣ Time: inside the killzone (London 13:30–16:00)
-3️⃣ Retrace: price comes UP into the <b>POC of the previous session</b> (👀 alert)
-4️⃣ Reaction on 3m–5m: wick takes the high above ($ swept) → <b>CISD ▼ / MSS ▼</b> → leaves an FVG
-5️⃣ Entry in that FVG / iFVG · <b>SL</b> above the sweep high · <b>TP</b> next low (session low / VAL / PDL), at least 2R
+Only 2 kinds of alert:
+🔴 / 🟢 <b>Direction</b>: H1 and M15 agree → today look only for SELL (🔴) or BUY (🟢). <b>Don't trade yet.</b>
+🔥 = all timeframes agree = the strongest direction.
+👀 <b>Get ready</b>: price came back to the key level (POC) inside a killzone → <b>open the 5m chart now.</b>
 
-<b>🟢 BUY</b> = the mirror
-H1 + M15 aligned BULLISH → killzone → price dips DOWN into the previous-session POC → $ swept below → CISD ▲ / MSS ▲ → entry in the FVG · SL under the sweep low · TP next high
+<b>On the 5m chart (only after 👀):</b>
+1️⃣ Price grabs liquidity: takes a high (for SELL) or a low (for BUY) = $ swept
+2️⃣ A strong candle turns the other way = CISD
+3️⃣ Enter on the pullback into the gap (FVG) · SL beyond the sweep · TP at least 2R
+❌ No reaction, big news within 15 min, or SL too big = <b>no trade</b>
 
-<b>⛔ No trade if</b>
-• flow is MIXED · outside the killzone · no reaction at the POC
-• big news within 15 min · SL too big for your plan
+⏰ Killzones (Cambodia time): London 13:30–16:00 · New York 19:30–22:30
 
-On the chart: XAU.KH PRO = POC / walls / bias · KH MAP = sweep → CISD → MSS story.
-Alert = reminder. The decision is yours."""
+🇰🇭 <b>ងាយៗ</b>
+🔴/🟢 = ទិសថ្ងៃនេះ (រកតែ SELL ឬ BUY) · មិនទាន់ចូល
+👀 = តម្លៃមកដល់ POC ក្នុង killzone → បើក chart 5m
+5m: $ swept → CISD → ចូលនៅ FVG · គ្មានប្រតិកម្ម = មិនចូល
+
+<i>Alert = reminder. The decision is yours · ការអប់រំ មិនមែនដំបូន្មាន</i>"""
 
 
 # ------------------------------------------------------------------ logic
@@ -204,47 +207,45 @@ def arrow(x):
     return "▲" if x == "bull" else "▼" if x == "bear" else "–"
 
 
-def build_message(head, km, tr, pr, price, vp):
-    w = [11, 6, 7, 16]
-    lines = ["Pair".ljust(w[0]) + "High".ljust(w[1]) + "Low".ljust(w[2]) + "Status".ljust(w[3]) + "Since UTC+7"]
-    for p in pr:
-        lines.append(p["pair"].ljust(w[0]) + f"{p['hi']} {arrow(tr[p['hi']]['state'])}".ljust(w[1])
-                     + f"{p['lo']} {arrow(tr[p['lo']]['state'])}".ljust(w[2]) + p["status"].ljust(w[3]) + when(p["since"]))
-    bias = " · ".join(f"{p['pair'].replace(' ', '')} {p['status'].replace('ALIGNED ', '')}" for p in pr)
-    lv = [f"{nm}: VAH {vp[nm]['vah']:,.2f} · POC {vp[nm]['poc']:,.2f} · VAL {vp[nm]['val']:,.2f}"
-          + (" (live)" if vp[nm].get("live") else "") for nm in ("Asia", "London", "New York") if vp.get(nm)]
-    return (f"<b>{head}</b>\n" + (f"🇰🇭 {km}\n" if km else "") +
-            f"<pre>{chr(10).join(lines)}</pre>\n"
-            f"Bias: {bias}\n"
-            f"Price <b>{price:,.2f}</b>\n" + ("\n".join(lv) + "\n" if lv else "") +
-            "\n👉 Open TradingView: check the walls, the outlooks and the KH MAP story.\n"
-            "Alert = reminder · the decision is yours.")
+COOLDOWN_H = 6          # the same direction is not re-posted within 6 hours (H1+M15 often flickers)
 
 
-KM = {"ALIGNED BULLISH": "ទិសឡើងស្របគ្នា · រកតែ BUY", "ALIGNED BEARISH": "ទិសចុះស្របគ្នា · រកតែ SELL",
-      "MIXED": "ទិសចម្រុះ · រង់ចាំ"}
+def tf_line(tr):
+    return " · ".join(f"{k} {arrow(tr[k]['state'])}" for k in ("D", "H4", "H1", "M15"))
 
 
-def flow_head(events, pr):
-    """events = [(pair, old status, new status)] -> (headline, Khmer line), as in the reference."""
-    aligned = [e for e in events if e[2] != "MIXED"]
-    e = aligned[-1] if aligned else events[-1]
-    sts = {p["status"] for p in pr}
-    if len(sts) == 1 and pr[0]["status"] != "MIXED":
-        return f"🔥 XAU.KH Biased Flow | XAUUSD | ALL 3 PAIRS {pr[0]['status']}", "គ្រប់ timeframe " + KM[pr[0]["status"]]
-    if e[2] != "MIXED":
-        return f"{'🟢' if 'BULL' in e[2] else '🔴'} XAU.KH Biased Flow | XAUUSD | {e[0]} {e[2]}", f"{e[0]}: {KM[e[2]]}"
-    return f"⚪ XAU.KH Biased Flow | XAUUSD | {e[0]} back to MIXED (was {e[1]})", f"{e[0]}: {KM['MIXED']}"
+def direction_post(bull, tr, pr, price, pnm, poc):
+    full = len({p["status"] for p in pr}) == 1
+    n = sum(tr[k]["state"] == ("bull" if bull else "bear") for k in ("D", "H4", "H1", "M15"))
+    side = "BUY" if bull else "SELL"
+    head = (f"🔥 <b>STRONG {side} DAY · all timeframes agree</b>" if full else
+            f"{'🟢' if bull else '🔴'} <b>{side} bias · H1 + M15 aligned {'BULLISH' if bull else 'BEARISH'}</b>")
+    lines = [head,
+             f"🇰🇭 {'ទិសឡើង · រកតែ BUY · កុំ SELL' if bull else 'ទិសចុះ · រកតែ SELL · កុំ BUY'}",
+             f"{tf_line(tr)}  ·  strength {n}/4",
+             f"💰 Price <b>{price:,.2f}</b>"]
+    if poc:
+        lines.append(f"🎯 Wait for price to come back {'DOWN' if bull else 'UP'} to <b>{poc:,.2f}</b> ({pnm} POC) "
+                     f"in a killzone (London 13:30–16:00 · NY 19:30–22:30)")
+    lines += ["👀 You'll get a <b>Get ready</b> alert when it's there. Don't trade yet.",
+              "<i>Reminder, not a signal · you decide</i>"]
+    return "\n".join(lines)
 
 
 def watch_post(kz, pnm, status, poc, price):
-    d = 1 if "BULL" in status else -1
-    side = "SELL" if d == -1 else "BUY"
-    return (f"👀 <b>SETUP WATCH · {side}</b> | XAUUSD\n"
-            f"✓ H1 + M15 {status}\n✓ {kz} killzone\n✓ price retraced into <b>{pnm} POC {poc:,.2f}</b> (price {price:,.2f})\n\n"
-            f"Now wait for the reaction on 3m–5m: $ swept {'above' if d == -1 else 'below'} → CISD {'▼' if d == -1 else '▲'} → FVG entry.\n"
-            "No reaction = no trade. Alert = reminder · the decision is yours.\n"
-            f"🇰🇭 រង់ចាំប្រតិកម្មលើ 3m–5m: $ swept → CISD → ចូលនៅ FVG · គ្មានប្រតិកម្ម = មិនចូល")
+    bull = "BULL" in status
+    side = "BUY" if bull else "SELL"
+    return "\n".join([
+        f"👀 <b>GET READY · {side}</b>",
+        f"Price is at the <b>{pnm} POC {poc:,.2f}</b> in the {kz} killzone (now {price:,.2f}).",
+        "Open the 5m chart and wait for:",
+        f"1️⃣ price takes a {'low' if bull else 'high'} ($ swept)",
+        f"2️⃣ a strong candle {'up' if bull else 'down'} (CISD)",
+        f"3️⃣ enter on the pullback into the FVG · SL {'below' if bull else 'above'} the sweep",
+        "❌ No reaction = no trade.",
+        f"🇰🇭 តម្លៃនៅ POC · បើក 5m: $ swept → CISD → ចូល FVG ({'BUY' if bull else 'SELL'}) · គ្មានប្រតិកម្ម = មិនចូល",
+        "<i>Reminder, not a signal · you decide</i>",
+    ])
 
 
 # ------------------------------------------------------------------ run
@@ -311,21 +312,29 @@ def main(dry=False, df=None, now=None):
     vp = sessions(d15)
     old = st.get("pairs")
     status = {p["pair"]: p["status"] for p in pr}
+    pnm, poc = prev_session_poc(d15)
     if old is None:
         print("bias flow: first run, flow saved; alerts start from the next change")
     else:
-        events = [(p["pair"], old.get(p["pair"]), p["status"]) for p in pr if old.get(p["pair"]) != p["status"]]
-        if events:
-            head, km = flow_head(events, pr)
-            mid = send(build_message(head, km, tr, pr, price, vp))
+        # only what matters (owner, 27 Nov): H1+M15 turning aligned, or all 3 pairs turning aligned. No "mixed" posts.
+        new = pr[2]["status"]
+        full_now = len(set(status.values())) == 1 and new != "MIXED"
+        full_before = len(set(old.values())) == 1 and old.get("H1 + M15") != "MIXED"
+        turned = new != "MIXED" and old.get("H1 + M15") != new
+        last = st.get("last_dir", {})
+        cool = turned and last15 - last.get(new, 0) < COOLDOWN_H * 3600 and not (full_now and not full_before)
+        if (turned and not cool) or (full_now and not full_before):
+            mid = send(direction_post(new == "ALIGNED BULLISH", tr, pr, price, pnm, poc))
             if not mid and not dry:
                 print("bias flow: post failed, will retry next cycle"); return
-            print("bias flow: posted", head)
+            st["last_dir"] = dict(last, **{new: last15})
+            print("bias flow: posted direction", new, "all3" if full_now else "")
+        elif turned:
+            print("bias flow: same direction again within", COOLDOWN_H, "h: not re-posted")
     # 👀 setup watch (ZENN28): H1+M15 aligned · killzone · this 15m candle traded through the previous session's POC
     h1m15 = pr[2]["status"]
     t_open = datetime.fromtimestamp(d15.index[-1].timestamp(), ICT)
     kz = killzone(t_open)
-    pnm, poc = prev_session_poc(d15)
     if kz and h1m15 != "MIXED" and poc:
         key = f"{t_open:%Y-%m-%d}|{kz}"          # at most one per killzone per day
         bar = d15.iloc[-1]
