@@ -1,8 +1,8 @@
 {
-  "time": "2026-11-27 10:20 UTC",
-  "price": 3671.83,
-  "last_bar": "2026-11-27 05:15:00-05:00",
-  "atr_5m": 3.24,
+  "time": "2026-11-27 10:30 UTC",
+  "price": 3672.49,
+  "last_bar": "2026-11-27 05:25:00-05:00",
+  "atr_5m": 3.32,
   "rules": "current",
   "timeframes": {
     "5m": {
@@ -327,43 +327,24 @@
     },
     {
       "side": "buy-side",
-      "level": 3671.83,
+      "level": 3672.49,
       "name": "New York high",
       "extreme": 3673.54711,
       "time": "2026-11-27 03:15:00-05:00"
     }
   ],
   "setup": {
-    "stage": 2,
-    "label": "Shift confirmed, waiting for the retest",
+    "stage": 4,
+    "label": "Idea void: price took out the sweep extreme",
     "dir": "bear",
-    "zone": [
-      3679.48,
-      3680.76
-    ],
-    "entry": 3680.12,
-    "stop": 3674.52,
-    "target": 3668.92,
-    "rr": 2.0,
     "reasons": [
-      "New York high at 3671.83 was swept and price closed back inside (buy-side liquidity taken).",
-      "Price closed beyond 3677.55: a bear structure shift right after the sweep.",
-      "Retest zone: order block 3679.48-3680.76.",
-      "1H structure is bull: this goes against it, so treat as lower quality."
-    ],
-    "sweep_time": "2026-11-27 03:15:00-05:00",
-    "shift_time": "2026-11-27 04:55:00-05:00",
-    "sweep_extreme": 3673.55,
-    "sweep_name": "New York high",
-    "displacement": true,
-    "risk_atr": 1.73,
-    "note": "Idea to confirm with your own entry model, not a signal."
+      "New York high at 3672.49 was swept and price closed back inside (buy-side liquidity taken).",
+      "Price closed beyond 3677.55: a bear structure shift right after the sweep."
+    ]
   },
   "chart": {
     "tf": "5m",
     "times": [
-      "11-27 00:20",
-      "11-27 00:25",
       "11-27 00:30",
       "11-27 00:35",
       "11-27 00:40",
@@ -421,11 +402,11 @@
       "11-27 05:00",
       "11-27 05:05",
       "11-27 05:10",
-      "11-27 05:15"
+      "11-27 05:15",
+      "11-27 05:20",
+      "11-27 05:25"
     ],
     "ts": [
-      1795756800,
-      1795757100,
       1795757400,
       1795757700,
       1795758000,
@@ -483,23 +464,11 @@
       1795773600,
       1795773900,
       1795774200,
-      1795774500
+      1795774500,
+      1795774800,
+      1795775100
     ],
     "candles": [
-      [
-        3639.8,
-        3647.37,
-        3638.74,
-        3646.98,
-        351.5
-      ],
-      [
-        3646.26,
-        3650.59,
-        3646.26,
-        3650.56,
-        351.5
-      ],
       [
         3650.45,
         3666.09,
@@ -903,13 +872,25 @@
         3670.92,
         3671.96,
         3670.64,
-        3671.83,
+        3670.88,
+        351.5
+      ],
+      [
+        3671.0,
+        3673.96,
+        3670.67,
+        3673.75,
+        351.5
+      ],
+      [
+        3673.29,
+        3674.04,
+        3670.67,
+        3672.49,
         351.5
       ]
     ],
     "vwap": [
-      3601.0,
-      3601.62,
       3602.27,
       3602.86,
       3603.46,
@@ -967,11 +948,11 @@
       3627.12,
       3627.45,
       3627.77,
-      3628.09
+      3628.09,
+      3628.41,
+      3628.73
     ],
     "sd": [
-      30.67,
-      30.95,
       31.28,
       31.53,
       31.79,
@@ -1029,22 +1010,18 @@
       39.44,
       39.47,
       39.5,
-      39.53
+      39.53,
+      39.57,
+      39.6
     ],
     "marks": {
       "sweep": {
-        "price": 3671.83,
-        "i": 35
+        "price": 3672.49,
+        "i": 33
       },
       "mss": {
         "level": 3677.55,
-        "i": 55
-      },
-      "zone": {
-        "lo": 3679.48,
-        "hi": 3680.76,
-        "kind": "ob",
-        "i": 52
+        "i": 53
       }
     }
   },
